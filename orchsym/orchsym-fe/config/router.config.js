@@ -55,19 +55,31 @@ export default [
     routes: [
       {
         path: '/',
-        redirect: '/application/index',
+        redirect: '/application',
         authority: ['admin']
       },
-      // 新添加的应用页面
+      // 应用
       {
         name: 'application',
         icon: 'studioiconapp1',
         path: '/application',
+        component: './Application/Index',
+      },
+      // 模板
+      {
+        name: 'template',
+        icon: 'copy',
+        path: '/template',
         routes: [
           {
-            name: 'index',
-            path: '/application/index',
-            component: './Application/Index'
+            name: 'local',
+            path: '/template/local',
+            component: './Template/Local',
+          },
+          {
+            name: 'remote',
+            path: '/template/remote',
+            component: './Template/Remote',
           }
         ]
       },

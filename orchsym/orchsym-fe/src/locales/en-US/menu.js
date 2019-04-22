@@ -3,8 +3,13 @@ export default {
   'menu.blank': 'new page in english',
   'menu.blank.index': 'new page index',
   'menu.blank.sign': 'new page sub',
+  // 应用页面
   'menu.application': 'Applications',
-  'menu.application.index': 'Applications Homepage',
+  // 模板页面
+  'menu.template': 'template',
+  'menu.template.local': 'local template',
+  'menu.template.remote': 'remote template',
+
   'menu.home': 'Home',
   'menu.login': 'Login',
   'menu.register': 'Register',

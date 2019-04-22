@@ -123,7 +123,7 @@ models: () => [
     "routes": [
       {
         "path": "/",
-        "redirect": "/application/index",
+        "redirect": "/application",
         "authority": [
           "admin"
         ],
@@ -133,13 +133,34 @@ models: () => [
         "name": "application",
         "icon": "studioiconapp1",
         "path": "/application",
-        "routes": [
-          {
-            "name": "index",
-            "path": "/application/index",
-            "component": _dvaDynamic({
+        "component": _dvaDynamic({
   
   component: () => import(/* webpackChunkName: "p__Application__Index" */'../Application/Index'),
+  LoadingComponent: require('/Users/guozhengzhong/Desktop/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
+        "exact": true
+      },
+      {
+        "name": "template",
+        "icon": "copy",
+        "path": "/template",
+        "routes": [
+          {
+            "name": "local",
+            "path": "/template/local",
+            "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Template__Local" */'../Template/Local'),
+  LoadingComponent: require('/Users/guozhengzhong/Desktop/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
+            "exact": true
+          },
+          {
+            "name": "remote",
+            "path": "/template/remote",
+            "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Template__Remote" */'../Template/Remote'),
   LoadingComponent: require('/Users/guozhengzhong/Desktop/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
             "exact": true

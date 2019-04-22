@@ -12,6 +12,11 @@ import form from './en-US/form';
 // add test
 import blank from './en-US/blank';
 
+// 应用页面
+import application from './en-US/application';
+// 模板页面
+import template from './en-US/template';
+
 export default {
   'navBar.lang': 'Languages',
   'layout.user.link.help': 'Help',
@@ -29,4 +34,6 @@ export default {
   ...component,
   ...form,
   ...blank,
+  ...application,
+  ...template,
 };
