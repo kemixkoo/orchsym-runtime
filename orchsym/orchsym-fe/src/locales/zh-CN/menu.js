@@ -8,6 +8,8 @@ export default {
   'menu.template': '模板',
   'menu.template.local': '本地模板',
   'menu.template.remote': '远程模板',
+  // 编排页面
+  'menu.orchestrations': '编排',
 
   'menu.home': '首页',
   'menu.login': '登录',

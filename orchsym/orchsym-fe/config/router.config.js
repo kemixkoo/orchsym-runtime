@@ -56,7 +56,7 @@ export default [
       {
         path: '/',
         redirect: '/application',
-        authority: ['admin']
+        authority: ['admin'],
       },
       // 应用
       {
@@ -80,8 +80,15 @@ export default [
             name: 'remote',
             path: '/template/remote',
             component: './Template/Remote',
-          }
-        ]
+          },
+        ],
+      },
+      // 编排
+      {
+        name: 'orchestrations',
+        path: '/orchestrations',
+        icon: 'share-alt',
+        component: './Orchestrations/Index',
       },
       // 自带的结果页面
       {
@@ -134,5 +141,5 @@ export default [
         component: '404',
       },
     ],
-  }
+  },
 ];

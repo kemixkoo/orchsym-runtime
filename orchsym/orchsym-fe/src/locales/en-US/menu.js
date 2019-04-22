@@ -9,6 +9,8 @@ export default {
   'menu.template': 'template',
   'menu.template.local': 'local template',
   'menu.template.remote': 'remote template',
+  // 编排页面
+  'menu.orchestrations': 'orchestrations',
 
   'menu.home': 'Home',
   'menu.login': 'Login',

@@ -171,6 +171,17 @@ models: () => [
         ]
       },
       {
+        "name": "orchestrations",
+        "path": "/orchestrations",
+        "icon": "share-alt",
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Orchestrations__Index" */'../Orchestrations/Index'),
+  LoadingComponent: require('/Users/guozhengzhong/Desktop/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
+        "exact": true
+      },
+      {
         "name": "result",
         "icon": "check-circle-o",
         "path": "/result",
