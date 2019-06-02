@@ -198,7 +198,7 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
             .description("If true, the Processor will attempt to translate field names into the appropriate column names for the table specified. "
                     + "If false, the field names must match the column names exactly, or the column will not be updated")
             .allowableValues("true", "false")
-            .defaultValue("true")
+            .defaultValue("false")
             .build();
 
     static final PropertyDescriptor UNMATCHED_FIELD_BEHAVIOR = new PropertyDescriptor.Builder()
@@ -551,7 +551,7 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
                 if (sql == null || StringUtils.isEmpty((String) sql)) {
                     throw new MalformedRecordException(format("Record had no (or null) value for Field Containing SQL: %s, FlowFile %s", sqlField, flowFile));
                 }
-
+                getLogger().debug("Execute SQL: " + (String) sql);
                 // Execute the statement as-is
                 s.execute((String) sql);
             }
@@ -1165,5 +1165,11 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
         public List<Integer> getFieldIndexes() {
             return fieldIndexes;
         }
+
+        @Override
+        public String toString() {
+            return sql;
+        }
+        
     }
 }

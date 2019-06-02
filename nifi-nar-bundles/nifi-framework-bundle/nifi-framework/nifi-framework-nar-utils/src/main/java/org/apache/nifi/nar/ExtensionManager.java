@@ -152,7 +152,7 @@ public class ExtensionManager {
                 try {
                     o = iterator.next();
                 } catch (Throwable e) {
-                    logger.error(String.format("Unable to create the component %s from %s due to %s", entry.getKey().getSimpleName(), bundle.getBundleDetails().toString(), e.getMessage()), e);
+                    logger.error(String.format("Unable to create the component %s from %s due to %s", entry.getKey().getSimpleName(), bundle.getBundleDetails().toString(), e.getMessage()));
                     continue; // try to load another components, so ignore current one
                 }
 
@@ -523,6 +523,19 @@ public class ExtensionManager {
         }
 
         return tempComponentLookup.get(getClassBundleKey(classType, bundleCoordinate));
+    }
+
+    public static boolean removeTempComponent(final String classType, final BundleCoordinate bundleCoordinate) {
+        try {
+            final ConfigurableComponent tempComponent = getTempComponent(classType, bundleCoordinate);
+            if (null != tempComponent) {
+                tempComponentLookup.remove(getClassBundleKey(classType, bundleCoordinate));
+                return true;
+            }
+        } catch (Exception e) {
+            //
+        }
+        return false;
     }
 
     private static String getClassBundleKey(final String classType, final BundleCoordinate bundleCoordinate) {

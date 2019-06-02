@@ -62,6 +62,7 @@ import org.apache.nifi.cluster.event.NodeEvent;
 import org.apache.nifi.cluster.manager.StatusMerger;
 import org.apache.nifi.cluster.protocol.NodeIdentifier;
 import org.apache.nifi.components.AllowableValue;
+import org.apache.nifi.components.ComponentsContext;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.ValidationResult;
 import org.apache.nifi.components.state.Scope;
@@ -2238,6 +2239,9 @@ public final class DtoFactory {
             .collect(Collectors.toMap(entry -> entry.getKey().getName(), entry -> entry.getValue()));
         dto.setVariables(variables);
 
+        dto.setTags(group.getTags());
+        dto.setAdditions(group.getAdditions());
+
         final ProcessGroup parentGroup = group.getParent();
         if (parentGroup != null) {
             dto.setParentGroupId(parentGroup.getIdentifier());
@@ -2761,6 +2765,8 @@ public final class DtoFactory {
             dto.setTags(getTags(cls));
             setMarks(cls, dto);
             types.add(dto);
+
+            dto.setPreview(ComponentsContext.isPreviewType(dto.getType()));
         }
 
         return types;
@@ -3928,6 +3934,14 @@ public final class DtoFactory {
 
         if (original.getVariables() != null) {
             copy.setVariables(new HashMap<>(original.getVariables()));
+        }
+
+        if (original.getTags() != null) {
+            copy.setTags(new HashSet<>(original.getTags()));
+        }
+
+        if (original.getAdditions() != null) {
+            copy.setAdditions(new HashMap<>(original.getAdditions()));
         }
 
         return copy;

@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,6 +110,16 @@ public class StandardControllerServiceProvider implements ControllerServiceProvi
         return stateManagerProvider.getStateManager(componentId);
     }
 
+    @SuppressWarnings("rawtypes")
+    public void checkExtensionLoaded(Class<?> typeClass, final String type) {
+        // loaded or not
+        final Set<Class> extensions = ExtensionManager.getExtensions(typeClass);
+        Optional<Class> foundType = extensions.stream().filter(c -> c.getName().equals(type)).findFirst();
+        if (!foundType.isPresent()) {
+            throw new RuntimeException("Didn't load the " + typeClass.getSimpleName() + ": " + type);
+        }
+    }
+
     @Override
     public ControllerServiceNode createControllerService(final String type, final String id, final BundleCoordinate bundleCoordinate, final Set<URL> additionalUrls, final boolean firstTimeAdded) {
         if (type == null || id == null || bundleCoordinate == null) {
@@ -125,11 +136,13 @@ public class StandardControllerServiceProvider implements ControllerServiceProvi
                     throw new ControllerServiceInstantiationException("Unable to find bundle for coordinate " + bundleCoordinate.getCoordinate());
                 }
 
+                checkExtensionLoaded(ControllerService.class, type);
+
                 cl = ExtensionManager.createInstanceClassLoader(type, id, csBundle, additionalUrls);
                 Thread.currentThread().setContextClassLoader(cl);
                 rawClass = Class.forName(type, false, cl);
             } catch (final Exception e) {
-                logger.error("Could not create Controller Service of type " + type + " for ID " + id + "; creating \"Ghost\" implementation", e);
+                logger.error("Could not create Controller Service of type {} for ID {} due to {}; then creating \"Ghost\" implementation", type, id, e.getMessage());
                 Thread.currentThread().setContextClassLoader(currentContextClassLoader);
                 return createGhostControllerService(type, id, bundleCoordinate);
             }
@@ -140,7 +153,7 @@ public class StandardControllerServiceProvider implements ControllerServiceProvi
             try {
                 originalService = controllerServiceClass.newInstance();
             } catch (Throwable e) {
-                logger.error(String.format("Unable to create the Controller Service %s from ID %s due to %s; then creating \"Ghost\" implementation", type, id, e.getMessage()), e);
+                logger.error("Unable to create the Controller Service {} from ID {} due to {}; then creating \"Ghost\" implementation", type, id, e.getMessage());
                 // if can't create the instance, use ghost instead
                 Thread.currentThread().setContextClassLoader(currentContextClassLoader);
                 return createGhostControllerService(type, id, bundleCoordinate);

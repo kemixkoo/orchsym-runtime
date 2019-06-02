@@ -54,6 +54,7 @@ import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.ResourceFactory;
 import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.bundle.BundleCoordinate;
+import org.apache.nifi.components.ComponentsContext;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.state.StateManager;
 import org.apache.nifi.components.state.StateManagerProvider;
@@ -145,7 +146,7 @@ import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class StandardProcessGroup implements ProcessGroup {
+public final class StandardProcessGroup implements ProcessGroup, ProcessTags, ProcessAdditions {
 
     private final String id;
     private final AtomicReference<ProcessGroup> parent;
@@ -173,6 +174,8 @@ public final class StandardProcessGroup implements ProcessGroup {
     private final StringEncryptor encryptor;
     private final MutableVariableRegistry variableRegistry;
     private final VersionControlFields versionControlFields = new VersionControlFields();
+    private final Set<String> tags=new HashSet<>();
+    private final Map<String,String> additions=new HashMap<>();
 
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock readLock = rwLock.readLock();
@@ -1260,6 +1263,10 @@ public final class StandardProcessGroup implements ProcessGroup {
     public CompletableFuture<Void> startProcessor(final ProcessorNode processor, final boolean failIfStopping) {
         readLock.lock();
         try {
+            if (ComponentsContext.isPreview(processor.getComponentClass())) {
+                throw new IllegalStateException("Won't run the preview component " + processor.getComponentClass().getSimpleName() + " by reason, please contact to admin");
+            }
+
             if (getProcessor(processor.getIdentifier()) == null) {
                 throw new IllegalStateException("Processor is not a member of this Process Group");
             }
@@ -4662,5 +4669,33 @@ public final class StandardProcessGroup implements ProcessGroup {
                 }
             }
         }
+    }
+
+    @Override
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    @Override
+    public void setTags(Set<String> tags) {
+        this.tags.clear();
+        if (null != tags) {
+            this.tags.addAll(tags);
+        }
+    }
+
+    @Override
+    public Map<String, String> getAdditions() {
+        return this.additions;
+    }
+
+    @Override
+    public void setAdditions(Map<String, String> additions) {
+        this.additions.clear();
+        if (null == additions || additions.isEmpty()) {
+            return;
+        }
+        this.additions.putAll(additions);
+
     }
 }
