@@ -1,11 +1,22 @@
 @import '~antd/lib/style/themes/default.less';
 
+body {
+  background-image: url(../assets/login-background.jpg);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: inherit;
+}
+
 .container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: auto;
   background: @layout-body-background;
+}
+
+.containerBs {
+  height: 100%;
 }
 
 .lang {
@@ -41,15 +52,15 @@
 }
 
 .header {
-  height: 44px;
-  line-height: 44px;
+  height: 64px;
+  line-height: 64px;
   a {
     text-decoration: none;
   }
 }
 
 .logo {
-  height: 44px;
+  height: 64px;
   margin-right: 16px;
   vertical-align: top;
 }

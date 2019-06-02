@@ -2,11 +2,13 @@ import React, { PureComponent } from 'react';
 import classNames from 'classnames';
 import { Menu, Icon } from 'antd';
 import Link from 'umi/link';
+import PropTypes from 'prop-types';
 import { urlToList } from '../_utils/pathTools';
 import { getMenuMatches } from './SiderMenuUtils';
 import { isUrl } from '@/utils/utils';
 import styles from './index.less';
 import IconFont from '@/components/IconFont';
+// import SiderMenuWrapper from "./index";
 
 const { SubMenu } = Menu;
 
@@ -37,6 +39,7 @@ export default class BaseMenu extends PureComponent {
     if (!menusData) {
       return [];
     }
+    console.log('menusData', menusData)
     return menusData
       .filter(item => item.name && !item.hideInMenu)
       .map(item => this.getSubMenuOrItem(item))
@@ -153,4 +156,16 @@ export default class BaseMenu extends PureComponent {
       </Menu>
     );
   }
+}
+BaseMenu.propTypes = {
+  flatMenuKeys: PropTypes.any,
+  theme: PropTypes.any,
+  location: PropTypes.any,
+  openKeys: PropTypes.any,
+  mode: PropTypes.any,
+  className: PropTypes.any,
+  collapsed: PropTypes.any,
+  handleOpenChange: PropTypes.any,
+  style: PropTypes.any,
+  menuData: PropTypes.any,
 }

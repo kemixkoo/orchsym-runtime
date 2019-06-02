@@ -3,9 +3,9 @@ export default {
   'menu.blank.sign': '汉语我叫新页面二级页面',
   'menu.blank.index': '汉语我叫新页面默认',
   // 应用页面
-  'menu.application': '应用',
+  'menu.application': '应用管理',
   // 模板页面
-  'menu.template': '模板',
+  'menu.template': '模板管理',
   'menu.template.local': '本地模板',
   'menu.template.remote': '远程模板',
   // 编排页面

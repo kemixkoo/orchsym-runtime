@@ -15,12 +15,6 @@ const FooterView = () => (
           blankTarget: true,
         },
         {
-          key: 'bitbucket',
-          title: <Icon type="code" />,
-          href: 'http://jr.baishancloud.com:7990/projects/DATA/repos/nifi/browse',
-          blankTarget: true,
-        },
-        {
           key: 'Baishan Cloud',
           title: 'Baishan Cloud',
           href: '',

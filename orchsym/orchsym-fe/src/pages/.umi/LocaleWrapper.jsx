@@ -27,7 +27,7 @@ defaultAntd = defaultAntd.default || defaultAntd;
 const localeInfo = {
   'en-US': {
     messages: {
-      ...require('/Users/guozhengzhong/Desktop/nifi/orchsym/orchsym-fe/src/locales/en-US.js').default,
+      ...require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/locales/en-US.js').default,
     },
     locale: 'en-US',
     antd: require('antd/lib/locale-provider/en_US'),
@@ -36,7 +36,7 @@ const localeInfo = {
   },
   'zh-CN': {
     messages: {
-      ...require('/Users/guozhengzhong/Desktop/nifi/orchsym/orchsym-fe/src/locales/zh-CN.js').default,
+      ...require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/locales/zh-CN.js').default,
     },
     locale: 'zh-CN',
     antd: require('antd/lib/locale-provider/zh_CN'),
@@ -45,7 +45,7 @@ const localeInfo = {
   },
   'zh-TW': {
     messages: {
-      ...require('/Users/guozhengzhong/Desktop/nifi/orchsym/orchsym-fe/src/locales/zh-TW.js').default,
+      ...require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/locales/zh-TW.js').default,
     },
     locale: 'zh-TW',
     antd: require('antd/lib/locale-provider/zh_TW'),

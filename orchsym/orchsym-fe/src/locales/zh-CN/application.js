@@ -6,6 +6,6 @@
  */
 
 export default {
-  'page.application.content.title': '应用',
+  'page.application.content.title': '应用列表',
   'page.application.content': '这是应用页面',
 }
