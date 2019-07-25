@@ -1,8 +1,42 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Badge, Row, Col } from 'antd';
+import { Card, Menu, Icon, Dropdown, Badge, Row, Col, Button } from 'antd';
 import styles from './application.less';
+import CreateApplication from './CreateApplication';
+import ApplicationSearch from './ApplicationSearch';
+import EditApplication from './EditApplication';
+import SortApplication from './SortApplication';
+import ListCard from './ListCard';
 
 export default class AppList extends PureComponent {
+  state = {
+    createAppVisible: null,
+    editAppVisible: null,
+  };
+
+  showCreateModal = () => {
+    this.setState({
+      createAppVisible: true,
+    })
+  }
+
+  handleCreateCancel = () => {
+    this.setState({
+      createAppVisible: false,
+    })
+  }
+
+  showEditModal = () => {
+    this.setState({
+      editAppVisible: true,
+    })
+  }
+
+  handleEditCancel = () => {
+    this.setState({
+      editAppVisible: false,
+    })
+  }
+
   getCarList = (item) => {
     const menu = (
       <Menu>
@@ -10,7 +44,7 @@ export default class AppList extends PureComponent {
           <Icon type="appstore" />
           进入应用
         </Menu.Item>
-        <Menu.Item key="2">
+        <Menu.Item key="2" onClick={this.showEditModal}>
           <Icon type="edit" />
           编辑应用
         </Menu.Item>
@@ -151,11 +185,33 @@ export default class AppList extends PureComponent {
     appListData.forEach((item) => {
       Carlist.push(this.getCarList(item))
     });
+    const { createAppVisible, editAppVisible } = this.state;
 
     return (
-      <Row gutter={16}>
-        {Carlist}
-      </Row>
+      <div>
+        <Row gutter={16}>
+          <Col span={3}>
+            <Button type="primary" onClick={this.showCreateModal} className={styles.bottomSpace}>
+              创建应用
+            </Button>
+          </Col>
+          <Col span={10} />
+          <Col span={9}>
+            <ApplicationSearch />
+          </Col>
+          <Col span={1}>
+            <SortApplication />
+          </Col>
+          <Col span={1}>
+            <ListCard />
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          {Carlist}
+        </Row>
+        <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
+        <EditApplication visible={editAppVisible} handleEditCancel={this.handleEditCancel} />
+      </div>
     );
   }
 }
