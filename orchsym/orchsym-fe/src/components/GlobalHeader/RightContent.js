@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
-import { Spin, Tag, Menu, Icon, Avatar, Tooltip, message } from 'antd';
+import { Spin, Tag, Menu, Icon, message } from 'antd';
+// Avatar, Tooltip
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import groupBy from 'lodash/groupBy';
@@ -73,7 +74,20 @@ export default class GlobalHeaderRight extends PureComponent {
       onNoticeClear,
       theme,
     } = this.props;
-
+    // 用户信息
+    const settingMenu = (
+      <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
+        <Menu.Item key="triggerError">
+          <Icon type="close-circle" />
+          <FormattedMessage id="menu.account.trigger" defaultMessage="Trigger Error" />
+        </Menu.Item>
+        {/* <Menu.Divider /> */}
+        <Menu.Item key="logout">
+          <Icon type="logout" />
+          <FormattedMessage id="menu.account.logout" defaultMessage="logout" />
+        </Menu.Item>
+      </Menu>
+    );
     // 用户信息
     const userManageMenu = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
@@ -81,7 +95,7 @@ export default class GlobalHeaderRight extends PureComponent {
           <Icon type="close-circle" />
           <FormattedMessage id="menu.account.trigger" defaultMessage="Trigger Error" />
         </Menu.Item>
-        <Menu.Divider />
+        {/* <Menu.Divider /> */}
         <Menu.Item key="logout">
           <Icon type="logout" />
           <FormattedMessage id="menu.account.logout" defaultMessage="logout" />
@@ -111,7 +125,7 @@ export default class GlobalHeaderRight extends PureComponent {
             console.log('enter', value); // eslint-disable-line
           }}
         />
-        <Tooltip title={formatMessage({ id: 'component.globalHeader.help' })}>
+        {/* <Tooltip title={formatMessage({ id: 'component.globalHeader.help' })}>
           <a
             target="_blank"
             href="https://pro.ant.design/docs/getting-started"
@@ -120,7 +134,7 @@ export default class GlobalHeaderRight extends PureComponent {
           >
             <Icon type="question-circle-o" />
           </a>
-        </Tooltip>
+        </Tooltip> */}
         <NoticeIcon
           className={styles.action}
           count={currentUser.unreadCount}
@@ -167,15 +181,22 @@ export default class GlobalHeaderRight extends PureComponent {
             showViewMore
           />
         </NoticeIcon>
+        {/* 设置 */}
+        <HeaderDropdown overlay={settingMenu}>
+          <span className={`${styles.action} ${styles.account}`}>
+            <Icon type="setting" key="Icon" className={styles.setting} />
+            <FormattedMessage id="menu.account.settings" defaultMessage="Account Settings" />
+          </span>
+        </HeaderDropdown>
         {currentUser.name ? (
           <HeaderDropdown overlay={userManageMenu}>
             <span className={`${styles.action} ${styles.account}`}>
-              <Avatar
+              {/* <Avatar
                 size="small"
                 className={styles.avatar}
                 src={currentUser.avatar}
                 alt="avatar"
-              />
+              /> */}
               <span className={styles.name}>{currentUser.name}</span>
             </span>
           </HeaderDropdown>

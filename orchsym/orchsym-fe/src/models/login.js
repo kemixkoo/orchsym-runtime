@@ -19,7 +19,6 @@ export default {
         type: 'changeLoginStatus',
         payload: response,
       });
-      // Login successfully
       if (response.status === 'ok') {
         reloadAuthorized();
         const urlParams = new URL(window.location.href);
