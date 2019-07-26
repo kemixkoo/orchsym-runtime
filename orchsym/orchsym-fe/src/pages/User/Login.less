@@ -1,14 +1,38 @@
 @import '~antd/lib/style/themes/default.less';
 
 .main {
-  width: 388px;
+  position: absolute;
+  top: 50%;
+  right: 10%;
+  width: 448px;
+  // height: 524px;
   margin: 40px auto 0 auto;
-  padding: 60px 40px 40px 40px;
+  padding: 20px 40px 40px 40px;
   background-color: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+  border: 1px solid rgba(121, 121, 121, 1);
+  border-radius: 4px;
+  transform: translateY(-50%);
   @media screen and (max-width: @screen-sm) {
     width: 95%;
+  }
+  .top {
+    text-align: center;
+  }
+  .header {
+    height: 64px;
+    line-height: 64px;
+    a {
+      text-decoration: none;
+    }
+  }
+  .logo {
+    height: 64px;
+    margin: 30px auto;
+    // margin-right: 16px;
+    vertical-align: top;
+  }
+  .logoText {
+    height: 115px;
   }
 
   .icon {

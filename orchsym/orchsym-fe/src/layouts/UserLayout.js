@@ -2,13 +2,13 @@ import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
 // import { formatMessage } from 'umi-plugin-react/locale';
 import { connect } from 'dva';
-import Link from 'umi/link';
+// import Link from 'umi/link';
 import { Icon } from 'antd';
 import GlobalFooter from '@/components/GlobalFooter';
 import DocumentTitle from 'react-document-title';
 import SelectLang from '@/components/SelectLang';
 import styles from './UserLayout.less';
-import logo from '../assets/login-logo.svg';
+// import logo from '../assets/login-logo.svg';
 import getPageTitle from '@/utils/getPageTitle';
 
 const links = [{
@@ -50,18 +50,18 @@ class UserLayout extends Component {
     } = this.props;
     return (
       <DocumentTitle title={getPageTitle(pathname, breadcrumbNameMap)}>
-        <div className={styles.containerBs}>
-          <div className={styles.lang}>
+        <div className={styles.container}>
+          <div className={styles.lang} style={{ color: '#ffffff' }}>
             <SelectLang />
           </div>
           <div className={styles.content}>
-            <div className={styles.top}>
+            {/* <div className={styles.top}>
               <div className={styles.header}>
                 <Link to="/">
                   <img alt="logo" className={styles.logo} src={logo} />
                 </Link>
               </div>
-            </div>
+            </div> */}
             {children}
           </div>
           <GlobalFooter links={links} copyright={copyright} />

@@ -1,8 +1,56 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Badge, Row, Col } from 'antd';
+import { Card, Menu, Icon, Dropdown, Badge, Row, Col, Button } from 'antd';
 import styles from './application.less';
+import CreateApplication from './CreateApplication';
+import ApplicationSearch from './ApplicationSearch';
+import EditApplication from './EditApplication';
+import SortApplication from './SortApplication';
+import SaveTemp from './SaveTemp';
 
 export default class AppList extends PureComponent {
+  state = {
+    createAppVisible: null,
+    editAppVisible: null,
+    saveTempVisible: null,
+  };
+
+  showCreateModal = () => {
+    this.setState({
+      createAppVisible: true,
+    })
+  }
+
+  handleCreateCancel = () => {
+    this.setState({
+      createAppVisible: false,
+    })
+  }
+
+  showEditModal = () => {
+    this.setState({
+      editAppVisible: true,
+    })
+  }
+
+  handleEditCancel = () => {
+    this.setState({
+      editAppVisible: false,
+    })
+  }
+
+  showSaveTemp = () => {
+    this.setState({
+      saveTempVisible: true,
+    })
+  }
+
+  handleSaveCancel = () => {
+    this.setState({
+      saveTempVisible: false,
+    })
+  }
+
+
   getCarList = (item) => {
     const menu = (
       <Menu>
@@ -10,7 +58,7 @@ export default class AppList extends PureComponent {
           <Icon type="appstore" />
           进入应用
         </Menu.Item>
-        <Menu.Item key="2">
+        <Menu.Item key="2" onClick={this.showEditModal}>
           <Icon type="edit" />
           编辑应用
         </Menu.Item>
@@ -19,33 +67,33 @@ export default class AppList extends PureComponent {
           <Icon type="play-square" />
           运行
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="4">
           <Icon type="stop" />
           停止
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="5">
           <Icon type="check-square" />
           启用
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="6">
           <Icon type="close-square" />
           禁用
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="3">
+        <Menu.Item key="7">
           <Icon type="copy" />
           复制
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="8">
           <Icon type="download" />
           下载
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="9">
           <Icon type="delete" />
           删除
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="3">
+        <Menu.Item key="10" onClick={this.showSaveTemp}>
           <Icon type="save" />
           存为模板
         </Menu.Item>
@@ -151,11 +199,31 @@ export default class AppList extends PureComponent {
     appListData.forEach((item) => {
       Carlist.push(this.getCarList(item))
     });
+    const { createAppVisible, editAppVisible, saveTempVisible } = this.state;
 
     return (
-      <Row gutter={16}>
-        {Carlist}
-      </Row>
+      <div>
+        <Row gutter={16}>
+          <Col span={3}>
+            <Button type="primary" onClick={this.showCreateModal} className={styles.bottomSpace}>
+              创建应用
+            </Button>
+          </Col>
+          <Col span={11} />
+          <Col span={9}>
+            <ApplicationSearch />
+          </Col>
+          <Col span={1}>
+            <SortApplication />
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          {Carlist}
+        </Row>
+        <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
+        <EditApplication visible={editAppVisible} handleEditCancel={this.handleEditCancel} />
+        <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} />
+      </div>
     );
   }
 }
