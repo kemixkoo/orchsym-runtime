@@ -29,6 +29,13 @@ export default {
   'menu.account': '个人页',
   'menu.account.center': '个人中心',
   'menu.account.settings': '设置',
+  'menu.account.operatLog': '操作记录',
+  'menu.account.updatePwd': '修改密码',
   'menu.account.trigger': '触发报错',
   'menu.account.logout': '退出登录',
+  'menu.setting.overview': '总览',
+  'menu.setting.counter': '计数器',
+  'menu.setting.sysConfig': '系统配置',
+  'menu.setting.userManage': '用户管理',
+  'menu.setting.about': '关于',
 };

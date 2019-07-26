@@ -30,6 +30,13 @@ export default {
   'menu.account': 'Account',
   'menu.account.center': 'Account Center',
   'menu.account.settings': 'Account Settings',
+  'menu.account.operatLog': 'Operation Log',
+  'menu.account.updatePwd': 'Modify Password',
   'menu.account.trigger': 'Trigger Error',
   'menu.account.logout': 'Logout',
+  'menu.setting.overview': 'Overview',
+  'menu.setting.counter': 'Counter',
+  'menu.setting.sysConfig': 'System Configuration',
+  'menu.setting.userManage': 'User Management',
+  'menu.setting.about': 'About',
 };

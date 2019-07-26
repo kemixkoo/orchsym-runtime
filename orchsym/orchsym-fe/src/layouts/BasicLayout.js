@@ -98,6 +98,7 @@ class BasicLayout extends React.Component {
           />
         )}
         <Layout
+          className={styles.basicContainer}
           style={{
             ...this.getLayoutStyle(),
             minHeight: '100vh',
@@ -109,10 +110,14 @@ class BasicLayout extends React.Component {
             logo={logo}
             {...this.props}
           />
-          <Content className={styles.content} style={contentStyle}>
-            {children}
-          </Content>
-          <Footer />
+          <div className={styles.basicContent}>
+            <Content className={styles.content} style={contentStyle}>
+              {children}
+            </Content>
+          </div>
+          <Footer
+            className={styles.basicFooter}
+          />
         </Layout>
       </Layout>
     );
