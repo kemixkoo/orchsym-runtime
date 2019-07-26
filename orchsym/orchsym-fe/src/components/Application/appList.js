@@ -5,12 +5,13 @@ import CreateApplication from './CreateApplication';
 import ApplicationSearch from './ApplicationSearch';
 import EditApplication from './EditApplication';
 import SortApplication from './SortApplication';
-import ListCard from './ListCard';
+import SaveTemp from './SaveTemp';
 
 export default class AppList extends PureComponent {
   state = {
     createAppVisible: null,
     editAppVisible: null,
+    saveTempVisible: null,
   };
 
   showCreateModal = () => {
@@ -37,6 +38,19 @@ export default class AppList extends PureComponent {
     })
   }
 
+  showSaveTemp = () => {
+    this.setState({
+      saveTempVisible: true,
+    })
+  }
+
+  handleSaveCancel = () => {
+    this.setState({
+      saveTempVisible: false,
+    })
+  }
+
+
   getCarList = (item) => {
     const menu = (
       <Menu>
@@ -53,33 +67,33 @@ export default class AppList extends PureComponent {
           <Icon type="play-square" />
           运行
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="4">
           <Icon type="stop" />
           停止
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="5">
           <Icon type="check-square" />
           启用
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="6">
           <Icon type="close-square" />
           禁用
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="3">
+        <Menu.Item key="7">
           <Icon type="copy" />
           复制
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="8">
           <Icon type="download" />
           下载
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="9">
           <Icon type="delete" />
           删除
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="3">
+        <Menu.Item key="10" onClick={this.showSaveTemp}>
           <Icon type="save" />
           存为模板
         </Menu.Item>
@@ -185,7 +199,7 @@ export default class AppList extends PureComponent {
     appListData.forEach((item) => {
       Carlist.push(this.getCarList(item))
     });
-    const { createAppVisible, editAppVisible } = this.state;
+    const { createAppVisible, editAppVisible, saveTempVisible } = this.state;
 
     return (
       <div>
@@ -195,15 +209,12 @@ export default class AppList extends PureComponent {
               创建应用
             </Button>
           </Col>
-          <Col span={10} />
+          <Col span={11} />
           <Col span={9}>
             <ApplicationSearch />
           </Col>
           <Col span={1}>
             <SortApplication />
-          </Col>
-          <Col span={1}>
-            <ListCard />
           </Col>
         </Row>
         <Row gutter={16}>
@@ -211,6 +222,7 @@ export default class AppList extends PureComponent {
         </Row>
         <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
         <EditApplication visible={editAppVisible} handleEditCancel={this.handleEditCancel} />
+        <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} />
       </div>
     );
   }
