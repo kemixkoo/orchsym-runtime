@@ -1,4 +1,5 @@
-import React, { Suspense, lazy } from 'react';
+import React, { lazy } from 'react';
+// Suspense
 import { Layout } from 'antd';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
@@ -128,7 +129,7 @@ class BasicLayout extends React.Component {
             <Context.Provider value={this.getContext()}>{layout}</Context.Provider>
           </div>
         </DocumentTitle>
-        <Suspense fallback={null}>{this.renderSettingDrawer()}</Suspense>
+        {/* <Suspense fallback={null}>{this.renderSettingDrawer()}</Suspense> */}
       </React.Fragment>
     );
   }

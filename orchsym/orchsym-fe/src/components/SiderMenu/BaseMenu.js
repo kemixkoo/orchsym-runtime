@@ -39,7 +39,7 @@ export default class BaseMenu extends PureComponent {
     if (!menusData) {
       return [];
     }
-    console.log('menusData', menusData)
+    // console.log('menusData', menusData)
     return menusData
       .filter(item => item.name && !item.hideInMenu)
       .map(item => this.getSubMenuOrItem(item))
