@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Badge, Row, Col, Button } from 'antd';
+import { Card, Menu, Icon, Dropdown, Badge, Row, Col, Button, Divider, Tag, Avatar } from 'antd';
 import styles from './application.less';
 import CreateApplication from './CreateApplication';
 import ApplicationSearch from './ApplicationSearch';
@@ -109,7 +109,7 @@ export default class AppList extends PureComponent {
     );
 
     const menu2 = (
-      <Menu>
+      <Menu style={{ fontSize: '12px' }}>
         <Menu.Item key="1">
           队列中
           <p className={styles.pStyle}>2（5.2 MB）</p>
@@ -131,33 +131,53 @@ export default class AppList extends PureComponent {
 
     const dropdown2 = (
       <Dropdown overlay={menu2}>
-        <a className="ant-dropdown-link" href="#">
-          更多
-        </a>
+        <div>
+          <Badge count={0} dot className={styles.badgeIcon}>
+            <Icon type="play-square" style={{ color: '#0f0' }} />
+            <span>5</span>
+          </Badge>
+          <Badge count={0} dot className={styles.badgeIcon}>
+            <Icon type="stop" style={{ color: '#f00' }} />
+            <span>5</span>
+          </Badge>
+          <Badge count={0} dot className={styles.badgeIcon}>
+            <Icon type="close-square" />
+            <span>5</span>
+          </Badge>
+          {/* <a className="ant-dropdown-link" href="#">
+            更多
+          </a> */}
+        </div>
       </Dropdown>
     );
     return (
-      <Col span={6} style={{ marginBottom: 16 }}>
-        <Card title={item.name} extra={dropdown} style={{ width: '100%', height: 180 }}>
-          <p>{item.describe}</p>
-          <div>
-            <Badge count={0} dot className={styles.badgeIcon}>
-              <Icon type="play-square" className={styles.footIcon} style={{ color: '#0f0' }} />
-              <span className={styles.spanSize}>5</span>
-            </Badge>
-            <Badge count={0} dot className={styles.badgeIcon}>
-              <Icon type="stop" className={styles.footIcon} style={{ color: '#f00' }} />
-              <span className={styles.spanSize}>5</span>
-            </Badge>
-            <Badge count={0} dot className={styles.badgeIcon}>
-              <Icon type="close-square" className={styles.footIcon} />
-              <span className={styles.spanSize}>5</span>
-            </Badge>
+      <Col xl={6} lg={6} md={12} sm={12} xs={24} style={{ marginBottom: 16 }}>
+        <Card className={styles.applicationCart} style={{ width: '100%', height: 165 }}>
+          <Card.Meta
+            title={
+              <div>
+                <Avatar size="small" src={item.logo} />
+                <span className={styles.cardTitle}>{item.name}</span>
+              </div>}
+            description={
+              <p className={styles.lineEllipsis}>
+                {item.describe}
+              </p>
+            }
+          />
+          <div className={styles.cardExtra}>{dropdown}</div>
+          <div style={{ marginBottom: '10px' }}>
+            <Tag color="blue">接口转换</Tag>
+            <Tag color="blue">业务重组</Tag>
+          </div>
+          <Divider style={{ margin: 0 }} />
+          <div className={styles.cardFoot}>
             {dropdown2}
           </div>
+          <p className={styles.cardTime}>5小时前</p>
         </Card>
       </Col>
-    )
+    );
   }
 
   render() {
@@ -209,15 +229,16 @@ export default class AppList extends PureComponent {
               创建应用
             </Button>
           </Col>
-          <Col span={11} />
-          <Col span={9}>
-            <ApplicationSearch />
+          <Col span={20}>
+            <div className={styles.applicationRight}>
+              <ApplicationSearch />
+            </div>
           </Col>
           <Col span={1}>
             <SortApplication />
           </Col>
         </Row>
-        <Row gutter={16}>
+        <Row gutter={16} type="flex">
           {Carlist}
         </Row>
         <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
