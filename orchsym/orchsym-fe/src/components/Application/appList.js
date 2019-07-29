@@ -156,7 +156,7 @@ export default class AppList extends PureComponent {
           <Card.Meta
             title={
               <div>
-                <Avatar size="small" src={item.logo} />
+                <Avatar size="small" icon="clock-circle" style={{ backgroundColor: '#f56a00' }} />
                 <span className={styles.cardTitle}>{item.name}</span>
               </div>}
             description={
