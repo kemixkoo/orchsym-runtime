@@ -184,7 +184,7 @@ export default class GlobalHeaderRight extends PureComponent {
             emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
             showViewMore
           />
-          <NoticeIcon.Tab
+          {/* <NoticeIcon.Tab
             count={unreadMsg.message}
             list={noticeData.message}
             title="message"
@@ -199,7 +199,7 @@ export default class GlobalHeaderRight extends PureComponent {
             emptyText={formatMessage({ id: 'component.globalHeader.event.empty' })}
             emptyImage="https://gw.alipayobjects.com/zos/rmsportal/HsIsxMZiWKrNUavQUXqx.svg"
             showViewMore
-          />
+          /> */}
         </NoticeIcon>
         {/* 设置 */}
         <HeaderDropdown overlay={settingMenu}>
@@ -214,7 +214,7 @@ export default class GlobalHeaderRight extends PureComponent {
             <span className={`${styles.action} ${styles.account}`}>
               {/* <Avatar
                 size="small"
-                className={styles.avatar}
+                className={styles.}
                 src={currentUser.avatar}
                 alt="avatar"
               /> */}
