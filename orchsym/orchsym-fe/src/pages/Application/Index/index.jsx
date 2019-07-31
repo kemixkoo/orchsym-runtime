@@ -1,7 +1,7 @@
 import React from 'react';
 // import { formatMessage } from 'umi-plugin-react/locale';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
-import Apilist from '@/components/Application/appList';
+import Application from '@/components/Application';
 // import IconFont from '@/components/IconFont'
 import styles from './index.less';
 
@@ -15,7 +15,7 @@ const Index = () => {
   return (
     <PageHeaderWrapper>
       <div className={styles.content}>
-        <Apilist />
+        <Application />
       </div>
     </PageHeaderWrapper>
   );

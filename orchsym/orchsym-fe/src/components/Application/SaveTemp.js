@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Form, Input, Select, Checkbox } from 'antd';
-import styles from '../application.less';
+
+const { TextArea } = Input;
 
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -89,7 +90,7 @@ class SaveTemp extends React.Component {
                   //   required: true, message: '请输入应用名称!',
                   // }],
                 })(
-                  <Input className={styles.describe} />
+                  <TextArea rows={4} />
                 )}
               </FormItem>
               <FormItem label="标签设置">

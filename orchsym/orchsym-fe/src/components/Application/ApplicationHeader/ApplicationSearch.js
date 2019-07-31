@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input, Select, Button } from 'antd';
-import styles from '../application.less';
+import styles from './ApplicationSearch.less';
 
 const InputGroup = Input.Group;
 const { Option } = Select;
