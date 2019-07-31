@@ -6,7 +6,7 @@ import ApplicationSearch from './ApplicationSearch';
 import EditApplication from './EditApplication';
 import SortApplication from './SortApplication';
 import SaveTemp from './SaveTemp';
-import LogList from '../LogList';
+import LogList from '../logList';
 
 export default class AppList extends PureComponent {
   state = {
