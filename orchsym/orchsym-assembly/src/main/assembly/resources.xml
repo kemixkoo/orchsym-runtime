@@ -36,8 +36,8 @@
 		<dependencySet>
 			<scope>runtime</scope>
 			<outputDirectory>./</outputDirectory>
-			<directoryMode>0770</directoryMode>
-			<fileMode>0770</fileMode>
+			<directoryMode>0775</directoryMode>
+			<fileMode>0775</fileMode>
 			<useProjectArtifact>false</useProjectArtifact>
 			<useTransitiveFiltering>true</useTransitiveFiltering>
 			<useTransitiveDependencies>true</useTransitiveDependencies>
@@ -53,4 +53,21 @@
 			</unpackOptions>
 		</dependencySet>
 	</dependencySets>
+
+	<files><!-- copied from /nifi-assembly/src/main/assembly/common.xml -->
+		<file>
+			<source>../../nifi-assembly/LICENSE</source>
+			<outputDirectory>./</outputDirectory>
+			<destName>LICENSE</destName>
+			<fileMode>0644</fileMode>
+			<filtered>true</filtered>
+		</file>
+		<file>
+			<source>../../nifi-assembly/NOTICE</source>
+			<outputDirectory>./</outputDirectory>
+			<destName>NOTICE</destName>
+			<fileMode>0644</fileMode>
+			<filtered>true</filtered>
+		</file>
+	</files>
 </component>
