@@ -6,7 +6,6 @@ import ApplicationSearch from './ApplicationSearch';
 import EditApplication from './EditApplication';
 import SortApplication from './SortApplication';
 import SaveTemp from './SaveTemp';
-import LogList from '../logList';
 
 export default class AppList extends PureComponent {
   state = {
@@ -180,9 +179,9 @@ export default class AppList extends PureComponent {
           </div>
           <p className={styles.cardTime}>5小时前</p>
           {(isError) ? (
-            <Dropdown overlay={<LogList />}>
-              <span className={styles.triangle} />
-            </Dropdown>
+            // <Dropdown overlay={<LogList />}>
+            <span className={styles.triangle} />
+            // </Dropdown>
           ) : (null)}
         </Card>
       </Col>
