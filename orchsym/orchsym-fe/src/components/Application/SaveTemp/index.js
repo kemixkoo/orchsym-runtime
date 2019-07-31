@@ -37,7 +37,6 @@ class SaveTemp extends React.Component {
     ]
     return (
       <Modal
-        key="saveTemp"
         visible={visible}
         title="存为模板"
         onCancel={handleSaveCancel}

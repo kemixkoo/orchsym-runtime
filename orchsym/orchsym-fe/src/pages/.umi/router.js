@@ -3,7 +3,7 @@ import { Router as DefaultRouter, Route, Switch } from 'react-router-dom';
 import dynamic from 'umi/dynamic';
 import renderRoutes from 'umi/lib/renderRoutes';
 import history from '@tmp/history';
-import RendererWrapper0 from '/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/.umi/LocaleWrapper.jsx'
+import RendererWrapper0 from '/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/.umi/LocaleWrapper.jsx'
 import _dvaDynamic from 'dva/dynamic'
 
 const Router = require('dva/router').routerRedux.ConnectedRouter;
@@ -15,7 +15,7 @@ const routes = [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "layouts__UserLayout" */'../../layouts/UserLayout'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../../layouts/UserLayout').default,
     "routes": [
@@ -31,10 +31,10 @@ const routes = [
     ? _dvaDynamic({
       app: require('@tmp/dva').getApp(),
 models: () => [
-  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
+  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
 ],
       component: () => import(/* webpackChunkName: "p__User__Login" */'../User/Login'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../User/Login').default,
         "exact": true
@@ -46,10 +46,10 @@ models: () => [
     ? _dvaDynamic({
       app: require('@tmp/dva').getApp(),
 models: () => [
-  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
+  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
 ],
       component: () => import(/* webpackChunkName: "p__User__Register" */'../User/Register'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../User/Register').default,
         "exact": true
@@ -61,10 +61,10 @@ models: () => [
     ? _dvaDynamic({
       app: require('@tmp/dva').getApp(),
 models: () => [
-  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
+  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
 ],
       component: () => import(/* webpackChunkName: "p__User__RegisterResult" */'../User/RegisterResult'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../User/RegisterResult').default,
         "exact": true
@@ -74,13 +74,13 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__404" */'../404'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../404').default,
         "exact": true
       },
       {
-        "component": () => React.createElement(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+        "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
       }
     ]
   },
@@ -90,7 +90,7 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "layouts__BlankLayout" */'../../layouts/BlankLayout'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../../layouts/BlankLayout').default,
     "routes": [
@@ -107,7 +107,7 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Blank__Index" */'../Blank/Index'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Blank/Index').default,
         "exact": true
@@ -119,13 +119,13 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Blank__Sign" */'../Blank/Sign'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Blank/Sign').default,
         "exact": true
       },
       {
-        "component": () => React.createElement(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+        "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
       }
     ]
   },
@@ -135,7 +135,7 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../../layouts/BasicLayout'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../../layouts/BasicLayout').default,
     "Routes": [require('../Authorized').default],
@@ -156,7 +156,7 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Application__Index" */'../Application/Index'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Application/Index').default,
         "exact": true
@@ -173,7 +173,7 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Template__Local" */'../Template/Local'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Template/Local').default,
             "exact": true
@@ -185,13 +185,13 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Template__Remote" */'../Template/Remote'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Template/Remote').default,
             "exact": true
           },
           {
-            "component": () => React.createElement(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+            "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
           }
         ]
       },
@@ -203,7 +203,7 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Orchestrations__Index" */'../Orchestrations/Index'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Orchestrations/Index').default,
         "exact": true
@@ -220,7 +220,7 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Result__Success" */'../Result/Success'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Result/Success').default,
             "exact": true
@@ -232,13 +232,13 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__Result__Error" */'../Result/Error'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Result/Error').default,
             "exact": true
           },
           {
-            "component": () => React.createElement(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+            "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
           }
         ]
       },
@@ -255,10 +255,10 @@ models: () => [
     ? _dvaDynamic({
       app: require('@tmp/dva').getApp(),
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
       component: () => import(/* webpackChunkName: "p__Exception__403" */'../Exception/403'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Exception/403').default,
             "exact": true
@@ -270,10 +270,10 @@ models: () => [
     ? _dvaDynamic({
       app: require('@tmp/dva').getApp(),
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
       component: () => import(/* webpackChunkName: "p__Exception__404" */'../Exception/404'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Exception/404').default,
             "exact": true
@@ -285,10 +285,10 @@ models: () => [
     ? _dvaDynamic({
       app: require('@tmp/dva').getApp(),
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
       component: () => import(/* webpackChunkName: "p__Exception__500" */'../Exception/500'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Exception/500').default,
             "exact": true
@@ -301,16 +301,16 @@ models: () => [
     ? _dvaDynamic({
       app: require('@tmp/dva').getApp(),
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
       component: () => import(/* webpackChunkName: "p__Exception__TriggerException" */'../Exception/TriggerException'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../Exception/TriggerException').default,
             "exact": true
           },
           {
-            "component": () => React.createElement(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+            "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
           }
         ]
       },
@@ -319,18 +319,18 @@ models: () => [
     ? _dvaDynamic({
       
       component: () => import(/* webpackChunkName: "p__404" */'../404'),
-      LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
     : require('../404').default,
         "exact": true
       },
       {
-        "component": () => React.createElement(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+        "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
       }
     ]
   },
   {
-    "component": () => React.createElement(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+    "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
   }
 ];
 window.g_routes = routes;

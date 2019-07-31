@@ -29,7 +29,7 @@ export default {
   'menu.exception.trigger': 'Trigger',
   'menu.account': 'Account',
   'menu.account.center': 'Account Center',
-  'menu.account.settings': 'Account Settings',
+  'menu.account.settings': 'Settings',
   'menu.account.operatLog': 'Operation Log',
   'menu.account.updatePwd': 'Modify Password',
   'menu.account.trigger': 'Trigger Error',

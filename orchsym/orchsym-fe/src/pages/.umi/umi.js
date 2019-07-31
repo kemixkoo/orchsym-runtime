@@ -3,7 +3,7 @@ import history from './history';
 import '../../global.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import findRoute from '/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/findRoute.js';
+import findRoute from '/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/findRoute.js';
 
 
 // runtime plugins

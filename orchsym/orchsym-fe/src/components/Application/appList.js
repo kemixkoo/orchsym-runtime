@@ -6,6 +6,7 @@ import ApplicationSearch from './ApplicationSearch';
 import EditApplication from './EditApplication';
 import SortApplication from './SortApplication';
 import SaveTemp from './SaveTemp';
+// import IconFont from '@/components/IconFont';
 import LogList from '../LogList';
 
 export default class AppList extends PureComponent {
@@ -13,7 +14,6 @@ export default class AppList extends PureComponent {
     createAppVisible: null,
     editAppVisible: null,
     saveTempVisible: null,
-    // noticeVisible: null,
     isError: true,
   };
 
@@ -52,6 +52,7 @@ export default class AppList extends PureComponent {
       saveTempVisible: false,
     })
   }
+
 
   getCarList = (item) => {
     const menu = (
@@ -160,7 +161,9 @@ export default class AppList extends PureComponent {
           <Card.Meta
             title={
               <div>
-                <Avatar size="small" icon="clock-circle" style={{ backgroundColor: '#f56a00' }} />
+                {/* <IconFont type="iconnaozhong" /> */}
+                {/* <Avatar size="small" icon="pull-request" style={{ backgroundColor: '#00a2ae' }} /> */}
+                <Avatar size="small" icon="clock-circle" style={{ backgroundColor: '#ffbf00' }} />
                 <span className={styles.cardTitle}>{item.name}</span>
               </div>}
             description={
@@ -253,7 +256,6 @@ export default class AppList extends PureComponent {
         <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
         <EditApplication visible={editAppVisible} handleEditCancel={this.handleEditCancel} />
         <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} />
-        {/* <LogList visible={noticeVisible} /> */}
       </div>
     );
   }
