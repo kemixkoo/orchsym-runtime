@@ -6,6 +6,7 @@ import ApplicationSearch from './ApplicationSearch';
 import EditApplication from './EditApplication';
 import SortApplication from './SortApplication';
 import SaveTemp from './SaveTemp';
+// import IconFont from '@/components/IconFont';
 
 export default class AppList extends PureComponent {
   state = {
@@ -156,7 +157,9 @@ export default class AppList extends PureComponent {
           <Card.Meta
             title={
               <div>
-                <Avatar size="small" icon="clock-circle" style={{ backgroundColor: '#f56a00' }} />
+                {/* <IconFont type="iconnaozhong" /> */}
+                {/* <Avatar size="small" icon="pull-request" style={{ backgroundColor: '#00a2ae' }} /> */}
+                <Avatar size="small" icon="clock-circle" style={{ backgroundColor: '#ffbf00' }} />
                 <span className={styles.cardTitle}>{item.name}</span>
               </div>}
             description={
