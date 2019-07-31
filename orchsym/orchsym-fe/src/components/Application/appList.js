@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Badge, Divider, Tag, Avatar, List } from 'antd';
+import { Card, Menu, Icon, Dropdown, Badge, Divider, Tag, List } from 'antd';
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
-// import IconFont from '@/components/IconFont';
+import IconFont from '@/components/IconFont';
 import LogList from '../LogList';
 
 export default class AppList extends PureComponent {
@@ -131,9 +131,8 @@ export default class AppList extends PureComponent {
         <Card.Meta
           title={
             <div>
-              {/* <IconFont type="iconnaozhong" /> */}
-              {/* <Avatar size="small" icon="pull-request" style={{ backgroundColor: '#00a2ae' }} /> */}
-              <Avatar size="small" icon="clock-circle" style={{ backgroundColor: '#ffbf00' }} />
+              <IconFont type="iconAPIguanli" style={{ color: '#0087ff' }} className={styles.iconfont} />
+              {/* <IconFont type="iconnaozhong" style={{ color: '#f28406' }} className={styles.iconfont} /> */}
               <span className={styles.cardTitle}>{item.name}</span>
             </div>}
           description={
