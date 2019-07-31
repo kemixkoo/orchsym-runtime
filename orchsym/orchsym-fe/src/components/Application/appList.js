@@ -7,12 +7,14 @@ import EditApplication from './EditApplication';
 import SortApplication from './SortApplication';
 import SaveTemp from './SaveTemp';
 // import IconFont from '@/components/IconFont';
+import LogList from '../LogList';
 
 export default class AppList extends PureComponent {
   state = {
     createAppVisible: null,
     editAppVisible: null,
     saveTempVisible: null,
+    isError: true,
   };
 
   showCreateModal = () => {
@@ -151,9 +153,11 @@ export default class AppList extends PureComponent {
         </div>
       </Dropdown>
     );
+    const { isError } = this.state;
+    const isErrorCarName = isError ? `${styles.applicationCart} ${styles.errorApp}` : styles.applicationCart;
     return (
       <Col xl={6} lg={6} md={12} sm={12} xs={24} style={{ marginBottom: 16 }}>
-        <Card className={styles.applicationCart} style={{ width: '100%', height: 165 }}>
+        <Card className={isErrorCarName} style={{ width: '100%', height: 165 }}>
           <Card.Meta
             title={
               <div>
@@ -178,6 +182,11 @@ export default class AppList extends PureComponent {
             {dropdown2}
           </div>
           <p className={styles.cardTime}>5小时前</p>
+          {(isError) ? (
+            <Dropdown overlay={<LogList />}>
+              <span className={styles.triangle} />
+            </Dropdown>
+          ) : (null)}
         </Card>
       </Col>
     );
