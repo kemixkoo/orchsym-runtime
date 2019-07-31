@@ -5,11 +5,19 @@
   // top: 0;
   // left: 100%;
   width: 500px;
-  max-height: 60vh;
+  max-height: 400px;
   overflow: auto;
   background-color: #142934;
+
   &::-webkit-scrollbar {
     display: none;
+  }
+  .headerIcon {
+    float: right;
+    color: #fff;
+    i {
+      margin: 0 10px;
+    }
   }
   .item {
     padding-right: 24px;
@@ -109,5 +117,15 @@
     &:not(:only-child):last-child {
       border-left: 1px solid @border-color-split;
     }
+  }
+}
+:global {
+  .ant-list-header {
+    height: 40px;
+    padding: 12px;
+  }
+  .ant-list-split .ant-list-item,
+  .ant-list-split .ant-list-header {
+    border-bottom: none;
   }
 }

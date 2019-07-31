@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'dva';
 import classNames from 'classnames';
-import { List, Row, Col } from 'antd';
+import { List, Row, Col, Icon } from 'antd';
 import styles from './index.less';
 
 class LogList extends React.Component {
@@ -14,8 +14,17 @@ class LogList extends React.Component {
 
   render() {
     const { notices } = this.props;
+    const headerButton = (
+      <div className={styles.headerIcon}>
+        <Icon type="arrow-up" rotate={45} onClick={this.handleJump} />
+      </div>
+    );
     return (
-      <List className={styles.list}>
+      <List
+        className={styles.list}
+        header={headerButton}
+        split="false"
+      >
         {notices.map((item, i) => {
           const itemCls = classNames(styles.item, {
             [styles.read]: item.read,
