@@ -10,6 +10,7 @@ export default {
   'app.login.sign-in-with': '其他登录方式',
   'app.login.signup': '注册账户',
   'app.login.login': '登录',
+  'app.login.watchword': '赋能老系统，创新新应用',
   'app.register.register': '注册',
   'app.register.get-verification-code': '获取验证码',
   'app.login.verification-code-warning':

@@ -78,7 +78,7 @@ class LoginPage extends Component {
               <img alt="logo" className={styles.logo} src={logo} />
             </Link>
           </div>
-          <div className={styles.logoText}>赋能老系统，创新新应用</div>
+          <div className={styles.logoText}>{formatMessage({ id: 'app.login.watchword' })}</div>
         </div>
         <Login
           defaultActiveKey={type}

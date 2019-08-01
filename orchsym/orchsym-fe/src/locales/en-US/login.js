@@ -10,6 +10,7 @@ export default {
   'app.login.sign-in-with': 'Sign in with',
   'app.login.signup': 'Sign up',
   'app.login.login': 'Login',
+  'app.login.watchword': 'Empower legacy systems, and innovate digital applications',
   'app.register.register': 'Register',
   'app.register.get-verification-code': 'Get code',
   'app.login.verification-code-warning':
