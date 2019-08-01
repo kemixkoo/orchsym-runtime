@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormattedMessage } from 'umi-plugin-react/locale';
+// import { FormattedMessage } from 'umi-plugin-react/locale';
 import Link from 'umi/link';
 import { PageHeader, Tabs, Typography } from 'antd';
 import { connect } from 'dva';
@@ -55,21 +55,24 @@ const PageHeaderWrapper = ({
             <PageHeader
               wide={contentWidth === 'Fixed'}
               title={
-                <Title
-                  level={4}
-                  style={{
-                    marginBottom: 0,
-                  }}
-                >
-                  {title}
-                </Title>
+                title ? (
+                  <Title
+                    level={4}
+                    style={{
+                      marginBottom: 0,
+                    }}
+                  >
+                    {title}
+                  </Title>
+                ) : null
+
               }
               key="pageheader"
               {...restProps}
               breadcrumb={conversionBreadcrumbList({
                 ...value,
                 ...restProps,
-                home: <FormattedMessage id="menu.home" defaultMessage="Home" />,
+                // home: <FormattedMessage id="menu.home" defaultMessage="Home" />,
               })}
               className={styles.pageHeader}
               linkElement={Link}

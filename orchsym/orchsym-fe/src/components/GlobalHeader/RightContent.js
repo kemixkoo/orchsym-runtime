@@ -1,11 +1,12 @@
 import React, { PureComponent } from 'react';
 import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
-import { Spin, Tag, Menu, Icon, Avatar, Tooltip, message } from 'antd';
+import { Spin, Tag, Menu, Icon, message, Tooltip, Divider } from 'antd';
+// Avatar
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import groupBy from 'lodash/groupBy';
 import NoticeIcon from '../NoticeIcon';
-import HeaderSearch from '../HeaderSearch';
+// import HeaderSearch from '../HeaderSearch';
 import HeaderDropdown from '../HeaderDropdown';
 import SelectLang from '../SelectLang';
 import styles from './index.less';
@@ -73,17 +74,50 @@ export default class GlobalHeaderRight extends PureComponent {
       onNoticeClear,
       theme,
     } = this.props;
-
+    // 设置选项
+    const settingMenu = (
+      <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
+        <Menu.Item key="overview">
+          <Icon type="home" />
+          <FormattedMessage id="menu.setting.overview" defaultMessage="Overview" />
+        </Menu.Item>
+        <Menu.Item key="counter">
+          <Icon type="calculator" />
+          <FormattedMessage id="menu.setting.counter" defaultMessage="Counter" />
+        </Menu.Item>
+        <Menu.Item key="sysConfig">
+          <Icon type="control" />
+          <FormattedMessage id="menu.setting.sysConfig" defaultMessage="System Configuration" />
+        </Menu.Item>
+        <Menu.Item key="userManage">
+          <Icon type="team" />
+          <FormattedMessage id="menu.setting.userManage" defaultMessage="User Management" />
+        </Menu.Item>
+        <Menu.Divider />
+        <Menu.Item key="about">
+          <Icon type="exclamation-circle" />
+          <FormattedMessage id="menu.setting.about" defaultMessage="About" />
+        </Menu.Item>
+      </Menu>
+    );
     // 用户信息
     const userManageMenu = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
-        <Menu.Item key="triggerError">
+        {/* <Menu.Item key="triggerError">
           <Icon type="close-circle" />
           <FormattedMessage id="menu.account.trigger" defaultMessage="Trigger Error" />
+        </Menu.Item> */}
+        <Menu.Item key="operatLog">
+          <Icon type="file-search" />
+          <FormattedMessage id="menu.account.operatLog" defaultMessage="Operation Log" />
+        </Menu.Item>
+        <Menu.Item key="updatePwd">
+          <Icon type="key" />
+          <FormattedMessage id="menu.account.updatePwd" defaultMessage="Modify Password" />
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="logout">
-          <Icon type="logout" />
+          <Icon type="poweroff" />
           <FormattedMessage id="menu.account.logout" defaultMessage="logout" />
         </Menu.Item>
       </Menu>
@@ -96,7 +130,7 @@ export default class GlobalHeaderRight extends PureComponent {
     }
     return (
       <div className={className}>
-        <HeaderSearch
+        {/* <HeaderSearch
           className={`${styles.action} ${styles.search}`}
           placeholder={formatMessage({ id: 'component.globalHeader.search' })}
           dataSource={[
@@ -110,7 +144,7 @@ export default class GlobalHeaderRight extends PureComponent {
           onPressEnter={value => {
             console.log('enter', value); // eslint-disable-line
           }}
-        />
+        /> */}
         <Tooltip title={formatMessage({ id: 'component.globalHeader.help' })}>
           <a
             target="_blank"
@@ -167,15 +201,23 @@ export default class GlobalHeaderRight extends PureComponent {
             showViewMore
           />
         </NoticeIcon>
+        {/* 设置 */}
+        <HeaderDropdown overlay={settingMenu}>
+          <span className={`${styles.action} ${styles.account}`}>
+            <Icon type="setting" key="Icon" className={styles.setting} />
+            <FormattedMessage id="menu.account.settings" defaultMessage="Account Settings" />
+          </span>
+        </HeaderDropdown>
+        <Divider type="vertical" />
         {currentUser.name ? (
           <HeaderDropdown overlay={userManageMenu}>
             <span className={`${styles.action} ${styles.account}`}>
-              <Avatar
+              {/* <Avatar
                 size="small"
                 className={styles.avatar}
                 src={currentUser.avatar}
                 alt="avatar"
-              />
+              /> */}
               <span className={styles.name}>{currentUser.name}</span>
             </span>
           </HeaderDropdown>

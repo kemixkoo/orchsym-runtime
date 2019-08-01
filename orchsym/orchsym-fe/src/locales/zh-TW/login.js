@@ -5,7 +5,7 @@ export default {
   'app.login.message-invalid-verification-code': '驗證碼錯誤',
   'app.login.tab-login-credentials': '賬戶密碼登錄',
   'app.login.tab-login-mobile': '手機號登錄',
-  'app.login.remember-me': '自動登錄',
+  'app.login.remember-me': '記住密碼',
   'app.login.forgot-password': '忘記密碼',
   'app.login.sign-in-with': '其他登錄方式',
   'app.login.signup': '註冊賬戶',
