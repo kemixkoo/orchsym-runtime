@@ -1,4 +1,5 @@
-import React, { Suspense, lazy } from 'react';
+import React, { lazy } from 'react';
+// Suspense
 import { Layout } from 'antd';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
@@ -46,7 +47,7 @@ class BasicLayout extends React.Component {
     const { fixSiderbar, collapsed, layout } = this.props;
     if (fixSiderbar && layout !== 'topmenu') {
       return {
-        paddingLeft: collapsed ? '80px' : '256px',
+        paddingLeft: collapsed ? '80px' : '185px',
       };
     }
     return null;
@@ -98,6 +99,7 @@ class BasicLayout extends React.Component {
           />
         )}
         <Layout
+          className={styles.basicContainer}
           style={{
             ...this.getLayoutStyle(),
             minHeight: '100vh',
@@ -109,10 +111,14 @@ class BasicLayout extends React.Component {
             logo={logo}
             {...this.props}
           />
-          <Content className={styles.content} style={contentStyle}>
-            {children}
-          </Content>
-          <Footer />
+          <div className={styles.basicContent}>
+            <Content className={styles.content} style={contentStyle}>
+              {children}
+            </Content>
+          </div>
+          <Footer
+            className={styles.basicFooter}
+          />
         </Layout>
       </Layout>
     );
@@ -123,7 +129,7 @@ class BasicLayout extends React.Component {
             <Context.Provider value={this.getContext()}>{layout}</Context.Provider>
           </div>
         </DocumentTitle>
-        <Suspense fallback={null}>{this.renderSettingDrawer()}</Suspense>
+        {/* <Suspense fallback={null}>{this.renderSettingDrawer()}</Suspense> */}
       </React.Fragment>
     );
   }

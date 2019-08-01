@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'dva';
-import Link from 'umi/link';
 import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
 // import Link from 'umi/link';
 import { Checkbox, Alert, message } from 'antd';
 import Login from '@/components/Login';
 import styles from './Login.less';
-import logo from '../../assets/login-logo.svg';
 
 const { UserName, Password, Submit } = Login;
 
@@ -18,7 +16,7 @@ const { UserName, Password, Submit } = Login;
 class LoginPage extends Component {
   state = {
     type: 'account',
-    autoLogin: false,
+    autoLogin: true,
   };
 
   onTabChange = type => {
@@ -72,14 +70,6 @@ class LoginPage extends Component {
     const { type, autoLogin } = this.state;
     return (
       <div className={styles.main}>
-        <div className={styles.top}>
-          <div className={styles.header}>
-            <Link to="/">
-              <img alt="logo" className={styles.logo} src={logo} />
-            </Link>
-          </div>
-        </div>
-        <div className={styles.logoText} />
         <Login
           defaultActiveKey={type}
           onTabChange={this.onTabChange}

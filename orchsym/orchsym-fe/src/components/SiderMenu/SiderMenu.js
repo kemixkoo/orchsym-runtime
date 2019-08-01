@@ -6,7 +6,7 @@ import Link from 'umi/link';
 import styles from './index.less';
 import PageLoading from '../PageLoading';
 import { getDefaultCollapsedSubMenus } from './SiderMenuUtils';
-import { title } from '../../defaultSettings';
+// import { title } from '../../defaultSettings';
 
 const BaseMenu = React.lazy(() => import('./BaseMenu'));
 const { Sider } = Layout;
@@ -74,14 +74,14 @@ export default class SiderMenu extends PureComponent {
             onCollapse(collapse);
           }
         }}
-        width={256}
+        width={185}
         theme={theme}
         className={siderClassName}
       >
         <div className={styles.logo} id="logo">
           <Link to="/">
             <img src={logo} alt="logo" />
-            <h1>{title}</h1>
+            {/* <h1>{title}</h1> */}
           </Link>
         </div>
         <Suspense fallback={<PageLoading />}>
