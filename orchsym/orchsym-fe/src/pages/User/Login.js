@@ -78,8 +78,8 @@ class LoginPage extends Component {
               <img alt="logo" className={styles.logo} src={logo} />
             </Link>
           </div>
+          <div className={styles.logoText}>赋能老系统，创新新应用</div>
         </div>
-        <div className={styles.logoText} />
         <Login
           defaultActiveKey={type}
           onTabChange={this.onTabChange}
