@@ -17,8 +17,8 @@ class AppList extends PureComponent {
   };
 
   componentWillMount() {
-    const { props } = this.props
-    props.dispatch({
+    const { dispatch } = this.props
+    dispatch({
       type: 'application/fetchApplication',
     })
   }
