@@ -1,15 +1,27 @@
 import React, { PureComponent } from 'react';
 import { Card, Menu, Icon, Dropdown, Badge, Divider, Tag, List } from 'antd';
+import { connect } from 'dva'
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
 import IconFont from '@/components/IconFont';
 import LogList from '../LogList';
 
-export default class AppList extends PureComponent {
+@connect(({ application, loading }) => ({
+  applicationList: application.applicationList,
+  loading: loading.effects['application/fetchApplication'],
+}))
+class AppList extends PureComponent {
   state = {
     saveTempVisible: null,
     isError: true,
   };
+
+  componentWillMount() {
+    const { dispatch } = this.props
+    dispatch({
+      type: 'application/fetchApplication',
+    })
+  }
 
   showSaveTemp = () => {
     this.setState({
@@ -133,7 +145,7 @@ export default class AppList extends PureComponent {
             <div>
               <IconFont type="iconAPIguanli" style={{ color: '#0087ff' }} className={styles.iconfont} />
               {/* <IconFont type="iconnaozhong" style={{ color: '#f28406' }} className={styles.iconfont} /> */}
-              <span className={styles.cardTitle}>{item.name}</span>
+              <span className={styles.cardTitle}>{item.status.name}</span>
             </div>}
           description={
             <p className={styles.lineEllipsis}>
@@ -162,37 +174,13 @@ export default class AppList extends PureComponent {
   }
 
   render() {
-    const appListData = [
-      {
-        name: '好应用会说话',
-        describe: 'Unable to validate the access token.',
-      },
-      {
-        name: '无法验证访问令牌',
-        describe: 'UHover me, Click menu item.',
-      },
-      {
-        name: '好应用会说话',
-        describe: 'Unable to validate the access token.',
-      },
-      {
-        name: '可以点击触发',
-        describe: '支持 6 个弹出位置',
-      },
-      {
-        name: '好应用会说话',
-        describe: '默认是点击关闭菜单，可以关闭此功能.',
-      },
-      {
-        name: 'Right Click on Me',
-        describe: 'Menu.Item 必须设置唯一的 key 属性.',
-      },
-    ]
     // const Carlist = [];
     // appListData.forEach((item) => {
     //   Carlist.push(this.getCarList(item))
     // });
     const { saveTempVisible } = this.state;
+    const { applicationList } = this.props;
+    console.log('propr', this.props)
 
     return (
       <div className={styles.infiniteContainer}>
@@ -206,9 +194,9 @@ export default class AppList extends PureComponent {
             xl: 4,
             xxl: 4,
           }}
-          dataSource={appListData}
+          dataSource={applicationList}
           renderItem={item => (
-            <List.Item>
+            <List.Item key={item.id}>
               {this.getCarList(item)}
             </List.Item>
           )}
@@ -219,3 +207,4 @@ export default class AppList extends PureComponent {
     );
   }
 }
+export default AppList
