@@ -1,23 +1,20 @@
 import React from 'react';
 import { Router as DefaultRouter, Route, Switch } from 'react-router-dom';
 import dynamic from 'umi/dynamic';
-import renderRoutes from 'umi/lib/renderRoutes';
-import history from '@tmp/history';
-import RendererWrapper0 from '/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/.umi/LocaleWrapper.jsx'
+import renderRoutes from 'umi/_renderRoutes';
+import RendererWrapper0 from 'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/.umi/LocaleWrapper.jsx'
 import _dvaDynamic from 'dva/dynamic'
 
-const Router = require('dva/router').routerRedux.ConnectedRouter;
+let Router = require('dva/router').routerRedux.ConnectedRouter;
 
-const routes = [
+let routes = [
   {
     "path": "/user",
-    "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "layouts__UserLayout" */'../../layouts/UserLayout'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../../layouts/UserLayout').default,
+    "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "layouts__UserLayout" */'../../layouts/UserLayout'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
     "routes": [
       {
         "path": "/user",
@@ -27,72 +24,62 @@ const routes = [
       {
         "path": "/user/login",
         "name": "login",
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      app: require('@tmp/dva').getApp(),
+        "component": _dvaDynamic({
+  app: window.g_app,
 models: () => [
-  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
+  import(/* webpackChunkName: 'p__User__models__register.js' */'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
 ],
-      component: () => import(/* webpackChunkName: "p__User__Login" */'../User/Login'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../User/Login').default,
+  component: () => import(/* webpackChunkName: "p__User__Login" */'../User/Login'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
         "path": "/user/register",
         "name": "register",
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      app: require('@tmp/dva').getApp(),
+        "component": _dvaDynamic({
+  app: window.g_app,
 models: () => [
-  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
+  import(/* webpackChunkName: 'p__User__models__register.js' */'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
 ],
-      component: () => import(/* webpackChunkName: "p__User__Register" */'../User/Register'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../User/Register').default,
+  component: () => import(/* webpackChunkName: "p__User__Register" */'../User/Register'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
         "path": "/user/register-result",
         "name": "register.result",
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      app: require('@tmp/dva').getApp(),
+        "component": _dvaDynamic({
+  app: window.g_app,
 models: () => [
-  import(/* webpackChunkName: 'p__User__models__register.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
+  import(/* webpackChunkName: 'p__User__models__register.js' */'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
 ],
-      component: () => import(/* webpackChunkName: "p__User__RegisterResult" */'../User/RegisterResult'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../User/RegisterResult').default,
+  component: () => import(/* webpackChunkName: "p__User__RegisterResult" */'../User/RegisterResult'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__404" */'../404'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../404').default,
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__404" */'../404'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
-        "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+        "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
       }
     ]
   },
   {
     "path": "/blank",
-    "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "layouts__BlankLayout" */'../../layouts/BlankLayout'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../../layouts/BlankLayout').default,
+    "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "layouts__BlankLayout" */'../../layouts/BlankLayout'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
     "routes": [
       {
         "name": "blank",
@@ -103,41 +90,35 @@ models: () => [
       {
         "path": "/blank/index",
         "name": "index",
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Blank__Index" */'../Blank/Index'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Blank/Index').default,
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Blank__Index" */'../Blank/Index'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
         "path": "/blank/sign",
         "name": "sign",
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Blank__Sign" */'../Blank/Sign'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Blank/Sign').default,
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Blank__Sign" */'../Blank/Sign'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
-        "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+        "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
       }
     ]
   },
   {
     "path": "/",
-    "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../../layouts/BasicLayout'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../../layouts/BasicLayout').default,
+    "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../../layouts/BasicLayout'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
     "Routes": [require('../Authorized').default],
     "routes": [
       {
@@ -152,13 +133,11 @@ models: () => [
         "name": "application",
         "icon": "studioiconapp1",
         "path": "/application",
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Application__Index" */'../Application/Index'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Application/Index').default,
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Application__Index" */'../Application/Index'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
@@ -169,29 +148,25 @@ models: () => [
           {
             "name": "local",
             "path": "/template/local",
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Template__Local" */'../Template/Local'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Template/Local').default,
+            "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Template__Local" */'../Template/Local'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
             "name": "remote",
             "path": "/template/remote",
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Template__Remote" */'../Template/Remote'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Template/Remote').default,
+            "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Template__Remote" */'../Template/Remote'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
-            "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+            "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
           }
         ]
       },
@@ -199,13 +174,11 @@ models: () => [
         "name": "orchestrations",
         "path": "/orchestrations",
         "icon": "share-alt",
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Orchestrations__Index" */'../Orchestrations/Index'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Orchestrations/Index').default,
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Orchestrations__Index" */'../Orchestrations/Index'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
@@ -216,29 +189,25 @@ models: () => [
           {
             "path": "/result/success",
             "name": "success",
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Result__Success" */'../Result/Success'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Result/Success').default,
+            "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Result__Success" */'../Result/Success'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
             "path": "/result/fail",
             "name": "fail",
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Result__Error" */'../Result/Error'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Result/Error').default,
+            "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__Result__Error" */'../Result/Error'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
-            "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+            "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
           }
         ]
       },
@@ -251,95 +220,84 @@ models: () => [
           {
             "path": "/exception/403",
             "name": "not-permission",
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      app: require('@tmp/dva').getApp(),
+            "component": _dvaDynamic({
+  app: window.g_app,
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
-      component: () => import(/* webpackChunkName: "p__Exception__403" */'../Exception/403'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Exception/403').default,
+  component: () => import(/* webpackChunkName: "p__Exception__403" */'../Exception/403'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
             "path": "/exception/404",
             "name": "not-find",
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      app: require('@tmp/dva').getApp(),
+            "component": _dvaDynamic({
+  app: window.g_app,
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
-      component: () => import(/* webpackChunkName: "p__Exception__404" */'../Exception/404'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Exception/404').default,
+  component: () => import(/* webpackChunkName: "p__Exception__404" */'../Exception/404'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
             "path": "/exception/500",
             "name": "server-error",
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      app: require('@tmp/dva').getApp(),
+            "component": _dvaDynamic({
+  app: window.g_app,
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
-      component: () => import(/* webpackChunkName: "p__Exception__500" */'../Exception/500'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Exception/500').default,
+  component: () => import(/* webpackChunkName: "p__Exception__500" */'../Exception/500'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
             "path": "/exception/trigger",
             "name": "trigger",
             "hideInMenu": true,
-            "component": __IS_BROWSER
-    ? _dvaDynamic({
-      app: require('@tmp/dva').getApp(),
+            "component": _dvaDynamic({
+  app: window.g_app,
 models: () => [
-  import(/* webpackChunkName: 'p__Exception__models__error.js' */'/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
+  import(/* webpackChunkName: 'p__Exception__models__error.js' */'E:/bitbucket/nifi/orchsym/orchsym-fe/src/pages/Exception/models/error.js').then(m => { return { namespace: 'error',...m.default}})
 ],
-      component: () => import(/* webpackChunkName: "p__Exception__TriggerException" */'../Exception/TriggerException'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../Exception/TriggerException').default,
+  component: () => import(/* webpackChunkName: "p__Exception__TriggerException" */'../Exception/TriggerException'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
             "exact": true
           },
           {
-            "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+            "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
           }
         ]
       },
       {
-        "component": __IS_BROWSER
-    ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__404" */'../404'),
-      LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-    })
-    : require('../404').default,
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__404" */'../404'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
         "exact": true
       },
       {
-        "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+        "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
       }
     ]
   },
   {
-    "component": () => React.createElement(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+    "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
   }
 ];
 window.g_routes = routes;
-const plugins = require('umi/_runtimePlugin');
-plugins.applyForEach('patchRoutes', { initialValue: routes });
+window.g_plugins.applyForEach('patchRoutes', { initialValue: routes });
 
 // route change handler
 function routeChangeHandler(location, action) {
-  plugins.applyForEach('onRouteChange', {
+  window.g_plugins.applyForEach('onRouteChange', {
     initialValue: {
       routes,
       location,
@@ -347,16 +305,14 @@ function routeChangeHandler(location, action) {
     },
   });
 }
-history.listen(routeChangeHandler);
-routeChangeHandler(history.location);
+window.g_history.listen(routeChangeHandler);
+routeChangeHandler(window.g_history.location);
 
-export { routes };
-
-export default function RouterWrapper(props = {}) {
+export default function RouterWrapper() {
   return (
 <RendererWrapper0>
-          <Router history={history}>
-      { renderRoutes(routes, props) }
+          <Router history={window.g_history}>
+      { renderRoutes(routes, {}) }
     </Router>
         </RendererWrapper0>
   );
