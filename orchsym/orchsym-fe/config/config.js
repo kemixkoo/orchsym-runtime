@@ -97,6 +97,9 @@ export default {
   manifest: {
     basePath: '/',
   },
-
+  copy: [{
+    from: 'iconfont',
+    to: 'iconfont',
+  }],
   chainWebpack: webpackPlugin,
 };

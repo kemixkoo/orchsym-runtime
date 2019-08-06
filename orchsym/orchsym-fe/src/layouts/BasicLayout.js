@@ -4,7 +4,7 @@ import { Layout } from 'antd';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
 import { connect } from 'dva';
-import logo from '../assets/logo.svg';
+// import logo from '../assets/logo.svg';
 import Footer from './Footer';
 import Header from './Header';
 import Context from './MenuContext';
@@ -16,6 +16,8 @@ import styles from './BasicLayout.less';
 const SettingDrawer = lazy(() => import('@/components/SettingDrawer'));
 
 const { Content } = Layout;
+const logo = window.logoHref.companyLogoIndex
+const smallLogo = window.logoHref.companyLogoIndexMix
 
 class BasicLayout extends React.Component {
   componentDidMount() {
@@ -92,6 +94,7 @@ class BasicLayout extends React.Component {
         {isTop ? null : (
           <SiderMenu
             logo={logo}
+            smallLogo={smallLogo}
             theme={navTheme}
             onCollapse={this.handleMenuCollapse}
             menuData={menuData}
