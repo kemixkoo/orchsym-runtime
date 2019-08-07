@@ -61,7 +61,7 @@ export default {
   },
   proxy: {
     '/studio/': {
-      target: 'https://orchsym-studio.baishancloud.com/nifi-api',
+      target: 'https://orchsym-studio.baishancloud.com',
       changeOrigin: true,
       pathRewrite: { '^/studio': '' },
     },
