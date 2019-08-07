@@ -377,7 +377,8 @@ public class HandleHttpRequest extends AbstractProcessor {
 
         final PropertyValue apiServiceProp = context.getProperty(HTTP_API_REGISTRY);
         hasAPIService = apiServiceProp != null ? apiServiceProp.asControllerService() != null : Boolean.FALSE;
-        supportApiRegistry = context.getProperty(SUPPORT_API_REGISTRY).asBoolean();
+        final PropertyValue supportApi = context.getProperty(SUPPORT_API_REGISTRY);
+        supportApiRegistry = supportApi != null && supportApi.asBoolean() != null ? supportApi.asBoolean() : Boolean.FALSE;
 
         updateApiInfoFromService(context, ApiInfo.State.running);
     }
@@ -681,7 +682,7 @@ public class HandleHttpRequest extends AbstractProcessor {
                 getLogger().debug("Failed to shutdown following a failed initialization: " + shutdownException);
             }
 
-            throw new ProcessException("Failed to initialize the server", e);
+            throw new ProcessException("Failed to initialize the server. Maybe the listen port is already used, try to change it", e);
         }
 
         HttpRequestContainer container;

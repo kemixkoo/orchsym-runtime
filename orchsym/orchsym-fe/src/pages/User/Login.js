@@ -44,14 +44,12 @@ class LoginPage extends Component {
     });
 
   handleSubmit = (err, values) => {
-    const { type } = this.state;
     if (!err) {
       const { dispatch } = this.props;
       dispatch({
         type: 'login/login',
         payload: {
           ...values,
-          type,
         },
       });
     }
@@ -93,12 +91,12 @@ class LoginPage extends Component {
           !submitting &&
           this.renderMessage(formatMessage({ id: 'app.login.message-invalid-credentials' }))}
           <UserName
-            name="userName"
-            placeholder={`${formatMessage({ id: 'app.login.userName' })}: admin or user`}
+            name="username"
+            placeholder={`${formatMessage({ id: 'app.login.username' })}: admin or user`}
             rules={[
               {
                 required: true,
-                message: formatMessage({ id: 'validation.userName.required' }),
+                message: formatMessage({ id: 'validation.username.required' }),
               },
             ]}
           />

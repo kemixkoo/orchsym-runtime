@@ -41,7 +41,6 @@ const plugins = [
   ],
 ];
 
-
 export default {
   // add for transfer to umi
   plugins,
@@ -60,13 +59,13 @@ export default {
   theme: {
     'primary-color': primaryColor,
   },
-  // proxy: {
-  //   '/server/api/': {
-  //     target: 'https://preview.pro.ant.design/',
-  //     changeOrigin: true,
-  //     pathRewrite: { '^/server': '' },
-  //   },
-  // },
+  proxy: {
+    '/studio/': {
+      target: 'https://orchsym-studio.baishancloud.com/nifi-api',
+      changeOrigin: true,
+      pathRewrite: { '^/studio': '' },
+    },
+  },
   ignoreMomentLocale: true,
   lessLoaderOptions: {
     javascriptEnabled: true,
