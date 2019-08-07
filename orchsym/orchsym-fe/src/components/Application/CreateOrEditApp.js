@@ -5,12 +5,43 @@ const { TextArea } = Input;
 const FormItem = Form.Item;
 const { Option } = Select;
 
-class CreateApplication extends React.Component {
+class CreateOrEditApp extends React.Component {
   // handleOk = () => {
 
   // }
+  handleCreateEditOk = (e) => {
+    const { title, appId, dispatch, form: { validateFields } } = this.props;
+    e.preventDefault();
+    validateFields((err, values) => {
+      if (!err) {
+        if (title === '编辑应用') {
+          dispatch({
+            type: 'application/editApplication',
+            payload: {
+              values,
+              appId,
+            },
+          })
+        } else {
+          dispatch({
+            type: 'application/addApplication',
+            payload: {
+              values,
+              appId,
+            },
+          })
+        }
+      }
+    });
+  }
+
   render() {
-    const { form: { getFieldDecorator }, visible, handleCreateCancel } = this.props;
+    const {
+      form: { getFieldDecorator },
+      visible,
+      handleCreateEditCancel,
+      title,
+    } = this.props;
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
@@ -32,9 +63,9 @@ class CreateApplication extends React.Component {
       <div>
         <Modal
           visible={visible}
-          title="创建应用"
-          onCancel={handleCreateCancel}
-          onOk={handleCreateCancel}
+          title={title}
+          onCancel={handleCreateEditCancel}
+          onOk={this.handleCreateEditOk}
           okText="确定"
           cancelText="取消"
         >
@@ -80,4 +111,4 @@ class CreateApplication extends React.Component {
   }
 }
 
-export default (Form.create()(CreateApplication));
+export default (Form.create()(CreateOrEditApp));

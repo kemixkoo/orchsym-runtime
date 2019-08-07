@@ -5,21 +5,44 @@ import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
 import IconFont from '@/components/IconFont';
 import LogList from '../LogList';
+import CreateOrEditApp from './CreateOrEditApp';
 
 @connect(({ application, loading }) => ({
   applicationList: application.applicationList,
+  details: application.details,
   loading: loading.effects['application/fetchApplication'],
 }))
 class AppList extends PureComponent {
   state = {
+    editVisible: null,
+    createOrEdit: '编辑应用',
+    appId: null,
     saveTempVisible: null,
     isError: true,
   };
 
   componentWillMount() {
-    const { dispatch } = this.props
+    const { dispatch } = this.props;
     dispatch({
       type: 'application/fetchApplication',
+    });
+  }
+
+  showEditModal = (item) => {
+    // const { dispatch } = this.props;
+    // dispatch({
+    //   type: 'application/detailApplication',
+    //   payload: item.id,
+    // });
+    this.setState({
+      editVisible: true,
+      appId: item.id,
+    });
+  }
+
+  handleCreateEditCancel = () => {
+    this.setState({
+      editVisible: false,
     })
   }
 
@@ -43,7 +66,7 @@ class AppList extends PureComponent {
           <Icon type="appstore" />
           进入应用
         </Menu.Item>
-        <Menu.Item key="2" onClick={this.showEditModal}>
+        <Menu.Item key="2" onClick={() => { this.showEditModal(item) }}>
           <Icon type="edit" />
           编辑应用
         </Menu.Item>
@@ -78,7 +101,7 @@ class AppList extends PureComponent {
           删除
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="10" onClick={this.showSaveTemp}>
+        <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>
           <Icon type="save" />
           存为模板
         </Menu.Item>
@@ -178,7 +201,7 @@ class AppList extends PureComponent {
     // appListData.forEach((item) => {
     //   Carlist.push(this.getCarList(item))
     // });
-    const { saveTempVisible } = this.state;
+    const { saveTempVisible, editVisible, createOrEdit, appId } = this.state;
     const { applicationList } = this.props;
     console.log('propr', this.props)
 
@@ -203,6 +226,12 @@ class AppList extends PureComponent {
         />
         {/* {Carlist} */}
         <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} />
+        <CreateOrEditApp
+          visible={editVisible}
+          handleCreateEditCancel={this.handleCreateEditCancel}
+          title={createOrEdit}
+          appId={appId}
+        />
       </div>
     );
   }

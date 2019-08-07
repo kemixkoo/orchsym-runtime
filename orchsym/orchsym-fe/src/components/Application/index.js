@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import SaveTemp from './SaveTemp';
-import CreateApplication from './CreateApplication';
+import CreateOrEditApp from './CreateOrEditApp';
 import ApplicationHeader from './ApplicationHeader';
 import AppList from './AppList';
 // import IconFont from '@/components/IconFont';
 
 export default class Application extends PureComponent {
   state = {
+    title: null,
     createAppVisible: null,
     saveTempVisible: null,
   };
@@ -48,14 +49,14 @@ export default class Application extends PureComponent {
   }
 
   render() {
-    const { createAppVisible, saveTempVisible } = this.state;
+    const { title, createAppVisible, saveTempVisible } = this.state;
 
     return (
       <div>
         <ApplicationHeader />
         <AppList />
         <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} />
-        <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
+        <CreateOrEditApp visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} title={title} />
       </div>
     );
   }

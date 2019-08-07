@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Row, Col, Button } from 'antd';
-import CreateApplication from '../CreateApplication';
+import CreateOrEditApp from '../CreateOrEditApp';
 import ApplicationSearch from './ApplicationSearch';
 import SortApplication from './SortApplication';
 import styles from './index.less';
@@ -9,6 +9,7 @@ import styles from './index.less';
 export default class AppList extends PureComponent {
   state = {
     createAppVisible: null,
+    createOrEdit: '创建应用',
   };
 
   showCreateModal = () => {
@@ -17,14 +18,14 @@ export default class AppList extends PureComponent {
     })
   };
 
-  handleCreateCancel = () => {
+  handleCreateEditCancel = () => {
     this.setState({
       createAppVisible: false,
     })
   };
 
   render() {
-    const { createAppVisible } = this.state;
+    const { createAppVisible, createOrEdit } = this.state;
     return (
       <div>
         <Row gutter={16} className={styles.bottomSpace}>
@@ -42,7 +43,7 @@ export default class AppList extends PureComponent {
             <SortApplication />
           </Col>
         </Row>
-        <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
+        <CreateOrEditApp visible={createAppVisible} handleCreateEditCancel={this.handleCreateEditCancel} title={createOrEdit} />
       </div>
     );
   }
