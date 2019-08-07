@@ -7,26 +7,13 @@ const { Footer } = Layout;
 const FooterView = () => (
   <Footer style={{ padding: 0 }}>
     <GlobalFooter
-      links={[
-        {
-          key: 'orchsym',
-          title: 'Orchsym Studio',
-          href: '',
-          blankTarget: true,
-        },
-        {
-          key: 'Baishan Cloud',
-          title: 'Baishan Cloud',
-          href: '',
-          blankTarget: true,
-        },
-      ]}
+      links={window.globalFooterInfo}
       copyright={
         <Fragment>
-          Copyright <Icon type="copyright" /> 白山云科技-数聚蜂巢
+          Copyright <Icon type="copyright" /> {window.copyright}
         </Fragment>
       }
-      // className={styles.bgColor}
+    // className={styles.bgColor}
     />
   </Footer>
 );

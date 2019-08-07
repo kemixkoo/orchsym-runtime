@@ -1,10 +1,10 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react'; // Fragment
 import PropTypes from 'prop-types';
 // import { formatMessage } from 'umi-plugin-react/locale';
 import { connect } from 'dva';
 // import Link from 'umi/link';
-import { Icon } from 'antd';
-import GlobalFooter from '@/components/GlobalFooter';
+// import { Icon } from 'antd';
+// import GlobalFooter from '@/components/GlobalFooter';
 import DocumentTitle from 'react-document-title';
 import SelectLang from '@/components/SelectLang';
 import styles from './UserLayout.less';
@@ -12,24 +12,24 @@ import styles from './UserLayout.less';
 import getPageTitle from '@/utils/getPageTitle';
 
 
-const links = [{
-  key: 'company',
-  title: '白山云',
-  href: 'https://www.baishancloud.com/zh/',
-}, {
-  key: 'product',
-  title: '数聚蜂巢',
-  href: 'https://www.baishancloud.com/tech/orchsym/',
-}, {
-  key: 'version',
-  title: window.version ? window.version : '2.0',
-}];
+// const links = [{
+//   key: 'company',
+//   title: '白山云',
+//   href: 'https://www.baishancloud.com/zh/',
+// }, {
+//   key: 'product',
+//   title: '数聚蜂巢',
+//   href: 'https://www.baishancloud.com/tech/orchsym/',
+// }, {
+//   key: 'version',
+//   title: window.version ? window.version : '2.0',
+// }];
 
-const copyright = (
-  <Fragment>
-    Copyright <Icon type="copyright" /> 2017-2019 数聚蜂巢
-  </Fragment>
-);
+// const copyright = (
+//   <Fragment>
+//     Copyright <Icon type="copyright" /> 2017-2019 数聚蜂巢
+//   </Fragment>
+// );
 
 class UserLayout extends Component {
   componentDidMount() {
@@ -65,7 +65,7 @@ class UserLayout extends Component {
             </div> */}
             {children}
           </div>
-          <GlobalFooter links={links} copyright={copyright} />
+          {/* <GlobalFooter links={links} copyright={copyright} /> */}
         </div>
       </DocumentTitle>
     );
