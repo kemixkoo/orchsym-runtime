@@ -75,6 +75,7 @@ request.interceptors.request.use((url, options) => {
   if (url !== '/studio/access/token') {
     options.headers.Authorization = `Bearer ${getToken()}`;
   }
+  options.headers.Locale = localStorage.getItem('umi_locale') || 'zh-CN';
   return (
     {
       url,

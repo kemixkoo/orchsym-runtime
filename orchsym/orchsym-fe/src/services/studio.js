@@ -2,11 +2,11 @@
 import request from '@/utils/request';
 
 export async function queryApplication() {
-  return request('/studio/flow/process-groups/root');
+  return request('/studio/nifi-api/flow/process-groups/root');
 }
 
 export async function fakeAccountLogin(params) {
-  return request('/studio/access/token', {
+  return request('/studio/nifi-api/access/token', {
     method: 'POST',
     requestType: 'form',
     headers: {
