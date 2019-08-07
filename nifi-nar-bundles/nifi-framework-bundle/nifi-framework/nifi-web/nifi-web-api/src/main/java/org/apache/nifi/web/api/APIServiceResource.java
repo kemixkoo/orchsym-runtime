@@ -16,40 +16,25 @@
  */
 package org.apache.nifi.web.api;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import org.apache.nifi.web.api.StatsResource;
-import org.apache.nifi.registry.api.APIServicesManager;
-import org.apache.nifi.registry.api.ApiInfo;
-import org.apache.nifi.registry.api.APISpec;
-import org.apache.nifi.registry.api.InfoSpec;
-import org.apache.nifi.registry.api.ParamSpec;
-import org.apache.nifi.registry.api.PathSpec;
-import org.apache.nifi.registry.api.PropertySpec;
-import org.apache.nifi.registry.api.RespSpec;
-import org.apache.nifi.util.NiFiProperties;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
+import javax.net.ssl.SSLContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
-import javax.net.ssl.SSLContext;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -57,8 +42,15 @@ import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import java.security.cert.X509Certificate;
-
+import org.apache.nifi.registry.api.APIServicesManager;
+import org.apache.nifi.registry.api.APISpec;
+import org.apache.nifi.registry.api.ApiInfo;
+import org.apache.nifi.registry.api.InfoSpec;
+import org.apache.nifi.registry.api.ParamSpec;
+import org.apache.nifi.registry.api.PathSpec;
+import org.apache.nifi.registry.api.PropertySpec;
+import org.apache.nifi.registry.api.RespSpec;
+import org.apache.nifi.util.NiFiProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +59,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 /**
  * RESTful endpoint for retrieving api informaitions

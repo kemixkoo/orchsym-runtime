@@ -14,6 +14,7 @@ app.use(createLoading());
   app.use(plugin);
 });
 app.use(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/dva-immer/lib/index.js').default());
+app.model({ namespace: 'application', ...(require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/models/application.js').default) });
 app.model({ namespace: 'global', ...(require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/models/global.js').default) });
 app.model({ namespace: 'login', ...(require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/models/login.js').default) });
 app.model({ namespace: 'menu', ...(require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/models/menu.js').default) });
