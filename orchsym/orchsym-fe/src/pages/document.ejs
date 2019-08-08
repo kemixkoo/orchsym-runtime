@@ -18,14 +18,14 @@
       <script>
         // 动态注入客户配置script脚本
         const scriptBody = document.createElement('script')
-        scriptBody.innerHTML = window.injectionScriptContent.join(';')
+        // scriptBody.innerHTML = window.injectionScriptContent.join(';')
         document.querySelector('head').appendChild(scriptBody)
         let script = null
-        for (let i = 0; i < window.injectionScriptSrc.length; i ++) {
-          script = document.createElement('script')
-          script.src = window.injectionScriptSrc[i]
-          document.querySelector('head').appendChild(script)
-        }
+        // for (let i = 0; i < window.injectionScriptSrc.length; i ++) {
+        //   script = document.createElement('script')
+        //   script.src = window.injectionScriptSrc[i]
+        //   document.querySelector('head').appendChild(script)
+        // }
       </script>
     <link rel="icon" href="/favicon.png" type="image/x-icon" />
   </head>
