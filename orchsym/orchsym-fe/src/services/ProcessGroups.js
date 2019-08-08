@@ -17,3 +17,26 @@ export async function editApplication(params) {
     body: params.body,
   });
 }
+
+// 删除
+export async function deleteApplication(params) {
+  return request(`/studio/nifi-api/process-groups/${params.id}?version=${params.version}?clientId=${params.clientId}`, {
+    method: 'DELETE',
+  })
+}
+
+// 复制粘贴
+export async function copeApplication(params) {
+  return request(`/studio/nifi-api/process-groups/${params.id}/snippet-instance`, {
+    method: 'PUT',
+    body: params.body,
+  });
+}
+
+// 创建模版
+export async function CreateApplicationTemp(params) {
+  return request(`/studio/nifi-api/process-groups/${params.id}/templates`, {
+    method: 'POST',
+    body: params.body,
+  });
+}
