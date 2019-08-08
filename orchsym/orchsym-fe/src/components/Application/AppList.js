@@ -29,11 +29,11 @@ class AppList extends PureComponent {
   }
 
   showEditModal = (item) => {
-    // const { dispatch } = this.props;
-    // dispatch({
-    //   type: 'application/detailApplication',
-    //   payload: item.id,
-    // });
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/detailApplication',
+      payload: item.id,
+    });
     this.setState({
       editVisible: true,
       appId: item.id,
