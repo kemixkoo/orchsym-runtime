@@ -23,10 +23,16 @@ export default class AppList extends PureComponent {
     })
   };
 
+  getHeadWidth = () => {
+    const { collapsed } = this.props;
+    return collapsed ? 'calc(100% - 80px)' : 'calc(100% - 185px)';
+  };
+
   render() {
     const { createAppVisible } = this.state;
+    const width = this.getHeadWidth();
     return (
-      <div>
+      <div style={{ width }} className={styles.applicationHeader}>
         <Row gutter={16} className={styles.bottomSpace}>
           <Col span={3}>
             <Button type="primary" onClick={this.showCreateModal}>

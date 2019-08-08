@@ -127,7 +127,7 @@ class HeaderView extends Component {
     const width = this.getHeadWidth();
     const HeaderDom = visible ? (
       <Header
-        style={{ padding: 0, width, zIndex: 2 }}
+        style={{ padding: 0, width, zIndex: 4 }}
         className={fixedHeader ? styles.fixedHeader : ''}
       >
         {isTop ? (
