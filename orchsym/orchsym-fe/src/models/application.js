@@ -13,24 +13,28 @@ export default {
   effects: {
     *fetchApplication({ payload }, { call, put }) {
       const response = yield call(queryApplication);
+      console.log(response);
       yield put({
         type: 'appendValue',
         payload: {
           applicationList: response.processGroupFlow.flow.processGroups,
+          parentId: response.processGroupFlow.flow.processGroups[0].component.parentGroupId,
         },
       });
     },
-    *detailApplication({ payload }, { call, put }) {
-      const response = yield call(detailApplication({ payload }));
+    *fetchDetailApplication({ payload }, { call, put }) {
+      const response = yield call(detailApplication, payload);
+      console.log(response);
       yield put({
         type: 'appendValue',
         payload: {
-          details: response,
+          details: response.status,
+          revision: response.revision,
         },
       });
     },
-    *editApplication({ payload }, { call, put }) {
-      const response = yield call(editApplication({ payload }));
+    *fetchEditApplication({ payload }, { call, put }) {
+      const response = yield call(editApplication, payload);
       if (response) {
         message.success('编辑应用成功！');
       }
@@ -41,8 +45,8 @@ export default {
       //   },
       // });
     },
-    *addApplication({ payload }, { call, put }) {
-      const response = yield call(addApplication({ payload }));
+    *fetchAddApplication({ payload }, { call, put }) {
+      const response = yield call(addApplication, payload);
       if (response) {
         message.success('创建应用成功！');
       }
