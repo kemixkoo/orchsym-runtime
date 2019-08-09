@@ -51,15 +51,20 @@ export async function deleteApplication(params) {
 // 复制粘贴
 export async function copeApplication(params) {
   return request(`/studio/nifi-api/process-groups/${params.id}/snippet-instance`, {
-    method: 'PUT',
-    body: params.body,
+    method: 'POST',
+    data: params.body,
   });
 }
 
-// 创建模版
-export async function CreateApplicationTemp(params) {
+// 存为模版
+export async function createApplicationTemp(params) {
+  const body = {
+    snippetId: params.snippetId,
+    description: params.values.description,
+    name: params.values.name,
+  }
   return request(`/studio/nifi-api/process-groups/${params.id}/templates`, {
     method: 'POST',
-    body: params.body,
+    data: body,
   });
 }

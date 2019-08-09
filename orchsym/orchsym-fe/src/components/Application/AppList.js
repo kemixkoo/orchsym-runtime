@@ -10,6 +10,7 @@ import CreateOrEditApp from './CreateOrEditApp';
 @connect(({ application, loading }) => ({
   applicationList: application.applicationList,
   details: application.details,
+  snippet: application.snippet,
   loading: loading.effects['application/fetchApplication'],
 }))
 class AppList extends PureComponent {
@@ -36,7 +37,6 @@ class AppList extends PureComponent {
     });
     this.setState({
       editVisible: true,
-      appId: item.id,
     });
   }
 
@@ -46,9 +46,11 @@ class AppList extends PureComponent {
     })
   }
 
-  showSaveTemp = () => {
+  showSaveTemp = (item) => {
     this.setState({
       saveTempVisible: true,
+      appId: item.id,
+      appItem: item,
     })
   }
 
@@ -58,11 +60,45 @@ class AppList extends PureComponent {
     })
   }
 
-  // setAppParams = (parentId) => {
-  //   this.setState({
-  //     parentId: parentId,
-  //   })
-  // }
+  // 状态操作
+  updateStates = (item, status) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchUpdateAppState',
+      payload: {
+        id: item.id,
+        state: status,
+      },
+    });
+  }
+
+  // 创建snippets
+  createSnippets = (item, state) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchCreateSnippets',
+      payload: item,
+      cb: (res) => {
+        if (state === 'RUNNING') { // 运行
+          dispatch({
+            type: 'application/fetchValidationRunApp',
+            payload: {
+              id: item.id,
+              snippetId: res.id,
+            },
+          });
+        } else if (state === 'COPE') { // 复制
+          dispatch({
+            type: 'application/fetchCopeApplication',
+            payload: {
+              id: item.id,
+              snippetId: res.id,
+            },
+          });
+        }
+      },
+    });
+  }
 
   getCarList = (item) => {
     // const { setAppParams } = this.props;
@@ -78,24 +114,24 @@ class AppList extends PureComponent {
           编辑应用
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="3">
+        <Menu.Item key="3" onClick={() => { this.createSnippets(item, 'RUNNING') }}>
           <Icon type="play-square" />
           运行
         </Menu.Item>
-        <Menu.Item key="4">
+        <Menu.Item key="4" onClick={() => { this.updateStates(item, 'STOPPED') }}>
           <Icon type="stop" />
           停止
         </Menu.Item>
-        <Menu.Item key="5">
+        <Menu.Item key="5" onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <Icon type="check-square" />
           启用
         </Menu.Item>
-        <Menu.Item key="6">
+        <Menu.Item key="6" onClick={() => { this.updateStates(item, 'DISABLED') }}>
           <Icon type="close-square" />
           禁用
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="7">
+        <Menu.Item key="7" onClick={() => { this.createSnippets(item, 'COPE') }}>
           <Icon type="copy" />
           复制
         </Menu.Item>
@@ -125,19 +161,19 @@ class AppList extends PureComponent {
 
     const menu2 = (
       <Menu style={{ fontSize: '12px' }}>
-        <Menu.Item key="1">
+        <Menu.Item key="11">
           队列中
           <p className={styles.pStyle}>2（5.2 MB）</p>
         </Menu.Item>
-        <Menu.Item key="2">
+        <Menu.Item key="12">
           输入
           <p className={styles.pStyle}>1（888.88 KB）</p>
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="13">
           输出
           <p className={styles.pStyle}>1（66 B）</p>
         </Menu.Item>
-        <Menu.Item key="3">
+        <Menu.Item key="14">
           读 / 写
           <p className={styles.pStyle}>502 KB / 10.8 B</p>
         </Menu.Item>
@@ -179,17 +215,15 @@ class AppList extends PureComponent {
             </div>}
           description={
             <p className={styles.lineEllipsis}>
-              {item.describe}
+              {(!item.describe) ? '该应用暂无描述' : item.describe}
             </p>
           }
         />
         <div className={styles.cardExtra}>{dropdown}</div>
         <div style={{ marginBottom: '10px' }}>
-          {item.component.tags.map((i) => (
+          {(!item.component.tags.length) ? '该应用暂无标签' : (item.component.tags.map((i) => (
             <Tag color="blue">{i}</Tag>
-          ))}
-          {/* <Tag color="blue">接口转换</Tag>
-          <Tag color="blue">业务重组</Tag> */}
+          )))}
         </div>
         <Divider style={{ margin: 0 }} />
         <div className={styles.cardFoot}>
@@ -211,9 +245,8 @@ class AppList extends PureComponent {
     // appListData.forEach((item) => {
     //   Carlist.push(this.getCarList(item))
     // });
-    const { saveTempVisible, editVisible, createOrEdit, appId } = this.state;
+    const { saveTempVisible, editVisible, createOrEdit, appId, appItem } = this.state;
     const { applicationList } = this.props;
-    console.log('propr', this.props)
 
     return (
       <div className={styles.infiniteContainer}>
@@ -235,7 +268,7 @@ class AppList extends PureComponent {
           )}
         />
         {/* {Carlist} */}
-        <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} />
+        <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} appItem={appItem} />
         <CreateOrEditApp
           visible={editVisible}
           handleCreateEditCancel={this.handleCreateEditCancel}
