@@ -29,6 +29,7 @@ const codeMessage = {
  * 异常处理程序
  */
 const errorHandler = error => {
+  console.log(error)
   const { response = {} } = error;
   const errortext = codeMessage[response.status] || response.statusText;
   const { status, url } = response;
@@ -50,8 +51,7 @@ const errorHandler = error => {
   });
   // environment should not be used
   if (status === 403) {
-    router.push('/exception/403');
-    return;
+    return error;
   }
   if (status <= 504 && status >= 500) {
     router.push('/exception/500');

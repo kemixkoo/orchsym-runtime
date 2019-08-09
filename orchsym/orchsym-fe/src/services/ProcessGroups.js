@@ -29,7 +29,7 @@ export async function deleteApplication(params) {
 // 复制粘贴
 export async function copeApplication(params) {
   return request(`/studio/nifi-api/process-groups/${params.id}/snippet-instance`, {
-    method: 'PUT',
+    method: 'POST',
     data: params.body,
   });
 }

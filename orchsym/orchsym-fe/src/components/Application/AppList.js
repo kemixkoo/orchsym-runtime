@@ -10,6 +10,7 @@ import CreateOrEditApp from './CreateOrEditApp';
 @connect(({ application, loading }) => ({
   applicationList: application.applicationList,
   details: application.details,
+  snippet: application.snippet,
   loading: loading.effects['application/fetchApplication'],
 }))
 class AppList extends PureComponent {
@@ -62,10 +63,38 @@ class AppList extends PureComponent {
   updateStates = (item, status) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'application/updateAppState',
+      type: 'application/fetchUpdateAppState',
       payload: {
         id: item.id,
         state: status,
+      },
+    });
+  }
+
+  // 创建snippets
+  createSnippets = (item, state) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchCreateSnippets',
+      payload: item,
+      cb: (res) => {
+        if (state === 'RUNNING') { // 运行
+          dispatch({
+            type: 'application/fetchValidationRunApp',
+            payload: {
+              id: item.id,
+              snippetId: res.id,
+            },
+          });
+        } else if (state === 'COPE') { // 复制
+          dispatch({
+            type: 'application/fetchCopeApplication',
+            payload: {
+              id: item.id,
+              snippetId: res.id,
+            },
+          });
+        }
       },
     });
   }
@@ -82,7 +111,7 @@ class AppList extends PureComponent {
           编辑应用
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="3" onClick={() => { this.updateStates(item, 'RUNNING') }}>
+        <Menu.Item key="3" onClick={() => { this.createSnippets(item, 'RUNNING') }}>
           <Icon type="play-square" />
           运行
         </Menu.Item>
@@ -99,7 +128,7 @@ class AppList extends PureComponent {
           禁用
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="7">
+        <Menu.Item key="7" onClick={() => { this.createSnippets(item, 'COPE') }}>
           <Icon type="copy" />
           复制
         </Menu.Item>
