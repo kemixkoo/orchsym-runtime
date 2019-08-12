@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Card, Menu, Icon, Dropdown, Badge, Divider, Tag, List } from 'antd';
-import { connect } from 'dva'
+import { connect } from 'dva';
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
 import IconFont from '@/components/IconFont';
@@ -32,12 +32,11 @@ class AppList extends PureComponent {
   showEditModal = (item) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'application/detailApplication',
+      type: 'application/fetchDetailApplication',
       payload: item.id,
     });
     this.setState({
       editVisible: true,
-      appId: item.id,
     });
   }
 
@@ -47,9 +46,11 @@ class AppList extends PureComponent {
     })
   }
 
-  showSaveTemp = () => {
+  showSaveTemp = (item) => {
     this.setState({
       saveTempVisible: true,
+      appId: item.id,
+      appItem: item,
     })
   }
 
@@ -100,6 +101,8 @@ class AppList extends PureComponent {
   }
 
   getCarList = (item) => {
+    // const { setAppParams } = this.props;
+    // setAppParams(item.component.parentId);
     const menu = (
       <Menu>
         <Menu.Item key="1">
@@ -182,15 +185,15 @@ class AppList extends PureComponent {
         <div>
           <Badge count={0} dot className={styles.badgeIcon}>
             <Icon type="play-square" style={{ color: '#0f0' }} />
-            <span>5</span>
+            <span>{item.runningCount}</span>
           </Badge>
           <Badge count={0} dot className={styles.badgeIcon}>
             <Icon type="stop" style={{ color: '#f00' }} />
-            <span>5</span>
+            <span>{item.stoppedCount}</span>
           </Badge>
           <Badge count={0} dot className={styles.badgeIcon}>
             <Icon type="close-square" />
-            <span>5</span>
+            <span>{item.disabledCount}</span>
           </Badge>
           {/* <a className="ant-dropdown-link" href="#">
             更多
@@ -212,20 +215,21 @@ class AppList extends PureComponent {
             </div>}
           description={
             <p className={styles.lineEllipsis}>
-              {item.describe}
+              {(!item.describe) ? '该应用暂无描述' : item.describe}
             </p>
           }
         />
         <div className={styles.cardExtra}>{dropdown}</div>
         <div style={{ marginBottom: '10px' }}>
-          <Tag color="blue">接口转换</Tag>
-          <Tag color="blue">业务重组</Tag>
+          {(!item.component.tags.length) ? '该应用暂无标签' : (item.component.tags.map((i) => (
+            <Tag color="blue">{i}</Tag>
+          )))}
         </div>
         <Divider style={{ margin: 0 }} />
         <div className={styles.cardFoot}>
           {dropdown2}
         </div>
-        <p className={styles.cardTime}>5小时前</p>
+        <p className={styles.cardTime}>{item.status.statsLastRefreshed}</p>
         {(isError) ? (
           <Dropdown overlay={<LogList />}>
             <span className={styles.triangle} />
@@ -241,7 +245,7 @@ class AppList extends PureComponent {
     // appListData.forEach((item) => {
     //   Carlist.push(this.getCarList(item))
     // });
-    const { saveTempVisible, editVisible, createOrEdit, appId } = this.state;
+    const { saveTempVisible, editVisible, createOrEdit, appId, appItem } = this.state;
     const { applicationList } = this.props;
 
     return (
@@ -264,7 +268,7 @@ class AppList extends PureComponent {
           )}
         />
         {/* {Carlist} */}
-        <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} />
+        <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} appItem={appItem} />
         <CreateOrEditApp
           visible={editVisible}
           handleCreateEditCancel={this.handleCreateEditCancel}

@@ -1,38 +1,47 @@
 import React from 'react';
+import { connect } from 'dva';
 import { Modal, Input, Form, Select } from 'antd';
 
 const { TextArea } = Input;
 const FormItem = Form.Item;
 const { Option } = Select;
 
+@connect(({ application }) => ({
+  parentId: application.parentId,
+  details: application.details,
+  revision: application.revision,
+}))
 class CreateOrEditApp extends React.Component {
   // handleOk = () => {
 
   // }
   handleCreateEditOk = (e) => {
-    const { title, appId, dispatch, form: { validateFields } } = this.props;
+    const { title, parentId, appId, revision, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
         if (title === '编辑应用') {
           dispatch({
-            type: 'application/editApplication',
+            type: 'application/fetchEditApplication',
             payload: {
               values,
               appId,
+              revision,
             },
           })
         } else {
           dispatch({
-            type: 'application/addApplication',
+            type: 'application/fetchAddApplication',
             payload: {
               values,
-              appId,
+              parentId,
             },
-          })
+          });
         }
+        handleCreateEditCancel();
       }
     });
+    resetFields();
   }
 
   render() {
@@ -41,6 +50,7 @@ class CreateOrEditApp extends React.Component {
       visible,
       handleCreateEditCancel,
       title,
+      details,
     } = this.props;
     const formItemLayout = {
       labelCol: {
@@ -71,16 +81,17 @@ class CreateOrEditApp extends React.Component {
         >
           <Form {...formItemLayout}>
             <FormItem label="应用名称">
-              {getFieldDecorator('appName', {
+              {getFieldDecorator('name', {
                 rules: [{
                   required: true, message: '应用名称不能为空!',
                 }],
+                initialValue: title === '编辑应用' ? details.name : '',
               })(
                 <Input />
               )}
             </FormItem>
             <FormItem label="应用描述">
-              {getFieldDecorator('appDescribe', {
+              {getFieldDecorator('comments', {
                 // rules: [{
                 //   required: true, message: '请输入应用名称!',
                 // }],
@@ -89,14 +100,15 @@ class CreateOrEditApp extends React.Component {
               )}
             </FormItem>
             <FormItem label="标签设置">
-              {getFieldDecorator('appTagSet', {
+              {getFieldDecorator('tags', {
                 // rules: [{
                 //   required: true, message: '请输入应用名称!',
                 // }],
               })(
                 <Select
-                  mode="multiple"
+                  mode="tags"
                   style={{ width: '100%' }}
+                  showArrow="true"
                   onChange={this.handleSetTags}
                 >
                   {tags}

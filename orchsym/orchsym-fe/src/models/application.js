@@ -17,45 +17,37 @@ export default {
   effects: {
     *fetchApplication({ payload }, { call, put }) {
       const response = yield call(queryApplication);
+      console.log(response);
       yield put({
         type: 'appendValue',
         payload: {
           applicationList: response.processGroupFlow.flow.processGroups,
+          parentId: response.processGroupFlow.flow.processGroups[0].component.parentGroupId,
         },
       });
     },
     *fetchDetailApplication({ payload }, { call, put }) {
-      const response = yield call(detailApplication({ payload }));
+      const response = yield call(detailApplication, payload);
+      console.log(response);
       yield put({
         type: 'appendValue',
         payload: {
-          details: response,
+          details: response.status,
+          revision: response.revision,
         },
       });
     },
     *fetchEditApplication({ payload }, { call, put }) {
-      const response = yield call(editApplication({ payload }));
+      const response = yield call(editApplication, payload);
       if (response) {
         message.success('编辑应用成功！');
       }
-      // yield put({
-      //   type: 'appendValue',
-      //   payload: {
-      //     details: response,
-      //   },
-      // });
     },
     *fetchAddApplication({ payload }, { call, put }) {
-      const response = yield call(addApplication({ payload }));
+      const response = yield call(addApplication, payload);
       if (response) {
         message.success('创建应用成功！');
       }
-      // yield put({
-      //   type: 'appendValue',
-      //   payload: {
-      //     details: response,
-      //   },
-      // });
     },
 
     *fetchCreateSnippets({ payload, cb }, { call, put }) {
@@ -77,6 +69,7 @@ export default {
         version: 0,
       }
       const response = yield call(createSnippets, queryData);
+      console.log(response)
       yield put({
         type: 'appendValue',
         payload: {
@@ -88,7 +81,7 @@ export default {
     * fetchUpdateAppState({ payload }, { call, put }) {
       const response = yield call(updateAppState, payload);
       if (response) {
-        // message.success('成功！');
+        message.success('更新成功！');
       }
     },
     * fetchValidationRunApp({ payload }, { call, put }) {
@@ -106,24 +99,12 @@ export default {
       if (response) {
         // message.success('创建应用成功！');
       }
-      // yield put({
-      //   type: 'appendValue',
-      //   payload: {
-      //     details: response,
-      //   },
-      // });
     },
     * fetchDeleteApplication({ payload }, { call, put }) {
       const response = yield call(deleteApplication, payload);
       if (response) {
-        // message.success('创建应用成功！');
+        // message.success('删除应用成功！');
       }
-      // yield put({
-      //   type: 'appendValue',
-      //   payload: {
-      //     details: response,
-      //   },
-      // });
     },
     * fetchCopeApplication({ payload }, { call, put }) {
       const queryDate = {
@@ -142,14 +123,8 @@ export default {
     * fetchCreateAppTemp({ payload }, { call, put }) {
       const response = yield call(createApplicationTemp, payload);
       if (response) {
-        // message.success('创建应用成功！');
+        message.success('存为模板成功！');
       }
-      // yield put({
-      //   type: 'appendValue',
-      //   payload: {
-      //     details: response,
-      //   },
-      // });
     },
   },
 
