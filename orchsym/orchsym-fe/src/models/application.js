@@ -5,6 +5,7 @@ import {
   detailApplication, editApplication, addApplication,
   deleteApplication, copeApplication, createApplicationTemp } from '@/services/ProcessGroups';
 import { message } from 'antd';
+import { getClientId } from '@/utils/authority';
 
 export default {
   namespace: 'application',
@@ -69,7 +70,7 @@ export default {
         },
       }
       queryData.snippet.processGroups[payload.id] = {
-        clientId: '2c94336b-31e3-1c01-62e3-503bb4f0c1ef',
+        clientId: getClientId(),
         version: 0,
       }
       const response = yield call(createSnippets, queryData);
@@ -98,21 +99,20 @@ export default {
       }
     },
     * fetchValidationDeleteApp({ payload, cb }, { call, put }) {
-      const id = payload
       try {
-        yield call(validationDeleteApp, id);
+        yield call(validationDeleteApp, payload);
         yield cb && cb()
       } catch {
         yield put({
           type: 'fetchDeleteApplication',
-          payload: id,
+          payload,
         });
       }
     },
     * fetchDeleteApplication({ payload }, { call, put }) {
       const queryData = {
         id: payload,
-        clientId: '2c94336b-31e3-1c01-62e3-503bb4f0c1ef',
+        clientId: getClientId(),
         version: 0,
       }
       const response = yield call(deleteApplication, queryData);

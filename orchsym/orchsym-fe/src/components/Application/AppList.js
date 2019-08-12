@@ -62,13 +62,13 @@ class AppList extends PureComponent {
   }
 
   // 状态操作
-  updateStates = (item, status) => {
+  updateStates = (item, state) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'application/fetchUpdateAppState',
       payload: {
         id: item.id,
-        state: status,
+        state,
       },
     });
   }
@@ -116,7 +116,7 @@ class AppList extends PureComponent {
           cancelText: 'No',
           onOk() {
             dispatch({
-              type: 'application/fetchCopeApplication',
+              type: 'application/fetchDeleteApplication',
               payload: id,
             });
           },

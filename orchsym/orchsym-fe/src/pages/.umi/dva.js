@@ -19,14 +19,14 @@ export function _onCreate() {
   (runtimeDva.plugins || []).forEach(plugin => {
     app.use(plugin);
   });
-  app.use(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/dva-immer/dist/index.js')());
-  app.model({ namespace: 'application', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/application.js').default) });
-app.model({ namespace: 'global', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/global.js').default) });
-app.model({ namespace: 'login', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/login.js').default) });
-app.model({ namespace: 'menu', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/menu.js').default) });
-app.model({ namespace: 'project', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/project.js').default) });
-app.model({ namespace: 'setting', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/setting.js').default) });
-app.model({ namespace: 'user', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/user.js').default) });
+  app.use(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/dva-immer/dist/index.js')());
+  app.model({ namespace: 'application', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/application.js').default) });
+app.model({ namespace: 'global', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/global.js').default) });
+app.model({ namespace: 'login', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/login.js').default) });
+app.model({ namespace: 'menu', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/menu.js').default) });
+app.model({ namespace: 'project', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/project.js').default) });
+app.model({ namespace: 'setting', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/setting.js').default) });
+app.model({ namespace: 'user', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/user.js').default) });
   return app;
 }
 
