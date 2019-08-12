@@ -81,29 +81,30 @@ request.interceptors.request.use((url, options) => {
       options: { ...options, interceptors: true },
     }
   );
-}, error => {
-  // Do something with request error
-  Promise.reject(error)
 });
 // response拦截器, 处理response
 request.interceptors.response.use((response, options) => {
   if (!response.ok) {
-    response.text().then(data => {
-      if (data) {
-        notification.error({
-          message: data,
-        })
-      }
-    })
-  } else if (response.status === 401) {
-    notification.error({
-      message: '未登录或登录已过期，请重新登录。',
-    });
-    // @HACK
-    /* eslint-disable no-underscore-dangle */
-    window.g_app._store.dispatch({
-      type: 'login/logout',
-    });
+    if (response.status === 401) {
+      notification.error({
+        message: '未登录或登录已过期，请重新登录。',
+      });
+      // @HACK
+      /* eslint-disable no-underscore-dangle */
+      window.g_app._store.dispatch({
+        type: 'login/logout',
+      });
+    } else if (response.status === 403) { // 判断删除
+      return response
+    } else {
+      response.text().then(data => {
+        if (data) {
+          notification.error({
+            message: data,
+          })
+        }
+      })
+    }
   }
   return response
 });

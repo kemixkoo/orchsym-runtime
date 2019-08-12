@@ -10,3 +10,7 @@ export async function updateAppState(params) {
     data: params, // state: RUNNING, STOPPED, ENABLED, DISABLED
   });
 }
+// 获取 client-id
+export async function getClientId() {
+  return request('/studio/nifi-api/flow/client-id');
+}
