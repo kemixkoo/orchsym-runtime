@@ -18,9 +18,9 @@ class AppList extends PureComponent {
   state = {
     editVisible: null,
     createOrEdit: '编辑应用',
-    appId: null,
     saveTempVisible: null,
     isError: true,
+    appItem: {},
   };
 
   componentWillMount() {
@@ -50,7 +50,6 @@ class AppList extends PureComponent {
   showSaveTemp = (item) => {
     this.setState({
       saveTempVisible: true,
-      appId: item.id,
       appItem: item,
     })
   }
@@ -305,8 +304,8 @@ class AppList extends PureComponent {
     // appListData.forEach((item) => {
     //   Carlist.push(this.getCarList(item))
     // });
-    const { saveTempVisible, editVisible, createOrEdit, appId, appItem } = this.state;
-    const { applicationList } = this.props;
+    const { saveTempVisible, editVisible, createOrEdit, appItem } = this.state;
+    const { applicationList, details } = this.props;
 
     return (
       <div className={styles.infiniteContainer}>
@@ -329,12 +328,16 @@ class AppList extends PureComponent {
         />
         {/* {Carlist} */}
         <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} appItem={appItem} />
-        <CreateOrEditApp
-          visible={editVisible}
-          handleCreateEditCancel={this.handleCreateEditCancel}
-          title={createOrEdit}
-          appId={appId}
-        />
+        {
+          editVisible && (
+          <CreateOrEditApp
+            visible={editVisible}
+            handleCreateEditCancel={this.handleCreateEditCancel}
+            title={createOrEdit}
+            details={details}
+          />
+          )
+        }
       </div>
     );
   }

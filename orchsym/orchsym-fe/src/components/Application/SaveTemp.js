@@ -48,9 +48,15 @@ class SaveTemp extends React.Component {
     resetFields();
   }
 
+  handleCancel = () => {
+    const { handleSaveCancel, form: { resetFields } } = this.props;
+    resetFields();
+    handleSaveCancel();
+  }
+
   render() {
     const { isCheck } = this.state;
-    const { form: { getFieldDecorator }, visible, handleSaveCancel } = this.props;
+    const { form: { getFieldDecorator }, visible } = this.props;
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
@@ -70,7 +76,7 @@ class SaveTemp extends React.Component {
       <Modal
         visible={visible}
         title="存为模板"
-        onCancel={handleSaveCancel}
+        onCancel={this.handleCancel}
         onOk={this.handleSaveTemp}
         okText="确定"
         cancelText="取消"

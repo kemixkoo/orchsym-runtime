@@ -9,24 +9,33 @@ const { Option } = Select;
 @connect(({ application }) => ({
   parentId: application.parentId,
   details: application.details,
-  revision: application.revision,
 }))
 class CreateOrEditApp extends React.Component {
   // handleOk = () => {
 
   // }
+  componentWillUnmount() {
+    console.log('卸载')
+    const { dispatch } = this.props
+    dispatch({
+      type: 'application/appendValue',
+      payload: {
+        details: {},
+      },
+    });
+  }
+
   handleCreateEditOk = (e) => {
-    const { title, parentId, appId, revision, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
+    const { parentId, details, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
-        if (title === '编辑应用') {
+        if (details) {
           dispatch({
             type: 'application/fetchEditApplication',
             payload: {
               values,
-              appId,
-              revision,
+              details,
             },
           })
         } else {
@@ -44,13 +53,18 @@ class CreateOrEditApp extends React.Component {
     resetFields();
   }
 
+  handleCancel = () => {
+    const { handleCreateEditCancel, form: { resetFields } } = this.props;
+    resetFields();
+    handleCreateEditCancel();
+  }
+
   render() {
     const {
       form: { getFieldDecorator },
       visible,
-      handleCreateEditCancel,
       title,
-      details,
+      details: { status },
     } = this.props;
     const formItemLayout = {
       labelCol: {
@@ -74,10 +88,11 @@ class CreateOrEditApp extends React.Component {
         <Modal
           visible={visible}
           title={title}
-          onCancel={handleCreateEditCancel}
+          onCancel={this.handleCancel}
           onOk={this.handleCreateEditOk}
           okText="确定"
           cancelText="取消"
+          destroyOnClose
         >
           <Form {...formItemLayout}>
             <FormItem label="应用名称">
@@ -85,7 +100,7 @@ class CreateOrEditApp extends React.Component {
                 rules: [{
                   required: true, message: '应用名称不能为空!',
                 }],
-                initialValue: title === '编辑应用' ? details.name : '',
+                initialValue: status ? status.name : '',
               })(
                 <Input />
               )}
@@ -108,7 +123,6 @@ class CreateOrEditApp extends React.Component {
                 <Select
                   mode="tags"
                   style={{ width: '100%' }}
-                  showArrow="true"
                   onChange={this.handleSetTags}
                 >
                   {tags}

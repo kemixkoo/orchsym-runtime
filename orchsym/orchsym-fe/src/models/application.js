@@ -11,8 +11,9 @@ export default {
   namespace: 'application',
 
   state: {
-    notice: [],
-    details: [],
+    applicationList: [],
+    parentId: '',
+    details: {},
   },
 
   effects: {
@@ -31,13 +32,23 @@ export default {
       yield put({
         type: 'appendValue',
         payload: {
-          details: response.status,
-          revision: response.revision,
+          details: response,
         },
       });
     },
     *fetchEditApplication({ payload }, { call, put }) {
-      const response = yield call(editApplication, payload);
+      const { values: { name }, details: { id, revision } } = payload;
+      const params = {
+        value: {
+          component: {
+            id,
+            name,
+            comments: '',
+          },
+          revision,
+        },
+      }
+      const response = yield call(editApplication, params);
       if (response) {
         message.success('编辑应用成功！');
         yield put({
@@ -46,7 +57,21 @@ export default {
       }
     },
     *fetchAddApplication({ payload }, { call, put }) {
-      const response = yield call(addApplication, payload);
+      const { values: { name }, parentId } = payload;
+      const params = {
+        parentId,
+        value: {
+          component: {
+            name,
+            position: { x: 0, y: 0 },
+          },
+          revision: {
+            clientId: getClientId(),
+            version: 0,
+          },
+        },
+      }
+      const response = yield call(addApplication, params);
       if (response) {
         message.success('创建应用成功！');
         yield put({
@@ -141,7 +166,16 @@ export default {
       }
     },
     * fetchCreateAppTemp({ payload }, { call, put }) {
-      const response = yield call(createApplicationTemp, payload);
+      const { snippetId, values, id } = payload;
+      const params = {
+        id,
+        body: {
+          snippetId,
+          description: values.description,
+          name: values.name,
+        },
+      }
+      const response = yield call(createApplicationTemp, params);
       if (response) {
         message.success('存为模板成功！');
       }

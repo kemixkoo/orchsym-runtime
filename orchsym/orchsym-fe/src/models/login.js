@@ -10,6 +10,8 @@ export default {
   namespace: 'login',
 
   state: {
+    token: '',
+    clientId: '',
   },
 
   effects: {
