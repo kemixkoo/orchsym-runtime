@@ -42,9 +42,13 @@ export async function editApplication({ values, appId, revision }) {
 }
 
 // 删除
-export async function deleteApplication(params) {
-  return request(`/studio/nifi-api/process-groups/${params.id}?version=${params.version}?clientId=${params.clientId}`, {
+export async function deleteApplication(param) {
+  return request(`/studio/nifi-api/process-groups/${param.id}`, {
     method: 'DELETE',
+    params: {
+      version: param.version,
+      clientId: param.clientId,
+    },
   })
 }
 

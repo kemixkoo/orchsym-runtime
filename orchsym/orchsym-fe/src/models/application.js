@@ -17,7 +17,6 @@ export default {
   effects: {
     *fetchApplication({ payload }, { call, put }) {
       const response = yield call(queryApplication);
-      console.log(response);
       yield put({
         type: 'appendValue',
         payload: {
@@ -28,7 +27,6 @@ export default {
     },
     *fetchDetailApplication({ payload }, { call, put }) {
       const response = yield call(detailApplication, payload);
-      console.log(response);
       yield put({
         type: 'appendValue',
         payload: {
@@ -75,7 +73,6 @@ export default {
         version: 0,
       }
       const response = yield call(createSnippets, queryData);
-      console.log(response)
       yield put({
         type: 'appendValue',
         payload: {
@@ -100,16 +97,30 @@ export default {
         yield call(updateAppState, stateDate);
       }
     },
-    * fetchValidationDeleteApp({ payload }, { call, put }) {
-      const response = yield call(validationDeleteApp, payload);
-      if (response) {
-        // message.success('创建应用成功！');
+    * fetchValidationDeleteApp({ payload, cb }, { call, put }) {
+      const id = payload
+      try {
+        yield call(validationDeleteApp, id);
+        yield cb && cb()
+      } catch {
+        yield put({
+          type: 'fetchDeleteApplication',
+          payload: id,
+        });
       }
     },
     * fetchDeleteApplication({ payload }, { call, put }) {
-      const response = yield call(deleteApplication, payload);
+      const queryData = {
+        id: payload,
+        clientId: '2c94336b-31e3-1c01-62e3-503bb4f0c1ef',
+        version: 0,
+      }
+      const response = yield call(deleteApplication, queryData);
       if (response) {
-        // message.success('删除应用成功！');
+        message.success('删除应用成功！');
+        yield put({
+          type: 'fetchApplication',
+        });
       }
     },
     * fetchCopeApplication({ payload }, { call, put }) {
@@ -123,7 +134,10 @@ export default {
       }
       const response = yield call(copeApplication, queryDate);
       if (response) {
-        // message.success('创建应用成功！');
+        message.success('复制应用成功！');
+        yield put({
+          type: 'fetchApplication',
+        });
       }
     },
     * fetchCreateAppTemp({ payload }, { call, put }) {

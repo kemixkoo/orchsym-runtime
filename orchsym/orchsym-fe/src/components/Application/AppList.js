@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Badge, Divider, Tag, List } from 'antd';
+import { Card, Menu, Icon, Dropdown, Badge, Divider, Tag, List, Modal } from 'antd';
 import { connect } from 'dva';
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
@@ -7,6 +7,7 @@ import IconFont from '@/components/IconFont';
 import LogList from '../LogList';
 import CreateOrEditApp from './CreateOrEditApp';
 
+const { confirm } = Modal;
 @connect(({ application, loading }) => ({
   applicationList: application.applicationList,
   details: application.details,
@@ -100,6 +101,33 @@ class AppList extends PureComponent {
     });
   }
 
+  // 删除
+  deleteAppHandel = (id) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchValidationDeleteApp',
+      payload: id,
+      cb: () => {
+        confirm({
+          title: '提示',
+          content: '删除后不可撤销，确定删除所选组件或模块吗？',
+          okText: 'Yes',
+          okType: 'danger',
+          cancelText: 'No',
+          onOk() {
+            dispatch({
+              type: 'application/fetchCopeApplication',
+              payload: id,
+            });
+          },
+          onCancel() {
+            console.log('Cancel');
+          },
+        });
+      },
+    });
+  }
+
   getCarList = (item) => {
     // const { setAppParams } = this.props;
     // setAppParams(item.component.parentId);
@@ -139,7 +167,7 @@ class AppList extends PureComponent {
           <Icon type="download" />
           下载
         </Menu.Item>
-        <Menu.Item key="9">
+        <Menu.Item key="9" onClick={() => { this.deleteAppHandel(item.id) }}>
           <Icon type="delete" />
           删除
         </Menu.Item>
