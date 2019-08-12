@@ -41,12 +41,18 @@ export default {
       const response = yield call(editApplication, payload);
       if (response) {
         message.success('编辑应用成功！');
+        yield put({
+          type: 'fetchApplication',
+        });
       }
     },
     *fetchAddApplication({ payload }, { call, put }) {
       const response = yield call(addApplication, payload);
       if (response) {
         message.success('创建应用成功！');
+        yield put({
+          type: 'fetchApplication',
+        });
       }
     },
 

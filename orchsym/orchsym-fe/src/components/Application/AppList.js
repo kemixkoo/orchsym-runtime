@@ -229,7 +229,7 @@ class AppList extends PureComponent {
         <div className={styles.cardFoot}>
           {dropdown2}
         </div>
-        <p className={styles.cardTime}>{item.status.statsLastRefreshed}</p>
+        <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p>
         {(isError) ? (
           <Dropdown overlay={<LogList />}>
             <span className={styles.triangle} />
@@ -239,6 +239,38 @@ class AppList extends PureComponent {
       // </Col>
     );
   }
+
+  formatMsgTime = (timeSpan) => {
+    let time = timeSpan.split(' ')[0];
+    time = time.replace(/-/g, ':').replace(' ', ':');
+    time = time.split(':');
+    const dateTime = new Date(2019, 7, 12, time[0], time[1], time[2]);
+    const year = dateTime.getFullYear();
+    const month = dateTime.getMonth() + 1;
+    const day = dateTime.getDate();
+    const hour = dateTime.getHours();
+    const minute = dateTime.getMinutes();
+    // const second = dateTime.getSeconds();
+    const now = new Date().getTime();
+    const timeOld = new Date(2019, 7, 12, time[0], time[1], time[2]).getTime();
+    let milliseconds = 0;
+    let timeSpanStr;
+    milliseconds = now - timeOld;
+    if (milliseconds <= 1000 * 60 * 1) {
+      timeSpanStr = '刚刚';
+    } else if (1000 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60) {
+      timeSpanStr = `${Math.round((milliseconds / (1000 * 60)))}分钟前`;
+    } else if (1000 * 60 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24) {
+      timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60))}小时前`;
+    } else if (1000 * 60 * 60 * 24 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24 * 15) {
+      timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60 * 24))}天前`;
+    } else if (milliseconds > 1000 * 60 * 60 * 24 * 15 && year === now.getFullYear()) {
+      timeSpanStr = `${month}-${day} ${hour}:${minute}`;
+    } else {
+      timeSpanStr = `${year}-${month}-${day} ${hour}:${minute}`;
+    }
+    return timeSpanStr;
+  };
 
   render() {
     // const Carlist = [];

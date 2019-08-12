@@ -57,13 +57,13 @@ export async function copeApplication(params) {
 }
 
 // 存为模版
-export async function createApplicationTemp(params) {
+export async function createApplicationTemp({ id, snippetId, values }) {
   const body = {
-    snippetId: params.snippetId,
-    description: params.values.description,
-    name: params.values.name,
+    snippetId,
+    description: values.description,
+    name: values.name,
   }
-  return request(`/studio/nifi-api/process-groups/${params.id}/templates`, {
+  return request(`/studio/nifi-api/process-groups/${id}/templates`, {
     method: 'POST',
     data: body,
   });
