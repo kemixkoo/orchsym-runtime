@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
 import { Spin, Tag, Menu, Icon, message, Tooltip, Divider } from 'antd';
+import IconFont from '@/components/IconFont';
 // Avatar
 import PropTypes from 'prop-types';
 import moment from 'moment';
@@ -78,19 +79,19 @@ export default class GlobalHeaderRight extends PureComponent {
     const settingMenu = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
         <Menu.Item key="overview">
-          <Icon type="home" />
+          <IconFont type="OS-iconzonglan" />
           <FormattedMessage id="menu.setting.overview" defaultMessage="Overview" />
         </Menu.Item>
         <Menu.Item key="counter">
-          <Icon type="calculator" />
+          <IconFont type="OS-iconjisuanqi" />
           <FormattedMessage id="menu.setting.counter" defaultMessage="Counter" />
         </Menu.Item>
         <Menu.Item key="sysConfig">
-          <Icon type="control" />
+          <IconFont type="OS-iconziyuan" />
           <FormattedMessage id="menu.setting.sysConfig" defaultMessage="System Configuration" />
         </Menu.Item>
         <Menu.Item key="userManage">
-          <Icon type="team" />
+          <IconFont type="OS-iconyonghuguanli" />
           <FormattedMessage id="menu.setting.userManage" defaultMessage="User Management" />
         </Menu.Item>
         <Menu.Divider />
@@ -108,11 +109,11 @@ export default class GlobalHeaderRight extends PureComponent {
           <FormattedMessage id="menu.account.trigger" defaultMessage="Trigger Error" />
         </Menu.Item> */}
         <Menu.Item key="operatLog">
-          <Icon type="file-search" />
+          <IconFont type="OS-iconrecord" />
           <FormattedMessage id="menu.account.operatLog" defaultMessage="Operation Log" />
         </Menu.Item>
         <Menu.Item key="updatePwd">
-          <Icon type="key" />
+          <IconFont type="OS-iconpassword" />
           <FormattedMessage id="menu.account.updatePwd" defaultMessage="Modify Password" />
         </Menu.Item>
         <Menu.Divider />

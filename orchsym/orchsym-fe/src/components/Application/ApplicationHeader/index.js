@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import { Row, Col, Button } from 'antd';
+import { connect } from 'dva';
 import CreateOrEditApp from '../CreateOrEditApp';
 import ApplicationSearch from './ApplicationSearch';
 import SortApplication from './SortApplication';
 import styles from './index.less';
 // import IconFont from '@/components/IconFont';
 
-export default class AppList extends PureComponent {
+class AppList extends PureComponent {
   state = {
     createAppVisible: null,
     createOrEdit: '创建应用',
@@ -26,14 +27,14 @@ export default class AppList extends PureComponent {
 
   getHeadWidth = () => {
     const { collapsed } = this.props;
-    return collapsed ? 'calc(100% - 80px)' : 'calc(100% - 185px)';
+    return collapsed ? 'calc(100% - 120px)' : 'calc(100% - 230px)';
   };
 
   render() {
     const { createAppVisible, createOrEdit } = this.state;
     const width = this.getHeadWidth();
     return (
-      <div style={{ width }} className={styles.applicationHeader}>
+      <div className={styles.applicationHeader} style={{ width }}>
         <Row gutter={16} className={styles.bottomSpace}>
           <Col span={3}>
             <Button type="primary" onClick={this.showCreateModal}>
@@ -54,3 +55,7 @@ export default class AppList extends PureComponent {
     );
   }
 }
+
+export default connect(({ global }) => ({
+  collapsed: global.collapsed,
+}))(AppList);

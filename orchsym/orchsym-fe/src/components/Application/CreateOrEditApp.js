@@ -15,7 +15,6 @@ class CreateOrEditApp extends React.Component {
 
   // }
   componentWillUnmount() {
-    console.log('卸载')
     const { dispatch } = this.props
     dispatch({
       type: 'application/appendValue',

@@ -19,7 +19,7 @@ class AppList extends PureComponent {
     editVisible: null,
     createOrEdit: '编辑应用',
     saveTempVisible: null,
-    isError: true,
+    isError: false,
     appItem: {},
   };
 
@@ -133,46 +133,46 @@ class AppList extends PureComponent {
     const menu = (
       <Menu>
         <Menu.Item key="1">
-          <Icon type="appstore" />
+          <IconFont type="OS-iconi-jr" />
           进入应用
         </Menu.Item>
         <Menu.Item key="2" onClick={() => { this.showEditModal(item) }}>
-          <Icon type="edit" />
+          <IconFont type="OS-iconbianji" />
           编辑应用
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="3" onClick={() => { this.createSnippets(item, 'RUNNING') }}>
-          <Icon type="play-square" />
+          <IconFont type="OS-iconqidong" />
           运行
         </Menu.Item>
         <Menu.Item key="4" onClick={() => { this.updateStates(item, 'STOPPED') }}>
-          <Icon type="stop" />
+          <IconFont type="OS-icontingzhi" />
           停止
         </Menu.Item>
         <Menu.Item key="5" onClick={() => { this.updateStates(item, 'ENABLED') }}>
-          <Icon type="check-square" />
+          <IconFont type="OS-iconqiyong" />
           启用
         </Menu.Item>
         <Menu.Item key="6" onClick={() => { this.updateStates(item, 'DISABLED') }}>
-          <Icon type="close-square" />
+          <IconFont type="OS-iconjinyong" />
           禁用
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="7" onClick={() => { this.createSnippets(item, 'COPE') }}>
-          <Icon type="copy" />
+          <IconFont type="OS-iconfuzhi" />
           复制
         </Menu.Item>
         <Menu.Item key="8">
-          <Icon type="download" />
+          <IconFont type="OS-iconCell-Download" />
           下载
         </Menu.Item>
         <Menu.Item key="9" onClick={() => { this.deleteAppHandel(item.id) }}>
-          <Icon type="delete" />
+          <IconFont type="OS-iconshanchu" />
           删除
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>
-          <Icon type="save" />
+          <IconFont type="OS-iconmoban" />
           存为模板
         </Menu.Item>
       </Menu>
@@ -211,15 +211,15 @@ class AppList extends PureComponent {
       <Dropdown overlay={menu2}>
         <div>
           <Badge count={0} dot className={styles.badgeIcon}>
-            <Icon type="play-square" style={{ color: '#0f0' }} />
+            <IconFont type="OS-iconqidong" />
             <span>{item.runningCount}</span>
           </Badge>
           <Badge count={0} dot className={styles.badgeIcon}>
-            <Icon type="stop" style={{ color: '#f00' }} />
+            <IconFont type="OS-icontingzhi" />
             <span>{item.stoppedCount}</span>
           </Badge>
           <Badge count={0} dot className={styles.badgeIcon}>
-            <Icon type="close-square" />
+            <IconFont type="OS-iconicon" />
             <span>{item.disabledCount}</span>
           </Badge>
           {/* <a className="ant-dropdown-link" href="#">
@@ -236,8 +236,8 @@ class AppList extends PureComponent {
         <Card.Meta
           title={
             <div>
-              <IconFont type="iconAPIguanli" style={{ color: '#0087ff' }} className={styles.iconfont} />
-              {/* <IconFont type="iconnaozhong" style={{ color: '#f28406' }} className={styles.iconfont} /> */}
+              <IconFont type="OS-iconapi" style={{ fontSize: '20px' }} />
+              {/* <IconFont type="OS-icondingshirenwu" style={{ fontSize: '20px' }} /> */}
               <span className={styles.cardTitle}>{item.status.name}</span>
             </div>}
           description={
@@ -300,10 +300,6 @@ class AppList extends PureComponent {
   };
 
   render() {
-    // const Carlist = [];
-    // appListData.forEach((item) => {
-    //   Carlist.push(this.getCarList(item))
-    // });
     const { saveTempVisible, editVisible, createOrEdit, appItem } = this.state;
     const { applicationList, details } = this.props;
 
@@ -326,16 +322,15 @@ class AppList extends PureComponent {
             </List.Item>
           )}
         />
-        {/* {Carlist} */}
         <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} appItem={appItem} />
         {
           editVisible && (
-          <CreateOrEditApp
-            visible={editVisible}
-            handleCreateEditCancel={this.handleCreateEditCancel}
-            title={createOrEdit}
-            details={details}
-          />
+            <CreateOrEditApp
+              visible={editVisible}
+              handleCreateEditCancel={this.handleCreateEditCancel}
+              title={createOrEdit}
+              details={details}
+            />
           )
         }
       </div>

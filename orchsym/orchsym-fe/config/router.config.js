@@ -61,14 +61,14 @@ export default [
       // 应用
       {
         name: 'application',
-        icon: 'studioiconapp1',
+        icon: 'OS-iconyingyongguanli',
         path: '/application',
         component: './Application/Index',
       },
       // 模板
       {
         name: 'template',
-        icon: 'copy',
+        icon: 'OS-iconmoban',
         path: '/template',
         routes: [
           {
