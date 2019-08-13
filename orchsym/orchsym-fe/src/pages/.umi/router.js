@@ -182,7 +182,7 @@ const routes = [
       },
       {
         name: 'application',
-        icon: 'studioiconapp1',
+        icon: 'OS-iconyingyongguanli',
         path: '/application',
         component: __IS_BROWSER
           ? _dvaDynamic({
@@ -196,7 +196,7 @@ const routes = [
       },
       {
         name: 'template',
-        icon: 'copy',
+        icon: 'OS-iconmoban',
         path: '/template',
         routes: [
           {

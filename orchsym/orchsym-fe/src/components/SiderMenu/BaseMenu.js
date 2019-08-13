@@ -22,8 +22,8 @@ const getIcon = (icon, theme) => {
     if (isUrl(icon)) {
       return <Icon component={() => <img src={icon} alt="icon" className={styles.icon} />} />;
     }
-    if (icon.startsWith('studioicon')) {
-      return <IconFont type={icon} style={{ color: theme === 'dark' ? '#fff' : '#001529' }} />;
+    if (icon.startsWith('OS-icon')) {
+      return <IconFont type={icon} />;
     }
     return <Icon type={icon} />;
   }

@@ -1,7 +1,8 @@
 import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
-import { fakeAccountLogin, getFakeCaptcha } from '@/services/studio';
-import { setToken } from '@/utils/authority';
+import { fakeAccountLogin } from '@/services/studio';
+import { getClientId } from '@/services/Flow';
+import { setToken, setClientId } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
@@ -9,6 +10,8 @@ export default {
   namespace: 'login',
 
   state: {
+    token: '',
+    clientId: '',
   },
 
   effects: {
@@ -35,11 +38,20 @@ export default {
           }
         }
         yield put(routerRedux.replace(redirect || '/'));
+        yield put({
+          type: 'fetchGetClientId',
+        });
       }
     },
 
-    *getCaptcha({ payload }, { call }) {
-      yield call(getFakeCaptcha, payload);
+    *fetchGetClientId(_, { call, put }) {
+      const response = yield call(getClientId);
+      if (response) {
+        yield put({
+          type: 'addClientId',
+          payload: response,
+        });
+      }
     },
 
     *logout(_, { put }) {
@@ -71,6 +83,13 @@ export default {
       return {
         ...state,
         token: payload,
+      };
+    },
+    addClientId(state, { payload }) {
+      setClientId(payload)
+      return {
+        ...state,
+        clientId: payload,
       };
     },
   },

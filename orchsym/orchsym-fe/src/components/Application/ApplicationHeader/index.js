@@ -1,14 +1,16 @@
 import React, { PureComponent } from 'react';
 import { Row, Col, Button } from 'antd';
-import CreateApplication from '../CreateApplication';
+import { connect } from 'dva';
+import CreateOrEditApp from '../CreateOrEditApp';
 import ApplicationSearch from './ApplicationSearch';
 import SortApplication from './SortApplication';
 import styles from './index.less';
 // import IconFont from '@/components/IconFont';
 
-export default class AppList extends PureComponent {
+class AppList extends PureComponent {
   state = {
     createAppVisible: null,
+    createOrEdit: '创建应用',
   };
 
   showCreateModal = () => {
@@ -17,16 +19,22 @@ export default class AppList extends PureComponent {
     })
   };
 
-  handleCreateCancel = () => {
+  handleCreateEditCancel = () => {
     this.setState({
       createAppVisible: false,
     })
   };
 
+  getHeadWidth = () => {
+    const { collapsed } = this.props;
+    return collapsed ? 'calc(100% - 120px)' : 'calc(100% - 230px)';
+  };
+
   render() {
-    const { createAppVisible } = this.state;
+    const { createAppVisible, createOrEdit } = this.state;
+    const width = this.getHeadWidth();
     return (
-      <div>
+      <div className={styles.applicationHeader} style={{ width }}>
         <Row gutter={16} className={styles.bottomSpace}>
           <Col span={3}>
             <Button type="primary" onClick={this.showCreateModal}>
@@ -42,8 +50,12 @@ export default class AppList extends PureComponent {
             <SortApplication />
           </Col>
         </Row>
-        <CreateApplication visible={createAppVisible} handleCreateCancel={this.handleCreateCancel} />
+        <CreateOrEditApp visible={createAppVisible} handleCreateEditCancel={this.handleCreateEditCancel} title={createOrEdit} />
       </div>
     );
   }
 }
+
+export default connect(({ global }) => ({
+  collapsed: global.collapsed,
+}))(AppList);

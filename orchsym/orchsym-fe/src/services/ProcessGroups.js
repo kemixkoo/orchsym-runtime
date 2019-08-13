@@ -1,42 +1,50 @@
 import request from '@/utils/request';
 
+// 创建
 export async function addApplication(params) {
-  return request(`/studio/nifi-api/process-groups/${params.id}/process-groups`, {
+  return request(`/studio/nifi-api/process-groups/${params.parentId}/process-groups`, {
     method: 'POST',
-    body: params.body,
+    data: params.value,
   });
 }
 
+// 详情
 export async function detailApplication(params) {
-  return request(`/studio/nifi-api/process-groups/${params.id}`);
+  return request(`/studio/nifi-api/process-groups/${params}`);
 }
 
+// 编辑
 export async function editApplication(params) {
-  return request(`/studio/nifi-api/process-groups/${params.id}`, {
+  const { value: { component: { id } } } = params;
+  return request(`/studio/nifi-api/process-groups/${id}`, {
     method: 'PUT',
-    body: params.body,
+    data: params.value,
   });
 }
 
 // 删除
-export async function deleteApplication(params) {
-  return request(`/studio/nifi-api/process-groups/${params.id}?version=${params.version}?clientId=${params.clientId}`, {
+export async function deleteApplication(param) {
+  return request(`/studio/nifi-api/process-groups/${param.id}`, {
     method: 'DELETE',
+    params: {
+      version: param.version,
+      clientId: param.clientId,
+    },
   })
 }
 
 // 复制粘贴
 export async function copeApplication(params) {
   return request(`/studio/nifi-api/process-groups/${params.id}/snippet-instance`, {
-    method: 'PUT',
-    body: params.body,
+    method: 'POST',
+    data: params.body,
   });
 }
 
-// 创建模版
-export async function CreateApplicationTemp(params) {
+// 存为模版
+export async function createApplicationTemp(params) {
   return request(`/studio/nifi-api/process-groups/${params.id}/templates`, {
     method: 'POST',
-    body: params.body,
+    data: params.body,
   });
 }

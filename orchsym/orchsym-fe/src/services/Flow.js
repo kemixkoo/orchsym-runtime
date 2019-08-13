@@ -7,6 +7,10 @@ export async function queryApplication() {
 export async function updateAppState(params) {
   return request(`/studio/nifi-api/flow/process-groups/${params.id}`, {
     method: 'PUT',
-    body: params.body, // state: RUNNING, STOPPED, ENABLED, DISABLED
+    data: params, // state: RUNNING, STOPPED, ENABLED, DISABLED
   });
+}
+// 获取 client-id
+export async function getClientId() {
+  return request('/studio/nifi-api/flow/client-id');
 }
