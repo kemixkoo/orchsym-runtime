@@ -20,8 +20,7 @@ export function _onCreate() {
     app.use(plugin);
   });
   app.use(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/node_modules/dva-immer/dist/index.js')());
-  app.model({ namespace: 'application', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/application.js').default) });
-app.model({ namespace: 'global', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/global.js').default) });
+  app.model({ namespace: 'global', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/global.js').default) });
 app.model({ namespace: 'login', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/login.js').default) });
 app.model({ namespace: 'menu', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/menu.js').default) });
 app.model({ namespace: 'project', ...(require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/models/project.js').default) });
