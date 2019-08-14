@@ -63,7 +63,7 @@ export default [
         name: 'application',
         icon: 'OS-iconyingyongguanli',
         path: '/application',
-        component: './Application/Index',
+        component: './Application',
       },
       // 模板
       {

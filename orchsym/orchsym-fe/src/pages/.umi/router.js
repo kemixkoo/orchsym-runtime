@@ -154,11 +154,14 @@ models: () => [
         "path": "/application",
         "component": __IS_BROWSER
     ? _dvaDynamic({
-      
-      component: () => import(/* webpackChunkName: "p__Application__Index" */'../Application/Index'),
+      app: require('@tmp/dva').getApp(),
+models: () => [
+  import(/* webpackChunkName: 'p__Application__model.js' */'/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/pages/Application/model.js').then(m => { return { namespace: 'model',...m.default}})
+],
+      component: () => import(/* webpackChunkName: "p__Application" */'../Application'),
       LoadingComponent: require('/Users/carmenlulu/workspace/白山云/react/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
     })
-    : require('../Application/Index').default,
+    : require('../Application').default,
         "exact": true
       },
       {
