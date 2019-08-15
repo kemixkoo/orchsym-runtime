@@ -18,3 +18,9 @@ export function getClientId() {
 export function setClientId(clientId) {
   return localStorage.setItem('clientId', clientId);
 }
+export function getCurrentUser() {
+  return localStorage.getItem('currentUser');
+}
+export function setCurrentUser(currentUser) {
+  return localStorage.setItem('currentUser', currentUser);
+}

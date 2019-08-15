@@ -1,16 +1,17 @@
 import React, { PureComponent } from 'react';
 import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
-import { Spin, Tag, Menu, Icon, message, Tooltip, Divider } from 'antd';
+import { Spin, Tag, Menu, Icon, Badge, Tooltip, Divider } from 'antd';
 import IconFont from '@/components/IconFont';
 // Avatar
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import groupBy from 'lodash/groupBy';
-import NoticeIcon from '../NoticeIcon';
+// import NoticeIcon from '../NoticeIcon';
 // import HeaderSearch from '../HeaderSearch';
 import HeaderDropdown from '../HeaderDropdown';
 import SelectLang from '../SelectLang';
 import styles from './index.less';
+import LogList from '../LogList';
 
 export default class GlobalHeaderRight extends PureComponent {
   getNoticeData() {
@@ -69,10 +70,10 @@ export default class GlobalHeaderRight extends PureComponent {
   render() {
     const {
       currentUser,
-      fetchingNotices,
-      onNoticeVisibleChange,
+      // fetchingNotices,
+      // onNoticeVisibleChange,
       onMenuClick,
-      onNoticeClear,
+      // onNoticeClear,
       theme,
     } = this.props;
     // 设置选项
@@ -123,8 +124,8 @@ export default class GlobalHeaderRight extends PureComponent {
         </Menu.Item>
       </Menu>
     );
-    const noticeData = this.getNoticeData();
-    const unreadMsg = this.getUnreadData(noticeData);
+    // const noticeData = this.getNoticeData();
+    // const unreadMsg = this.getUnreadData(noticeData);
     let className = styles.right;
     if (theme === 'dark') {
       className = `${styles.right}  ${styles.dark}`;
@@ -156,11 +157,18 @@ export default class GlobalHeaderRight extends PureComponent {
             <Icon type="question-circle-o" />
           </a>
         </Tooltip>
-        <NoticeIcon
+        {/* 消息 */}
+        <HeaderDropdown overlay={<LogList />}>
+          <span>
+            <Badge count={0} className={styles.badge}>
+              <Icon type="bell" className={styles.bell} />
+            </Badge>
+          </span>
+        </HeaderDropdown>
+        {/* <NoticeIcon
           className={styles.action}
           count={currentUser.unreadCount}
           onItemClick={(item, tabProps) => {
-            console.log(item, tabProps); // eslint-disable-line
             this.changeReadState(item, tabProps);
           }}
           loading={fetchingNotices}
@@ -201,7 +209,7 @@ export default class GlobalHeaderRight extends PureComponent {
             emptyImage="https://gw.alipayobjects.com/zos/rmsportal/HsIsxMZiWKrNUavQUXqx.svg"
             showViewMore
           />
-        </NoticeIcon>
+        </NoticeIcon> */}
         {/* 设置 */}
         <HeaderDropdown overlay={settingMenu}>
           <span className={`${styles.action} ${styles.account}`}>
@@ -210,7 +218,7 @@ export default class GlobalHeaderRight extends PureComponent {
           </span>
         </HeaderDropdown>
         <Divider type="vertical" />
-        {currentUser.name ? (
+        {currentUser.identity ? (
           <HeaderDropdown overlay={userManageMenu}>
             <span className={`${styles.action} ${styles.account}`}>
               {/* <Avatar
@@ -219,12 +227,11 @@ export default class GlobalHeaderRight extends PureComponent {
                 src={currentUser.avatar}
                 alt="avatar"
               /> */}
-              <span className={styles.name}>{currentUser.name}</span>
+              <span className={styles.name}>{currentUser.identity}</span>
             </span>
           </HeaderDropdown>
         ) : (
-          <Spin size="small" style={{ marginLeft: 8, marginRight: 8 }} />
-        )}
+          <Spin size="small" style={{ marginLeft: 8, marginRight: 8 }} />)}
         <SelectLang className={styles.action} />
       </div>
     );
@@ -235,9 +242,9 @@ GlobalHeaderRight.propTypes = {
   notices: PropTypes.any,
   dispatch: PropTypes.any,
   currentUser: PropTypes.any,
-  fetchingNotices: PropTypes.any,
-  onNoticeVisibleChange: PropTypes.any,
+  // fetchingNotices: PropTypes.any,
+  // onNoticeVisibleChange: PropTypes.any,
   onMenuClick: PropTypes.any,
-  onNoticeClear: PropTypes.any,
+  // onNoticeClear: PropTypes.any,
   theme: PropTypes.any,
 }

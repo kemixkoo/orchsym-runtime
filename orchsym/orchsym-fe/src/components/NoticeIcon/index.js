@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import HeaderDropdown from '../HeaderDropdown';
 import List from './NoticeList';
 import styles from './index.less';
-import LogList from '../LogList';
 
 const { TabPane } = Tabs;
 
@@ -127,8 +126,8 @@ export default class NoticeIcon extends PureComponent {
     return (
       <HeaderDropdown
         placement="bottomRight"
-        overlay={<LogList />}
-        // overlay={notificationBox}
+        // overlay={<LogList />}
+        overlay={notificationBox}
         overlayClassName={styles.popover}
         // trigger={['click']}
         visible={visible}

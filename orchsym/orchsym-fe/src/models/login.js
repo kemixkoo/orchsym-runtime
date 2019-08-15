@@ -1,13 +1,12 @@
 import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
 import { fakeAccountLogin } from '@/services/studio';
-import { getClientId } from '@/services/Flow';
+import { queryClientId } from '@/services/Flow';
 import { setToken, setClientId } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
 export default {
-  namespace: 'login',
 
   state: {
     token: '',
@@ -38,14 +37,11 @@ export default {
           }
         }
         yield put(routerRedux.replace(redirect || '/'));
-        yield put({
-          type: 'fetchGetClientId',
-        });
       }
     },
 
     *fetchGetClientId(_, { call, put }) {
-      const response = yield call(getClientId);
+      const response = yield call(queryClientId);
       if (response) {
         yield put({
           type: 'addClientId',

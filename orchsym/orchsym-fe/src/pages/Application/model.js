@@ -23,7 +23,7 @@ export default {
         type: 'appendValue',
         payload: {
           applicationList: response.processGroupFlow.flow.processGroups,
-          parentId: response.processGroupFlow.flow.processGroups[0].component.parentGroupId,
+          parentId: response.processGroupFlow.id,
         },
       });
     },
@@ -111,6 +111,9 @@ export default {
       const response = yield call(updateAppState, payload);
       if (response) {
         message.success('更新成功！');
+        yield put({
+          type: 'fetchApplication',
+        });
       }
     },
     * fetchValidationRunApp({ payload }, { call, put }) {
@@ -178,6 +181,9 @@ export default {
       const response = yield call(createApplicationTemp, params);
       if (response) {
         message.success('存为模板成功！');
+        yield put({
+          type: 'fetchApplication',
+        });
       }
     },
   },

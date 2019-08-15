@@ -11,6 +11,9 @@ export async function updateAppState(params) {
   });
 }
 // 获取 client-id
-export async function getClientId() {
+export async function queryClientId() {
   return request('/studio/nifi-api/flow/client-id');
+}
+export async function queryCurrentUser() {
+  return request('/studio/nifi-api/flow/current-user');
 }

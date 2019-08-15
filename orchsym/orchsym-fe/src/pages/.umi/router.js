@@ -186,12 +186,20 @@ const routes = [
         path: '/application',
         component: __IS_BROWSER
           ? _dvaDynamic({
+              app: require('@tmp/dva').getApp(),
+              models: () => [
+                import(/* webpackChunkName: 'p__Application__model.js' */ '/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/pages/Application/model.js').then(
+                  m => {
+                    return { namespace: 'model', ...m.default };
+                  },
+                ),
+              ],
               component: () =>
-                import(/* webpackChunkName: "p__Application__Index" */ '../Application/Index'),
+                import(/* webpackChunkName: "p__Application" */ '../Application'),
               LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
                 .default,
             })
-          : require('../Application/Index').default,
+          : require('../Application').default,
         exact: true,
       },
       {
