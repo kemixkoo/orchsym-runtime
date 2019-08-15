@@ -29,15 +29,7 @@ class CreateOrEditApp extends React.Component {
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
-        if (details) {
-          dispatch({
-            type: 'application/fetchEditApplication',
-            payload: {
-              values,
-              details,
-            },
-          })
-        } else {
+        if (Object.keys(details).length === 0) {
           dispatch({
             type: 'application/fetchAddApplication',
             payload: {
@@ -45,6 +37,14 @@ class CreateOrEditApp extends React.Component {
               parentId,
             },
           });
+        } else {
+          dispatch({
+            type: 'application/fetchEditApplication',
+            payload: {
+              values,
+              details,
+            },
+          })
         }
         handleCreateEditCancel();
       }
@@ -63,7 +63,7 @@ class CreateOrEditApp extends React.Component {
       form: { getFieldDecorator },
       visible,
       title,
-      details: { status },
+      details: { component },
     } = this.props;
     const formItemLayout = {
       labelCol: {
@@ -99,7 +99,7 @@ class CreateOrEditApp extends React.Component {
                 rules: [{
                   required: true, message: '应用名称不能为空!',
                 }],
-                initialValue: status ? status.name : '',
+                initialValue: component ? component.name : '',
               })(
                 <Input />
               )}

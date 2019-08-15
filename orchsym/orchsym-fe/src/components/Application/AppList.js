@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Badge, Divider, Tag, List, Modal } from 'antd';
+import { Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal } from 'antd';
 import { connect } from 'dva';
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
@@ -19,7 +19,7 @@ class AppList extends PureComponent {
     editVisible: null,
     createOrEdit: '编辑应用',
     saveTempVisible: null,
-    isError: false,
+    // isError: false,
     appItem: {},
   };
 
@@ -128,8 +128,6 @@ class AppList extends PureComponent {
   }
 
   getCarList = (item) => {
-    // const { setAppParams } = this.props;
-    // setAppParams(item.component.parentId);
     const menu = (
       <Menu>
         <Menu.Item key="1">
@@ -190,19 +188,19 @@ class AppList extends PureComponent {
       <Menu style={{ fontSize: '12px' }}>
         <Menu.Item key="11">
           队列中
-          <p className={styles.pStyle}>2（5.2 MB）</p>
+          <p className={styles.pStyle}>{item.status.aggregateSnapshot.queued}</p>
         </Menu.Item>
         <Menu.Item key="12">
           输入
-          <p className={styles.pStyle}>1（888.88 KB）</p>
+          <p className={styles.pStyle}>{item.status.aggregateSnapshot.input}&rarr;{item.inputPortCount}</p>
         </Menu.Item>
         <Menu.Item key="13">
           输出
-          <p className={styles.pStyle}>1（66 B）</p>
+          <p className={styles.pStyle}>{item.outputPortCount}&rarr;{item.status.aggregateSnapshot.output}</p>
         </Menu.Item>
         <Menu.Item key="14">
           读 / 写
-          <p className={styles.pStyle}>502 KB / 10.8 B</p>
+          <p className={styles.pStyle}>{item.status.aggregateSnapshot.read} / {item.status.aggregateSnapshot.written}</p>
         </Menu.Item>
       </Menu>
     );
@@ -210,25 +208,26 @@ class AppList extends PureComponent {
     const dropdown2 = (
       <Dropdown overlay={menu2}>
         <div>
-          <Badge count={0} dot className={styles.badgeIcon}>
+          <span className={styles.badgeIcon}>
             <IconFont type="OS-iconqidong" />
             <span>{item.runningCount}</span>
-          </Badge>
-          <Badge count={0} dot className={styles.badgeIcon}>
+          </span>
+          <span className={styles.badgeIcon}>
             <IconFont type="OS-icontingzhi" />
             <span>{item.stoppedCount}</span>
-          </Badge>
-          <Badge count={0} dot className={styles.badgeIcon}>
+          </span>
+          <span className={styles.badgeIcon}>
             <IconFont type="OS-iconicon" />
-            <span>{item.disabledCount}</span>
-          </Badge>
+            <span>{item.invalidCount}</span>
+          </span>
           {/* <a className="ant-dropdown-link" href="#">
             更多
           </a> */}
         </div>
       </Dropdown>
     );
-    const { isError } = this.state;
+
+    const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.applicationCart} ${styles.errorApp}` : styles.applicationCart;
     return (
       // <Col xl={6} lg={6} md={12} sm={12} xs={24} style={{ marginBottom: 16 }}>
@@ -238,11 +237,11 @@ class AppList extends PureComponent {
             <div>
               <IconFont type="OS-iconapi" style={{ fontSize: '20px' }} />
               {/* <IconFont type="OS-icondingshirenwu" style={{ fontSize: '20px' }} /> */}
-              <span className={styles.cardTitle}>{item.status.name}</span>
+              <span className={styles.cardTitle}>{item.component.name}</span>
             </div>}
           description={
             <p className={styles.lineEllipsis}>
-              {(!item.describe) ? '该应用暂无描述' : item.describe}
+              {(!item.component.comments) ? '该应用暂无描述' : item.component.comments}
             </p>
           }
         />
