@@ -190,14 +190,14 @@ class AppList extends PureComponent {
           队列中
           <p className={styles.pStyle}>{item.status.aggregateSnapshot.queued}</p>
         </Menu.Item>
-        <Menu.Item key="12">
+        {/* <Menu.Item key="12">
           输入
           <p className={styles.pStyle}>{item.status.aggregateSnapshot.input}&rarr;{item.inputPortCount}</p>
         </Menu.Item>
         <Menu.Item key="13">
           输出
           <p className={styles.pStyle}>{item.outputPortCount}&rarr;{item.status.aggregateSnapshot.output}</p>
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Item key="14">
           读 / 写
           <p className={styles.pStyle}>{item.status.aggregateSnapshot.read} / {item.status.aggregateSnapshot.written}</p>
