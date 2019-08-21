@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal } from 'antd';
 import { connect } from 'dva';
+import { formatMessage } from 'umi-plugin-react/locale';
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
 import IconFont from '@/components/IconFont';
@@ -17,7 +18,7 @@ const { confirm } = Modal;
 class AppList extends PureComponent {
   state = {
     editVisible: null,
-    createOrEdit: '编辑应用',
+    createOrEdit: formatMessage({ id: 'page.application.editApp' }),
     saveTempVisible: null,
     // isError: false,
     appItem: {},
@@ -132,46 +133,46 @@ class AppList extends PureComponent {
       <Menu>
         <Menu.Item key="1">
           <IconFont type="OS-iconi-jr" />
-          进入应用
+          {`${formatMessage({ id: 'page.application.content.intoApp' })}`}
         </Menu.Item>
         <Menu.Item key="2" onClick={() => { this.showEditModal(item) }}>
           <IconFont type="OS-iconbianji" />
-          编辑应用
+          {`${formatMessage({ id: 'page.application.editApp' })}`}
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="3" onClick={() => { this.createSnippets(item, 'RUNNING') }}>
           <IconFont type="OS-iconqidong" />
-          运行
+          {`${formatMessage({ id: 'page.application.content.running' })}`}
         </Menu.Item>
         <Menu.Item key="4" onClick={() => { this.updateStates(item, 'STOPPED') }}>
           <IconFont type="OS-icontingzhi" />
-          停止
+          {`${formatMessage({ id: 'page.application.content.stop' })}`}
         </Menu.Item>
         <Menu.Item key="5" onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <IconFont type="OS-iconqiyong" />
-          启用
+          {`${formatMessage({ id: 'page.application.content.enable' })}`}
         </Menu.Item>
         <Menu.Item key="6" onClick={() => { this.updateStates(item, 'DISABLED') }}>
           <IconFont type="OS-iconjinyong" />
-          禁用
+          {`${formatMessage({ id: 'page.application.content.disable' })}`}
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="7" onClick={() => { this.createSnippets(item, 'COPE') }}>
           <IconFont type="OS-iconfuzhi" />
-          复制
+          {`${formatMessage({ id: 'page.application.content.cope' })}`}
         </Menu.Item>
         <Menu.Item key="8">
           <IconFont type="OS-iconCell-Download" />
-          下载
+          {`${formatMessage({ id: 'page.application.content.download' })}`}
         </Menu.Item>
         <Menu.Item key="9" onClick={() => { this.deleteAppHandel(item.id) }}>
           <IconFont type="OS-iconshanchu" />
-          删除
+          {`${formatMessage({ id: 'page.application.content.delete' })}`}
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>
           <IconFont type="OS-iconmoban" />
-          存为模板
+          {`${formatMessage({ id: 'page.application.content.saveTemp' })}`}
         </Menu.Item>
       </Menu>
     );
@@ -187,7 +188,7 @@ class AppList extends PureComponent {
     const menu2 = (
       <Menu style={{ fontSize: '12px' }}>
         <Menu.Item key="11">
-          队列中
+          {`${formatMessage({ id: 'page.application.content.queued' })}`}
           <p className={styles.pStyle}>{item.status.aggregateSnapshot.queued}</p>
         </Menu.Item>
         {/* <Menu.Item key="12">
@@ -199,7 +200,7 @@ class AppList extends PureComponent {
           <p className={styles.pStyle}>{item.outputPortCount}&rarr;{item.status.aggregateSnapshot.output}</p>
         </Menu.Item> */}
         <Menu.Item key="14">
-          读 / 写
+          {`${formatMessage({ id: 'page.application.content.readWrite' })}`}
           <p className={styles.pStyle}>{item.status.aggregateSnapshot.read} / {item.status.aggregateSnapshot.written}</p>
         </Menu.Item>
       </Menu>
