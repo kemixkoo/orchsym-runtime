@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { Row, Col, Button } from 'antd';
 import { connect } from 'dva';
+import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
 import CreateOrEditApp from '../CreateOrEditApp';
 import ApplicationSearch from './ApplicationSearch';
 import SortApplication from './SortApplication';
@@ -10,7 +11,7 @@ import styles from './index.less';
 class AppList extends PureComponent {
   state = {
     createAppVisible: null,
-    createOrEdit: '创建应用',
+    createOrEdit: formatMessage({ id: 'page.application.createApp' }),
   };
 
   showCreateModal = () => {
@@ -38,7 +39,7 @@ class AppList extends PureComponent {
         <Row gutter={16} className={styles.bottomSpace}>
           <Col span={3}>
             <Button type="primary" onClick={this.showCreateModal}>
-              创建应用
+              <FormattedMessage id="page.application.createApp" />
             </Button>
           </Col>
           <Col span={20}>

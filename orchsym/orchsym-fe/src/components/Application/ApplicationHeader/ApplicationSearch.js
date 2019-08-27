@@ -1,5 +1,6 @@
 import React from 'react';
 import { Input, Select, Button } from 'antd';
+import { FormattedMessage } from 'umi-plugin-react/locale';
 import styles from './ApplicationSearch.less';
 
 const InputGroup = Input.Group;
@@ -47,7 +48,9 @@ export default class ApplicationSearch extends React.Component {
             <Input style={{ width: '250px', borderRadius: '0' }} />
           )}
         </InputGroup>
-        <Button type="primary" className={styles.searchButton} onPressEnter={this.handleSearch}>搜索</Button>
+        <Button type="primary" className={styles.searchButton} onPressEnter={this.handleSearch}>
+          <FormattedMessage id="page.application.search" />
+        </Button>
       </div>
     );
   }

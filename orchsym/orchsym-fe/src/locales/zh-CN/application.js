@@ -6,6 +6,18 @@
  */
 
 export default {
-  'page.application.content.title': '应用列表',
-  'page.application.content': '这是应用页面',
+  'page.application.createApp': '创建应用',
+  'page.application.editApp': '编辑应用',
+  'page.application.search': '搜索',
+  'page.application.content.intoApp': '进入应用',
+  'page.application.content.running': '运行',
+  'page.application.content.stop': '停止',
+  'page.application.content.enable': '启用',
+  'page.application.content.disable': '禁用',
+  'page.application.content.cope': '复制',
+  'page.application.content.download': '下载',
+  'page.application.content.delete': '删除',
+  'page.application.content.saveTemp': '存为模版',
+  'page.application.content.queued': '队列中',
+  'page.application.content.readWrite': '读 / 写',
 }

@@ -45,7 +45,7 @@ class Login extends Component {
   getContext = () => {
     const { tabs } = this.state;
     const { form } = this.props;
-    console.log(tabs);
+    // console.log(tabs);
     return {
       tabUtil: {
         addTab: id => {
