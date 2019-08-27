@@ -20,7 +20,7 @@ window.defaultLocale = "";
 window.productVersion = "";
 window.buildDate = "";
 window.supportEmail = "";
-window.apiHost = "https://127.0.0.1:9443";
+window.apiHost = window.location.origin;
 var configurationUrl = apiHost + "/nifi-api/flow/about";
 
 $.ajax({
