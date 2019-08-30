@@ -71,7 +71,7 @@ const request = extend({
 });
 
 request.interceptors.request.use((url, options) => {
-  if (url !== '/studio/access/token') {
+  if (url !== '/studio/nifi-api/access/token') {
     options.headers.Authorization = `Bearer ${getToken()}`;
   }
   options.headers.Locale = localStorage.getItem('umi_locale') || 'zh-CN';

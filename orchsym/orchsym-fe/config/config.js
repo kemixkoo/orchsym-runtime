@@ -61,7 +61,8 @@ export default {
   },
   proxy: {
     '/studio/': {
-      target: 'https://orchsym-studio.baishancloud.com',
+      target: 'https://183.129.160.140:8443',
+      // target: 'https://orchsym-studio.baishancloud.com',
       changeOrigin: true,
       pathRewrite: { '^/studio': '' },
     },

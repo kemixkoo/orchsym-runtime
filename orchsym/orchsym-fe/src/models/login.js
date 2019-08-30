@@ -1,6 +1,6 @@
 import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
-import { fakeAccountLogin } from '@/services/studio';
+import { fakeAccountLogin, accessKerberos, accessOidc, licenseWarn } from '@/services/studio';
 import { queryClientId } from '@/services/Flow';
 import { setToken, setClientId } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
@@ -49,7 +49,24 @@ export default {
         });
       }
     },
-
+    *fetchAccessKerberos(_, { call, put }) {
+      const response = yield call(accessKerberos);
+      if (response) {
+        console.log(response)
+      }
+    },
+    *fetchAccessOidc(_, { call, put }) {
+      const response = yield call(accessOidc);
+      if (response) {
+        console.log(response)
+      }
+    },
+    *fetchLicenseWarn(_, { call, put }) {
+      const response = yield call(licenseWarn);
+      if (response) {
+        console.log(response)
+      }
+    },
     *logout(_, { put }) {
       yield put({
         type: 'changeLoginStatus',

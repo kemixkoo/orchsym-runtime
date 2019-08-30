@@ -10,6 +10,7 @@ import Header from './Header';
 import Context from './MenuContext';
 import SiderMenu from '@/components/SiderMenu';
 import getPageTitle from '@/utils/getPageTitle';
+import { checkLoginStatus } from '../utils/utils'
 import styles from './BasicLayout.less';
 
 // lazy load SettingDrawer
@@ -25,6 +26,10 @@ class BasicLayout extends React.Component {
       dispatch,
       route: { routes, path, authority },
     } = this.props;
+    checkLoginStatus();
+    // dispatch({
+    //   type: 'login/fetchAccessOidc',
+    // });
     dispatch({
       type: 'user/fetchCurrent',
     });

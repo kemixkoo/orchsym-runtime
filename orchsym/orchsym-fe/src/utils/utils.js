@@ -2,6 +2,19 @@ import moment from 'moment';
 import React from 'react';
 import nzh from 'nzh/cn';
 import { parse, stringify } from 'qs';
+import { getToken } from '@/utils/authority';
+/**
+ * @LocalDevBackEndBaseUrl
+ * @由 umi 提供的环境变量定义。
+ * @当前环境不为本地开发环境时该值为null
+ * @当前环境为本地开发环境(development)时，该值为在/config/config.local.js中配置好的后端地址
+ */
+export function checkLoginStatus() {
+  if (!getToken()) {
+    // eslint-disable-next-line no-undef
+    location.href = 'https://183.129.160.140:8443/login'
+  }
+}
 
 export function fixedZero(val) {
   return val * 1 < 10 ? `0${val}` : val;
