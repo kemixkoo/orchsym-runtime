@@ -9,6 +9,38 @@ let Router = require('dva/router').routerRedux.ConnectedRouter;
 
 let routes = [
   {
+    "path": "/canvas",
+    "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "layouts__CanvasLayout" */'../../layouts/CanvasLayout'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
+    "Routes": [require('../Authorized').default],
+    "routes": [
+      {
+        "path": "/canvas/:processGroupId",
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__canvas" */'../canvas'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
+        "name": "画布",
+        "exact": true
+      },
+      {
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__404" */'../404'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
+        "exact": true
+      },
+      {
+        "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
+      }
+    ]
+  },
+  {
     "path": "/user",
     "component": _dvaDynamic({
   

@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal } from 'antd';
 import { connect } from 'dva';
 import { formatMessage } from 'umi-plugin-react/locale';
+import router from 'umi/router'
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
 import IconFont from '@/components/IconFont';
@@ -29,6 +30,11 @@ class AppList extends PureComponent {
     dispatch({
       type: 'application/fetchApplication',
     });
+  }
+
+  goToApp = (item) => {
+    // console.log('item', item)
+    router.push(`/canvas/${item.id}`)
   }
 
   showEditModal = (item) => {
@@ -131,7 +137,7 @@ class AppList extends PureComponent {
   getCarList = (item) => {
     const menu = (
       <Menu>
-        <Menu.Item key="1">
+        <Menu.Item key="1" onClick={() => { this.goToApp(item) }}>
           <IconFont type="OS-iconi-jr" />
           {`${formatMessage({ id: 'page.application.content.intoApp' })}`}
         </Menu.Item>
@@ -291,7 +297,7 @@ class AppList extends PureComponent {
       timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60))}小时前`;
     } else if (1000 * 60 * 60 * 24 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24 * 15) {
       timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60 * 24))}天前`;
-    } else if (milliseconds > 1000 * 60 * 60 * 24 * 15 && year === now.getFullYear()) {
+    } else if (milliseconds > 1000 * 60 * 60 * 24 * 15 && year === (new Date()).getFullYear()) {
       timeSpanStr = `${month}-${day} ${hour}:${minute}`;
     } else {
       timeSpanStr = `${year}-${month}-${day} ${hour}:${minute}`;

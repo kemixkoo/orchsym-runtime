@@ -8,6 +8,21 @@
 export default [
   // 用户登录、注册等，使用自带的 UserLayout 布局
   {
+    path: '/canvas',
+    component: '../layouts/CanvasLayout',
+    Routes: ['src/pages/Authorized'],
+    routes: [
+      {
+        path: '/canvas/:processGroupId',
+        component: './canvas',
+        name: '画布',
+      },
+      {
+        component: '404',
+      },
+    ],
+  },// 用户登录、注册等，使用自带的 UserLayout 布局
+  {
     path: '/user',
     component: '../layouts/UserLayout',
     routes: [
