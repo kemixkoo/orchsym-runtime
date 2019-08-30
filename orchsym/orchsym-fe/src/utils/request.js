@@ -32,7 +32,7 @@ import { getToken } from '@/utils/authority';
 //   const { response = {} } = error;
 //   const errortext = codeMessage[response.status] || response.statusText;
 //   const { status, url } = response;
-
+//
 //   if (status === 401) {
 //     notification.error({
 //       message: '未登录或登录已过期，请重新登录。',
@@ -49,16 +49,17 @@ import { getToken } from '@/utils/authority';
 //     description: errortext,
 //   });
 //   // environment should not be used
+//   console.log('error', response)
 //   if (status === 403) {
 //     return error;
 //   }
-//   if (status <= 504 && status >= 500) {
-//     router.push('/exception/500');
-//     return;
-//   }
-//   if (status >= 404 && status < 422) {
-//     router.push('/exception/404');
-//   }
+//   // if (status <= 504 && status >= 500) {
+//   //   router.push('/exception/500');
+//   //   return;
+//   // }
+//   // if (status >= 404 && status < 422) {
+//   //   router.push('/exception/404');
+//   // }
 // };
 
 // const prefix = 'https://orchsym-studio.baishancloud.com/nifi-api';
@@ -97,6 +98,7 @@ request.interceptors.response.use((response, options) => {
     } else if (response.status === 403) { // 判断删除
       return response
     } else {
+      // console.log('response', response)
       response.text().then(data => {
         if (data) {
           notification.error({
@@ -104,8 +106,10 @@ request.interceptors.response.use((response, options) => {
           })
         }
       })
+      return response
     }
   }
+  // console.log('response++', response)
   return response
 });
 export default request;

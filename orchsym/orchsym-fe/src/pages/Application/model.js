@@ -1,11 +1,12 @@
+import { message } from 'antd';
 import { createSnippets } from '@/services/studio';
 import { queryApplication, updateAppState } from '@/services/Flow';
 import { validationRunApp, validationDeleteApp } from '@/services/validation';
 import {
   detailApplication, editApplication, addApplication,
   deleteApplication, copeApplication, createApplicationTemp } from '@/services/ProcessGroups';
-import { message } from 'antd';
 import { getClientId } from '@/utils/authority';
+// import { notification } from "antd/lib/index";
 
 export default {
   namespace: 'application',
@@ -180,7 +181,11 @@ export default {
           name: values.name,
         },
       }
-      const response = yield call(createApplicationTemp, params);
+      const errorHandler = error => {
+        const { response = {} } = error;
+        console.log('error--', response)
+      };
+      const response = yield call(createApplicationTemp, params, errorHandler);
       if (response) {
         message.success('存为模板成功！');
         yield put({
