@@ -13,7 +13,7 @@ pipeline {
         noci action: 'check'
 
         load_envs_common()
-        load_envs_runtime_fe()
+        load_envs_runtime_dashboard()
       }
     }
 
