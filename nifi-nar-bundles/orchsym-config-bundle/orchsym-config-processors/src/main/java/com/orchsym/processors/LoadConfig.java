@@ -221,6 +221,7 @@ public class LoadConfig extends AbstractProcessor {
         final ComponentLog logger = getLogger();
 
         FlowFile flowFile = session.get();
+        flowFile = flowFile == null ? session.create() : flowFile;
 
         final String sourceValue = context.getProperty(SOURCE_PROPERTY).getValue();
         final String dataTypeValue = context.getProperty(TYPE_PROPERTY).getValue();
@@ -247,16 +248,11 @@ public class LoadConfig extends AbstractProcessor {
                 destinationMap = getMapByStream(session.read(flowFile), dataTypeValue);
                 getDestinationMap(isSupportRegex, includeProps, excludeProps, destinationMap);
             } else if (sourceValue.equals(ATTR_VALUE)) {
-                if (flowFile == null) {
-                    logger.error("when choose ATTR, the flowFile cant be null");
-                    return;
-                }
                 getDestinationMap(isSupportRegex, includeProps, excludeProps, flowFile.getAttributes());
             }
 
             logger.debug("+++++resultMap=" + destinationMap);
 
-            flowFile = flowFile == null ? session.create() : flowFile;
 
             // write map to distribute
             for (String key : destinationMap.keySet()) {
