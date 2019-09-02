@@ -12,11 +12,11 @@ export async function fakeAccountLogin(params) {
     data: params,
   });
 }
-export async function accessKerberos() {
-  return request('/studio/nifi-api/access/kerberos', {
-    method: 'POST',
-  });
-}
+// export async function accessKerberos() {
+//   return request('/studio/nifi-api/access/kerberos', {
+//     method: 'POST',
+//   });
+// }
 export async function accessOidc() {
   return request('/studio/nifi-api/access/oidc/exchange', {
     method: 'POST',

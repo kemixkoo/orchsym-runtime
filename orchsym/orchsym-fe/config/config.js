@@ -102,4 +102,7 @@ export default {
     to: 'iconfont',
   }],
   chainWebpack: webpackPlugin,
+  // define: {
+  //   LocalDevBackEndBaseUrl: null,
+  // },
 };

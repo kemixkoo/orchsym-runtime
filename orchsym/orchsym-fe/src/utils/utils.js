@@ -3,6 +3,7 @@ import React from 'react';
 import nzh from 'nzh/cn';
 import { parse, stringify } from 'qs';
 import { getToken } from '@/utils/authority';
+// import cookie from 'react-cookies';
 /**
  * @LocalDevBackEndBaseUrl
  * @由 umi 提供的环境变量定义。
@@ -10,9 +11,16 @@ import { getToken } from '@/utils/authority';
  * @当前环境为本地开发环境(development)时，该值为在/config/config.local.js中配置好的后端地址
  */
 export function checkLoginStatus() {
+  console.log(window.document.cookie)
+  // alert(window.document.cookie)
   if (!getToken()) {
     // eslint-disable-next-line no-undef
-    location.href = 'https://183.129.160.140:8443/login'
+    location.href = 'https://183.129.160.140:8443/runtime/login'
+  } else if (window.document.cookie) {
+    // eslint-disable-next-line no-underscore-dangle
+    // dispatch({
+    //   type: 'login/fetchAccessOidc',
+    // });
   }
 }
 

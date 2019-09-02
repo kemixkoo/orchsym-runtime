@@ -256,7 +256,7 @@ class AppList extends PureComponent {
         <div className={styles.cardFoot}>
           {dropdown2}
         </div>
-        <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p>
+        {/* <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p> */}
         {(isError) ? (
           <Dropdown overlay={<LogList />}>
             <span className={styles.triangle} />
