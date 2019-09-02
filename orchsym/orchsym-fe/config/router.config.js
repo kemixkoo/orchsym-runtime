@@ -55,14 +55,14 @@ export default [
     routes: [
       {
         path: '/',
-        redirect: '/application',
+        redirect: '/runtime',
         authority: ['admin'],
       },
       // 应用
       {
         name: 'application',
         icon: 'OS-iconyingyongguanli',
-        path: '/application',
+        path: '/runtime',
         component: './Application',
       },
       // 模板

@@ -176,14 +176,14 @@ const routes = [
     routes: [
       {
         path: '/',
-        redirect: '/application',
+        redirect: '/runtime',
         authority: ['admin'],
         exact: true,
       },
       {
         name: 'application',
         icon: 'OS-iconyingyongguanli',
-        path: '/application',
+        path: '/runtime',
         component: __IS_BROWSER
           ? _dvaDynamic({
               app: require('@tmp/dva').getApp(),

@@ -27,9 +27,6 @@ class BasicLayout extends React.Component {
       route: { routes, path, authority },
     } = this.props;
     checkLoginStatus();
-    // dispatch({
-    //   type: 'login/fetchAccessOidc',
-    // });
     dispatch({
       type: 'user/fetchCurrent',
     });

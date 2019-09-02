@@ -1,6 +1,7 @@
 import moment from 'moment';
 import React from 'react';
 import nzh from 'nzh/cn';
+// import router from 'umi/router';
 import { parse, stringify } from 'qs';
 import { getToken } from '@/utils/authority';
 // import cookie from 'react-cookies';
@@ -11,16 +12,17 @@ import { getToken } from '@/utils/authority';
  * @当前环境为本地开发环境(development)时，该值为在/config/config.local.js中配置好的后端地址
  */
 export function checkLoginStatus() {
-  console.log(window.document.cookie)
-  // alert(window.document.cookie)
-  if (!getToken()) {
+  if (!getToken() && !window.document.cookie) {
+    // @HACK
+    /* eslint-disable no-underscore-dangle */
+    window.location.href = '/user/login'
     // eslint-disable-next-line no-undef
-    location.href = 'https://183.129.160.140:8443/runtime/login'
-  } else if (window.document.cookie) {
+    // location.href = 'https://172.18.28.230:18443/runtime/login'
+  } else if (!getToken() && window.document.cookie) {
     // eslint-disable-next-line no-underscore-dangle
-    // dispatch({
-    //   type: 'login/fetchAccessOidc',
-    // });
+    window.g_app._store.dispatch({
+      type: 'login/fetchAccessOidc',
+    });
   }
 }
 

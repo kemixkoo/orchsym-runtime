@@ -1,6 +1,6 @@
 import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
-import { fakeAccountLogin, licenseWarn } from '@/services/studio';
+import { fakeAccountLogin, accessOidc, licenseWarn } from '@/services/studio';
 import { queryClientId } from '@/services/Flow';
 import { setToken, setClientId } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
@@ -55,23 +55,15 @@ export default {
     //     console.log(response)
     //   }
     // },
-    // *fetchAccessOidc(_, { call, put }) {
-    //   try {
-    //     const response = yield call(accessOidc);
-    //     console.log(response)
-    //     // yield call(validationDeleteApp, payload);
-    //     // yield cb && cb()
-    //   } catch {
-    //     window.location.href = 'https://183.129.160.140:8443/runtime/login'
-    //     // yield put({
-    //     //   type: 'fetchDeleteApplication',
-    //     //   payload,
-    //     // });
-    //   }
-    //   // if (response) {
-    //   //   console.log(response)
-    //   // }
-    // },
+    *fetchAccessOidc(_, { call, put }) {
+      const response = yield call(accessOidc);
+      if (response) {
+        yield put({
+          type: 'changeLoginStatus',
+          payload: response,
+        });
+      }
+    },
     *fetchLicenseWarn(_, { call, put }) {
       const response = yield call(licenseWarn);
       if (response) {

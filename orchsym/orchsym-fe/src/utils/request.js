@@ -72,7 +72,7 @@ const request = extend({
 });
 
 request.interceptors.request.use((url, options) => {
-  if (url !== '/studio/nifi-api/access/token') {
+  if (url !== '/studio/nifi-api/access/token' && url !== '/studio/nifi-api/access/oidc/exchange') {
     options.headers.Authorization = `Bearer ${getToken()}`;
   }
   options.headers.Locale = localStorage.getItem('umi_locale') || 'zh-CN';
@@ -92,9 +92,9 @@ request.interceptors.response.use((response, options) => {
       });
       // @HACK
       /* eslint-disable no-underscore-dangle */
-      window.g_app._store.dispatch({
-        type: 'login/logout',
-      });
+      // window.g_app._store.dispatch({
+      //   type: 'login/logout',
+      // });
     } else if (response.status === 403) { // 判断删除
       return response
     } else {
