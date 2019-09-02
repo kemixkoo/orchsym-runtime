@@ -30,12 +30,12 @@ const plugins = [
       },
       ...(!TEST && os.platform() === 'darwin'
         ? {
-            dll: {
-              include: ['dva', 'dva/router', 'dva/saga', 'dva/fetch'],
-              exclude: ['@babel/runtime', 'netlify-lambda'],
-            },
-            hardSource: false,
-          }
+          dll: {
+            include: ['dva', 'dva/router', 'dva/saga', 'dva/fetch'],
+            exclude: ['@babel/runtime', 'netlify-lambda'],
+          },
+          hardSource: false,
+        }
         : {}),
     },
   ],
@@ -44,6 +44,9 @@ const plugins = [
 export default {
   // add for transfer to umi
   plugins,
+  devServer: {
+    https: true,
+  },
   define: {
     ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION:
       ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION || '', // preview.pro.ant.design only do not use in your production ; preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
@@ -60,10 +63,46 @@ export default {
     'primary-color': primaryColor,
   },
   proxy: {
+    '/nifi-api/': {
+      target: 'https://172.18.28.230:18443/nifi-api/',
+      secure: false,
+      changeOrigin: true,
+      pathRewrite: { '^/nifi-api': '' },
+      cookieDomainRewrite: '',
+      autoRewrite: true,
+      headers: {
+        'X-ProxyScheme': 'https',
+        'X-ProxyHost': '127.0.0.1',
+        'X-ProxyPort': 9001,
+        'X-ProxyContextPath': '/',
+      },
+    },
     '/studio/': {
-      target: 'https://orchsym-studio.baishancloud.com',
+      target: 'https://172.18.28.230:18443',
+      secure: false,
       changeOrigin: true,
       pathRewrite: { '^/studio': '' },
+      cookieDomainRewrite: '',
+      headers: {
+        'X-ProxyScheme': 'https',
+        'X-ProxyHost': '127.0.0.1',
+        'X-ProxyPort': 9001,
+        'X-ProxyContextPath': '/',
+      },
+    },
+    '/user/login': {
+      target: 'https://172.18.28.230:18443/runtime/login',
+      secure: false,
+      changeOrigin: true,
+      pathRewrite: { '^/user/login': '' },
+      cookieDomainRewrite: '',
+      autoRewrite: true,
+      headers: {
+        'X-ProxyScheme': 'https',
+        'X-ProxyHost': '127.0.0.1',
+        'X-ProxyPort': 9001,
+        'X-ProxyContextPath': '/',
+      },
     },
   },
   ignoreMomentLocale: true,
