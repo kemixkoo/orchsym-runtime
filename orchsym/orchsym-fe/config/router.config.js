@@ -24,25 +24,15 @@ export default [
       },
     ],
   },
-  // 如果需要新增布局 通过 /blank/index 访问
-  {
+  // 空白页做登录逻辑处理
+   {
     path: '/blank',
     component: '../layouts/BlankLayout',
     routes: [
       {
-        name: 'blank',
         path: '/blank',
-        redirect: '/blank/index',
-      },
-      {
-        path: '/blank/index',
         name: 'index',
         component: './Blank/Index',
-      },
-      {
-        path: '/blank/sign',
-        name: 'sign',
-        component: './Blank/Sign',
       },
     ],
   },
@@ -53,11 +43,7 @@ export default [
     component: '../layouts/BasicLayout',
     Routes: ['src/pages/Authorized'],
     routes: [
-      {
-        path: '/',
-        redirect: '/runtime',
-        authority: ['admin'],
-      },
+      { path: '/', redirect: '/runtime' },
       // 应用
       {
         name: 'application',
@@ -140,6 +126,7 @@ export default [
       {
         component: '404',
       },
+     
     ],
   },
 ];

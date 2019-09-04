@@ -121,13 +121,7 @@ const routes = [
       : require('../../layouts/BlankLayout').default,
     routes: [
       {
-        name: 'blank',
         path: '/blank',
-        redirect: '/blank/index',
-        exact: true,
-      },
-      {
-        path: '/blank/index',
         name: 'index',
         component: __IS_BROWSER
           ? _dvaDynamic({
@@ -137,19 +131,6 @@ const routes = [
                 .default,
             })
           : require('../Blank/Index').default,
-        exact: true,
-      },
-      {
-        path: '/blank/sign',
-        name: 'sign',
-        component: __IS_BROWSER
-          ? _dvaDynamic({
-              component: () =>
-                import(/* webpackChunkName: "p__Blank__Sign" */ '../Blank/Sign'),
-              LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
-                .default,
-            })
-          : require('../Blank/Sign').default,
         exact: true,
       },
       {
@@ -177,7 +158,6 @@ const routes = [
       {
         path: '/',
         redirect: '/runtime',
-        authority: ['admin'],
         exact: true,
       },
       {

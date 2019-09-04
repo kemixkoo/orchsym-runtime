@@ -3,7 +3,6 @@ import React from 'react';
 import nzh from 'nzh/cn';
 // import router from 'umi/router';
 import { parse, stringify } from 'qs';
-import { getToken } from '@/utils/authority';
 // import cookie from 'react-cookies';
 /**
  * @LocalDevBackEndBaseUrl
@@ -11,21 +10,6 @@ import { getToken } from '@/utils/authority';
  * @当前环境不为本地开发环境时该值为null
  * @当前环境为本地开发环境(development)时，该值为在/config/config.local.js中配置好的后端地址
  */
-export function checkLoginStatus() {
-  if (!getToken() && !window.document.cookie) {
-    // @HACK
-    /* eslint-disable no-underscore-dangle */
-    window.location.href = '/user/login'
-    // eslint-disable-next-line no-undef
-    // location.href = 'https://172.18.28.230:18443/runtime/login'
-  } else if (!getToken() && window.document.cookie) {
-    // eslint-disable-next-line no-underscore-dangle
-    window.g_app._store.dispatch({
-      type: 'login/fetchAccessOidc',
-    });
-  }
-}
-
 export function fixedZero(val) {
   return val * 1 < 10 ? `0${val}` : val;
 }

@@ -72,7 +72,7 @@ const request = extend({
 });
 
 request.interceptors.request.use((url, options) => {
-  if (url !== '/studio/nifi-api/access/token' && url !== '/studio/nifi-api/access/oidc/exchange') {
+  if (getToken()) {
     options.headers.Authorization = `Bearer ${getToken()}`;
   }
   options.headers.Locale = localStorage.getItem('umi_locale') || 'zh-CN';
@@ -98,7 +98,6 @@ request.interceptors.response.use((response, options) => {
     } else if (response.status === 403) { // 判断删除
       return response
     } else {
-      // console.log('response', response)
       response.text().then(data => {
         if (data) {
           notification.error({

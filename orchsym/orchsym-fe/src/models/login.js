@@ -1,8 +1,9 @@
 import { routerRedux } from 'dva/router';
+import pathToRegexp from 'path-to-regexp'
 import { stringify } from 'qs';
 import { fakeAccountLogin, accessOidc, licenseWarn } from '@/services/studio';
 import { queryClientId } from '@/services/Flow';
-import { setToken, setClientId } from '@/utils/authority';
+import { setToken, setClientId, getToken } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
@@ -49,12 +50,6 @@ export default {
         });
       }
     },
-    // *fetchAccessKerberos(_, { call, put }) {
-    //   const response = yield call(accessKerberos);
-    //   if (response) {
-    //     console.log(response)
-    //   }
-    // },
     *fetchAccessOidc(_, { call, put }) {
       const response = yield call(accessOidc);
       if (response) {
@@ -62,12 +57,22 @@ export default {
           type: 'changeLoginStatus',
           payload: response,
         });
+        yield put(
+          routerRedux.replace({
+            pathname: '/',
+          })
+        );
       }
     },
     *fetchLicenseWarn(_, { call, put }) {
       const response = yield call(licenseWarn);
       if (response) {
         console.log(response)
+      }
+    },
+    *checkSSOLoginStatus({ payload }, { select, put }) {
+      if (!getToken()) {
+        yield put(routerRedux.push('/blank'))
       }
     },
     *logout(_, { put }) {
@@ -107,6 +112,21 @@ export default {
         ...state,
         clientId: payload,
       };
+    },
+  },
+  subscriptions: {
+    setup({ dispatch, history }) {
+      return history.listen(({ pathname }) => {
+        const match = pathToRegexp('/blank').exec(pathname)
+        if (!match) {
+          dispatch({
+            type: 'checkSSOLoginStatus',
+            payload: {
+              pathname,
+            },
+          })
+        }
+      })
     },
   },
 };
