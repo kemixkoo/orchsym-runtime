@@ -103,7 +103,11 @@ import org.apache.nifi.web.api.entity.ProcessorsEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupsEntity;
 import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
+import org.apache.nifi.web.api.entity.TemplateConfigurationEntity;
+import org.apache.nifi.web.api.entity.TemplateConfigurationComponentEntity;
+import org.apache.nifi.web.api.entity.TemplateConfigurationSettingsEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
+import org.apache.nifi.web.api.entity.VariableEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryUpdateRequestEntity;
 import org.apache.nifi.web.api.request.ClientIdParameter;
@@ -152,6 +156,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -1610,7 +1615,7 @@ public class ProcessGroupResource extends ApplicationResource {
      * Adds the specified process group.
      *
      * @param httpServletRequest request
-     * @param groupId The group id
+     * @param parentGroupId The group id
      * @param requestProcessGroupEntity A processGroupEntity
      * @return A processGroupEntity
      * @throws IOException if the request indicates that the Process Group should be imported from a Flow Registry and NiFi is unable to communicate with the Flow Registry
@@ -3703,6 +3708,230 @@ public class ProcessGroupResource extends ApplicationResource {
 
                     // build the response
                     return generateCreatedResponse(URI.create(entity.getUri()), entity).build();
+                }
+        );
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/templates/application")
+    @ApiOperation(
+            value = "Instantiates a template and update related configurations on root process group",
+            response = ControllerServiceEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /process-groups/{uuid}"),
+                    @Authorization(value = "Read - /templates/{uuid}"),
+                    @Authorization(value = "Write - if the template contains any restricted components - /restricted-components")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response createApplicationByTemplate(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The instantiate template request.",
+                    required = true
+            ) TemplateConfigurationEntity requestTemplateConfigurationEntity){
+
+        // ensure the application name was provided
+        if(StringUtils.isBlank(requestTemplateConfigurationEntity.getApplicationName())) {
+            throw new IllegalArgumentException("The process group name must be specified.");
+        }
+
+        // ensure the template id was provided
+        if (requestTemplateConfigurationEntity.getTemplateName() == null) {
+            throw new IllegalArgumentException("The template name must be specified.");
+        }
+
+        final Set<TemplateEntity> templates = serviceFacade.getTemplates();
+        if(templates == null || templates.size() == 0){
+            throw new RuntimeException("There is no template in Studio.");
+        }
+        final Optional<TemplateEntity> templateEntityOptional = templates.stream().filter(templateEntity -> templateEntity.getTemplate().getName().equals(requestTemplateConfigurationEntity.getTemplateName())).findFirst();
+        if(!templateEntityOptional.isPresent()){
+            throw new IllegalArgumentException("The template [" + requestTemplateConfigurationEntity.getTemplateName() + "] doesn't exist in Studio.");
+        }
+        final String templateId = templateEntityOptional.get().getId();
+
+        // ensure the template encoding version is valid
+        if (requestTemplateConfigurationEntity.getEncodingVersion() != null) {
+            try {
+                FlowEncodingVersion.parse(requestTemplateConfigurationEntity.getEncodingVersion());
+            } catch (final IllegalArgumentException e) {
+                throw new IllegalArgumentException("The template encoding version is not valid. The expected format is <number>.<number>");
+            }
+        }
+
+        // populate the encoding version if necessary
+        if (requestTemplateConfigurationEntity.getEncodingVersion() == null) {
+            // if the encoding version is not specified, use the latest encoding version as these options were
+            // not available pre 1.x, will be overridden if populating from the underlying template below
+            requestTemplateConfigurationEntity.setEncodingVersion(TemplateDTO.MAX_ENCODING_VERSION);
+        }
+
+        // populate the component bundles if necessary
+        if (requestTemplateConfigurationEntity.getSnippet() == null) {
+            // get the desired template in order to determine the supported bundles
+            final TemplateDTO requestedTemplate = serviceFacade.exportTemplate(templateId);
+            final FlowSnippetDTO requestTemplateContents = requestedTemplate.getSnippet();
+
+            // determine the compatible bundles to use for each component in this template, this ensures the nodes in the cluster
+            // instantiate the components from the same bundles
+            discoverCompatibleBundles(requestTemplateContents);
+
+            // update the requested template as necessary - use the encoding version from the underlying template
+            requestTemplateConfigurationEntity.setEncodingVersion(requestedTemplate.getEncodingVersion());
+            requestTemplateConfigurationEntity.setSnippet(requestTemplateContents);
+        }
+
+        final String rootGroupId = serviceFacade.getProcessGroup(FlowController.ROOT_GROUP_ID_ALIAS).getId();
+        final TemplateConfigurationSettingsEntity settings = requestTemplateConfigurationEntity.getSettings();
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.POST, requestTemplateConfigurationEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestTemplateConfigurationEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        return withWriteLock(
+                serviceFacade,
+                requestTemplateConfigurationEntity,
+                lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
+
+                    // ensure write on the group
+                    final Authorizable processGroup = lookup.getProcessGroup(rootGroupId).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.WRITE, user);
+
+                    final Authorizable template = lookup.getTemplate(templateId);
+                    template.authorize(authorizer, RequestAction.READ, user);
+
+                    // ensure read on the template
+                    final TemplateContentsAuthorizable templateContents = lookup.getTemplateContents(requestTemplateConfigurationEntity.getSnippet());
+
+                    final Consumer<ComponentAuthorizable> authorizeRestricted = authorizable -> {
+                        if (authorizable.isRestricted()) {
+                            authorizeRestrictions(authorizer, authorizable);
+                        }
+                    };
+
+                    // ensure restricted access if necessary
+                    templateContents.getEncapsulatedProcessors().forEach(authorizeRestricted);
+                    templateContents.getEncapsulatedControllerServices().forEach(authorizeRestricted);
+                },
+                () -> serviceFacade.verifyComponentTypes(requestTemplateConfigurationEntity.getSnippet()),
+                templateConfigurationEntity -> {
+                    // create a new process group
+                    final String groupId = generateUuid();
+                    ProcessGroupDTO processGroupDTO = new ProcessGroupDTO();
+                    processGroupDTO.setName(templateConfigurationEntity.getApplicationName());
+                    processGroupDTO.setPosition(PositionCalcUtil.newAvailablePosition(serviceFacade));
+                    processGroupDTO.setId(groupId);
+                    processGroupDTO.setParentGroupId(rootGroupId);
+                    processGroupDTO.setComments(templateConfigurationEntity.getApplicationDesc());
+                    final RevisionDTO revisionDTO = serviceFacade.getProcessGroup(rootGroupId).getRevision();
+                    Revision revision = new Revision(revisionDTO.getVersion(), revisionDTO.getClientId(), rootGroupId);
+                    revision.incrementRevision(revisionDTO.getClientId());
+                    ProcessGroupEntity processGroupEntity = serviceFacade.createProcessGroup(revision, rootGroupId, processGroupDTO);
+                    populateRemainingProcessGroupEntityContent(processGroupEntity);
+
+                    // get available position
+                    final PositionDTO positionDTO = PositionCalcUtil.newAvailablePosition(serviceFacade);
+
+                    // create the template and generate the json
+                    final FlowEntity entity = serviceFacade.createTemplateInstance(groupId, positionDTO.getX(), positionDTO.getY(),
+                            templateConfigurationEntity.getEncodingVersion(), templateConfigurationEntity.getSnippet(), getIdGenerationSeed().orElse(null));
+
+                    if(settings != null) {
+                        // update process group variables
+                        final Set<VariableEntity> variableEntitySet = settings.variablesToVariableEntities();
+                        if (variableEntitySet != null) {
+                            VariableRegistryDTO variableRegistryDTO = new VariableRegistryDTO();
+                            variableRegistryDTO.setProcessGroupId(groupId);
+                            variableRegistryDTO.setVariables(variableEntitySet);
+                            serviceFacade.updateVariableRegistry(new Revision(0L, null, groupId), variableRegistryDTO);
+                        }
+
+                        // update processors' properties
+                        final Set<ProcessorEntity> processorEntitySet = entity.getFlow().getProcessors();
+                        final Set<TemplateConfigurationComponentEntity> templateConfigurationComponentEntitySet = settings.getComponents();
+                        if (templateConfigurationComponentEntitySet != null) {
+                            Set<String> componentNameSet = templateConfigurationComponentEntitySet.stream().map(TemplateConfigurationComponentEntity::getName).collect(Collectors.toSet());
+                            for (ProcessorEntity processorEntity : processorEntitySet) {
+                                final String componentName = processorEntity.getComponent().getName();
+                                if (componentNameSet.contains(componentName)) {
+                                    final String componentId = processorEntity.getId();
+
+                                    final Optional<Map<String, String>> propertiesOptional = templateConfigurationComponentEntitySet.stream().filter(pe -> pe.getName().equals(componentName)).findFirst().map(TemplateConfigurationComponentEntity::getProperties);
+                                    if (propertiesOptional.isPresent()) {
+                                        final Map<String, String> properties = propertiesOptional.get();
+                                        ProcessorConfigDTO processorConfigDTO = new ProcessorConfigDTO();
+                                        processorConfigDTO.setProperties(properties);
+                                        ProcessorDTO processorDTO = new ProcessorDTO();
+                                        processorDTO.setConfig(processorConfigDTO);
+                                        processorDTO.setId(componentId);
+                                        final ProcessorEntity updatedProcessorEntity = serviceFacade.updateProcessor(new Revision(0L, null, componentId), processorDTO);
+                                        processorResource.populateRemainingProcessorEntityContent(updatedProcessorEntity);
+                                    }
+                                }
+                            }
+                        }
+
+                        // update controller service.
+                        final Set<ControllerServiceEntity> controllerServiceEntitySet = serviceFacade.getControllerServices(groupId, false, true);
+                        final Set<TemplateConfigurationComponentEntity> services = settings.getServices();
+                        if (services != null) {
+                            for (TemplateConfigurationComponentEntity service : services) {
+                                for (ControllerServiceEntity controllerServiceEntity : controllerServiceEntitySet) {
+                                    final ControllerServiceDTO controllerServiceDTO = controllerServiceEntity.getComponent();
+                                    if (controllerServiceDTO.getName().equals(service.getName())) {
+                                        // update
+                                        final String serviceId = controllerServiceDTO.getId();
+                                        ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                                        serviceDTO.setProperties(service.getProperties());
+                                        serviceDTO.setId(serviceId);
+                                        final ControllerServiceEntity updatedServiceEntity = serviceFacade.updateControllerService(new Revision(0L, null, serviceId), serviceDTO);
+                                        controllerServiceResource.populateRemainingControllerServiceEntityContent(updatedServiceEntity);
+                                    }
+                                }
+                            }
+                        }
+
+                        // To enable a controller service, the validations assiciated to the the service must finish.
+                        // So, todo: find out when the validation jobs are done
+//                        // enable controller services in our application
+//                        final Set<ControllerServiceEntity> servicesToEnable = serviceFacade.getControllerServices(groupId, false, true);
+//                        for(ControllerServiceEntity serviceEntity: servicesToEnable){
+//                            final RevisionDTO serviceRevisionDTO = serviceEntity.getRevision();
+//                            Revision serviceRevision = new Revision(serviceRevisionDTO.getVersion(), serviceRevisionDTO.getClientId(), serviceEntity.getId());
+//                            serviceRevision.incrementRevision(null);
+//                            final ControllerServiceDTO serviceDTO = serviceEntity.getComponent();
+//                            serviceDTO.setState("ENABLED");
+//                            final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(serviceRevision, serviceDTO);
+//                            controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
+//                        }
+
+                    }
+
+                    final FlowDTO flowSnippet = entity.getFlow();
+
+                    // prune response as necessary
+                    for (ProcessGroupEntity childGroupEntity : flowSnippet.getProcessGroups()) {
+                        childGroupEntity.getComponent().setContents(null);
+                    }
+
+                    // create the response entity
+                    populateRemainingSnippetContent(flowSnippet);
+
+                    // generate the response
+                    return generateCreatedResponse(getAbsolutePath(), entity).build();
                 }
         );
     }
