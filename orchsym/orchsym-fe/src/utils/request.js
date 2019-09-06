@@ -6,6 +6,7 @@ import { extend } from 'umi-request';
 import { notification } from 'antd';
 // import router from 'umi/router';
 import { getToken } from '@/utils/authority';
+import { logout } from '@/utils/utils';
 
 // const codeMessage = {
 //   200: '服务器成功返回请求的数据。',
@@ -90,11 +91,7 @@ request.interceptors.response.use((response, options) => {
       notification.error({
         message: '未登录或登录已过期，请重新登录。',
       });
-      // @HACK
-      /* eslint-disable no-underscore-dangle */
-      window.g_app._store.dispatch({
-        type: 'login/logout',
-      });
+      logout();
     } else if (response.status === 403) { // 判断删除
       return response
     } else {

@@ -80,10 +80,6 @@ export default {
         yield put(routerRedux.push('/blank'))
       }
     },
-    *logout(_, { put }) {
-      localStorage.clear();
-      window.location.href = '/logout'
-    },
   },
 
   reducers: {
