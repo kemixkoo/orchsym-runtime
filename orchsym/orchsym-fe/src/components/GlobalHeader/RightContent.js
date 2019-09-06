@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
 import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
 import { Spin, Tag, Menu, Icon, Badge, Tooltip, Divider } from 'antd';
-import IconFont from '@/components/IconFont';
 // Avatar
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import groupBy from 'lodash/groupBy';
+import IconFont from '@/components/IconFont';
 // import NoticeIcon from '../NoticeIcon';
 // import HeaderSearch from '../HeaderSearch';
 import HeaderDropdown from '../HeaderDropdown';
@@ -124,6 +124,9 @@ export default class GlobalHeaderRight extends PureComponent {
         </Menu.Item>
       </Menu>
     );
+    // const onClose = e => {
+    //   console.log(e, 'I was closed.');
+    // };
     // const noticeData = this.getNoticeData();
     // const unreadMsg = this.getUnreadData(noticeData);
     let className = styles.right;
@@ -132,6 +135,15 @@ export default class GlobalHeaderRight extends PureComponent {
     }
     return (
       <div className={className}>
+        {/* <Alert
+          className={styles.alertBg}
+          // message="Warning"
+          description="License将在yy天后过期，为保证业务流程的运行正常，请及时更新，否则runtime将自动停止"
+          type="warning"
+          showIcon
+          closable
+          onClose={onClose}
+        /> */}
         {/* <HeaderSearch
           className={`${styles.action} ${styles.search}`}
           placeholder={formatMessage({ id: 'component.globalHeader.search' })}

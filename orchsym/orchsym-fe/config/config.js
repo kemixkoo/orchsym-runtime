@@ -112,6 +112,20 @@ export default {
         'X-ProxyContextPath': '/',
       },
     },
+    '/logout': {
+      target: 'https://172.18.28.230:18443/runtime/logout',
+      secure: false,
+      changeOrigin: true,
+      pathRewrite: { '^/logout': '' },
+      cookieDomainRewrite: '',
+      autoRewrite: true,
+      headers: {
+        'X-ProxyScheme': 'https',
+        'X-ProxyHost': '127.0.0.1',
+        'X-ProxyPort': 9001,
+        'X-ProxyContextPath': '/',
+      },
+    },
   },
   ignoreMomentLocale: true,
   lessLoaderOptions: {

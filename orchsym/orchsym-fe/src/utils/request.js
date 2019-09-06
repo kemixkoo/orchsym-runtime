@@ -92,9 +92,9 @@ request.interceptors.response.use((response, options) => {
       });
       // @HACK
       /* eslint-disable no-underscore-dangle */
-      // window.g_app._store.dispatch({
-      //   type: 'login/logout',
-      // });
+      window.g_app._store.dispatch({
+        type: 'login/logout',
+      });
     } else if (response.status === 403) { // 判断删除
       return response
     } else {

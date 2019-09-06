@@ -11,17 +11,11 @@ class BlankLayout extends PureComponent {
     const {
       dispatch,
     } = this.props;
-    if (!window.document.cookie) {
-      // @HACK
-      /* eslint-disable no-underscore-dangle */
-      window.location.href = '/user/login'
-      // eslint-disable-next-line no-undef
-      // location.href = 'https://172.18.28.230:18443/runtime/login'
-    } else {
-      dispatch({
-        type: 'login/fetchAccessOidc',
-      });
-    }
+    dispatch({
+      type: 'login/fetchAccessOidc',
+    });
+    // console.log(window.document.cookie)
+    // window.location.href = '/user/login'
   }
 
   render() {

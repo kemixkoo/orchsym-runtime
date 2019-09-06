@@ -1,6 +1,6 @@
 import { routerRedux } from 'dva/router';
 import pathToRegexp from 'path-to-regexp'
-import { stringify } from 'qs';
+// import { stringify } from 'qs';
 import { fakeAccountLogin, accessOidc, licenseWarn } from '@/services/studio';
 import { queryClientId } from '@/services/Flow';
 import { setToken, setClientId, getToken } from '@/utils/authority';
@@ -51,17 +51,21 @@ export default {
       }
     },
     *fetchAccessOidc(_, { call, put }) {
-      const response = yield call(accessOidc);
-      if (response) {
-        yield put({
-          type: 'changeLoginStatus',
-          payload: response,
-        });
-        yield put(
-          routerRedux.replace({
-            pathname: '/',
-          })
-        );
+      try {
+        const response = yield call(accessOidc);
+        if (response) {
+          yield put({
+            type: 'changeLoginStatus',
+            payload: response,
+          });
+          yield put(
+            routerRedux.replace({
+              pathname: '/',
+            })
+          );
+        }
+      } catch {
+        window.location.href = '/user/login'
       }
     },
     *fetchLicenseWarn(_, { call, put }) {
@@ -71,30 +75,14 @@ export default {
       }
     },
     *checkSSOLoginStatus({ payload }, { select, put }) {
-      if (!getToken()) {
+      console.log(getToken())
+      if (!getToken() || !window.document.cookie) {
         yield put(routerRedux.push('/blank'))
       }
     },
     *logout(_, { put }) {
-      yield put({
-        type: 'changeLoginStatus',
-        payload: {
-          status: false,
-          currentAuthority: 'guest',
-        },
-      });
-      reloadAuthorized();
-      // redirect
-      if (window.location.pathname !== '/user/login') {
-        yield put(
-          routerRedux.replace({
-            pathname: '/user/login',
-            search: stringify({
-              redirect: window.location.href,
-            }),
-          })
-        );
-      }
+      localStorage.clear();
+      window.location.href = '/logout'
     },
   },
 

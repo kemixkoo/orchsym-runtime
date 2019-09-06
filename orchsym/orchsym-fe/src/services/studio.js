@@ -23,6 +23,7 @@ export async function licenseWarn() {
     method: 'GET',
   });
 }
+
 // 复制 运行 创建模版前所需接口
 export async function createSnippets(params) {
   return request('/studio/nifi-api/snippets', {
