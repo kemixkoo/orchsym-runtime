@@ -55,6 +55,8 @@ import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.api.entity.StatsCountersEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.orchsym.udc.manager.UsageDataManager;
 
@@ -68,22 +70,13 @@ import net.minidev.json.JSONObject;
  * @author GU Guoqiang
  *
  */
+@Component
 @Path(UsageDataResource.PATH)
 @Api(value = StatsResource.PATH, description = "Endpoint for collecting the usage data of platform.")
 public class UsageDataResource extends ApplicationResource implements ICodeMessages {
     public static final String PATH = "/udc";
 
     private static final Logger logger = LoggerFactory.getLogger(UsageDataResource.class);
-
-    private NiFiServiceFacade serviceFacade;
-
-    public UsageDataResource() {
-        super();
-    }
-
-    public void setServiceFacade(NiFiServiceFacade serviceFacade) {
-        this.serviceFacade = serviceFacade;
-    }
 
     @GET
     @Consumes(MediaType.WILDCARD)

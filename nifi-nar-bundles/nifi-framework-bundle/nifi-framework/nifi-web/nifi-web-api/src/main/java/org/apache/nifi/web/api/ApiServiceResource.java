@@ -54,6 +54,7 @@ import org.apache.nifi.registry.api.RespSpec;
 import org.apache.nifi.util.NiFiProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -69,10 +70,11 @@ import io.swagger.annotations.ApiResponses;
 /**
  * RESTful endpoint for retrieving api informaitions
  */
-@Path(APIServiceResource.PATH)
-@Api(value = APIServiceResource.PATH, //
+@Component
+@Path(ApiServiceResource.PATH)
+@Api(value = ApiServiceResource.PATH, //
         description = "Endpoint  for retrieving api informaitions")
-public class APIServiceResource extends ApplicationResource {
+public class ApiServiceResource extends ApplicationResource {
 
     private static final String PROPERTIES_NIFI_WEB_HTTP_HOST = "nifi.web.http.host";
     private static final String PROPERTIES_NIFI_WEB_HTTP_PORT = "nifi.web.http.port";
@@ -80,7 +82,7 @@ public class APIServiceResource extends ApplicationResource {
     private static final String PROPERTIES_NIFI_WEB_HTTPS_PORT = "nifi.web.https.port";
     public static final String PATH = "/apis";
 
-    private static final Logger logger = LoggerFactory.getLogger(APIServiceResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApiServiceResource.class);
 
     @GET
     @Consumes(MediaType.WILDCARD)

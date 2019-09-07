@@ -70,6 +70,8 @@ import org.apache.nifi.web.api.entity.TemplateEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,6 +87,7 @@ import io.swagger.annotations.ApiResponses;
  * 
  * @author GU Guoqiang
  */
+@Component
 @Path(StatsResource.PATH)
 @Api(value = StatsResource.PATH, description = "Endpoint for accessing the statistics of flows and components.")
 public class StatsResource extends ApplicationResource implements ICodeMessages {
@@ -92,15 +95,8 @@ public class StatsResource extends ApplicationResource implements ICodeMessages 
 
     private static final Logger logger = LoggerFactory.getLogger(StatsResource.class);
 
+    @Autowired
     private NiFiServiceFacade serviceFacade;
-
-    public StatsResource() {
-        super();
-    }
-
-    public void setServiceFacade(NiFiServiceFacade serviceFacade) {
-        this.serviceFacade = serviceFacade;
-    }
 
     /**
      * Retrieves all the counters of services, processors.

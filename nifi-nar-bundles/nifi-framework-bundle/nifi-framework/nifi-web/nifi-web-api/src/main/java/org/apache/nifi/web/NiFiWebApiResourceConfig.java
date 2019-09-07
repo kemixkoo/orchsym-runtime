@@ -78,6 +78,7 @@ public class NiFiWebApiResourceConfig extends ResourceConfig {
         register(ctx.getBean("controllerResource"));
         register(ctx.getBean("siteToSiteResource"));
         register(ctx.getBean("dataTransferResource"));
+        register(ctx.getBean("fileUploaderResource"));
         register(ctx.getBean("snippetResource"));
         register(ctx.getBean("templateResource"));
         register(ctx.getBean("controllerServiceResource"));

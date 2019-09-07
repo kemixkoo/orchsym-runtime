@@ -52,6 +52,8 @@ import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -68,6 +70,7 @@ import net.sourceforge.pinyin4j.PinyinHelper;
 /**
  * RESTful endpoint for retrieving system diagnostics.
  */
+@Component
 @Path(ComponentMarksResource.PATH)
 @Api(value = ComponentMarksResource.PATH, //
         description = "Endpoint for accessing components marks.")
@@ -94,6 +97,7 @@ public class ComponentMarksResource extends ApplicationResource {
         }
     }
 
+    @Autowired
     private NiFiServiceFacade serviceFacade;
 
     private static final Map<Category, String> levelOneIconMap;
@@ -460,12 +464,6 @@ public class ComponentMarksResource extends ApplicationResource {
             }
         }
         return index;
-    }
-
-    // setters
-
-    public void setServiceFacade(NiFiServiceFacade serviceFacade) {
-        this.serviceFacade = serviceFacade;
     }
 
     static Comparator<MarkEntity> entityComparator = new Comparator<MarkEntity>() {
