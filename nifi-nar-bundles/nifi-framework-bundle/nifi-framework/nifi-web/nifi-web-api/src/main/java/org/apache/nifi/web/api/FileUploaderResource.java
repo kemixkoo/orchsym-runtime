@@ -55,6 +55,7 @@ import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.processor.DataUnit;
 import org.apache.nifi.stream.io.StreamUtils;
+import org.apache.nifi.util.NiFiProperties;
 import org.apache.nifi.web.api.entity.FileContentEntity;
 import org.apache.nifi.web.api.entity.FileInfoEntity;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -72,6 +73,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 
 /**
  * 文件上传处理器，支持集群间同步
@@ -82,23 +85,6 @@ import io.swagger.annotations.Authorization;
 public class FileUploaderResource extends AbsOrchsymResource {
 
     private static final Logger logger = LoggerFactory.getLogger(FileUploaderResource.class);
-
-    /**
-     * 上传文件目录配置Key
-     */
-    private static final String UPLOAD_PATH = "orchsym.upload.repository.directory";
-    /**
-     * 上传文件最大限制配置Key
-     */
-    private static final String UPLOAD_MAX_SIZE = "orchsym.upload.size.max";
-    /**
-     * 上传文件默认目录
-     */
-    private static final String DEFAULT_UPLOAD_PATH = "./upload_repository";
-    /**
-     * 上传文件默认最大限制
-     */
-    private static final String DEFAULT_UPLOAD_MAX_SIZE = "30 MB";
 
     /**
      * 上传文件默认权限
@@ -119,16 +105,13 @@ public class FileUploaderResource extends AbsOrchsymResource {
     };
 
     protected String getUploadPath() {
-        // 初始化上传文件目录
-        return properties.getProperty(UPLOAD_PATH, DEFAULT_UPLOAD_PATH);
-
+        return properties.getUploadRepoisotryPath();
     }
 
     protected long getFileMaxSize() {
         // 初始化上传文件最大限制，默认30M
-        String maxSize = properties.getProperty(UPLOAD_MAX_SIZE, DEFAULT_UPLOAD_MAX_SIZE);
+        String maxSize = properties.getProperty(NiFiProperties.UPLOAD_MAX_FILE_SIZE, NiFiProperties.DEFAULT_UPLOAD_MAX_FILE_SIZE);
         return DataUnit.parseDataSize(maxSize.trim(), DataUnit.B).longValue();
-
     }
 
     /**
@@ -155,7 +138,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
     @POST
     @Path("/upload")
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "上传文件，form表单上传方式，参数名为file，enctype=\"multipart/form-data\"", //
             response = Response.class, //
             authorizations = @Authorization(value = "Write - /file-uploader/upload"))
@@ -199,7 +182,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
     @PUT
     @Path("/upload")
     @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "上传文件", //
             response = Response.class, //
             authorizations = @Authorization(value = "Write - /file-uploader/upload"))
@@ -250,7 +233,12 @@ public class FileUploaderResource extends AbsOrchsymResource {
             // 设置权限
             Files.setPosixFilePermissions(uploadFile.toPath(), perms);
 
-            return Response.ok("upload successfully").build();
+            JSONObject result = new JSONObject();
+            result.put("code", Response.Status.OK);
+            result.put("messages", "Upload successfully");
+            result.put("filename", fileName);
+            
+            return Response.ok(result.toJSONString()).build();
         } catch (IOException e) {
             logger.error("replicateNodeResponse error :" + uploadFile, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Upload failed\n" + e.getMessage()).build();
@@ -329,7 +317,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
     @PUT
     @Path("/clean")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "文件下载", //
             response = Response.class, //
             authorizations = @Authorization(value = "Read - /file-uploader/download"))
@@ -379,7 +367,15 @@ public class FileUploaderResource extends AbsOrchsymResource {
             }
         }
         deletedFiles = deletedFiles.stream().sorted().collect(Collectors.toList());
-        return Response.ok("Successfully deleted the files: " + String.join(",", deletedFiles)).build();
+
+        JSONObject result = new JSONObject();
+        result.put("code", Response.Status.OK);
+        result.put("messages", "Successfully deleted the files");
+        JSONArray files = new JSONArray();
+        result.put("files", files);
+        files.addAll(deletedFiles);
+
+        return Response.ok(result.toJSONString()).build();
     }
 
     private void collectFiles(Set<File> results, File file, String fileName, Pattern filePattern, boolean recursive) {

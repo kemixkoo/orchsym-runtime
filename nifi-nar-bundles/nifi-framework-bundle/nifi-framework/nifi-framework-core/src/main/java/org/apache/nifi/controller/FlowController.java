@@ -503,7 +503,8 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
         counterRepositoryRef = new AtomicReference<>(new StandardCounterRepository());
 
         bulletinRepository = bulletinRepo;
-        this.variableRegistry = variableRegistry == null ? VariableRegistry.EMPTY_REGISTRY : variableRegistry;
+        VariableRegistry originalVariableRegistry = variableRegistry == null ? VariableRegistry.EMPTY_REGISTRY : variableRegistry;
+        this.variableRegistry = new org.apache.nifi.registry.variable.PropertiesVariableRegistry(originalVariableRegistry, this.nifiProperties);
 
         try {
             this.provenanceRepository = createProvenanceRepository(nifiProperties);
