@@ -132,6 +132,16 @@ public class FileUploaderResource extends AbsOrchsymResource {
     }
 
     /**
+     * Authorizes access.
+     */
+    private void authorizeWritePolicies() {
+        serviceFacade.authorizeAccess(lookup -> {
+            final Authorizable policies = lookup.getPolicies();
+            policies.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+        });
+    }
+
+    /**
      * 上传文件
      *
      * @param subDir
@@ -156,11 +166,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
             @ApiParam("Form - Input[type=\"File\"]") @FormDataParam("file") InputStream inputStream, //
             @ApiParam("如果存在，是否覆盖") @FormDataParam("overwrite") boolean overwrite) {
 
-        // authorize access
-        serviceFacade.authorizeAccess(lookup -> {
-            final Authorizable authorizable = lookup.getController();
-            authorizable.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-        });
+        authorizeWritePolicies();
 
         // 输入流转字节数组，后续集群间同步时，直接传输字节数组
         byte[] fileBytes;
@@ -199,6 +205,9 @@ public class FileUploaderResource extends AbsOrchsymResource {
             authorizations = @Authorization(value = "Write - /file-uploader/upload"))
     @ApiResponses(value = @ApiResponse(code = 500, message = "上传失败，服务器内部错误"))
     public Response uploadReplicate(@RequestBody FileContentEntity fileContentEntity) {
+
+        authorizeWritePolicies();
+
         final String fileName = fileContentEntity.getFileName();
         if (StringUtils.isBlank(fileName)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Must provide the file name argument").build();
@@ -329,6 +338,8 @@ public class FileUploaderResource extends AbsOrchsymResource {
             @ApiResponse(code = 404, message = CODE_MESSAGE_404), //
     })
     public Response clean(@RequestBody FileInfoEntity fileInfoEntity) {
+        authorizeWritePolicies();
+
         final String filePattern = fileInfoEntity.getFilePattern();
         final String fileName = fileInfoEntity.getFileName();
 
