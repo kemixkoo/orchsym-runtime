@@ -14,7 +14,7 @@ const { confirm } = Modal;
   applicationList: application.applicationList,
   details: application.details,
   snippet: application.snippet,
-  loading: loading.effects['application/fetchApplication'],
+  loading: loading.effects['application/fetchApplication'] || loading.effects['application/fetchValidationRunApp'],
 }))
 class AppList extends PureComponent {
   state = {
@@ -262,7 +262,7 @@ class AppList extends PureComponent {
         <div className={styles.cardFoot}>
           {dropdown2}
         </div>
-        <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p>
+        {/* <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p> */}
         {(isError) ? (
           <Dropdown overlay={<LogList />}>
             <span className={styles.triangle} />
@@ -307,11 +307,12 @@ class AppList extends PureComponent {
 
   render() {
     const { saveTempVisible, editVisible, createOrEdit, appItem } = this.state;
-    const { applicationList, details } = this.props;
+    const { applicationList, details, loading } = this.props;
 
     return (
       <div className={styles.infiniteContainer}>
         <List
+          loading={loading}
           grid={{
             gutter: 16,
             xs: 1,

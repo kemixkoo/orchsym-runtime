@@ -120,11 +120,13 @@ export default {
     * fetchValidationRunApp({ payload }, { call, put }) {
       const response = yield call(validationRunApp, payload.snippetId);
       if (response) {
-        const stateDate = {
-          id: payload.id,
-          state: 'RUNNING',
-        }
-        yield call(updateAppState, stateDate);
+        yield put({
+          type: 'fetchUpdateAppState',
+          payload: {
+            id: payload.id,
+            state: 'RUNNING',
+          },
+        });
       }
     },
     * fetchValidationDeleteApp({ payload, cb }, { call, put }) {

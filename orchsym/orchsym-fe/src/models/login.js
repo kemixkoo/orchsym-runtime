@@ -1,8 +1,9 @@
 import { routerRedux } from 'dva/router';
-import { stringify } from 'qs';
-import { fakeAccountLogin } from '@/services/studio';
+import pathToRegexp from 'path-to-regexp'
+// import { stringify } from 'qs';
+import { fakeAccountLogin, accessOidc, licenseWarn } from '@/services/studio';
 import { queryClientId } from '@/services/Flow';
-import { setToken, setClientId } from '@/utils/authority';
+import { setToken, setClientId, getToken } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
@@ -49,26 +50,34 @@ export default {
         });
       }
     },
-
-    *logout(_, { put }) {
-      yield put({
-        type: 'changeLoginStatus',
-        payload: {
-          status: false,
-          currentAuthority: 'guest',
-        },
-      });
-      reloadAuthorized();
-      // redirect
-      if (window.location.pathname !== '/user/login') {
-        yield put(
-          routerRedux.replace({
-            pathname: '/user/login',
-            search: stringify({
-              redirect: window.location.href,
-            }),
-          })
-        );
+    *fetchAccessOidc(_, { call, put }) {
+      try {
+        const response = yield call(accessOidc);
+        if (response) {
+          yield put({
+            type: 'changeLoginStatus',
+            payload: response,
+          });
+          yield put(
+            routerRedux.replace({
+              pathname: '/',
+            })
+          );
+        }
+      } catch {
+        window.location.href = '/user/login'
+      }
+    },
+    *fetchLicenseWarn(_, { call, put }) {
+      const response = yield call(licenseWarn);
+      if (response) {
+        console.log(response)
+      }
+    },
+    *checkSSOLoginStatus({ payload }, { select, put }) {
+      console.log(getToken())
+      if (!getToken() || !window.document.cookie) {
+        yield put(routerRedux.push('/blank'))
       }
     },
   },
@@ -87,6 +96,21 @@ export default {
         ...state,
         clientId: payload,
       };
+    },
+  },
+  subscriptions: {
+    setup({ dispatch, history }) {
+      return history.listen(({ pathname }) => {
+        const match = pathToRegexp('/blank').exec(pathname)
+        if (!match) {
+          dispatch({
+            type: 'checkSSOLoginStatus',
+            payload: {
+              pathname,
+            },
+          })
+        }
+      })
     },
   },
 };

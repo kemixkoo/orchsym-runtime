@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    PROJECT_NAME = 'runtime-fe'
+    PROJECT_NAME = 'runtime-dashboard'
   }
 
   stages {
@@ -13,7 +13,7 @@ pipeline {
         noci action: 'check'
 
         load_envs_common()
-        load_envs_runtime_fe()
+        load_envs_runtime_dashboard()
       }
     }
 
@@ -28,7 +28,7 @@ pipeline {
       steps {
         script {
           // use an extra volume to cache node_modules
-          docker.image("${env.RUNTIME_FE_NODE_DOCKER_IMAGE}").inside("-uroot -v ${pwd()}/orchsym/orchsym-fe/:/tmp/build/ -v ${env.JENKINS_EXTERNAL_DIR}/${env.PROJECT_NAME}-node_modules/:/tmp/build/node_modules/") {
+          docker.image("${env.RUNTIME_DASHBOARD_NODE_DOCKER_IMAGE}").inside("-uroot -v ${pwd()}/orchsym/orchsym-fe/:/tmp/build/ -v ${env.JENKINS_EXTERNAL_DIR}/${env.PROJECT_NAME}-node_modules/:/tmp/build/node_modules/") {
             sh "cd /tmp/build && npm install && npm run build"
           }
         }
@@ -58,49 +58,49 @@ pipeline {
     }
 
     stage('Deploy to Dev') {
-      when { branch "${env.RUNTIME_FE_DEV_VERSION}" }
+      when { branch "${env.RUNTIME_DASHBOARD_DEV_VERSION}" }
 
       steps {
         deployToEnvironment(
-          "${env.RUNTIME_FE_DEV_NAME}",
-          "${env.RUNTIME_FE_DEV_VERSION}",
-          "${env.RUNTIME_FE_DEV_ENVIRONMENT}"
+          "${env.RUNTIME_DASHBOARD_DEV_NAME}",
+          "${env.RUNTIME_DASHBOARD_DEV_VERSION}",
+          "${env.RUNTIME_DASHBOARD_DEV_ENVIRONMENT}"
         )
       }
     }
 
     stage('Deploy to Test') {
-      when { branch "${env.RUNTIME_FE_TEST_VERSION}" }
+      when { branch "${env.RUNTIME_DASHBOARD_TEST_VERSION}" }
 
       steps {
         deployToEnvironment(
-          "${env.RUNTIME_FE_TEST_NAME}",
-          "${env.RUNTIME_FE_TEST_VERSION}",
-          "${env.RUNTIME_FE_TEST_ENVIRONMENT}"
+          "${env.RUNTIME_DASHBOARD_TEST_NAME}",
+          "${env.RUNTIME_DASHBOARD_TEST_VERSION}",
+          "${env.RUNTIME_DASHBOARD_TEST_ENVIRONMENT}"
         )
       }
     }
 
     stage('Deploy to Stage') {
-      when { branch "${env.RUNTIME_FE_STAGE_VERSION}" }
+      when { branch "${env.RUNTIME_DASHBOARD_STAGE_VERSION}" }
 
       steps {
         deployToEnvironment(
-          "${env.RUNTIME_FE_STAGE_NAME}",
-          "${env.RUNTIME_FE_STAGE_VERSION}",
-          "${env.RUNTIME_FE_STAGE_ENVIRONMENT}"
+          "${env.RUNTIME_DASHBOARD_STAGE_NAME}",
+          "${env.RUNTIME_DASHBOARD_STAGE_VERSION}",
+          "${env.RUNTIME_DASHBOARD_STAGE_ENVIRONMENT}"
         )
       }
     }
 
     stage('Deploy to Prod') {
-      when { branch "${env.RUNTIME_FE_PROD_VERSION}" }
+      when { branch "${env.RUNTIME_DASHBOARD_PROD_VERSION}" }
 
       steps {
         deployToEnvironment(
-          "${env.RUNTIME_FE_PROD_NAME}",
-          "${env.RUNTIME_FE_PROD_VERSION}",
-          "${env.RUNTIME_FE_PROD_ENVIRONMENT}"
+          "${env.RUNTIME_DASHBOARD_PROD_NAME}",
+          "${env.RUNTIME_DASHBOARD_PROD_VERSION}",
+          "${env.RUNTIME_DASHBOARD_PROD_ENVIRONMENT}"
         )
       }
     }

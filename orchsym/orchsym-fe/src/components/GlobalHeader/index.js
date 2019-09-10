@@ -5,9 +5,23 @@ import styles from './index.less';
 import RightContent from './RightContent';
 
 export default class GlobalHeader extends PureComponent {
+  componentWillMount() {
+    const {
+      dispatch,
+    } = this.props;
+    dispatch({
+      type: 'user/fetchCurrent',
+    });
+    dispatch({
+      type: 'login/fetchLicenseWarn',
+    });
+  }
+
   componentWillUnmount() {
     this.triggerResizeEvent.cancel();
   }
+
+
   /* eslint-disable*/
   @Debounce(600)
   triggerResizeEvent() {
