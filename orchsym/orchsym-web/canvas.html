@@ -16,7 +16,7 @@
 </div>
 
 <div id="banner-header" class="main-banner-header"></div>
-<div id="banner-footer" class="main-banner-footer"></div><md-toolbar id="header" layout-align="space-between center" layout="row" class="md-small md-accent md-hue-1">
+<div id="banner-footer" class="main-banner-footer"></div><md-toolbar style="display: none;" id="header" layout-align="space-between center" layout="row" class="md-small md-accent md-hue-1">
     <img id="nifi-logo" src="images/logo.svg">
     <div flex layout="row" layout-align="space-between center">
         <div id="component-container">
@@ -291,7 +291,7 @@
 </div>
 <div id="status-history-dialog" class="hidden large-dialog">
     <div id="status-history-refresh-container">
-    	
+
         <button id="status-history-refresh-button" class="refresh-button pointer fa fa-refresh" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.queue-listing.queue-listing-refresh-button"] }}"></button>
         <div id="status-history-last-refreshed-container" class="last-refreshed-container">
             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.status-history-dialog.LastUpdated"] }}:&nbsp;<span id="status-history-last-refreshed"></span>
@@ -312,7 +312,7 @@
 <div id="search-users-dialog" class="hidden">
     <div class="dialog-content">
         <div class="secure-port-setting">
-        
+
             <input id="search-users-field" type="text" placeholder="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.search-users-dialog.search-users-field"] }}"/>
         </div>
         <div class="secure-port-setting">
@@ -347,7 +347,7 @@
                 <div class="setting-name">{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.disable-controller-service-dialog.Scope"] }}</div>
                 <div class="setting-field">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.disable-controller-service-dialog.Scope.setting-field"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.disable-controller-service-dialog.Scope.setting-field.title"] }}"></div>
                 </div>
             </div>
@@ -379,7 +379,7 @@
             <div class="setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.disable-controller-service-dialog.ReferencingComponents"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.enable-controller-service-dialog.ReferencingComponents.title"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -439,7 +439,7 @@
             <div class="setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.enable-controller-service-dialog.ReferencingComponents"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.enable-controller-service-dialog.ReferencingComponents.title"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -464,7 +464,7 @@
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.new-controller-service-dialog.Displaying"] }}&nbsp;<span id="displayed-controller-service-types"></span>&nbsp;{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.new-controller-service-dialog.Of"] }}&nbsp;<span id="total-controller-service-types"></span>
                 </div>
                 <div id="controller-service-type-filter-container">
-                	
+
                     <input type="text" id="controller-service-type-filter" placeholder="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.component-state-dialog.component-state-filter"] }}"/>
                 </div>
             </div>
@@ -510,7 +510,7 @@
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.new-reporting-task-dialog.Displaying"] }}&nbsp;<span id="displayed-reporting-task-types"></span>&nbsp;{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.new-processor-dialog.Of"] }}&nbsp;<span id="total-reporting-task-types"></span>
                 </div>
                 <div id="controller-service-type-filter-container">
-                
+
                     <input type="text" id="reporting-task-type-filter" placeholder="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.component-state-dialog.component-state-filter"] }}"/>
                 </div>
             </div>
@@ -557,7 +557,7 @@
                         id="total-processor-types"></span>
                 </div>
                 <div id="processor-type-filter-container">
-                
+
                     <input type="text" placeholder="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.component-state-dialog.component-state-filter"] }}" id="processor-type-filter"/>
                 </div>
             </div>
@@ -741,7 +741,7 @@
             <div id="template-browse-container">
                 <span id="select-template-label">{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.cancas.upload-template-dialog.select-template-label"] }}</span>
                 <div id="select-template-button">
-                
+
                     <button class="fa fa-search" id="template-file-field-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.cancas.upload-template-dialog.template-file-field"] }}"></button>
                     <form id="template-upload-form" enctype="multipart/form-data" method="post">
                         <input type="file" name="template" id="template-file-field"/>
@@ -998,7 +998,7 @@
         </div>
     </div>
     <div id="operation-control" class="graph-control">
-        
+
         <div class="graph-control-docked pointer fa fa-hand-o-up" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.navigation.Operate"] }}"
              ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
         </div>
@@ -1235,14 +1235,14 @@
             <div class="clear"></div>
         </div>
         <div id="settings-tabs-content">
-        	
+
             <button id="new-service-or-task" class="add-button fa fa-plus" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.new-service-or-task"] }}" style="display: block;"></button>
             <div id="general-settings-tab-content" class="configuration-tab">
                 <div id="general-settings">
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.setting1"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.setting1-title"] }}"></div>
                         </div>
                         <div class="editable setting-field">
@@ -1255,7 +1255,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.setting2"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.setting2-title"] }}"></div>
                         </div>
                         <div class="editable setting-field">
@@ -1283,7 +1283,7 @@
         </div>
     </div>
     <div id="settings-refresh-container">
-    	
+
         <button id="settings-refresh-button" class="refresh-button pointer fa fa-refresh" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.queue-listing.queue-listing-refresh-button"] }}"></button>
         <div id="settings-last-refreshed-container" class="last-refreshed-container">
             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.LastUpdated"] }}:&nbsp;<span id="settings-last-refreshed" class="value-color"></span>
@@ -1297,11 +1297,11 @@
 <div id="shell-dialog" class="hidden cancellable">
     <div id="shell-container" class="dialog-content">
         <div id="shell-close-container">
-        
+
             <button id="shell-undock-button" class="undock-normal pointer " title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.shell.shell-undock-button"] }}">
                 <div class="fa fa-external-link-square"></div>
             </button>
-            
+
             <button id="shell-close-button" class="close-normal pointer" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.shell.shell-close-button"] }}">
                 <div class="fa fa-times"></div>
             </button>
@@ -1416,7 +1416,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.reporting-task-configuration.SchedulingStrategy"] }}
-                    
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.reporting-task-configuration.SchedulingStrategy.title"] }}"></div>
                         </div>
                         <div class="reporting-task-editable setting-field">
@@ -1429,7 +1429,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.reporting-task-configuration.RunSchedule"] }}
-                    
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.reporting-task-configuration.RunSchedule.title"] }}"></div>
                         </div>
                         <div class="reporting-task-editable setting-field">
@@ -1592,7 +1592,7 @@
                         <div class="concurrently-schedulable-tasks-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.ConcurrentTasks"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.ConcurrentTasks.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1605,7 +1605,7 @@
                         <div class="concurrently-schedulable-tasks-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.ConcurrentTasks"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.ConcurrentTasks.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1615,7 +1615,7 @@
                         <div class="scheduling-period-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.RunSchedule"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.RunSchedule.title.2"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1628,7 +1628,7 @@
                         <div class="execution-node-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.Execution"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.processor-configuration.ExecutionTitle"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1718,7 +1718,7 @@
                         <div class="penalty-duration-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-penalty-duration"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-penalty-duration.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1728,7 +1728,7 @@
                         <div class="yield-duration-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-yield-duration"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-yield-duration.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1741,7 +1741,7 @@
                         <div class="bulletin-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-bulletin-level"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-bulletin-level.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1756,7 +1756,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-auto-terminate-relationship-names"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-auto-terminate-relationship-names.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -1771,7 +1771,7 @@
                         <div class="scheduling-strategy-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-scheduling-strategy"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-scheduling-strategy.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1784,7 +1784,7 @@
                         <div class="concurrently-schedulable-tasks-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-concurrently-schedulable-tasks"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-concurrently-schedulable-tasks.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1794,7 +1794,7 @@
                         <div id="read-only-run-schedule" class="scheduling-period-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-scheduling-period"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-scheduling-period.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1807,7 +1807,7 @@
                         <div class="execution-node-setting">
                             <div class="setting-name">
                                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-execution-node-options"] }}
-                                
+
                                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-execution-node-options.title"] }}"></div>
                             </div>
                             <div class="setting-field">
@@ -1822,7 +1822,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-run-duration"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.processor-details.read-only-run-duration.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -1966,7 +1966,7 @@
         </div>
     </div>
     <div id="process-group-refresh-container">
-        
+
         <button id="process-group-configuration-refresh-button" class="refresh-button pointer fa fa-refresh" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.process-group-configuration.process-group-configuration-refresh-button"] }}"></button>
         <div class="last-refreshed-container">
             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.process-group-configuration.last-refreshed-container"] }}:&nbsp;<span id="process-group-configuration-last-refreshed" class="last-refreshed"></span>
@@ -2055,7 +2055,7 @@
     </div>
     <div id="policy-table"></div>
     <div id="policy-refresh-container">
-    	
+
         <button id="policy-refresh-button" class="refresh-button pointer fa fa-refresh" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.queue-listing.queue-listing-refresh-button"] }}"></button>
         <div class="last-refreshed-container">
             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.policy-management.last-refreshed-container"] }}:&nbsp;<span id="policy-last-refreshed" class="last-refreshed"></span>
@@ -2090,7 +2090,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.TransportProtocol"] }}
-                
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.TransportProtocolTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2100,7 +2100,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.LocalNetwork"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.LocalNetworkTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2113,7 +2113,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.hostname"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.hostnameTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2123,7 +2123,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.port"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.portTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2136,7 +2136,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.user"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.userTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2146,7 +2146,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.pwd"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.pwdTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2159,7 +2159,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.CommunicationsTimeout"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.CommunicationsTimeoutTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2169,7 +2169,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.YieldDuration"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-configuration.YieldDuration.title"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2204,7 +2204,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.TransportProtocol"] }}
-                    
+
                 <div class="fa fa-question-circle" alt="Info" title="TransportProtocol{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.TransportProtocolTitle"] }}"></div>
             </div>
                 <div class="setting-field">
@@ -2214,7 +2214,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.LocalNetwork"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.LocalNetworkTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2227,7 +2227,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.hostname"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.hostnameTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2237,7 +2237,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.port"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.portTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2250,7 +2250,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.user"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.userTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2260,7 +2260,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.pwd"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.pwdTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2273,7 +2273,7 @@
             <div class="remote-process-group-setting-left">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.CommunicationsTimeout"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.CommunicationsTimeoutTitle"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2283,7 +2283,7 @@
             <div class="remote-process-group-setting-right">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.YieldDuration"] }}
-                    
+
                     <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-process-group-details.YieldDuration.title"] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -2337,7 +2337,7 @@
         <div class="setting">
             <div class="setting-name">
                 {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-port-configuration.ConcurrentTasks"] }}
-                
+
                 <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.remote-port-configuration.ConcurrentTasks.title"] }}"></div>
             </div>
             <div class="setting-field">
@@ -2485,7 +2485,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.FlowFileExpiration"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.FlowFileExpiration.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2495,7 +2495,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.BackPressureObjectThreshold"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.BackPressureObjectThreshold.Title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2505,7 +2505,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.BackPressureDataSizeThreshold"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.BackPressureDataSizeThreshold.Title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2518,7 +2518,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.AvailablePrioritizers"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.AvailablePrioritizers.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2528,7 +2528,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.SelectedPrioritizers"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.connection-configuration.SelectedPrioritizers.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2773,7 +2773,7 @@
     <div id="queue-listing-table"></div>
     <div id="queue-listing-message" class="hidden"></div>
     <div id="queue-listing-refresh-container">
-    	
+
         <button id="queue-listing-refresh-button" class="refresh-button pointer fa fa-refresh" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.queue-listing.queue-listing-refresh-button"] }}"></button>
         <div id="queue-listing-last-refreshed-container" class="last-refreshed-container">
             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.queue-listing.lastUpdate"] }}:&nbsp;<span id="queue-listing-last-refreshed"></span>
@@ -2803,7 +2803,7 @@
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.component-state-dialog.component-state-filter-status1"] }}&nbsp;<span id="displayed-component-state-entries"></span>&nbsp;{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.component-state-dialog.component-state-filter-status2"] }}&nbsp;<span id="total-component-state-entries"></span>
                 </div>
                 <div id="component-state-filter-container">
-                
+
                     <input type="text" id="component-state-filter" placeholder="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.component-state-dialog.component-state-filter"] }}"/>
                 </div>
             </div>
@@ -2882,7 +2882,7 @@
                     <div id="read-only-relationship-names-container" class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.Relationships"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.configuration-tab.read-only-relationship-names-container.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2923,7 +2923,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-flow-file-expiration"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-flow-file-expiration.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2934,7 +2934,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-back-pressure-object-threshold"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-back-pressure-object-threshold.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2945,7 +2945,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-back-pressure-data-size-threshold"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-back-pressure-data-size-threshold.title"] }}"></div>
                         </div>
                         <div class="setting-field">
@@ -2959,7 +2959,7 @@
                     <div class="setting">
                         <div class="setting-name">
                             {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-prioritizers"] }}
-                            
+
                             <div class="fa fa-question-circle" alt="Info" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.connection-details.read-only-prioritizers.title"] }}"></div>
                         </div>
                         <div class="setting-field">

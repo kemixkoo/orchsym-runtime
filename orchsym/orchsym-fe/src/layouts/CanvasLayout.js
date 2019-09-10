@@ -45,6 +45,7 @@ class BasicLayout extends React.Component {
     return {
       paddingLeft: '0px',
       height: 'calc(100% - 0px)',
+      overflow: 'hidden',
     };
   };
 
