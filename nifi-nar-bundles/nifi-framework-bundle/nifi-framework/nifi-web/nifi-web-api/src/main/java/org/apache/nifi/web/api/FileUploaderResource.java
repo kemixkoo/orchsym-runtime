@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -135,7 +134,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
      *            文件
      * @return 文件大小（单位byte）
      */
-    @POST
+    @PUT
     @Path("/upload")
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
@@ -237,7 +236,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
             result.put("code", Response.Status.OK);
             result.put("messages", "Upload successfully");
             result.put("filename", fileName);
-            
+
             return Response.ok(result.toJSONString()).build();
         } catch (IOException e) {
             logger.error("replicateNodeResponse error :" + uploadFile, e);
@@ -277,7 +276,6 @@ public class FileUploaderResource extends AbsOrchsymResource {
             final File file = new File(dir, fileName);
             return downloadFile(file, file.getName());
         }
-
         return Response.status(Response.Status.BAD_REQUEST).entity("Must provide the file name").build();
     }
 

@@ -245,7 +245,7 @@ public class TemplateResource extends ApplicationResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     @ApiOperation(
             value = "Get a template",
@@ -281,7 +281,7 @@ public class TemplateResource extends ApplicationResource {
         });
 
         // get the template
-        final TemplateDTO template = serviceFacade.exportTemplate(id);
+        final TemplateDTO template = serviceFacade.getTemplate(id);
         return generateOkResponse(template).build();
     }
 

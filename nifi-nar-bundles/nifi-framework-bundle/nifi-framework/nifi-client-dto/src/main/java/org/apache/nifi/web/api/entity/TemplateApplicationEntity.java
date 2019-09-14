@@ -15,25 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.nifi.web.api.entity;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.nifi.web.api.dto.TemplateDTO;
 
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.xml.bind.annotation.XmlType;
-import java.util.Map;
+@XmlRootElement(name = "templateConfigurationEntity")
+public class TemplateApplicationEntity extends Entity {
 
-/**
- * @author weiwei.zhan
- */
-@XmlType(name = "components")
-public class TemplateConfigurationComponentEntity {
+    private String id;
     private String name;
-    private Map<String, String> properties;
+    private String description;
 
-    @ApiModelProperty(
-            value = "The component name."
-    )
+    private TemplateDTO template;
+
+    @ApiModelProperty(value = "The id of the application.")
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @ApiModelProperty(value = "The name of the application.")
     public String getName() {
         return name;
     }
@@ -42,14 +50,25 @@ public class TemplateConfigurationComponentEntity {
         this.name = name;
     }
 
-    @ApiModelProperty(
-            value = "The properties for the componnet or serviceTemplateConfigurationComponentEntity. Properties whose value is not set will only contain the property name."
-    )
-    public Map<String, String> getProperties() {
-        return properties;
+    @ApiModelProperty(value = "The description for the application")
+    public String getDescription() {
+        return description;
     }
 
-    public void setProperties(Map<String, String> properties) {
-        this.properties = properties;
+    public void setDescription(String desc) {
+        this.description = desc;
+    }
+
+    /**
+     * The TemplateDTO that is being serialized.
+     *
+     * @return The TemplateDTO object
+     */
+    public TemplateDTO getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(TemplateDTO template) {
+        this.template = template;
     }
 }

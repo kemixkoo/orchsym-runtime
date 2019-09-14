@@ -15,28 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.nifi.web.api.entity;
 
-import io.swagger.annotations.ApiModelProperty;
-import org.apache.nifi.web.api.dto.FlowSnippetDTO;
-
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.Set;
+
+import org.apache.nifi.web.api.dto.FlowSnippetDTO;
+import org.apache.nifi.web.api.dto.RevisionDTO;
+
+import io.swagger.annotations.ApiModelProperty;
 
 @XmlRootElement(name = "templateConfigurationEntity")
-public class TemplateConfigurationEntity extends Entity{
+public class TemplateConfigEntity extends Entity {
+
     private String applicationName;
     private String applicationDesc;
+
     private String templateName;
+
+    private boolean enableServices;
+    
     private String encodingVersion;
     private FlowSnippetDTO snippet;
     private Boolean disconnectedNodeAcknowledged;
-    private TemplateConfigurationSettingsEntity settings;
+    private TemplateConfigSettingsEntity settings;
 
-    @ApiModelProperty(
-            value = "The name of the application."
-    )
+    @ApiModelProperty(value = "The name of the application.")
     public String getApplicationName() {
         return applicationName;
     }
@@ -45,9 +48,7 @@ public class TemplateConfigurationEntity extends Entity{
         this.applicationName = applicationName;
     }
 
-    @ApiModelProperty(
-            value = "The description for the application"
-    )
+    @ApiModelProperty(value = "The description for the application")
     public String getApplicationDesc() {
         return applicationDesc;
     }
@@ -56,9 +57,7 @@ public class TemplateConfigurationEntity extends Entity{
         this.applicationDesc = applicationDesc;
     }
 
-    @ApiModelProperty(
-            value = "The name of the template."
-    )
+    @ApiModelProperty(value = "The name of the template.")
     public String getTemplateName() {
         return templateName;
     }
@@ -67,13 +66,19 @@ public class TemplateConfigurationEntity extends Entity{
         this.templateName = templateName;
     }
 
+    @ApiModelProperty(value = "need enable the services for application or not")
+    public boolean isEnableServices() {
+        return enableServices;
+    }
 
-    @ApiModelProperty(
-            value = "The encoding version of the flow snippet. If not specified, this is automatically "
-                    + "populated by the node receiving the user request. If the snippet is specified, the version "
-                    + "will be the latest. If the snippet is not specified, the version will come from the underlying "
-                    + "template. These details need to be replicated throughout the cluster to ensure consistency."
-    )
+    public void setEnableServices(boolean enableServices) {
+        this.enableServices = enableServices;
+    }
+
+    @ApiModelProperty(value = "The encoding version of the flow snippet. If not specified, this is automatically "
+            + "populated by the node receiving the user request. If the snippet is specified, the version "
+            + "will be the latest. If the snippet is not specified, the version will come from the underlying "
+            + "template. These details need to be replicated throughout the cluster to ensure consistency.")
     public String getEncodingVersion() {
         return encodingVersion;
     }
@@ -82,11 +87,8 @@ public class TemplateConfigurationEntity extends Entity{
         this.encodingVersion = encodingVersion;
     }
 
-    @ApiModelProperty(
-            value = "A flow snippet of the template contents. If not specified, this is automatically "
-                    + "populated by the node receiving the user request. These details need to be replicated "
-                    + "throughout the cluster to ensure consistency."
-    )
+    @ApiModelProperty(value = "A flow snippet of the template contents. If not specified, this is automatically "
+            + "populated by the node receiving the user request. These details need to be replicated " + "throughout the cluster to ensure consistency.")
     public FlowSnippetDTO getSnippet() {
         return snippet;
     }
@@ -95,16 +97,12 @@ public class TemplateConfigurationEntity extends Entity{
         this.snippet = snippet;
     }
 
-    @ApiModelProperty(
-            value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed."
-    )
+    @ApiModelProperty(value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.")
     public Boolean isDisconnectedNodeAcknowledged() {
         return disconnectedNodeAcknowledged;
     }
 
-    @ApiModelProperty(
-            value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed."
-    )
+    @ApiModelProperty(value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.")
     public Boolean getDisconnectedNodeAcknowledged() {
         return disconnectedNodeAcknowledged;
     }
@@ -113,14 +111,12 @@ public class TemplateConfigurationEntity extends Entity{
         this.disconnectedNodeAcknowledged = disconnectedNodeAcknowledged;
     }
 
-    @ApiModelProperty(
-            value = "Settings used to update the application created by the template."
-    )
-    public TemplateConfigurationSettingsEntity getSettings() {
+    @ApiModelProperty(value = "Settings used to update the application created by the template.")
+    public TemplateConfigSettingsEntity getSettings() {
         return settings;
     }
 
-    public void setSettings(TemplateConfigurationSettingsEntity settings) {
+    public void setSettings(TemplateConfigSettingsEntity settings) {
         this.settings = settings;
     }
 }

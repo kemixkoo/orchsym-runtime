@@ -30,36 +30,30 @@ import java.util.Set;
  * @author weiwei.zhan
  */
 @XmlType(name = "settings")
-public class TemplateConfigurationSettingsEntity {
-    private Set<TemplateConfigurationComponentEntity> components;
-    private Set<TemplateConfigurationComponentEntity> services;
+public class TemplateConfigSettingsEntity {
+    private Set<TemplateConfigComponentEntity> components;
+    private Set<TemplateConfigComponentEntity> services;
     private Map<String, String> variables;
 
-    @ApiModelProperty(
-            value = "The processors for the application."
-    )
-    public Set<TemplateConfigurationComponentEntity> getComponents() {
+    @ApiModelProperty(value = "The processors for the application.")
+    public Set<TemplateConfigComponentEntity> getComponents() {
         return components;
     }
 
-    public void setComponents(Set<TemplateConfigurationComponentEntity> components) {
+    public void setComponents(Set<TemplateConfigComponentEntity> components) {
         this.components = components;
     }
 
-    @ApiModelProperty(
-            value = "The services for the application."
-    )
-    public Set<TemplateConfigurationComponentEntity> getServices() {
+    @ApiModelProperty(value = "The services for the application.")
+    public Set<TemplateConfigComponentEntity> getServices() {
         return services;
     }
 
-    public void setServices(Set<TemplateConfigurationComponentEntity> services) {
+    public void setServices(Set<TemplateConfigComponentEntity> services) {
         this.services = services;
     }
 
-    @ApiModelProperty(
-            value = "The variables for the application."
-    )
+    @ApiModelProperty(value = "The variables for the application.")
     public Map<String, String> getVariables() {
         return variables;
     }
@@ -68,12 +62,12 @@ public class TemplateConfigurationSettingsEntity {
         this.variables = variables;
     }
 
-    public Set<VariableEntity> variablesToVariableEntities(){
-        if(variables == null || variables.keySet().size() == 0){
+    public Set<VariableEntity> variablesToVariableEntities() {
+        if (variables == null || variables.keySet().size() == 0) {
             return null;
         }
         Set<VariableEntity> variableEntitySet = new HashSet<>();
-        for(Map.Entry<String, String> variable: variables.entrySet()){
+        for (Map.Entry<String, String> variable : variables.entrySet()) {
             VariableDTO variableDTO = new VariableDTO();
             variableDTO.setName(variable.getKey());
             variableDTO.setValue(variable.getValue());
