@@ -3914,7 +3914,9 @@ public class ProcessGroupResource extends ApplicationResource {
                     }
                 }
 
-                // update controller service.
+                // update controller services.
+                // The controller service to be updated must be a private controller service. In other words, the controller service can only locate in the application itself,
+                // any controller servece in ancestor groups won't be updated.
                 final Set<ControllerServiceEntity> controllerServiceEntitySet = serviceFacade.getControllerServices(applicationId, false, true);
                 final Set<TemplateConfigComponentEntity> serviceSettings = settings.getServices();
                 if (serviceSettings != null) {
@@ -3946,26 +3948,21 @@ public class ProcessGroupResource extends ApplicationResource {
                 }
             }
 
-            // // enable controller services in the application
-            // if (requestTemplateConfigurationEntity.isEnableServices()) {
-            // final Set<ControllerServiceEntity> servicesToEnable = serviceFacade.getControllerServices(applicationId, false, true);
-            // for (ControllerServiceEntity serviceEntity : servicesToEnable) {
-            // final ControllerServiceDTO serviceDTO = serviceEntity.getComponent();
-            // serviceDTO.setState(ControllerServiceState.ENABLED.name());
-            // final Response updateControllerServiceResponse = controllerServiceResource.updateControllerService(httpServletRequest, serviceEntity.getId(), serviceEntity);
-            // if (updateControllerServiceResponse.getStatusInfo() == Response.Status.OK) {
-            // //
-            // }
-            // }
-            // }
+             // enable the controller services in the application
+             if (requestTemplateConfigurationEntity.isEnableServices()) {
+                final Set<ControllerServiceEntity> servicesToEnable = serviceFacade.getControllerServices(applicationId, false, true);
+                 for (ControllerServiceEntity serviceEntity : servicesToEnable) {
+                    final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                    serviceDTO.setId(serviceEntity.getId());
+                    serviceDTO.setState(ControllerServiceState.ENABLED.name());
 
-            // prune response as necessary
-            // for (ProcessGroupEntity childGroupEntity : flowSnippet.getProcessGroups()) {
-            // childGroupEntity.getComponent().setContents(null);
-            // }
-
-            // create the response entity
-            // populateRemainingSnippetContent(flowSnippet);
+                     ControllerServiceEntity serviceToEnble = new ControllerServiceEntity();
+                     final RevisionDTO serviceRevisionDTO = serviceEntity.getRevision();
+                     serviceToEnble.setRevision(serviceRevisionDTO);
+                     serviceToEnble.setComponent(serviceDTO);
+                     controllerServiceResource.updateControllerService(httpServletRequest, serviceDTO.getId(), serviceToEnble);
+                }
+             }
 
             TemplateApplicationEntity responseEntity = new TemplateApplicationEntity();
             responseEntity.setId(applicationDto.getId());
