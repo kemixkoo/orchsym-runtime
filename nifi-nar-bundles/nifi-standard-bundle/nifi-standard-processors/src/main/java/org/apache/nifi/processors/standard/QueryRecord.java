@@ -47,6 +47,7 @@ import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.parser.SqlParser.Config;
+import org.apache.calcite.util.ConversionUtil;
 import org.apache.nifi.annotation.behavior.DynamicProperty;
 import org.apache.nifi.annotation.behavior.DynamicRelationship;
 import org.apache.nifi.annotation.behavior.EventDriven;
@@ -114,6 +115,14 @@ import org.apache.nifi.util.StopWatch;
     @WritesAttribute(attribute = "record.count", description = "The number of records selected by the query")
 })
 public class QueryRecord extends AbstractProcessor {
+    static {
+        System.setProperty("saffron.default.charset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("saffron.default.nationalcharset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("saffron.default.collation.name", ConversionUtil.NATIVE_UTF16_CHARSET_NAME + "$en_US");
+        System.setProperty("calcite.default.charset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("calcite.default.nationalcharset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("calcite.default.collation.name", ConversionUtil.NATIVE_UTF16_CHARSET_NAME + "$en_US");
+    }
     static final PropertyDescriptor RECORD_READER_FACTORY = new PropertyDescriptor.Builder()
         .name("record-reader")
         .displayName("Record Reader")
