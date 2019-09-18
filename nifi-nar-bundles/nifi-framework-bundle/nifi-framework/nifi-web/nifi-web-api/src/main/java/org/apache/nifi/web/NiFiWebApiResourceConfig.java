@@ -82,6 +82,7 @@ public class NiFiWebApiResourceConfig extends ResourceConfig {
         register(ctx.getBean("snippetResource"));
         register(ctx.getBean("templateResource"));
         register(ctx.getBean("controllerServiceResource"));
+        register(ctx.getBean("serviceResource"));
         register(ctx.getBean("reportingTaskResource"));
         register(ctx.getBean("processGroupResource"));
         register(ctx.getBean("processorResource"));
