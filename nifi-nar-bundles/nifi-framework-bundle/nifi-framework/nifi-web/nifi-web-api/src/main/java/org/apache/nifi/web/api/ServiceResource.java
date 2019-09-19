@@ -19,6 +19,7 @@ package org.apache.nifi.web.api;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -48,8 +49,10 @@ import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.VariableRegistryDTO;
 import org.apache.nifi.web.api.entity.ControllerServiceEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceSimpleEntity;
+import org.apache.nifi.web.api.entity.VariableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -208,6 +211,14 @@ public class ServiceResource extends ApplicationResource {
                     final ControllerServiceEntity entity = serviceFacade.createControllerService(revision, groupId, controllerService);
                     controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
 
+                    // update process group variables
+                    final Set<VariableEntity> variableEntitySet = requestControllerServiceEntity.variablesToVariableEntities();
+                    if (variableEntitySet != null) {
+                        VariableRegistryDTO variableRegistryDTO = new VariableRegistryDTO();
+                        variableRegistryDTO.setProcessGroupId(groupId);
+                        variableRegistryDTO.setVariables(variableEntitySet);
+                        serviceFacade.updateVariableRegistry(revision, variableRegistryDTO);
+                    }
                     // build the response
                     return generateCreatedResponse(URI.create(entity.getUri()), entity).build();
                 }

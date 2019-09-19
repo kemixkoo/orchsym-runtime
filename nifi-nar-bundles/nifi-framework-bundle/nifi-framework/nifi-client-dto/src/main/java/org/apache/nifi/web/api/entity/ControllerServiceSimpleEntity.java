@@ -19,9 +19,12 @@ package org.apache.nifi.web.api.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.VariableDTO;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A serialized representation of this class can be placed in the entity body of a response to the API. This particular entity holds a reference to a controller service.
@@ -65,5 +68,22 @@ public class ControllerServiceSimpleEntity extends ComponentEntity implements Pe
 
     public void setVariables(Map<String, String> variables) {
         this.variables = variables;
+    }
+
+
+    public Set<VariableEntity> variablesToVariableEntities() {
+        if (variables == null || variables.keySet().size() == 0) {
+            return null;
+        }
+        Set<VariableEntity> variableEntitySet = new HashSet<>();
+        for (Map.Entry<String, String> variable : variables.entrySet()) {
+            VariableDTO variableDTO = new VariableDTO();
+            variableDTO.setName(variable.getKey());
+            variableDTO.setValue(variable.getValue());
+            VariableEntity variableEntity = new VariableEntity();
+            variableEntity.setVariable(variableDTO);
+            variableEntitySet.add(variableEntity);
+        }
+        return variableEntitySet;
     }
 }
