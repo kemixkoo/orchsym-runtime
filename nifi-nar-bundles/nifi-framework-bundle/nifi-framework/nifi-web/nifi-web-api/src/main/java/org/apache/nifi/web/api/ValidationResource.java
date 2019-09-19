@@ -1,12 +1,13 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Orchsym Runtime under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * this file to You under the Orchsym License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,6 +53,8 @@ import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.ProcessorEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -68,14 +71,15 @@ import io.swagger.annotations.ApiResponses;
 /**
  * RESTful endpoint for retrieving a Processor or Process Group's validation informations.
  */
+@Component
 @Path(ValidationResource.PATH)
 @Api(value = ValidationResource.PATH, //
         description = "Endpoint  for retrieving a Processor or Process Group's validation informations, return the processors that validate failed")
-public class ValidationResource extends ApplicationResource {
+public class ValidationResource extends AbsOrchsymResource {
     public static final String PATH = "/validation";
 
     private static final Logger logger = LoggerFactory.getLogger(ValidationResource.class);
-    private NiFiServiceFacade serviceFacade;
+    @Autowired
     private FlowController flowController;
 
     @GET
@@ -85,9 +89,9 @@ public class ValidationResource extends ApplicationResource {
     @ApiOperation(value = "Gets a processor's validation informations", //
             response = ArrayList.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = StatsResource.CODE_MESSAGE_400), //
-            @ApiResponse(code = 404, message = StatsResource.CODE_MESSAGE_401), //
-            @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
     public Response validateProcessor(//
             @ApiParam(value = "The processor id.", required = true) //
@@ -287,15 +291,4 @@ public class ValidationResource extends ApplicationResource {
         final String parentGroupId = processGroupEntity.getComponent().getParentGroupId();
         collectProcessorGroupPath(parentGroupId, groupLevel);
     }
-
-    // setters
-    public void setServiceFacade(NiFiServiceFacade serviceFacade) {
-        this.serviceFacade = serviceFacade;
-    }
-
-    public void setFlowController(FlowController flowController) {
-        super.setFlowController(flowController);
-        this.flowController = flowController;
-    }
-
 }

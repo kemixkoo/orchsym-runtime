@@ -1,12 +1,13 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Orchsym Runtime under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * this file to You under the Orchsym License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,7 +75,7 @@ import net.sourceforge.pinyin4j.PinyinHelper;
 @Path(ComponentMarksResource.PATH)
 @Api(value = ComponentMarksResource.PATH, //
         description = "Endpoint for accessing components marks.")
-public class ComponentMarksResource extends ApplicationResource {
+public class ComponentMarksResource extends AbsOrchsymResource {
     private static final Logger logger = LoggerFactory.getLogger(ComponentMarksResource.class);
     public static final String PATH = "/component-marks";
 
@@ -96,9 +97,6 @@ public class ComponentMarksResource extends ApplicationResource {
             return null;
         }
     }
-
-    @Autowired
-    private NiFiServiceFacade serviceFacade;
 
     private static final Map<Category, String> levelOneIconMap;
     private static final Map<Category, String> levelTwoIconMap;

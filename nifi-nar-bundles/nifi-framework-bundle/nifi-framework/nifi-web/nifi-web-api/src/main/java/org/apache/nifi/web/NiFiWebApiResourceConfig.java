@@ -82,7 +82,6 @@ public class NiFiWebApiResourceConfig extends ResourceConfig {
         register(ctx.getBean("snippetResource"));
         register(ctx.getBean("templateResource"));
         register(ctx.getBean("controllerServiceResource"));
-        register(ctx.getBean("serviceResource"));
         register(ctx.getBean("reportingTaskResource"));
         register(ctx.getBean("processGroupResource"));
         register(ctx.getBean("processorResource"));
@@ -97,16 +96,19 @@ public class NiFiWebApiResourceConfig extends ResourceConfig {
         register(ctx.getBean("provenanceEventResource"));
         register(ctx.getBean("countersResource"));
         register(ctx.getBean("systemDiagnosticsResource"));
-        register(ctx.getBean("componentMarksResource"));
         register(ctx.getBean("accessResource"));
         register(ctx.getBean("accessPolicyResource"));
         register(ctx.getBean("tenantsResource"));
         register(ctx.getBean("versionsResource"));
+        
+        register(ctx.getBean("componentMarksResource"));
         register(ctx.getBean("validationResource"));
         register(ctx.getBean("statsResource"));
         register(ctx.getBean("apiServiceResource"));
         register(ctx.getBean("usageDataResource"));
+        register(ctx.getBean("serviceResource"));
         register(ctx.getBean("authorizationResource"));
+        register(ctx.getBean("queueResource"));
 
         // exception mappers
         register(AccessDeniedExceptionMapper.class);
