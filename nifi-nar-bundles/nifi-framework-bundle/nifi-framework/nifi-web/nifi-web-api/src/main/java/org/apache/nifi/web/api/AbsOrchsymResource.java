@@ -17,6 +17,7 @@
  */
 package org.apache.nifi.web.api;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
@@ -27,11 +28,16 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.nifi.authorization.Authorizer;
+import org.apache.nifi.authorization.RequestAction;
+import org.apache.nifi.authorization.resource.Authorizable;
+import org.apache.nifi.authorization.resource.ResourceType;
+import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.util.HttpRequestUtil;
 import org.apache.nifi.util.NiFiProperties;
 import org.apache.nifi.web.NiFiServiceFacade;
-import org.apache.nifi.web.api.ApplicationResource;
-import org.apache.nifi.web.api.ICodeMessages;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,18 +48,62 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbsOrchsymResource extends ApplicationResource implements ICodeMessages {
 
-    @Autowired
+    @Autowired(required = false)
     protected NiFiServiceFacade serviceFacade;
 
-    @Autowired
+    @Autowired(required = false)
     protected Authorizer authorizer;
 
+    /**
+     * Authorizes access.
+     */
+    protected void authorizes(final String type, final String action, final String id) {
+        if (null == serviceFacade || null == authorizer) {
+            // nifi-api/auth/{type}/{action}?id=xxxx
+            String resource = generateNifiApiResourceUri(null, "auth", type, action); // AuthorizationResource
+
+            if (StringUtils.isNoneBlank(id)) {
+                resource += "?id=" + id;
+            }
+            try {
+                HttpResponse response = HttpRequestUtil.getResponse(resource);
+                if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                    throw new IllegalArgumentException("No right to access");
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException(String.format("Unsupport the authorization for %s with %s operation", type, action));
+            }
+
+        } else {
+            String typeValue = type;
+
+            if (!type.startsWith("/")) {
+                typeValue += '/' + type;
+            }
+            final ResourceType resourceType = ResourceType.valueOfValue(typeValue);
+
+            final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
+
+            serviceFacade.authorizeAccess(lookup -> {
+                String resource = resourceType.getValue();
+                if (StringUtils.isNoneBlank(id)) {
+                    resource += '/' + id;
+                }
+                final Authorizable authorizable = lookup.getAuthorizableFromResource(resource);
+                authorizable.authorize(authorizer, requestAction, NiFiUserUtils.getNiFiUser());
+            });
+        }
+    }
+
     protected String generateLocalResourceUrl(String server, final String... path) {
-        final NiFiProperties properties = NiFiProperties.createBasicNiFiProperties(null, null);
-        final String httpHost = properties.getProperty(NiFiProperties.WEB_HTTP_HOST);
-        final Integer httpPort = properties.getIntegerProperty(NiFiProperties.WEB_HTTP_PORT, null);
-        final String httpsHost = properties.getProperty(NiFiProperties.WEB_HTTPS_HOST);
-        final Integer httpsPort = properties.getIntegerProperty(NiFiProperties.WEB_HTTPS_PORT, null);
+        NiFiProperties settings = this.properties;
+        if (null == settings) {
+            settings = NiFiProperties.createBasicNiFiProperties(null, null);
+        }
+        final String httpHost = settings.getProperty(NiFiProperties.WEB_HTTP_HOST);
+        final Integer httpPort = settings.getIntegerProperty(NiFiProperties.WEB_HTTP_PORT, null);
+        final String httpsHost = settings.getProperty(NiFiProperties.WEB_HTTPS_HOST);
+        final Integer httpsPort = settings.getIntegerProperty(NiFiProperties.WEB_HTTPS_PORT, null);
 
         String host = "127.0.0.1";
         int port;

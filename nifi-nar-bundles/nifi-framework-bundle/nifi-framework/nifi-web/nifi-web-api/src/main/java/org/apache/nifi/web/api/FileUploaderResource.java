@@ -233,8 +233,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
             Files.setPosixFilePermissions(uploadFile.toPath(), perms);
 
             JSONObject result = new JSONObject();
-            result.put("code", Response.Status.OK);
-            result.put("messages", "Upload successfully");
+            result.put("status", Response.Status.OK);
             result.put("filename", fileName);
 
             return Response.ok(result.toJSONString()).build();
@@ -367,8 +366,7 @@ public class FileUploaderResource extends AbsOrchsymResource {
         deletedFiles = deletedFiles.stream().sorted().collect(Collectors.toList());
 
         JSONObject result = new JSONObject();
-        result.put("code", Response.Status.OK);
-        result.put("messages", "Successfully deleted the files");
+        result.put("status", Response.Status.OK);
         JSONArray files = new JSONArray();
         result.put("files", files);
         files.addAll(deletedFiles);

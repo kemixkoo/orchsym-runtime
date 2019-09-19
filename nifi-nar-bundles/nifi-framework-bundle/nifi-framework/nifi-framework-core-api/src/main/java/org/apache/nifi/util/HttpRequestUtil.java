@@ -2,13 +2,13 @@
  * Licensed to the Orchsym Runtime under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * this file to You under the Orchsym License, Version 1.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,12 +33,14 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
@@ -50,27 +52,44 @@ public class HttpRequestUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRequestUtil.class);
 
+    public static HttpResponse postResponse(String url, String payload, String contentType) throws IOException {
+        HttpPost request = new HttpPost(url);
+        request.addHeader("Content-Type", contentType);
+        request.setEntity(new StringEntity(payload));
+
+        return getHttpClient(url).execute(request);
+    }
+
+    public static String postString(String url, String payload, String contentType) throws IOException {
+        return EntityUtils.toString(postResponse(url, payload, contentType).getEntity());
+    }
+
+    public static HttpResponse getResponse(String url) throws IOException {
+        return getHttpClient(url).execute(new HttpGet(url));
+    }
+
     public static String getString(String url) throws IOException {
+        return EntityUtils.toString(getResponse(url).getEntity());
+    }
+
+    private static HttpClient getHttpClient(String testUrl) {
         HttpClient client = null;
-        if (!url.contains("https://")) {
-            client = HttpClients.createDefault();
-        } else {
+        if (testUrl.contains("https://")) {
             try {
                 client = getAllSSLClient();
             } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException e) {
                 logger.warn("Cannot get all SSL client!", e);
             }
+        } else {
+            client = HttpClients.createDefault();
         }
-        HttpGet request = new HttpGet(url);
-        HttpResponse response = null;
         if (client == null)
             throw new AssertionError();
-        response = client.execute(request);
-        return EntityUtils.toString(response.getEntity());
+        return client;
     }
 
     @SuppressWarnings("deprecation")
-    public static HttpClient getAllSSLClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    private static HttpClient getAllSSLClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
 
             @Override
@@ -133,4 +152,5 @@ public class HttpRequestUtil {
             logger.error("Throw exception when ignore certification", e);
         }
     }
+
 }
