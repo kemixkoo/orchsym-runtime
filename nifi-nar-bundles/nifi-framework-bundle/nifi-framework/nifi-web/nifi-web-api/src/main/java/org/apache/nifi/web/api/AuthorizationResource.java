@@ -37,7 +37,13 @@ import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.http.ResultUtil;
+import org.apache.nifi.web.api.entity.AuthorizationEntity;
+import org.apache.nifi.web.security.jwt.JwtService;
+import org.apache.nifi.web.security.token.LoginAuthenticationToken;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -55,6 +61,9 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = AuthorizationResource.PATH, description = "Endpoint for check the authorization")
 public class AuthorizationResource extends AbsOrchsymResource {
     static final String PATH = "/auth";
+
+    @Autowired
+    private JwtService jwtService;
 
     /**
      * Retrieves the Authorization.
@@ -243,4 +252,19 @@ public class AuthorizationResource extends AbsOrchsymResource {
         return Response.ok().build();
     }
 
+    /**
+     * Retrieves the Authorization for Access Policy
+     *
+     */
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/token")
+    @ApiOperation(value = "Gets the authorization")
+    public Response getToken(@RequestBody AuthorizationEntity auth) {
+        
+        LoginAuthenticationToken loginToken = new LoginAuthenticationToken(auth.getUsername(), auth.getUsername(), auth.getExpiration(), auth.getIssuer());
+        String jwtToken = jwtService.generateSignedToken(loginToken);
+        return generateOkResponse(ResultUtil.success(jwtToken)).build();
+    }
 }

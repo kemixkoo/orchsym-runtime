@@ -22,6 +22,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -66,7 +69,7 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
                 resource += "?id=" + id;
             }
             try {
-                HttpResponse response = HttpRequestUtil.getResponse(resource);
+                HttpResponse response = HttpRequestUtil.getResponse(resource, null, null);
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                     throw new IllegalArgumentException("No right to access");
                 }
@@ -93,6 +96,21 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
                 authorizable.authorize(authorizer, requestAction, NiFiUserUtils.getNiFiUser());
             });
         }
+    }
+
+    protected String generateNifiApiLocalResourceUri(String server, final String... path) {
+        // use local only, not same as request.
+        List<String> newPath = new ArrayList<>();
+        if (null != path && path.length > 0) {
+            newPath.addAll(Arrays.asList(path));
+        }
+        if (newPath.size() > 0) {
+            newPath.add(0, "nifi-api");
+        } else {
+            newPath.add("nifi-api");
+        }
+
+        return generateLocalResourceUrl(server, newPath.toArray(new String[0]));
     }
 
     protected String generateLocalResourceUrl(String server, final String... path) {
