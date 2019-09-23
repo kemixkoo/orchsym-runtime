@@ -17,6 +17,8 @@
  */
 package org.apache.nifi.web.api;
 
+import java.net.URI;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -41,6 +43,8 @@ import org.apache.nifi.http.ResultUtil;
 import org.apache.nifi.web.api.entity.AuthorizationEntity;
 import org.apache.nifi.web.security.jwt.JwtService;
 import org.apache.nifi.web.security.token.LoginAuthenticationToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,6 +65,7 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = AuthorizationResource.PATH, description = "Endpoint for check the authorization")
 public class AuthorizationResource extends AbsOrchsymResource {
     static final String PATH = "/auth";
+    private static final Logger logger = LoggerFactory.getLogger(AuthorizationResource.class);
 
     @Autowired
     private JwtService jwtService;
@@ -83,36 +88,41 @@ public class AuthorizationResource extends AbsOrchsymResource {
             @ApiParam(value = "The type of auth", required = true) @PathParam("type") String type, //
             @ApiParam(value = "The operation action for read/write", required = true) @PathParam("action") String action, //
             @ApiParam(value = "The id of connection") @QueryParam("id") final String resourceId) {
+        try {
+            final ResourceType requestType = ResourceType.valueOfValue("/" + type.toLowerCase());
+            final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
 
-        final ResourceType requestType = ResourceType.valueOfValue("/" + type.toLowerCase());
-        final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
+            String resourcePath = requestType.getValue();
+            if (StringUtils.isNotBlank(resourceId)) {
+                // Support : ControllerService, Funnel, Label, InputPort, OutputPort, Processor, ProcessGroup, RemoteProcessGroup, ReportingTask, Template
+                resourcePath += '/' + resourceId;
+            } // else { // Support: Controller, Counters, Flow, Provenance, Proxy, Policy, Resource, SiteToSite, System, Tenant
 
-        String resourcePath = requestType.getValue();
-        if (StringUtils.isNotBlank(resourceId)) {
-            // Support : ControllerService, Funnel, Label, InputPort, OutputPort, Processor, ProcessGroup, RemoteProcessGroup, ReportingTask, Template
-            resourcePath += '/' + resourceId;
-        } // else { // Support: Controller, Counters, Flow, Provenance, Proxy, Policy, Resource, SiteToSite, System, Tenant
+            //
+            final String resource = resourcePath;
 
-        //
-        final String resource = resourcePath;
+            serviceFacade.authorizeAccess(lookup -> {
+                Authorizable authorizable = null;
+                if (ResourceType.RestrictedComponents.equals(requestType)) { // don't support in getAuthorizableFromResource
+                    authorizable = lookup.getRestrictedComponents();
+                } else if (ResourceType.Policy.equals(requestType)) { // if policy need the sub-resource type
+                    authorizable = lookup.getPolicies();
+                } else {
+                    authorizable = lookup.getAuthorizableFromResource(resource);
+                }
 
-        serviceFacade.authorizeAccess(lookup -> {
-            Authorizable authorizable = null;
-            if (ResourceType.RestrictedComponents == requestType) { // don't support in getAuthorizableFromResource
-                authorizable = lookup.getRestrictedComponents();
-            } else {
-                authorizable = lookup.getAuthorizableFromResource(resource);
-            }
+                if (authorizable == null) {
+                    throw new IllegalArgumentException("An unexpected type of resource in this policy " + requestType.getValue());
+                }
 
-            if (authorizable == null) {
-                throw new IllegalArgumentException("An unexpected type of resource in this policy " + requestType.getValue());
-            }
-
-            final NiFiUser user = NiFiUserUtils.getNiFiUser();
-            authorizable.authorize(authorizer, requestAction, user);
-        });
-
-        return Response.ok().build();
+                final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                authorizable.authorize(authorizer, requestAction, user);
+            });
+            return generateOkResponse(ResultUtil.success()).build();
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            return generateNotAuthorizedResponse().build();
+        }
     }
 
     /**
@@ -133,16 +143,21 @@ public class AuthorizationResource extends AbsOrchsymResource {
     public Response getConnectionAuthorizable(//
             @ApiParam(value = "The id of connection", required = true) @PathParam("id") final String connectionId, //
             @ApiParam(value = "The operation action for read/write", required = true) @PathParam("action") final String action) {
-        final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
+        try {
+            final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
 
-        serviceFacade.authorizeAccess(lookup -> {
-            final Authorizable authorizable = lookup.getConnection(connectionId).getAuthorizable();
+            serviceFacade.authorizeAccess(lookup -> {
+                final Authorizable authorizable = lookup.getConnection(connectionId).getAuthorizable();
 
-            final NiFiUser user = NiFiUserUtils.getNiFiUser();
-            authorizable.authorize(authorizer, requestAction, user);
-        });
+                final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                authorizable.authorize(authorizer, requestAction, user);
+            });
 
-        return Response.ok().build();
+            return generateOkResponse(ResultUtil.success()).build();
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            return generateNotAuthorizedResponse().build();
+        }
     }
 
     /**
@@ -163,19 +178,24 @@ public class AuthorizationResource extends AbsOrchsymResource {
     public Response getSnippetAuthorizable(//
             @ApiParam(value = "The id of snippet", required = true) @PathParam("id") final String snippetId, //
             @ApiParam(value = "The operation action for read/write", required = true) @PathParam("action") final String action) {
-        final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
+        try {
+            final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
 
-        serviceFacade.authorizeAccess(lookup -> {
-            final SnippetAuthorizable snippet = lookup.getSnippet(snippetId);
+            serviceFacade.authorizeAccess(lookup -> {
+                final SnippetAuthorizable snippet = lookup.getSnippet(snippetId);
 
-            final NiFiUser user = NiFiUserUtils.getNiFiUser();
-            snippet.getParentProcessGroup().authorize(authorizer, requestAction, user);
+                final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                snippet.getParentProcessGroup().authorize(authorizer, requestAction, user);
 
-            authorizeSnippet(snippet, authorizer, lookup, requestAction, true, false);
+                authorizeSnippet(snippet, authorizer, lookup, requestAction, true, false);
 
-        });
+            });
 
-        return Response.ok().build();
+            return generateOkResponse(ResultUtil.success()).build();
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            return generateNotAuthorizedResponse().build();
+        }
     }
 
     /**
@@ -196,29 +216,34 @@ public class AuthorizationResource extends AbsOrchsymResource {
     public Response getRootPortAuthorizable(//
             @ApiParam(value = "The type of auth", required = true) @PathParam("type") final String type, //
             @ApiParam(value = "The id of root port", required = true) @PathParam("id") final String portId) {
-        final boolean input = "input".equals(type.toLowerCase());
-        final boolean output = "output".equals(type.toLowerCase());
-        if (!input && !output) {
-            throw new IllegalArgumentException("The resource must be an Input or Output Port.");
+        try {
+            final boolean input = "input".equals(type.toLowerCase());
+            final boolean output = "output".equals(type.toLowerCase());
+            if (!input && !output) {
+                throw new IllegalArgumentException("The resource must be an Input or Output Port.");
+            }
+
+            serviceFacade.authorizeAccess(lookup -> {
+                RootGroupPortAuthorizable authorizable = null;
+                if (input) {
+                    authorizable = lookup.getRootGroupInputPort(portId);
+                } else if (output) {
+                    authorizable = lookup.getRootGroupOutputPort(portId);
+                }
+
+                final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                final AuthorizationResult authorizationResult = authorizable.checkAuthorization(user);
+                if (!Result.Approved.equals(authorizationResult.getResult())) {
+                    throw new AccessDeniedException(authorizationResult.getExplanation());
+                }
+                // authorizable.authorize(authorizer, requestAction, user); //?
+            });
+
+            return generateOkResponse(ResultUtil.success()).build();
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            return generateNotAuthorizedResponse().build();
         }
-
-        serviceFacade.authorizeAccess(lookup -> {
-            RootGroupPortAuthorizable authorizable = null;
-            if (input) {
-                authorizable = lookup.getRootGroupInputPort(portId);
-            } else if (output) {
-                authorizable = lookup.getRootGroupOutputPort(portId);
-            }
-
-            final NiFiUser user = NiFiUserUtils.getNiFiUser();
-            final AuthorizationResult authorizationResult = authorizable.checkAuthorization(user);
-            if (!Result.Approved.equals(authorizationResult.getResult())) {
-                throw new AccessDeniedException(authorizationResult.getExplanation());
-            }
-            // authorizable.authorize(authorizer, requestAction, user); //?
-        });
-
-        return Response.ok().build();
     }
 
     /**
@@ -239,17 +264,22 @@ public class AuthorizationResource extends AbsOrchsymResource {
     public Response getAccessPolicyAuthorizable(//
             @ApiParam(value = "The id of access", required = true) @PathParam("id") final String accessId, //
             @ApiParam(value = "The operation action for read/write", required = true) @PathParam("action") final String action) {
-        final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
+        try {
+            final RequestAction requestAction = RequestAction.valueOfValue(action.toLowerCase());
 
-        serviceFacade.authorizeAccess(lookup -> {
-            // final Authorizable authorizable = lookup.getAccessPolicyByResource(resource);
-            final Authorizable authorizable = lookup.getAccessPolicyById(accessId);
+            serviceFacade.authorizeAccess(lookup -> {
+                // final Authorizable authorizable = lookup.getAccessPolicyByResource(resource);
+                final Authorizable authorizable = lookup.getAccessPolicyById(accessId);
 
-            final NiFiUser user = NiFiUserUtils.getNiFiUser();
-            authorizable.authorize(authorizer, requestAction, user);
-        });
+                final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                authorizable.authorize(authorizer, requestAction, user);
+            });
 
-        return Response.ok().build();
+            return generateOkResponse(ResultUtil.success()).build();
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            return generateNotAuthorizedResponse().build();
+        }
     }
 
     /**
@@ -262,9 +292,24 @@ public class AuthorizationResource extends AbsOrchsymResource {
     @Path("/token")
     @ApiOperation(value = "Gets the authorization")
     public Response getToken(@RequestBody AuthorizationEntity auth) {
-        
-        LoginAuthenticationToken loginToken = new LoginAuthenticationToken(auth.getUsername(), auth.getUsername(), auth.getExpiration(), auth.getIssuer());
-        String jwtToken = jwtService.generateSignedToken(loginToken);
-        return generateOkResponse(ResultUtil.success(jwtToken)).build();
+        // same AccessResource for token to generate
+        if (httpServletRequest.isSecure()) {
+            final NiFiUser user = NiFiUserUtils.getNiFiUser();
+            if (user == null) {
+                throw new AccessDeniedException("No user authenticated in the request.");
+            }
+            if (user.getIdentity().equals(auth.getUsername()) || user.getIdentity().equals(auth.getIdentity())) {
+
+                LoginAuthenticationToken loginToken = new LoginAuthenticationToken(auth.getUsername(), auth.getUsername(), auth.getExpiration(), auth.getIssuer());
+                String jwtToken = jwtService.generateSignedToken(loginToken);
+
+                // build the response
+                final URI uri = URI.create(generateResourceUri("auth", "token"));
+                return generateCreatedResponse(uri, jwtToken).build();
+            }
+
+        }
+        return generateNotAuthorizedResponse().build();
+
     }
 }

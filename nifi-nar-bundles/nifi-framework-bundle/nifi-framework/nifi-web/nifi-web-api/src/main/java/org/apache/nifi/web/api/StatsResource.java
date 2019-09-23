@@ -19,6 +19,7 @@ package org.apache.nifi.web.api;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -37,6 +38,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -90,7 +92,7 @@ import io.swagger.annotations.ApiResponses;
 @Component
 @Path(StatsResource.PATH)
 @Api(value = StatsResource.PATH, description = "Endpoint for accessing the statistics of flows and components.")
-public class StatsResource extends ApplicationResource implements ICodeMessages {
+public class StatsResource extends AbsOrchsymResource {
     public static final String PATH = "/stats";
 
     private static final Logger logger = LoggerFactory.getLogger(StatsResource.class);
@@ -105,7 +107,7 @@ public class StatsResource extends ApplicationResource implements ICodeMessages 
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.WILDCARD)
     @ApiOperation(value = "Gets the summaries", //
             response = StatsCountersEntity.class //
     )
@@ -115,10 +117,11 @@ public class StatsResource extends ApplicationResource implements ICodeMessages 
             @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
             @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
-    public Response getCounters() {
+    public Response getSummaries(@QueryParam("text") String text) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.GET);
         }
+        final boolean isTextOutput = (null != text);
         try {
             // create the response entity
             final StatsCountersEntity entity = new StatsCountersEntity();
@@ -182,11 +185,65 @@ public class StatsResource extends ApplicationResource implements ICodeMessages 
                 }
             }).collect(Collectors.toList()));
 
-            // generate the response
-            return generateOkResponse(entity).build();
+            if (isTextOutput) {
+                final StringBuilder result = new StringBuilder(500);
+
+                result.append("总览:\n");
+                // 平台
+                addColumn(result, "组件总数", summaryDTO.getProcessorCount());
+                addColumn(result, "自主开发组件", summaryDTO.getProcessorOwnedCount());
+                addColumn(result, "组件翻译", summaryDTO.getProcessorI18nCount());
+
+                addColumn(result, "服务总数", summaryDTO.getControllerCount());
+                addColumn(result, "自主开发服务", summaryDTO.getControllerOwnedCount());
+                addColumn(result, "服务翻译", summaryDTO.getControllerI18nCount());
+
+                result.append('\n');
+                // 使用
+                addColumn(result, "使用组件数", summaryDTO.getProcessorUsedCount());
+                addColumn(result, "组件使用频次", summaryDTO.getProcessorUsedTotalCount());
+                addColumn(result, "使用服务数", summaryDTO.getControllerUsedCount());
+                addColumn(result, "服务使用频次", summaryDTO.getControllerUsedTotalCount());
+
+                addColumn(result, "模块总数", summaryDTO.getGroupCount());
+                addColumn(result, "子模块数", summaryDTO.getGroupLeavesCount());
+
+                addColumn(result, "输入端口数", summaryDTO.getInputPortCount());
+                addColumn(result, "输出端口数", summaryDTO.getOutputPortCount());
+                addColumn(result, "汇集器数", summaryDTO.getFunnelCount());
+
+                addColumn(result, "标签总数", summaryDTO.getLabelCount());
+                addColumn(result, "定义变量数", summaryDTO.getVarCount());
+                addColumn(result, "模板数", summaryDTO.getTemplateCount());
+
+                result.append('\n');
+                addColumn(result, "运行组件数", summaryDTO.getRunningCount());
+                addColumn(result, "停止组件数", summaryDTO.getStoppedCount());
+                addColumn(result, "禁用组件数", summaryDTO.getDisabledCount());
+                addColumn(result, "无效组件数", summaryDTO.getInvalidCount());
+                addColumn(result, "连接数", summaryDTO.getConnectionCount());
+
+                //
+                result.append("\n\n");
+                result.append("组件使用排行榜:\n");
+                dto.getProcessors().forEach(p -> addColumn(result, p.getName(), p.getCount()));
+
+                result.append("\n\n");
+                result.append("服务使用排行榜:\n");
+                dto.getServices().forEach(s -> addColumn(result, s.getService(), s.getCount()));
+                result.append("\n");
+
+                return generateStringOkResponse(result.toString());
+            } else { // json
+                return generateOkResponse(entity).type(MediaType.APPLICATION_JSON_TYPE.withCharset(StandardCharsets.UTF_8.name())).build();
+            }
         } catch (Throwable t) {
             return createExceptionResponse(t);
         }
+    }
+
+    private void addColumn(StringBuilder result, String name, Object value) {
+        result.append(name + ", " + value + '\n');
     }
 
     private Response createExceptionResponse(Throwable t) {

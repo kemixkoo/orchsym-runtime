@@ -24,7 +24,11 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -33,16 +37,20 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.StringEntity;
 import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.util.HttpRequestUtil;
+import org.apache.nifi.util.HttpRequestUtil.HttpHeader;
 import org.apache.nifi.util.NiFiProperties;
 import org.apache.nifi.web.NiFiServiceFacade;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -50,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public abstract class AbsOrchsymResource extends ApplicationResource implements ICodeMessages {
+    private static final Logger logger = LoggerFactory.getLogger(AbsOrchsymResource.class);
 
     @Autowired(required = false)
     protected NiFiServiceFacade serviceFacade;
@@ -62,15 +71,18 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
      */
     protected void authorizes(final String type, final String action, final String id) {
         if (null == serviceFacade || null == authorizer) {
-            // nifi-api/auth/{type}/{action}?id=xxxx
-            String resource = generateNifiApiResourceUri(null, "auth", type, action); // AuthorizationResource
-
-            if (StringUtils.isNoneBlank(id)) {
-                resource += "?id=" + id;
-            }
             try {
-                HttpResponse response = HttpRequestUtil.getResponse(resource, null, null);
+                HttpResponse response = null;
+
+                // nifi-api/auth/{type}/{action}?id=xxxx
+                if (StringUtils.isNoneBlank(id)) {
+                    response = doNifiApiRequest(HttpGet.METHOD_NAME, String.format("/auth/%s/%s?id=%s", type, action, id), null, null);
+                } else {
+                    response = doNifiApiRequest(HttpGet.METHOD_NAME, String.format("/auth/%s/%s", type, action), null, null);
+                }
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                    logger.warn("Access the  /{}/{} have error code {} for reason {} with the response:\n {} ", type, action, response.getStatusLine().getStatusCode(),
+                            response.getStatusLine().getReasonPhrase(), HttpRequestUtil.response(response));
                     throw new IllegalArgumentException("No right to access");
                 }
             } catch (IOException e) {
@@ -96,6 +108,45 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
                 authorizable.authorize(authorizer, requestAction, NiFiUserUtils.getNiFiUser());
             });
         }
+    }
+
+    private static final List<String> REQ_HEADERS = Collections.unmodifiableList(Arrays.asList(//
+            "Authorization", //
+            "Locale", //
+            "User-Agent"//
+    ));
+
+    protected HttpResponse doNifiApiRequest(final String method, String path, String payload, Set<HttpHeader> headers) throws IOException {
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        final String[] segs = path.split("/");
+        final String url = generateNifiApiLocalResourceUri(null, segs);
+
+        StringEntity entity = null;
+        if (!StringUtils.isBlank(payload)) {
+            entity = new StringEntity(payload);
+        }
+
+        Set<HttpHeader> requestHeader;
+        if (null == headers) {
+            requestHeader = new HashSet<>();
+        } else {
+            requestHeader = new HashSet<>(headers);
+        }
+        if (null != httpServletRequest) {
+            final Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                final String headerName = headerNames.nextElement();
+                final String headerValue = httpServletRequest.getHeader(headerName);
+                if (REQ_HEADERS.contains(headerName)) {
+                    requestHeader.add(new HttpHeader(headerName, headerValue));
+                }
+            }
+        }
+
+        final HttpResponse response = HttpRequestUtil.request(method, url, entity, requestHeader);
+        return response;
     }
 
     protected String generateNifiApiLocalResourceUri(String server, final String... path) {
@@ -187,6 +238,15 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
             t.printStackTrace(pw);
 
             return noCache(Response.serverError().entity(sw.toString())).build();
+        }
+    }
+
+    protected void warnResponse(Logger responseLogger, String path, HttpResponse httpResponse) {
+        try {
+            responseLogger.warn("Access the  {} have error code {} for reason {} with the response:\n {} ", path, httpResponse.getStatusLine().getStatusCode(),
+                    httpResponse.getStatusLine().getReasonPhrase(), HttpRequestUtil.response(httpResponse));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
         }
     }
 }
