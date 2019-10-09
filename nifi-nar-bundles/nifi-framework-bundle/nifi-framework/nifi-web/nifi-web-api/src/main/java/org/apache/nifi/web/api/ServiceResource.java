@@ -17,21 +17,8 @@
  */
 package org.apache.nifi.web.api;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import io.swagger.annotations.*;
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
 import org.apache.nifi.authorization.Authorizer;
@@ -42,6 +29,7 @@ import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.bundle.Bundle;
 import org.apache.nifi.bundle.BundleCoordinate;
+import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.nar.ExtensionManager;
 import org.apache.nifi.web.NiFiServiceFacade;
@@ -50,19 +38,18 @@ import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.VariableRegistryDTO;
-import org.apache.nifi.web.api.entity.ControllerServiceEntity;
-import org.apache.nifi.web.api.entity.ControllerServiceSimpleEntity;
-import org.apache.nifi.web.api.entity.VariableEntity;
+import org.apache.nifi.web.api.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
-import net.minidev.json.JSONObject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * RESTful endpoint for managing a Controller Service.
@@ -283,5 +270,158 @@ public class ServiceResource extends ApplicationResource {
         }
         result.put("state", component.getState());
         return Response.ok(result.toJSONString()).build();
+    }
+
+    /**
+     * Try to enable/disable/delete all the controller services in the specified process group.
+     *
+     * @param httpServletRequest      request
+     * @param groupId                      The process group id.
+     * @param requestOperationEntity    A controllerServicesBatchOperationEntity
+     * @return A controllerServicesEntity.
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/controller-services")
+    @ApiOperation(
+            value = "batch enable/disable/delete controller services in a process group",
+            response = ControllerServicesEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /controller-services/{uuid}"),
+                    @Authorization(value = "Write - Parent Process Group if scoped by Process Group - /process-groups/{uuid}"),
+                    @Authorization(value = "Write - Controller if scoped by Controller - /controller"),
+                    @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response updateControllerServices(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The process group id.",
+                    required = true
+            )
+            @PathParam("id") final String groupId,
+            @ApiParam(
+                    value = "The controller service configuration details.",
+                    required = true
+            ) final ControllerServicesBatchOperationEntity requestOperationEntity) {
+
+        if (requestOperationEntity == null) {
+            throw new IllegalArgumentException("Controller service details must be specified.");
+        }
+
+        ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation controllerServiceBatchOperation = null;
+        try{
+            controllerServiceBatchOperation = ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation.valueOf(requestOperationEntity.getOperation());
+        } catch (final IllegalArgumentException iae) {
+            // ignore
+        }
+        if(controllerServiceBatchOperation == null) {
+            throw new IllegalArgumentException("Must specify the operation. Allowable values are: ENABLE, DISABLE, DELETE");
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, requestOperationEntity);
+        }  else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestOperationEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation operation = controllerServiceBatchOperation;
+        return withWriteLock(
+                serviceFacade, requestOperationEntity, lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
+
+                    // ensure write on the group
+                    final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.WRITE, user);
+                },
+                null, operationEntity -> {
+                    ControllerServicesEntity responseEntity = new ControllerServicesEntity();
+                    responseEntity.setCurrentTime(new Date());
+
+                    final boolean includeDescendantGroups = operationEntity.isIncludeDescendantGroups();
+                    // get the controller services
+                    final Set<ControllerServiceEntity> controllerServiceEntities = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
+
+                    switch (operation) {
+                        case ENABLE:
+                            enableControllerServices(controllerServiceEntities);
+                            responseEntity.setControllerServices(serviceFacade.getControllerServices(groupId, false, includeDescendantGroups));
+                            break;
+                        case DISABLE:
+                            disableControllerServices(controllerServiceEntities);
+                            responseEntity.setControllerServices(serviceFacade.getControllerServices(groupId, false, includeDescendantGroups));
+                            break;
+                        case DELETE:
+                            disableControllerServices(controllerServiceEntities);
+                            final Set<ControllerServiceEntity> disabledControllerServiceEntities = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
+                            responseEntity.setControllerServices(deleteControllerServices(disabledControllerServiceEntities));
+                            break;
+                        default:
+                            break;
+                    }
+
+                    // generate the response
+                    return generateCreatedResponse(getAbsolutePath(), responseEntity).build();
+                }
+        );
+    }
+
+    // Try to enable a bulk of controller services.
+    private void enableControllerServices(Set<ControllerServiceEntity> servicesToEnable) {
+        for (ControllerServiceEntity serviceEntity : servicesToEnable) {
+            final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+            serviceDTO.setId(serviceEntity.getId());
+            serviceDTO.setState(ControllerServiceState.ENABLED.name());
+
+            final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
+            final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
+            controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
+        }
+    }
+
+    // Try to disable a bulk of controller services.
+    private void disableControllerServices(Set<ControllerServiceEntity> servicesToDisable) {
+        for (ControllerServiceEntity serviceEntity : servicesToDisable) {
+            // stop the controller service references
+            final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(serviceEntity.getId()).getControllerServiceReferencingComponents();
+            final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream()
+                    .collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
+                        final RevisionDTO rev = entity.getRevision();
+                        return new Revision(rev.getVersion(), rev.getClientId(), entity.getId());
+                    }));
+            serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, serviceEntity.getId(), ScheduledState.STOPPED, null);
+            // disable the controller service references
+            serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), serviceEntity.getId(), ScheduledState.DISABLED, ControllerServiceState.DISABLED);
+            // disable the controller service
+
+            final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+            serviceDTO.setId(serviceEntity.getId());
+            serviceDTO.setState(ControllerServiceState.DISABLED.name());
+
+            final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
+            final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
+            controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
+
+        }
+    }
+
+    // try to delete a bulk of controller services
+    private Set<ControllerServiceEntity> deleteControllerServices(Set<ControllerServiceEntity> servicesToDelete) {
+        Set<ControllerServiceEntity> deletedControllerServices = new HashSet<>();
+        for(ControllerServiceEntity serviceEntity: servicesToDelete) {
+            final Revision revision = getRevision(serviceEntity.getRevision(), serviceEntity.getId());
+            deletedControllerServices.add(serviceFacade.deleteControllerService(revision, serviceEntity.getId()));
+        }
+        return deletedControllerServices;
     }
 }
