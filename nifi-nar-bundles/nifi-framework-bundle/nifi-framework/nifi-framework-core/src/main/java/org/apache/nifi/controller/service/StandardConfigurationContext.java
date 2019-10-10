@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.nifi.attribute.expression.language.PreparedQuery;
 import org.apache.nifi.attribute.expression.language.Query;
+import org.apache.nifi.attribute.expression.language.SensitivePropertyValue;
 import org.apache.nifi.attribute.expression.language.StandardPropertyValue;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.PropertyValue;
@@ -73,8 +74,12 @@ public class StandardConfigurationContext implements ConfigurationContext {
 
     @Override
     public PropertyValue getProperty(final PropertyDescriptor property) {
-        final String configuredValue = component.getProperty(property);
-        return new StandardPropertyValue(configuredValue == null ? property.getDefaultValue() : configuredValue, serviceLookup, preparedQueries.get(property), variableRegistry);
+        String configuredValue = component.getProperty(property);
+        configuredValue = (configuredValue == null ? property.getDefaultValue() : configuredValue);
+        if (property.isSensitive()) {
+            return new SensitivePropertyValue(configuredValue, serviceLookup, preparedQueries.get(property), variableRegistry);
+        }
+        return new StandardPropertyValue(configuredValue, serviceLookup, preparedQueries.get(property), variableRegistry);
     }
 
     @Override

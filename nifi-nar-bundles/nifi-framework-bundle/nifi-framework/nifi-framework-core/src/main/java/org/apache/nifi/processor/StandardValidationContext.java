@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.apache.nifi.attribute.expression.language.PreparedQuery;
 import org.apache.nifi.attribute.expression.language.Query;
+import org.apache.nifi.attribute.expression.language.SensitivePropertyValue;
 import org.apache.nifi.attribute.expression.language.Query.Range;
 import org.apache.nifi.attribute.expression.language.StandardExpressionLanguageCompiler;
 import org.apache.nifi.attribute.expression.language.StandardPropertyValue;
@@ -110,8 +111,12 @@ public class StandardValidationContext implements ValidationContext {
 
     @Override
     public PropertyValue getProperty(final PropertyDescriptor property) {
-        final String configuredValue = properties.get(property);
-        return new StandardPropertyValue(configuredValue == null ? property.getDefaultValue() : configuredValue, controllerServiceProvider, preparedQueries.get(property), variableRegistry);
+        String configuredValue = properties.get(property);
+        configuredValue = (configuredValue == null ? property.getDefaultValue() : configuredValue);
+        if (property.isSensitive()) {
+            return new SensitivePropertyValue(configuredValue, controllerServiceProvider, preparedQueries.get(property), variableRegistry);
+        }
+        return new StandardPropertyValue(configuredValue, controllerServiceProvider, preparedQueries.get(property), variableRegistry);
     }
 
     @Override

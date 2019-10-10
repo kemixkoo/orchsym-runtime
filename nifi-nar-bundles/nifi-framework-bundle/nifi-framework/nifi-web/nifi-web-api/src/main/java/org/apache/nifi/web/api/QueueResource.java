@@ -24,22 +24,26 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.nifi.authorization.RequestAction;
+import org.apache.nifi.authorization.resource.Authorizable;
+import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.connectable.Connectable;
 import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.web.api.dto.DropRequestDTO;
+import org.apache.nifi.web.api.entity.ConnectionEntity;
 import org.apache.nifi.web.api.entity.ConnectionStatusEntity;
 import org.apache.nifi.web.api.entity.QueueSnippetEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.swagger.annotations.Api;
@@ -51,32 +55,18 @@ import net.minidev.json.JSONObject;
  * @apiNote 处理connections清除队列的相关功能
  */
 @Component
-@Path("/queues")
-@Api(value = "/queues", description = "clear queues of relational connections")
+@Path("/queue")
+@Api(value = "/queue", description = "clear queues of relational connections")
 public class QueueResource extends AbsOrchsymResource {
+    public static final String KEY_CONNS = "connections";
+    public static final String KEY_CONN = "connection";
 
-    @Autowired
-    private FlowFileQueueResource flowFileQueueResource;
-
-    @GET
+    @POST
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/status")
     public Response getConnectionsStatus(@Context final HttpServletRequest httpServletRequest, //
             @ApiParam(value = "The selected queue and groups.", required = true) final QueueSnippetEntity queueSnippetEntity) {
-        return collect(queueSnippetEntity, false);
-    }
-
-    @DELETE
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/clean")
-    public Response clean(@Context final HttpServletRequest httpServletRequest, //
-            @ApiParam(value = "The selected queue and groups.", required = true) final QueueSnippetEntity queueSnippetEntity) {
-        return collect(queueSnippetEntity, true);
-    }
-
-    protected Response collect(final QueueSnippetEntity queueSnippetEntity, boolean clean) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, queueSnippetEntity);
         } else if (isDisconnectedFromCluster()) {
@@ -97,15 +87,41 @@ public class QueueResource extends AbsOrchsymResource {
                 getConnectionIdsFromGroup(groupId, canClearQueueConnIds);
             }
         }
-        if (clean) {
-            // drop flowFile in queue of connection
-            for (String waitClearConnId : canClearQueueConnIds) {
-                dropFlowFilesInConn(waitClearConnId);
-            }
-        }
         JSONObject result = new JSONObject();
-        result.put("connections", canClearQueueConnIds);
-        return noCache(Response.ok(result)).build();
+        result.put(KEY_CONNS, canClearQueueConnIds);
+        return noCache(Response.ok(result.toJSONString())).build();
+
+    }
+
+    @DELETE
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    public Response cleanQueue(@Context final HttpServletRequest httpServletRequest, //
+            @ApiParam(value = "The connection id", required = true) @PathParam("id") final String connectionId) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.DELETE);
+        }
+        ConnectionEntity connEntity = new ConnectionEntity();
+        connEntity.setId(connectionId);
+        return withWriteLock(//
+                serviceFacade, //
+                connEntity, //
+                lookup -> {
+                    final Authorizable rootProcessGroup = lookup.getConnection(connectionId).getAuthorizable();
+                    rootProcessGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                }, //
+                null, //
+                (enity) -> {
+                    DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(enity.getId(), UUID.randomUUID().toString());
+                    serviceFacade.deleteFlowFileDropRequest(enity.getId(), dropRequest.getId());
+
+                    JSONObject result = new JSONObject();
+                    result.put(KEY_CONN, connectionId);
+                    result.put("status", Response.Status.OK);
+                    return generateOkResponse(result.toJSONString()).build();
+                });
+
     }
 
     // private methods
@@ -121,7 +137,7 @@ public class QueueResource extends AbsOrchsymResource {
             return false;
         }
 
-        if (isNotRunning(connection.getSource()) && isNotRunning(connection.getDestination())) { // both don't run
+        if (isStoped(connection.getSource()) && isStoped(connection.getDestination())) { // both don't run
             final ConnectionStatusEntity entity = serviceFacade.getConnectionStatus(connectionId);
             if (entity.getConnectionStatus().getAggregateSnapshot().getFlowFilesQueued() > 0) { // have queue
                 return true;
@@ -130,12 +146,12 @@ public class QueueResource extends AbsOrchsymResource {
         return false;
     }
 
-    private boolean isNotRunning(final Connectable node) {
+    private boolean isStoped(final Connectable node) {
         final ScheduledState state = node.getScheduledState();
-        if (ScheduledState.STARTING.equals(state) || ScheduledState.RUNNING.equals(state)) {
-            return false;
+        if (ScheduledState.DISABLED.equals(state) || ScheduledState.STOPPED.equals(state)) {
+            return true;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -159,14 +175,4 @@ public class QueueResource extends AbsOrchsymResource {
         }
     }
 
-    /**
-     *
-     * @apiNote 清除指定连接中的数据
-     * @param connId
-     *            连接组件的ID
-     */
-    private void dropFlowFilesInConn(String connId) {
-        DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connId, UUID.randomUUID().toString());
-        serviceFacade.deleteFlowFileDropRequest(connId, dropRequest.getId());
-    }
 }

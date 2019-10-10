@@ -31,10 +31,10 @@ import org.apache.nifi.util.FormatUtils;
 
 public class StandardPropertyValue implements PropertyValue {
 
-    private final String rawValue;
-    private final ControllerServiceLookup serviceLookup;
-    private final PreparedQuery preparedQuery;
-    private final VariableRegistry variableRegistry;
+    protected final String rawValue;
+    protected final ControllerServiceLookup serviceLookup;
+    protected final PreparedQuery preparedQuery;
+    protected final VariableRegistry variableRegistry;
 
     public StandardPropertyValue(final String rawValue, final ControllerServiceLookup serviceLookup) {
         this(rawValue, serviceLookup, Query.prepare(rawValue), VariableRegistry.EMPTY_REGISTRY);

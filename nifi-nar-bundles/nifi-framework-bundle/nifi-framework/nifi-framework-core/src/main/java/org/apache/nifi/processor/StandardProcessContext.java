@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.apache.nifi.attribute.expression.language.PreparedQuery;
 import org.apache.nifi.attribute.expression.language.Query;
+import org.apache.nifi.attribute.expression.language.SensitivePropertyValue;
 import org.apache.nifi.attribute.expression.language.Query.Range;
 import org.apache.nifi.attribute.expression.language.StandardPropertyValue;
 import org.apache.nifi.components.PropertyDescriptor;
@@ -101,7 +102,9 @@ public class StandardProcessContext implements ProcessContext, ControllerService
 
         final String setPropertyValue = procNode.getProperty(descriptor);
         final String propValue = (setPropertyValue == null) ? descriptor.getDefaultValue() : setPropertyValue;
-
+        if (descriptor.isSensitive()) {
+            return new SensitivePropertyValue(propValue, this, preparedQueries.get(descriptor), procNode.getVariableRegistry());
+        }
         return new StandardPropertyValue(propValue, this, preparedQueries.get(descriptor), procNode.getVariableRegistry());
     }
 

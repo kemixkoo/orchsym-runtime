@@ -38,6 +38,14 @@ public interface PropertyValue {
      * @return the raw property value as a string
      */
     String getValue();
+    
+    /**
+     * @return the encrypt or decrypt property value as a string
+     */
+    default String getValue(boolean encrypt) {
+        return getValue();
+    }
+    
 
     /**
      * @return an integer representation of the property value, or

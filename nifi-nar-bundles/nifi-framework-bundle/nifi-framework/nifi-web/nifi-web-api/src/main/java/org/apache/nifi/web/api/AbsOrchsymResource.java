@@ -26,10 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -72,14 +75,12 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
     protected void authorizes(final String type, final String action, final String id) {
         if (null == serviceFacade || null == authorizer) {
             try {
-                HttpResponse response = null;
-
-                // nifi-api/auth/{type}/{action}?id=xxxx
+                // GET nifi-api/auth/{type}/{action}?id=xxxx
+                Map<String, Object> queryParam = new HashMap<String, Object>();
                 if (StringUtils.isNoneBlank(id)) {
-                    response = doNifiApiRequest(HttpGet.METHOD_NAME, String.format("/auth/%s/%s?id=%s", type, action, id), null, null);
-                } else {
-                    response = doNifiApiRequest(HttpGet.METHOD_NAME, String.format("/auth/%s/%s", type, action), null, null);
+                    queryParam.put("id", id);
                 }
+                final HttpResponse response = doNifiApiRequest(HttpGet.METHOD_NAME, String.format("/auth/%s/%s", type, action), null, queryParam, null);
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                     logger.warn("Access the  /{}/{} have error code {} for reason {} with the response:\n {} ", type, action, response.getStatusLine().getStatusCode(),
                             response.getStatusLine().getReasonPhrase(), HttpRequestUtil.response(response));
@@ -116,12 +117,27 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
             "User-Agent"//
     ));
 
+    protected HttpResponse doNifiApiJSONBodyRequest(final String method, String path, String payload, Set<HttpHeader> headers) throws IOException {
+        if (null == headers) {
+            headers = new HashSet<>();
+        } else {
+            headers = new HashSet<>(headers);
+        }
+        headers.add(new HttpHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+
+        return doNifiApiRequest(method, path, payload, headers);
+    }
+
     protected HttpResponse doNifiApiRequest(final String method, String path, String payload, Set<HttpHeader> headers) throws IOException {
+        return doNifiApiRequest(method, path, payload, Collections.emptyMap(), headers);
+    }
+
+    protected HttpResponse doNifiApiRequest(final String method, String path, String payload, Map<String, Object> queryParam, Set<HttpHeader> headers) throws IOException {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
         final String[] segs = path.split("/");
-        final String url = generateNifiApiLocalResourceUri(null, segs);
+        final String url = generateNifiApiLocalResourceUri(null, (Map<String, Object>) queryParam, segs);
 
         StringEntity entity = null;
         if (!StringUtils.isBlank(payload)) {
@@ -150,6 +166,10 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
     }
 
     protected String generateNifiApiLocalResourceUri(String server, final String... path) {
+        return generateNifiApiLocalResourceUri(server, (Map<String, Object>) null, path);
+    }
+
+    protected String generateNifiApiLocalResourceUri(String server, Map<String, Object> queryParam, final String... path) {
         // use local only, not same as request.
         List<String> newPath = new ArrayList<>();
         if (null != path && path.length > 0) {
@@ -161,10 +181,10 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
             newPath.add("nifi-api");
         }
 
-        return generateLocalResourceUrl(server, newPath.toArray(new String[0]));
+        return generateLocalResourceUrl(server, queryParam, newPath.toArray(new String[0]));
     }
 
-    protected String generateLocalResourceUrl(String server, final String... path) {
+    protected String generateLocalResourceUrl(String server, Map<String, Object> queryParam, final String... path) {
         NiFiProperties settings = this.properties;
         if (null == settings) {
             settings = NiFiProperties.createBasicNiFiProperties(null, null);
@@ -194,7 +214,9 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
         }
 
         final UriBuilder uriBuilder = new JerseyUriBuilder().scheme(scheme).host(host).port(port);
-
+        if (null != queryParam) {
+            queryParam.forEach((k, v) -> uriBuilder.queryParam(k, v));
+        }
         return buildServerPath(uriBuilder, server, path);
 
     }

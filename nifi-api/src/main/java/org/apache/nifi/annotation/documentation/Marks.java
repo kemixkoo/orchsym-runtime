@@ -44,4 +44,5 @@ public @interface Marks {
     String[] categories() default ""; //eg:  {"数据处理/数据抓取", "网络/网络通信"}
     String createdDate() default ""; //eg: "2018-9-20"
     String note() default ""; //备注，扩展字段
+    String since() default ""; //备注，版本等信息
  }

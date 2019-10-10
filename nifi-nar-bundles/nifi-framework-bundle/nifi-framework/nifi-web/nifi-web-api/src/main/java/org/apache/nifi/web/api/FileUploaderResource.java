@@ -195,7 +195,8 @@ public class FileUploaderResource extends AbsOrchsymResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Must provide the file name argument").build();
         }
         // 支持自定义子目录
-        File fullPath = new File(getUploadPath());
+        final File uploadRepoFolder = new File(getUploadPath());
+        File fullPath = uploadRepoFolder;
         String subDir = fileContentEntity.getSubDir();
         if (!StringUtils.isBlank(subDir)) {
             fullPath = new File(fullPath, subDir);
@@ -235,6 +236,11 @@ public class FileUploaderResource extends AbsOrchsymResource {
             JSONObject result = new JSONObject();
             result.put("status", Response.Status.OK);
             result.put("filename", fileName);
+            String path = fullPath.getAbsolutePath().replace(uploadRepoFolder.getAbsolutePath(), "");
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
+            result.put("path", path);
 
             return Response.ok(result.toJSONString()).build();
         } catch (IOException e) {

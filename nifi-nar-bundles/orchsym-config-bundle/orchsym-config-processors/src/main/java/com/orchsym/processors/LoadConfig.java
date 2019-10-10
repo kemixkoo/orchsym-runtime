@@ -28,6 +28,7 @@ import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
+import org.apache.nifi.annotation.documentation.Marks;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.exception.ProcessException;
@@ -52,6 +53,7 @@ import java.util.*;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_ALLOWED)
 @Tags({"config", "ini", "property"})
+@Marks(categories = { "Data Process/Fetch" }, createdDate = "2019-08-26", since = "2.0_09000")
 @CapabilityDescription("Extract text or flowfiles or attributes in the format " +
         "of ini, properties, yml to the global configuration")
 public class LoadConfig extends AbstractProcessor {
