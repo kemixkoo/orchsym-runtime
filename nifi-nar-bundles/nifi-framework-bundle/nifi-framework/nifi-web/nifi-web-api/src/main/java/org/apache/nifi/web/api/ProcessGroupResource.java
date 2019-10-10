@@ -3952,15 +3952,12 @@ public class ProcessGroupResource extends ApplicationResource {
              if (requestTemplateConfigurationEntity.isEnableServices()) {
                 final Set<ControllerServiceEntity> servicesToEnable = serviceFacade.getControllerServices(applicationId, false, true);
                  for (ControllerServiceEntity serviceEntity : servicesToEnable) {
-                    final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
-                    serviceDTO.setId(serviceEntity.getId());
-                    serviceDTO.setState(ControllerServiceState.ENABLED.name());
-
-                     ControllerServiceEntity serviceToEnble = new ControllerServiceEntity();
-                     final RevisionDTO serviceRevisionDTO = serviceEntity.getRevision();
-                     serviceToEnble.setRevision(serviceRevisionDTO);
-                     serviceToEnble.setComponent(serviceDTO);
-                     controllerServiceResource.updateControllerService(httpServletRequest, serviceDTO.getId(), serviceToEnble);
+                     final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                     serviceDTO.setId(serviceEntity.getId());
+                     serviceDTO.setState(ControllerServiceState.ENABLED.name());
+                     final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
+                     final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
+                     controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
                 }
              }
 
