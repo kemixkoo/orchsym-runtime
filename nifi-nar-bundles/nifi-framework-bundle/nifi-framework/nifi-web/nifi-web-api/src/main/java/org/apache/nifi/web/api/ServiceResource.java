@@ -357,8 +357,7 @@ public class ServiceResource extends AbsOrchsymResource {
                 break;
             }
 
-            // generate the response
-            return generateCreatedResponse(getAbsolutePath(), responseEntity).build();
+            return generateOkResponse(responseEntity).build();
         });
     }
 
@@ -450,6 +449,7 @@ public class ServiceResource extends AbsOrchsymResource {
         }
         entity.setDbcpControllerServices(dbcpControllerServicesEntitySet);
         entity.setCurrentTime(new Date(System.currentTimeMillis()));
+
         return generateOkResponse(entity).build();
     }
 

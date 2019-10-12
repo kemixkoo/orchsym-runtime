@@ -74,7 +74,7 @@ import io.swagger.annotations.ApiResponses;
 @Path(ApiServiceResource.PATH)
 @Api(value = ApiServiceResource.PATH, //
         description = "Endpoint  for retrieving api informaitions")
-public class ApiServiceResource extends ApplicationResource {
+public class ApiServiceResource extends AbsOrchsymResource {
 
     private static final String PROPERTIES_NIFI_WEB_HTTP_HOST = "nifi.web.http.host";
     private static final String PROPERTIES_NIFI_WEB_HTTP_PORT = "nifi.web.http.port";

@@ -19,7 +19,6 @@ package org.apache.nifi.web.api;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,13 +48,9 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.nifi.stream.io.StreamUtils;
 import org.apache.nifi.util.VersionHelper;
-import org.apache.nifi.web.NiFiServiceFacade;
-import org.apache.nifi.web.api.entity.StatsCountersEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.orchsym.udc.manager.UsageDataManager;
@@ -73,7 +68,7 @@ import net.minidev.json.JSONObject;
 @Component
 @Path(UsageDataResource.PATH)
 @Api(value = StatsResource.PATH, description = "Endpoint for collecting the usage data of platform.")
-public class UsageDataResource extends ApplicationResource implements ICodeMessages {
+public class UsageDataResource extends AbsOrchsymResource {
     public static final String PATH = "/udc";
 
     private static final Logger logger = LoggerFactory.getLogger(UsageDataResource.class);

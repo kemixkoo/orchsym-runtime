@@ -69,10 +69,34 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
     @Autowired(required = false)
     protected Authorizer authorizer;
 
+    protected void authorizePoliciesRead() {
+        authorize(ResourceType.Policy, RequestAction.READ); // for admin with policy
+    }
+
+    protected void authorizeFlowRead() {
+        authorize(ResourceType.Flow, RequestAction.READ);
+    }
+
+    protected void authorizeSystemRead() {
+        authorize(ResourceType.System, RequestAction.READ);
+    }
+
+    protected void authorizeResourcesRead() {
+        authorize(ResourceType.Resource, RequestAction.READ);
+    }
+
+    protected void authorize(ResourceType requestType, RequestAction action) {
+        authorize(requestType, action, null);
+    }
+
+    protected void authorize(ResourceType requestType, RequestAction action, final String id) {
+        authorizes(requestType.getValue(), action.name(), id);
+    }
+
     /**
      * Authorizes access.
      */
-    protected void authorizes(final String type, final String action, final String id) {
+    protected void authorizes(String type, final String action, final String id) {
         if (null == serviceFacade || null == authorizer) {
             try {
                 // GET nifi-api/auth/{type}/{action}?id=xxxx
@@ -80,6 +104,10 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
                 if (StringUtils.isNoneBlank(id)) {
                     queryParam.put("id", id);
                 }
+                if (type.startsWith("/")) {
+                    type = type.substring(1);
+                }
+
                 final HttpResponse response = doNifiApiRequest(HttpGet.METHOD_NAME, String.format("/auth/%s/%s", type, action), null, queryParam, null);
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                     logger.warn("Access the  /{}/{} have error code {} for reason {} with the response:\n {} ", type, action, response.getStatusLine().getStatusCode(),

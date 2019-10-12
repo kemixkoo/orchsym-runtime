@@ -42,7 +42,6 @@ import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.status.RunStatus;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.util.FormatUtils;
-import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.FlowSnippetDTO;
