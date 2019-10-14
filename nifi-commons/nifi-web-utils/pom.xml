@@ -22,8 +22,6 @@
     </parent>
     <artifactId>nifi-web-utils</artifactId>
     <properties>
-        <jersey.version>2.26</jersey.version>
-        <jackson.version>2.9.5</jackson.version>
     </properties>
     <dependencies>
         <dependency>
@@ -34,12 +32,10 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.11</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
