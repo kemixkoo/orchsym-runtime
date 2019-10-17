@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.Consumes;
@@ -43,6 +44,8 @@ import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.nifi.controller.FlowController;
+import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.registry.api.APIServicesManager;
 import org.apache.nifi.registry.api.APISpec;
 import org.apache.nifi.registry.api.ApiInfo;
@@ -54,6 +57,7 @@ import org.apache.nifi.registry.api.RespSpec;
 import org.apache.nifi.util.NiFiProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
@@ -84,6 +88,9 @@ public class ApiServiceResource extends AbsOrchsymResource {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiServiceResource.class);
 
+    @Autowired
+    private FlowController flowController;
+
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
@@ -96,36 +103,58 @@ public class ApiServiceResource extends AbsOrchsymResource {
             @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
     })
     public Response getApiInformations(//
-            @QueryParam("groupid") String groupid
-    ) throws InterruptedException {
+            @QueryParam("groupid") final String groupid) throws InterruptedException {
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.GET);
         }
         final List<ApiInfo> apiInfoList = APIServicesManager.getInstance().getInfos();
-        ArrayList<ApiInfo> collectApis = new ArrayList<>();
-        if (groupid == null) {
-            Iterator<ApiInfo> infoItr = apiInfoList.iterator();
-            while (infoItr.hasNext()) {
-                ApiInfo apiInfo = (ApiInfo) infoItr.next();
-                collectApis.add(apiInfo.copy());
-            }
-        } else {
-            Iterator<ApiInfo> infoItr = apiInfoList.iterator();
-            while (infoItr.hasNext()) {
-                ApiInfo apiInfo = (ApiInfo) infoItr.next();
-                String groupID = apiInfo.groupID;
-                if (groupID.equals(groupid)) {
-                    collectApis.add(apiInfo.copy());
-                }
-            }
-        }
-        //generate the response
-        HashMap<String, ArrayList<ApiInfo>> apis = new HashMap<>();
+
+        final List<ApiInfo> collectApis = apiInfoList.stream() //
+                .filter(info -> null == groupid || groupid.equals(info.groupID)) //
+                .map(info -> {
+                    final ApiInfo copy = info.copy();
+
+                    // set appId
+                    copy.applicationID = copy.groupID;
+
+                    final ProcessGroup currentGroup = flowController.getGroup(copy.groupID);
+                    final String rootId = flowController.getGroup(FlowController.ROOT_GROUP_ID_ALIAS).getIdentifier();
+                    if (null != currentGroup && !currentGroup.getIdentifier().equals(rootId)) { // in root
+                        copy.groupName = currentGroup.getName();
+                        copy.applicationName = currentGroup.getName(); // default
+                        copy.route = copy.applicationName;// default
+                    }
+
+                    ProcessGroup parentGroup = currentGroup.getParent();
+                    if (null != parentGroup && null != currentGroup //
+                            && !rootId.equals(copy.groupID) // request component is not in root group directly
+                            && !rootId.equals(parentGroup.getIdentifier())) { // not in application level, should be children
+                        StringBuffer route = new StringBuffer();
+                        route.append(parentGroup.getName());
+
+                        ProcessGroup applicationGroup = null;
+                        while (null != parentGroup && !rootId.equals(parentGroup.getIdentifier())) {
+                            applicationGroup = parentGroup; // first level
+                            route.insert(0, parentGroup.getName() + '/');
+                            parentGroup = parentGroup.getParent();
+                        }
+                        if (null != applicationGroup) {
+                            copy.applicationID = applicationGroup.getIdentifier();
+                            copy.applicationName = applicationGroup.getName();
+                        }
+                        copy.route = route.toString();
+
+                    } // the applicationID will be root or first level of application dirctly
+
+                    return copy;
+                }).collect(Collectors.toList());
+
+        // generate the response
+        Map<String, List<ApiInfo>> apis = new HashMap<>();
         apis.put("apis", collectApis);
-        Gson gson = new Gson();
-        String json = gson.toJson(apis);
-        return Response.ok(json).build();
+        String jsonResult = new Gson().toJson(apis);
+        return Response.ok(jsonResult).build();
     }
 
     @GET
@@ -140,8 +169,7 @@ public class ApiServiceResource extends AbsOrchsymResource {
             @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
     })
     public Response getApiSwaggerInformations(//
-            @QueryParam("id") String id
-    ) throws InterruptedException {
+            @QueryParam("id") String id) throws InterruptedException {
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.GET);
@@ -159,7 +187,7 @@ public class ApiServiceResource extends AbsOrchsymResource {
         return Response.ok(swaggerInfo).build();
     }
 
-     private String getSwaggerinfo(final List<ApiInfo> apiInfoList, String processorId) throws Exception {
+    private String getSwaggerinfo(final List<ApiInfo> apiInfoList, String processorId) throws Exception {
 
         String url = getPropertyUrl(processorId);
         String swaggerInfo = null;
@@ -380,7 +408,7 @@ public class ApiServiceResource extends AbsOrchsymResource {
         return spec;
     }
 
-     private String getPropertyUrl(String processorID) {
+    private String getPropertyUrl(String processorID) {
 
         String host;
         String port;
