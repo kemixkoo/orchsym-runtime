@@ -17,10 +17,18 @@
  */
 package org.apache.nifi.web.api;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
 import java.net.URI;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -39,7 +47,9 @@ import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.authorization.util.MD5Util;
 import org.apache.nifi.http.ResultUtil;
+import org.apache.nifi.util.NiFiProperties;
 import org.apache.nifi.web.api.entity.AuthorizationEntity;
 import org.apache.nifi.web.security.jwt.JwtService;
 import org.apache.nifi.web.security.token.LoginAuthenticationToken;
@@ -48,12 +58,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 /**
  * 
@@ -286,7 +290,7 @@ public class AuthorizationResource extends AbsOrchsymResource {
      * Retrieves the Authorization for Access Policy
      *
      */
-    @GET
+    @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/token")
@@ -311,5 +315,40 @@ public class AuthorizationResource extends AbsOrchsymResource {
         }
         return generateNotAuthorizedResponse().build();
 
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/external/token")
+    @ApiOperation(value = "Generate access token for external app.", notes = NON_GUARANTEED_ENDPOINT)
+    public Response getExtAccessToken(Map<String,Object> accessParam) {
+        try {
+            NiFiProperties nifiProperties = org.apache.nifi.util.NiFiProperties.createBasicNiFiProperties(null, null);
+            String username = nifiProperties.getProperty("orchsym.external.access.token.username");
+            String pk = nifiProperties.getProperty("orchsym.external.access.token.private.key");
+            int exp_time = Integer.parseInt(nifiProperties.getProperty("orchsym.external.access.token.expires.second")) * 1000;// millisecond
+            String appid = String.valueOf(accessParam.get("appid"));
+            String pid = String.valueOf(accessParam.get("pid"));
+            Long time = Long.parseLong(String.valueOf(accessParam.get("time")));
+            if (accessParam == null || appid == null || pid == null || time == null) {
+                return generateOkResponse(ResultUtil.error("Parameter not valid!")).build();
+            }
+            long nowTime = System.currentTimeMillis();
+            if (nowTime - time > exp_time) {
+                return generateOkResponse(ResultUtil.timeout("Request expires!")).build();
+            }
+            String targetPK = MD5Util.MD5(pk + appid + time);
+            if (!targetPK.equalsIgnoreCase(pid)) {
+                return generateOkResponse(ResultUtil.error("Invalid request!")).build();
+            }
+            final LoginAuthenticationToken loginToken = new LoginAuthenticationToken(username, username, exp_time, getClass().getSimpleName());
+            String jwtToken = jwtService.generateSignedToken(loginToken);
+            logger.debug("jwt token is " + jwtToken);
+            return generateOkResponse(ResultUtil.success(jwtToken)).build();
+        } catch (Exception e) {
+            logger.error("Throw exception when trying to get external access token", e);
+            return generateOkResponse(ResultUtil.error("Do not support external access token!")).build();
+        }
     }
 }
