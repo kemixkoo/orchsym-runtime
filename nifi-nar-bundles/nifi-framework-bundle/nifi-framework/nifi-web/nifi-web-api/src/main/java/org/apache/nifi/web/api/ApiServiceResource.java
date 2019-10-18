@@ -133,16 +133,13 @@ public class ApiServiceResource extends AbsOrchsymResource {
                         StringBuffer route = new StringBuffer();
                         route.append(parentGroup.getName());
 
-                        ProcessGroup applicationGroup = null;
-                        while (null != parentGroup && !rootId.equals(parentGroup.getIdentifier())) {
-                            applicationGroup = parentGroup; // first level
+                        ProcessGroup applicationGroup = parentGroup;
+                        while (null != (parentGroup = parentGroup.getParent()) && !rootId.equals(parentGroup.getIdentifier())) {
                             route.insert(0, parentGroup.getName() + '/');
-                            parentGroup = parentGroup.getParent();
+                            applicationGroup = parentGroup;
                         }
-                        if (null != applicationGroup) {
-                            copy.applicationID = applicationGroup.getIdentifier();
-                            copy.applicationName = applicationGroup.getName();
-                        }
+                        copy.applicationID = applicationGroup.getIdentifier();
+                        copy.applicationName = applicationGroup.getName();
                         copy.route = route.toString();
 
                     } // the applicationID will be root or first level of application dirctly

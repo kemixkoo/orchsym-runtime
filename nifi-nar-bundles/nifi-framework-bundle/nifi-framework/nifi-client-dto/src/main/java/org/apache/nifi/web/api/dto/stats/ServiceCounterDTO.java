@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Orchsym Runtime under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ * 
+ * this file to You under the Orchsym License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.nifi.web.api.dto.stats;
 
 import java.util.List;
@@ -8,10 +25,9 @@ import org.apache.nifi.web.api.dto.ControllerServiceDTO;
  * @author GU Guoqiang
  *
  */
-public class ControllerServiceCounterDTO {
+public class ServiceCounterDTO {
     private String service;
     private Long count;
-    private Long propertiesCount;
 
     private List<ControllerServiceDTO> details;
 
@@ -29,14 +45,6 @@ public class ControllerServiceCounterDTO {
 
     public void setCount(Long count) {
         this.count = count;
-    }
-
-    public Long getPropertiesCount() {
-        return propertiesCount;
-    }
-
-    public void setPropertiesCount(Long propertiesCount) {
-        this.propertiesCount = propertiesCount;
     }
 
     public List<ControllerServiceDTO> getDetails() {
@@ -63,7 +71,7 @@ public class ControllerServiceCounterDTO {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ControllerServiceCounterDTO other = (ControllerServiceCounterDTO) obj;
+        ServiceCounterDTO other = (ServiceCounterDTO) obj;
         if (service == null) {
             if (other.service != null)
                 return false;

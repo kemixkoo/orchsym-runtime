@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +56,12 @@ import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.alibaba.fastjson.JSONException;
+
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 /**
  * @author GU Guoqiang
@@ -298,5 +305,101 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    protected static final String KEY_COMPS_NAME = "name";
+    protected static final String KEY_COMPS_CLASSIFICATION = "classification";
+    protected static final String KEY_COMPS_COMPONENTS = "components";
+
+    protected JSONArray getComponentsList(String server) throws Exception {
+        // /nifi-api/component-marks/classification
+        HttpResponse response = doNifiApiRequest(HttpGet.METHOD_NAME, "/component-marks/classification", null, null);
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            return new JSONArray();
+        }
+        JSONArray dataArray = (JSONArray) new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE).parse(HttpRequestUtil.response(response));
+
+        return dataArray;
+    }
+
+    // category -> components
+    protected Map<String, List<String>> getCategoriesResult(JSONArray dataArray) {
+        Map<String, List<String>> groupsMap = new LinkedHashMap<>();
+        for (Object cat : dataArray) {
+            if (cat instanceof JSONObject) {
+                JSONObject catJson = (JSONObject) cat;
+                String catName = catJson.getAsString(KEY_COMPS_NAME);
+
+                //
+                if (catJson.containsKey(KEY_COMPS_COMPONENTS)) {
+                    List<String> catList = groupsMap.get(catName);
+                    if (null == catList) {
+                        catList = new ArrayList<>();
+                        groupsMap.put(catName, catList);
+                    }
+
+                    JSONArray compArray = (JSONArray) catJson.get(KEY_COMPS_COMPONENTS);
+                    for (Object comp : compArray) {
+                        catList.add(comp.toString());
+                    }
+                }
+
+                //
+                if (catJson.containsKey(KEY_COMPS_CLASSIFICATION)) {
+                    final JSONArray subCatArray = (JSONArray) catJson.get(KEY_COMPS_CLASSIFICATION);
+                    for (Object subCat : subCatArray) {
+                        if (subCat instanceof JSONObject) {
+                            JSONObject subCatJson = (JSONObject) subCat;
+                            String subCatName = catName + '/' + subCatJson.getAsString(KEY_COMPS_NAME);
+
+                            List<String> subCatList = groupsMap.get(subCatName);
+                            if (null == subCatList) {
+                                subCatList = new ArrayList<>();
+                                groupsMap.put(subCatName, subCatList);
+                            }
+
+                            JSONArray subCompArray = (JSONArray) subCatJson.get(KEY_COMPS_COMPONENTS);
+                            for (Object comp : subCompArray) {
+                                subCatList.add(comp.toString());
+                            }
+
+                        }
+                    }
+                }
+
+            }
+        }
+
+        return groupsMap;
+
+    }
+
+    // component ->categories
+    protected Map<String, List<String>> convertCompsCategoriesMap(final Map<String, List<String>> categoriesCompsMap) {
+        final Map<String, List<String>> compsCategoriesMap = new HashMap<>();
+        for (String cat : categoriesCompsMap.keySet()) {
+            final List<String> compsList = categoriesCompsMap.get(cat);
+            for (String comp : compsList) {
+                List<String> categories = compsCategoriesMap.get(comp);
+                if (null == categories) {
+                    categories = new ArrayList<>();
+                    compsCategoriesMap.put(comp, categories);
+                }
+                categories.add(cat);
+            }
+        }
+        return compsCategoriesMap;
+    }
+
+    protected Map<String, List<String>> getComponentsCategories(String server) {
+        Map<String, List<String>> compsCategoriesMap = Collections.emptyMap();
+        try {
+            compsCategoriesMap = convertCompsCategoriesMap(getCategoriesResult(getComponentsList(server)));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            // ignore when no api or wrong value
+        }
+        return compsCategoriesMap;
+
     }
 }
