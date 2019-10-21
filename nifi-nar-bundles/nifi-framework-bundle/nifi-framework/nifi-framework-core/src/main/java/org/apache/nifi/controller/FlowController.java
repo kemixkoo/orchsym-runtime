@@ -1850,6 +1850,10 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
         if (comments != null) {
             group.setComments(comments);
         }
+
+        if (null != dto.getTags()) {
+            group.setTags(dto.getTags());
+        }
     }
 
     private Position toPosition(final PositionDTO dto) {

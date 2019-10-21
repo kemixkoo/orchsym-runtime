@@ -72,7 +72,9 @@ public class StandardProcessGroupDAO extends ComponentDAO implements ProcessGrou
         if (processGroup.getPosition() != null) {
             group.setPosition(new Position(processGroup.getPosition().getX(), processGroup.getPosition().getY()));
         }
-
+        if (null != processGroup.getTags()) {
+            group.setTags(processGroup.getTags());
+        }
         // add the process group
         group.setParent(parentGroup);
         parentGroup.addProcessGroup(group);
@@ -275,6 +277,9 @@ public class StandardProcessGroupDAO extends ComponentDAO implements ProcessGrou
         }
         if (isNotNull(comments)) {
             group.setComments(comments);
+        }
+        if (isNotNull(processGroupDTO.getTags())) {
+            group.setTags(processGroupDTO.getTags());
         }
 
         group.onComponentModified();
