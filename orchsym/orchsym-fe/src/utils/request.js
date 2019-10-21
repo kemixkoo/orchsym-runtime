@@ -86,7 +86,6 @@ request.interceptors.request.use((url, options) => {
 });
 // response拦截器, 处理response
 request.interceptors.response.use((response, options) => {
-  console.log(response)
   if (!response.ok) {
     if (response.status === 401) {
       notification.error({

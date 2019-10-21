@@ -80,7 +80,6 @@ class CreateOrEditApp extends React.Component {
       <Option value="格式转换" key="格式转换">格式转换</Option>,
       <Option value="全量同步" key="全量同步">全量同步</Option>,
     ]
-
     return (
 
       <div>
@@ -109,6 +108,7 @@ class CreateOrEditApp extends React.Component {
                 // rules: [{
                 //   required: true, message: '请输入应用名称!',
                 // }],
+                initialValue: component ? component.comments : '',
               })(
                 <TextArea rows={4} />
               )}
@@ -118,11 +118,11 @@ class CreateOrEditApp extends React.Component {
                 // rules: [{
                 //   required: true, message: '请输入应用名称!',
                 // }],
+                initialValue: component && component.tags && component.tags.length > 0 ? component.tags : [],
               })(
                 <Select
                   mode="tags"
                   style={{ width: '100%' }}
-                  onChange={this.handleSetTags}
                 >
                   {tags}
                 </Select>
