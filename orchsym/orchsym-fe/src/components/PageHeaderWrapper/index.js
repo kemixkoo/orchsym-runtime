@@ -1,7 +1,7 @@
 import React from 'react';
 // import { FormattedMessage } from 'umi-plugin-react/locale';
 import Link from 'umi/link';
-import { PageHeader, Tabs, Typography, Alert } from 'antd';
+import { PageHeader, Tabs, Typography } from 'antd';
 import { connect } from 'dva';
 import classNames from 'classnames';
 import GridContent from './GridContent';
@@ -33,9 +33,6 @@ const renderFooter = ({ tabList, tabActiveKey, onTabChange, tabBarExtraContent }
       ))}
     </Tabs>
   ) : null;
-};
-const onClose = e => {
-  console.log(e, 'I was closed.');
 };
 const PageHeaderWrapper = ({
   children,
@@ -93,15 +90,6 @@ const PageHeaderWrapper = ({
           );
         }}
       </MenuContext.Consumer>
-      <Alert
-        className={styles.alertBg}
-        // message="Warning"
-        description="License将在yy天后过期，为保证业务流程的运行正常，请及时更新，否则runtime将自动停止"
-        type="warning"
-        showIcon
-        closable
-        onClose={onClose}
-      />
       {children ? (
         <div className={styles['children-content']}>
           <GridContent>{children}</GridContent>

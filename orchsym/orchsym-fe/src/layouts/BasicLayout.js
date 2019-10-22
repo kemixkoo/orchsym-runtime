@@ -1,6 +1,6 @@
 import React, { lazy } from 'react';
 // Suspense
-import { Layout } from 'antd';
+import { Alert, Layout } from 'antd';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
 import { connect } from 'dva';
@@ -83,11 +83,22 @@ class BasicLayout extends React.Component {
       breadcrumbNameMap,
       fixedHeader,
     } = this.props;
-
+    const onClose = e => {
+      console.log(e, 'I was closed.');
+    };
     const isTop = PropsLayout === 'topmenu';
     const contentStyle = !fixedHeader ? { paddingTop: 0 } : {};
     const layout = (
       <Layout>
+        <Alert
+          className={styles.alertBg}
+          // message="Warning"
+          description="License将在yy天后过期，为保证业务流程的运行正常，请及时更新，否则runtime将自动停止"
+          type="warning"
+          showIcon
+          closable
+          onClose={onClose}
+        />
         {isTop ? null : (
           <SiderMenu
             logo={logo}
@@ -151,6 +162,8 @@ BasicLayout.propTypes = {
   fixSiderbar: PropTypes.any,
   collapsed: PropTypes.any,
   layout: PropTypes.any,
+  navTheme: PropTypes.any,
   children: PropTypes.any,
+  fixedHeader: PropTypes.any,
   menuData: PropTypes.any,
 }
