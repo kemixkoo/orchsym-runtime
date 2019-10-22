@@ -4,7 +4,8 @@ import { queryApplication, updateAppState } from '@/services/Flow';
 import { validationRunApp, validationDeleteApp } from '@/services/validation';
 import {
   detailApplication, editApplication, addApplication,
-  deleteApplication, copeApplication, createApplicationTemp } from '@/services/ProcessGroups';
+  deleteApplication, copeApplication, createApplicationTemp,
+} from '@/services/ProcessGroups';
 import { getClientId } from '@/utils/authority';
 // import { notification } from "antd/lib/index";
 
@@ -38,13 +39,14 @@ export default {
       });
     },
     *fetchEditApplication({ payload }, { call, put }) {
-      const { values: { name }, details: { id, revision } } = payload;
+      const { values: { name, tags, comments }, details: { id, revision } } = payload;
       const params = {
         value: {
           component: {
             id,
             name,
-            comments: '',
+            comments,
+            tags,
           },
           revision,
         },
@@ -58,12 +60,14 @@ export default {
       }
     },
     *fetchAddApplication({ payload }, { call, put }) {
-      const { values: { name }, parentId } = payload;
+      const { values: { name, comments, tags }, parentId } = payload;
       const params = {
         parentId,
         value: {
           component: {
             name,
+            comments,
+            tags,
             position: { x: 0, y: 0 },
           },
           revision: {

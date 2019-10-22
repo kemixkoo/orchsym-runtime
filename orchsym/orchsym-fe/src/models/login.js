@@ -71,11 +71,15 @@ export default {
     *fetchLicenseWarn(_, { call, put }) {
       const response = yield call(licenseWarn);
       if (response) {
-        console.log(response)
+        yield put({
+          type: 'licenseValue',
+          payload: {
+            leftDays: response.licSummary.leftDays,
+          },
+        })
       }
     },
     *checkSSOLoginStatus({ payload }, { select, put }) {
-      console.log(getToken())
       if (!getToken() || !window.document.cookie) {
         yield put(routerRedux.push('/blank'))
       }
@@ -83,6 +87,12 @@ export default {
   },
 
   reducers: {
+    licenseValue(state, action) {
+      return {
+        ...state,
+        ...action.payload,
+      }
+    },
     changeLoginStatus(state, { payload }) {
       setToken(payload);
       return {

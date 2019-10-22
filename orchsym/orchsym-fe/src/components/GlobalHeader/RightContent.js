@@ -135,15 +135,6 @@ export default class GlobalHeaderRight extends PureComponent {
     }
     return (
       <div className={className}>
-        {/* <Alert
-          className={styles.alertBg}
-          // message="Warning"
-          description="License将在yy天后过期，为保证业务流程的运行正常，请及时更新，否则runtime将自动停止"
-          type="warning"
-          showIcon
-          closable
-          onClose={onClose}
-        /> */}
         {/* <HeaderSearch
           className={`${styles.action} ${styles.search}`}
           placeholder={formatMessage({ id: 'component.globalHeader.search' })}
