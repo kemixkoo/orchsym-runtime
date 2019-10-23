@@ -1592,6 +1592,18 @@ public class ControllerFacade implements Authorizable {
         return results;
     }
 
+    /**
+     * @apiNote search results from group
+     */
+    public SearchResultsDTO search(final String search, final String groupId) {
+        final ProcessGroup group = flowController.getGroup(groupId);
+        final SearchResultsDTO results = new SearchResultsDTO();
+        if (group != null){
+            controllerSearchService.search(results, search, group);
+        }
+        return results;
+    }
+
     public void verifyComponentTypes(VersionedProcessGroup versionedFlow) {
         flowController.verifyComponentTypesInSnippet(versionedFlow);
     }

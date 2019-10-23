@@ -2683,6 +2683,13 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
     }
 
     @Override
+    public SearchResultsDTO searchController(final String query, final String groupId) {
+        return controllerFacade.search(query, groupId);
+    }
+
+
+
+    @Override
     public DownloadableContent getContent(final String connectionId, final String flowFileUuid, final String uri) {
         return connectionDAO.getContent(connectionId, flowFileUuid, uri);
     }

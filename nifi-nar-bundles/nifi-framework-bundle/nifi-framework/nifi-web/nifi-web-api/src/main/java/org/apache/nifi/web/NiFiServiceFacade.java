@@ -192,6 +192,14 @@ public interface NiFiServiceFacade {
     SearchResultsDTO searchController(String query);
 
     /**
+     *
+     * @param query
+     * @param groupId
+     * @return
+     */
+    SearchResultsDTO searchController(String query, String groupId);
+
+    /**
      * Submits a provenance request.
      *
      * @param query query

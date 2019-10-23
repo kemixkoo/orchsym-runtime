@@ -760,6 +760,34 @@ public class FlowResource extends ApplicationResource {
         return noCache(Response.ok(entity)).build();
     }
 
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{groupId}/search-results")
+    @ApiOperation(value = "Performs a search against this NiFi using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
+            @Authorization(value = "Read - /flow") })
+    @ApiResponses(value = { @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+            @ApiResponse(code = 401, message = "Client could not be authenticated."), @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+            @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.") })
+    public Response searchFlowByGroup(
+          @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String value,
+          @ApiParam(value = "The group id", required = true)
+          @PathParam("groupId") @DefaultValue(StringUtils.EMPTY)
+          final String groupId
+    ) throws InterruptedException {
+        authorizeFlow();
+
+        // query the controller
+        final SearchResultsDTO results = serviceFacade.searchController(value, groupId);
+
+        // create the entity
+        final SearchResultsEntity entity = new SearchResultsEntity();
+        entity.setSearchResultsDTO(results);
+
+        // generate the response
+        return noCache(Response.ok(entity)).build();
+    }
+
     /**
      * Retrieves the status for this NiFi.
      *
