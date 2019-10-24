@@ -25,5 +25,5 @@ export function setCurrentUser(currentUser) {
   return localStorage.setItem('currentUser', currentUser);
 }
 export function getCanvasUrl() {
-  return 'http://127.0.0.1:8182/canvas.html';
+  return '/orchsym-web/canvas.html';
 }
