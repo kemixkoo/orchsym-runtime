@@ -86,9 +86,8 @@ if (__IS_BROWSER) {
 let serverRender, ReactDOMServer;
 if (!__IS_BROWSER) {
   serverRender = async (ctx = {}) => {
-    // ctx.req.url may be `/bar?locale=en-US`
-    const [pathname] = (ctx.req.url || '').split('?');
-    require('@tmp/history').default.push(ctx.req.url);
+    const pathname = ctx.req.url;
+    require('@tmp/history').default.push(pathname);
     let props = {};
     const activeRoute =
       findRoute(require('./router').routes, pathname) || false;
@@ -103,9 +102,6 @@ if (!__IS_BROWSER) {
       props = await activeRoute.component.getInitialProps({
         route: activeRoute,
         isServer: true,
-        // only exist in server
-        req: ctx.req || {},
-        res: ctx.res || {},
         ...initialProps,
       });
       props = plugins.apply('initialProps', {

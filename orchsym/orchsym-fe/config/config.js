@@ -63,11 +63,6 @@ export default {
     'primary-color': primaryColor,
   },
   proxy: {
-    '/orchsym-web/': {
-      target: 'https://127.0.0.1:9001/',
-      secure: false,
-      changeOrigin: true,
-    },
     '/runtime': {
       target: 'https://127.0.0.1:9001',
       secure: false,

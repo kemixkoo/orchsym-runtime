@@ -2,6 +2,7 @@
 
 import MergeLessPlugin from 'antd-pro-merge-less';
 import AntDesignThemePlugin from 'antd-theme-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 import path from 'path';
 
 function getModulePackageName(module) {
@@ -40,6 +41,7 @@ export default config => {
       },
     ]);
 
+
     config.plugin('ant-design-theme').use(AntDesignThemePlugin, [
       {
         antDir: path.join(__dirname, '../node_modules/antd'),
@@ -52,6 +54,17 @@ export default config => {
       },
     ]);
   }
+
+
+  config.plugin('copy-plugin').use(CopyPlugin, [
+    [
+      {
+        from: '../orchsym-web',
+        to: './orchsym-web/'
+      }
+    ]
+  ]);
+
   // optimize chunks
   config.optimization
     .runtimeChunk(false) // share the same chunks across different modules
