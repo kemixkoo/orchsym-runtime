@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
-import { getToken, getCanvasUrl } from '@/utils/authority';
+import { getCanvasUrl } from '@/utils/authority';
 
 export default class Index extends Component {
   render() {
     const { match } = this.props
     const { params } = match
     const { processGroupId } = params
-    const src = `${getCanvasUrl()}?processGroupId=${processGroupId}&componentIds=&token=${getToken()}`
+    const src = `${getCanvasUrl()}?processGroupId=${processGroupId}&componentIds=`
     return (
       <iframe
         title="canvas"

@@ -10,6 +10,10 @@ export function getToken() {
   return localStorage.getItem('token');
 }
 export function setToken(token) {
+  const jwt = {};
+  jwt.expires = (new Date()).getTime() + 24 * 60 * 60 * 1000;
+  jwt.item = token;
+  localStorage.setItem('jwt', JSON.stringify(jwt));
   return localStorage.setItem('token', token);
 }
 export function getClientId() {

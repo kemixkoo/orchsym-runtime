@@ -301,36 +301,36 @@
             nfNgBridge.injector = angular.bootstrap($('body'), ['ngCanvasApp'], {strictDi: true});
 
             //wanzhen 20191024
-            function getQueryVariable(variable) {
-                var query = window.location.search.substring(1);
-                var vars = query.split("&");
-                for (var i=0;i<vars.length;i++) {
-                    var pair = vars[i].split("=");
-                    if(pair[0] == variable){return pair[1];}
-                }
-                return(false);
-            }
-            // initialize the NiFi
-            var token = getQueryVariable("token");
-            try{
-                var jwt = JSON.parse(localStorage.getItem('jwt'));
-                if(!jwt.item) {
-                    var jwt = {};
-                    jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
-                    jwt.item = token;
-                    localStorage.setItem('jwt', JSON.stringify(jwt));
-                } else if(jwt.item!==token){
-                    jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
-                    jwt.item = token;
-                    localStorage.setItem('jwt', JSON.stringify(jwt));
-                }
-                // console.log("jwt", jwt.item, token);
-            } catch (e) {
-                var jwt = {};
-                jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
-                jwt.item = token;
-                localStorage.setItem('jwt', JSON.stringify(jwt));
-            }
+            // function getQueryVariable(variable) {
+            //     var query = window.location.search.substring(1);
+            //     var vars = query.split("&");
+            //     for (var i=0;i<vars.length;i++) {
+            //         var pair = vars[i].split("=");
+            //         if(pair[0] == variable){return pair[1];}
+            //     }
+            //     return(false);
+            // }
+            // // initialize the NiFi
+            // var token = getQueryVariable("token");
+            // try{
+            //     var jwt = JSON.parse(localStorage.getItem('jwt'));
+            //     if(!jwt.item) {
+            //         var jwt = {};
+            //         jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
+            //         jwt.item = token;
+            //         localStorage.setItem('jwt', JSON.stringify(jwt));
+            //     } else if(jwt.item!==token){
+            //         jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
+            //         jwt.item = token;
+            //         localStorage.setItem('jwt', JSON.stringify(jwt));
+            //     }
+            //     // console.log("jwt", jwt.item, token);
+            // } catch (e) {
+            //     var jwt = {};
+            //     jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
+            //     jwt.item = token;
+            //     localStorage.setItem('jwt', JSON.stringify(jwt));
+            // }
 
             var userXhr = nfCanvas.init();
 
