@@ -457,6 +457,11 @@ public class HandleHttpRequest extends AbstractProcessor {
         server.setHandler(new AbstractHandler() {
             @Override
             public void handle(final String target, final Request baseRequest, final HttpServletRequest request, final HttpServletResponse response) throws IOException, ServletException {
+                if (!DispatcherType.REQUEST.equals(request.getDispatcherType()))
+                {
+                    // 如果调度模式是非请求类型，直接忽略
+                    return;
+                }
                 handleHttp(context, target, baseRequest, request, response);
             }
         });
