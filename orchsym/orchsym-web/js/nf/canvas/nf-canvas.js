@@ -277,7 +277,6 @@
          */
         initCanvas: function () {
             var canvasContainer = $('#canvas-container');
-
             // create the canvas
             svg = d3.select('#canvas-container').append('svg')
                 .on('contextmenu', function () {
