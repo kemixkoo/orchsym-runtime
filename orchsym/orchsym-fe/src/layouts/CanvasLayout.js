@@ -5,14 +5,14 @@ import DocumentTitle from 'react-document-title';
 import { connect } from 'dva';
 // import logo from '../assets/logo.svg';
 // import Footer from './Footer';
-import Header from './CanvasHeader';
+// import Header from './CanvasHeader';
 import getPageTitle from '@/utils/getPageTitle';
 import styles from './CanvasLayout.less';
 
 // lazy load SettingDrawer
 const SettingDrawer = lazy(() => import('@/components/SettingDrawer'));
 
-const logo = window.logoHref.companyLogoIndex
+// const logo = window.logoHref.companyLogoIndex
 // const smallLogo = window.logoHref.companyLogoIndexMix
 
 class BasicLayout extends React.Component {
@@ -74,7 +74,7 @@ class BasicLayout extends React.Component {
     const {
       children,
       location: { pathname },
-      menuData,
+      // menuData,
       breadcrumbNameMap,
     } = this.props;
 
@@ -86,12 +86,12 @@ class BasicLayout extends React.Component {
           ...this.getLayoutStyle(),
         }}
       >
-        <Header
+        {/* <Header
           menuData={menuData}
           handleMenuCollapse={this.handleMenuCollapse}
           logo={logo}
           {...this.props}
-        />
+        /> */}
         <div className={styles.basicContent}>
           {children}
         </div>
@@ -118,9 +118,9 @@ BasicLayout.propTypes = {
   route: PropTypes.any,
   location: PropTypes.any,
   breadcrumbNameMap: PropTypes.any,
-  fixSiderbar: PropTypes.any,
-  collapsed: PropTypes.any,
-  layout: PropTypes.any,
+  // fixSiderbar: PropTypes.any,
+  // collapsed: PropTypes.any,
+  // layout: PropTypes.any,
   children: PropTypes.any,
-  menuData: PropTypes.any,
+  // menuData: PropTypes.any,
 }

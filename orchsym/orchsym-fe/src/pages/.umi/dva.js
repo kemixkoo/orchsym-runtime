@@ -20,7 +20,8 @@ export function _onCreate() {
     app.use(plugin);
   });
   app.use(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/dva-immer/dist/index.js')());
-  app.model({ namespace: 'global', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/global.js').default) });
+  app.model({ namespace: 'canvas', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/canvas.js').default) });
+app.model({ namespace: 'global', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/global.js').default) });
 app.model({ namespace: 'login', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/login.js').default) });
 app.model({ namespace: 'menu', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/menu.js').default) });
 app.model({ namespace: 'project', ...(require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/models/project.js').default) });

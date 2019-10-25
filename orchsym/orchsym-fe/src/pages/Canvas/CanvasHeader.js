@@ -6,7 +6,7 @@ import { connect } from 'dva';
 import router from 'umi/router';
 import GlobalHeader from '@/components/GlobalHeader';
 import TopNavHeader from '@/components/TopNavHeader';
-import styles from './Header.less';
+// import styles from './Header.less';
 
 const { Header } = Layout;
 
@@ -115,7 +115,7 @@ class HeaderView extends Component {
 
   render() {
     const { handleMenuCollapse, setting } = this.props;
-    const { navTheme, layout, fixedHeader } = setting;
+    const { navTheme, layout } = setting;
     const { visible } = this.state;
     /**
      * 在 defaultSettings.js 里的 layout 字段，值可以是 sidemenu 或者 topmenu
@@ -127,7 +127,7 @@ class HeaderView extends Component {
     const HeaderDom = visible ? (
       <Header
         style={{ padding: 0, width, zIndex: 4 }}
-        className={fixedHeader ? styles.fixedHeader : ''}
+        // className={fixedHeader ? styles.fixedHeader : ''}
       >
         {isTop ? (
           <TopNavHeader
