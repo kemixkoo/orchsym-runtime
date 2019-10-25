@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Icon, Alert, Breadcrumb } from 'antd';
+import Link from 'umi/link';
 import router from 'umi/router'
 import Debounce from 'lodash-decorators/debounce';
 import styles from './index.less';
