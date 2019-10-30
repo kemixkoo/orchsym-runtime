@@ -6,7 +6,6 @@ import { connect } from 'dva';
 import router from 'umi/router';
 import GlobalHeader from '@/components/GlobalHeader';
 import TopNavHeader from '@/components/TopNavHeader';
-// import styles from './Header.less';
 
 const { Header } = Layout;
 
@@ -122,6 +121,10 @@ class HeaderView extends Component {
      * 切换导航 tab 的显示模式
      * 默认导航 tab 在左侧，即 sidemenu 模式。 isTop 为 false，渲染的是 GlobalHeader 组件
      */
+    const borderStyle = {
+      borderBottom: '1px solid #eee',
+      boxShadow: '0 0 0 rgba(0, 21, 41, 0)',
+    };
     const isTop = layout === 'topmenu';
     const width = this.getHeadWidth();
     const HeaderDom = visible ? (
@@ -137,6 +140,7 @@ class HeaderView extends Component {
             onNoticeClear={this.handleNoticeClear}
             onMenuClick={this.handleMenuClick}
             onNoticeVisibleChange={this.handleNoticeVisibleChange}
+            pstyle={borderStyle}
             {...this.props}
           />
         ) : (
@@ -145,6 +149,7 @@ class HeaderView extends Component {
             onNoticeClear={this.handleNoticeClear}
             onMenuClick={this.handleMenuClick}
             onNoticeVisibleChange={this.handleNoticeVisibleChange}
+            pstyle={borderStyle}
             {...this.props}
           />
         )}

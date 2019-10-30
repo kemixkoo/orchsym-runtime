@@ -20,8 +20,8 @@
 #flow-status {
     height: 33px;
     background-color: #E3E8EB; /*tint base-color 60%*/
-    border-bottom: 2px solid #aabbc3;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
     z-index: 3;
     position: relative;
 }

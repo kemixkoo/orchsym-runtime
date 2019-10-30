@@ -17,17 +17,65 @@ limitations under the License.
 <div id="breadcrumbs">
     <div id="data-flow-title-viewport">
         <div id="data-flow-title-container">
-            <span ng-repeat="crumb in breadcrumbs">
-                <span ng-if="separatorFunc(crumb.parentBreadcrumb)" style="margin: 0 12px;color: #fff">
-                    &raquo;
-                </span>
-                <span ng-if="isTracking(crumb)" title="{{getVersionControlTooltip(crumb)}}" class="{{getVersionControlClass(crumb)}}" style="margin-right: 6px;"></span>
-                <span 
-                      ng-class="(highlightCrumbId === crumb.id) ? 'not-link' : 'link'"
-                      ng-click="clickFunc(crumb.id)">
-                    {{crumb.label}}
-                </span>
-            </span>
+<!--            wanzhen edit 20191030-->
+<!--            <span ng-repeat="crumb in breadcrumbs">-->
+<!--                <span ng-if="separatorFunc(crumb.parentBreadcrumb)" style="margin: 0 12px;color: #fff">-->
+<!--                    &raquo;-->
+<!--                </span>-->
+<!--                <span ng-if="isTracking(crumb)" title="{{getVersionControlTooltip(crumb)}}" class="{{getVersionControlClass(crumb)}}" style="margin-right: 6px;"></span>-->
+<!--                <span -->
+<!--                      ng-class="(highlightCrumbId === crumb.id) ? 'not-link' : 'link'"-->
+<!--                      ng-click="clickFunc(crumb.id)">-->
+<!--                    {{crumb.label}}-->
+<!--                </span>-->
+<!--            </span>-->
+            <div id="operate-configure" class="action-button-right" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Configuration'] }}">
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-settings"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon fa fa-key"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-enable"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-enable-false"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-start"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-stop"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-template-save"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-template-import"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-copy"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-paste"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-group"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon icon-change-color"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon fa fa-plus"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon fa fa-minus"></div>
+                </div>
+                <div class="icon-right">
+                    <div class="graph-control-action-icon icon fa fa-trash"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -23,11 +23,11 @@ export default class TopNavHeader extends PureComponent {
   }
 
   render() {
-    const { theme, contentWidth, menuData, logo } = this.props;
+    const { pstyle, theme, contentWidth, menuData, logo } = this.props;
     const { maxWidth } = this.state;
     const flatMenuKeys = getFlatMenuKeys(menuData);
     return (
-      <div className={`${styles.head} ${theme === 'light' ? styles.light : ''}`}>
+      <div className={`${styles.head} ${theme === 'light' ? styles.light : ''}`} style={pstyle}>
         <div
           ref={ref => {
             this.maim = ref;
@@ -60,4 +60,5 @@ TopNavHeader.propTypes = {
   contentWidth: PropTypes.any,
   menuData: PropTypes.any,
   logo: PropTypes.any,
+  pstyle: PropTypes.any,
 }

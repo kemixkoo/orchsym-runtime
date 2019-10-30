@@ -357,8 +357,8 @@ rect.birdseye-brush {
 /* styles for the breadcrumbs bar */
 
 #breadcrumbs {
-    background-color: #506773;
-    height: 31px;
+    background-color: #fff;
+    height: 33px;
     width: 100%;
 }
 
@@ -419,7 +419,7 @@ span.breadcrumb-version-control-gray {
     font-size: 13px;
     color: #000;
     position: relative;
-    float: left;
+    float: right;
     white-space: nowrap;
     line-height: normal;
 }
@@ -678,6 +678,14 @@ span.breadcrumb-version-control-gray {
     cursor: pointer;
     outline: none;
 }
-
-
-
+div.action-button-right{
+    float: right;
+}
+.icon-right{
+    width: auto;
+    float: right;
+    margin-right: 20px;
+}
+.icon-right .icon{
+    font-size: 18px!important;
+}

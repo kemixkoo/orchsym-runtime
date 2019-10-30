@@ -13,10 +13,7 @@ import RightContent from './RightContent';
 }))
 class GlobalHeader extends PureComponent {
   componentWillMount() {
-    const {
-      dispatch,
-      match,
-    } = this.props;
+    const { dispatch, match } = this.props;
     const { params } = match
     const { processGroupId } = params
     dispatch({
@@ -57,16 +54,16 @@ class GlobalHeader extends PureComponent {
   };
 
   render() {
-    const { match, collapsed, leftDays, appDetails: { component } } = this.props;
-    const { params } = match
-    const { processGroupId } = params
+    const { pstyle, match, collapsed, leftDays, appDetails: { component } } = this.props;
+    const { params } = match;
+    const { processGroupId } = params;
     const onClose = e => {
       console.log(e, 'I was closed.');
     };
     const showDays = leftDays < 30
     const url = `/canvas/${processGroupId}`
     return (
-      <div className={styles.header}>
+      <div className={styles.header} style={pstyle}>
 
         {processGroupId ? (
           <span className={styles.trigger} onClick={this.toGo}>
