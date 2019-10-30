@@ -244,7 +244,9 @@ class AppList extends PureComponent {
             <div>
               <IconFont type="OS-iconapi" style={{ fontSize: '20px' }} />
               {/* <IconFont type="OS-icondingshirenwu" style={{ fontSize: '20px' }} /> */}
-              <span className={styles.cardTitle}>{item.component.name}</span>
+              <span className={styles.cardTitle}>
+                {item.component.name}
+              </span>
             </div>}
           description={
             <p className={styles.lineEllipsis}>
@@ -253,7 +255,7 @@ class AppList extends PureComponent {
           }
         />
         <div className={styles.cardExtra}>{dropdown}</div>
-        <div style={{ marginBottom: '10px' }}>
+        <div className={styles.lineEllipsis} style={{ marginBottom: '10px' }}>
           {(!item.component.tags.length) ? '该应用暂无标签' : (item.component.tags.map((i) => (
             <Tag color="blue">{i}</Tag>
           )))}

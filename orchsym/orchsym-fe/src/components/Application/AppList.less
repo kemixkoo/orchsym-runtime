@@ -4,6 +4,7 @@
   overflow-x: hidden;
   overflow-y: auto;
 }
+
 .lineEllipsis {
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -41,7 +42,12 @@
   }
 
   .cardTitle {
+    display: inline-block;
+    width: 70%;
     margin-left: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
   }
 
   .cardFoot {
