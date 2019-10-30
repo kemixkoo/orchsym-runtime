@@ -5,6 +5,7 @@ import router from 'umi/router'
 import Debounce from 'lodash-decorators/debounce';
 import styles from './index.less';
 import RightContent from './RightContent';
+import AppPopover from './AppPopover';
 
 @connect(({ login, canvas }) => ({
   leftDays: login.leftDays,
@@ -74,12 +75,12 @@ class GlobalHeader extends PureComponent {
             <Icon type={collapsed ? 'menu-unfold' : 'menu-fold'} />
           </span>)
         }
-
+        {processGroupId ? (<div className={styles.appPopover} ><AppPopover /></div>) : (null)}
         {processGroupId && component ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
             <Breadcrumb.Item>
               {processGroupId === component.id ? component.name :
-                <Link to={url}>{component.name}</Link>
+                <Link to={url} target="blank">{component.name}</Link>
               }
             </Breadcrumb.Item>
           </Breadcrumb>) : (null)
