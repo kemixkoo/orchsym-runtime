@@ -126,6 +126,7 @@
     }
   }
 }
+
 .alertBg {
   position: absolute;
   top: 56px;
@@ -133,6 +134,71 @@
   z-index: 10;
   width: 70%;
 }
+
+// 画布头部下拉菜单
+.lineEllipsis {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  // height: 25px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* autoprefixer: off */
+  -webkit-box-orient: vertical;
+  /* autoprefixer: on */
+}
+.listScrollbar {
+  min-height: 50px;
+  max-height: 400px;
+  overflow: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+.appPopover {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.appPopoverWrapper {
+  .searchInput {
+    padding: 16px;
+
+    :global {
+      .ant-input {
+        border-top: none;
+        border-right: none;
+        border-left: none;
+        border-radius: 0;
+      }
+    }
+  }
+
+  .title {
+    margin-bottom: 10px;
+    padding: 0 16px;
+    color: #999;
+  }
+}
+
+.appMenu {
+  border: none;
+  .appMenuIcon {
+    position: absolute;
+    right: 0;
+  }
+  :global {
+    .ant-menu-item {
+      height: 30px !important;
+      margin: 0 !important;
+      padding: 0 16px;
+      line-height: 30px !important;
+    }
+    .ant-menu-item-active {
+      background: #e3f8ff;
+    }
+  }
+}
+
 @media only screen and (max-width: @screen-md) {
   .header {
     :global(.ant-divider-vertical) {
