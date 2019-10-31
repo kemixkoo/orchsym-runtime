@@ -27,7 +27,7 @@ import org.apache.nifi.web.api.dto.ControllerServiceDTO;
  */
 public class ServiceCounterDTO {
     private String service;
-    private Long count;
+    private Long count = 0L;
 
     private List<ControllerServiceDTO> details;
 

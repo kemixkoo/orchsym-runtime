@@ -28,7 +28,7 @@ import org.apache.nifi.web.api.dto.ProcessorDTO;
 public class ComponentCounterDTO {
     private String name;
     private String version;
-    private Long count;
+    private Long count = 0L;
     private List<String> categories;
 
     private List<ProcessorDTO> details;
