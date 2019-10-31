@@ -17,6 +17,8 @@
  */
 package org.apache.nifi.web.api;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
@@ -77,6 +79,8 @@ import org.apache.nifi.web.api.entity.ControllerServicesEntity;
 import org.apache.nifi.web.api.entity.DbcpControllerServiceEntity;
 import org.apache.nifi.web.api.entity.DbcpControllerServicesEntity;
 import org.apache.nifi.web.api.entity.VariableEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -86,6 +90,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
 /**
@@ -95,6 +100,8 @@ import net.minidev.json.JSONObject;
 @Path("/service")
 @Api(value = "/service", description = "Endpoint for managing a Controller Service.")
 public class ServiceResource extends AbsOrchsymResource {
+    private static final Logger logger = LoggerFactory.getLogger(ServiceResource.class);
+
     private static final String DBCP_CLASS = "org.apache.nifi.dbcp.DBCPConnectionPool";
 
     @Autowired
@@ -336,78 +343,132 @@ public class ServiceResource extends AbsOrchsymResource {
             responseEntity.setCurrentTime(new Date());
 
             final boolean includeDescendantGroups = operationEntity.isIncludeDescendantGroups();
+            final boolean skipInvalid = operationEntity.isSkipInvalid();
             // get the controller services
             final Set<ControllerServiceEntity> controllerServiceEntities = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
 
+            JSONArray result = new JSONArray();
             switch (operation) {
             case ENABLE:
-                enableControllerServices(controllerServiceEntities);
-                responseEntity.setControllerServices(serviceFacade.getControllerServices(groupId, false, includeDescendantGroups));
+                result = enableControllerServices(controllerServiceEntities, skipInvalid);
                 break;
             case DISABLE:
-                disableControllerServices(controllerServiceEntities);
-                responseEntity.setControllerServices(serviceFacade.getControllerServices(groupId, false, includeDescendantGroups));
+                result = disableControllerServices(controllerServiceEntities, skipInvalid);
                 break;
             case DELETE:
-                disableControllerServices(controllerServiceEntities);
+                disableControllerServices(controllerServiceEntities, skipInvalid);
                 final Set<ControllerServiceEntity> disabledControllerServiceEntities = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
-                responseEntity.setControllerServices(deleteControllerServices(disabledControllerServiceEntities));
+                result = deleteControllerServices(disabledControllerServiceEntities, skipInvalid);
                 break;
             default:
                 break;
             }
 
-            return generateOkResponse(responseEntity).build();
+            return generateOkResponse(result.toJSONString()).build();
         });
     }
 
+    private JSONObject collectOperateServices(ControllerServiceEntity serviceEntity, Exception error) {
+        final ControllerServiceDTO component = serviceEntity.getComponent();
+        // 清除数据
+        JSONObject result = new JSONObject();
+        result.put("id", component.getId());
+        result.put("parentGroupId", component.getParentGroupId());
+        result.put("name", component.getName());
+        result.put("service", component.getType());
+        result.put("state", component.getState());
+        result.put("status", "success");
+        if (null != error) {
+            result.put("status", "error");
+            result.put("message", error.getMessage());
+
+            StringWriter sw = new StringWriter();
+            try (PrintWriter pw = new PrintWriter(sw);) {
+                error.printStackTrace(pw);
+                result.put("stackTrace", sw.toString());
+            }
+            logger.error(error.getMessage(), error);
+        }
+        return result;
+    }
+
     // Try to enable a bulk of controller services.
-    private void enableControllerServices(Set<ControllerServiceEntity> servicesToEnable) {
+    private JSONArray enableControllerServices(Set<ControllerServiceEntity> servicesToEnable, boolean skipInvalid) {
+        JSONArray result = new JSONArray();
         for (ControllerServiceEntity serviceEntity : servicesToEnable) {
             final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
             serviceDTO.setId(serviceEntity.getId());
             serviceDTO.setState(ControllerServiceState.ENABLED.name());
+            try {
+                final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
+                final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
+                controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
 
-            final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
-            final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
-            controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
+                result.add(collectOperateServices(controllerServiceEntity, null));
+            } catch (Exception e) {
+                result.add(collectOperateServices(serviceEntity, e));
+                if (!skipInvalid) {
+                    throw e;
+                }
+            }
         }
+        return result;
     }
 
     // Try to disable a bulk of controller services.
-    private void disableControllerServices(Set<ControllerServiceEntity> servicesToDisable) {
+    private JSONArray disableControllerServices(Set<ControllerServiceEntity> servicesToDisable, boolean skipInvalid) {
+        JSONArray result = new JSONArray();
         for (ControllerServiceEntity serviceEntity : servicesToDisable) {
-            // stop the controller service references
-            final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(serviceEntity.getId())
-                    .getControllerServiceReferencingComponents();
-            final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream().collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
-                final RevisionDTO rev = entity.getRevision();
-                return new Revision(rev.getVersion(), rev.getClientId(), entity.getId());
-            }));
-            serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, serviceEntity.getId(), ScheduledState.STOPPED, null);
-            // disable the controller service references
-            serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), serviceEntity.getId(), ScheduledState.DISABLED, ControllerServiceState.DISABLED);
-            // disable the controller service
+            try {
+                // stop the controller service references
+                final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(serviceEntity.getId())
+                        .getControllerServiceReferencingComponents();
+                final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream().collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
+                    final RevisionDTO rev = entity.getRevision();
+                    return new Revision(rev.getVersion(), rev.getClientId(), entity.getId());
+                }));
+                serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, serviceEntity.getId(), ScheduledState.STOPPED, null);
+                // disable the controller service references
+                serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), serviceEntity.getId(), ScheduledState.DISABLED, ControllerServiceState.DISABLED);
+                // disable the controller service
 
-            final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
-            serviceDTO.setId(serviceEntity.getId());
-            serviceDTO.setState(ControllerServiceState.DISABLED.name());
+                final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                serviceDTO.setId(serviceEntity.getId());
+                serviceDTO.setState(ControllerServiceState.DISABLED.name());
 
-            final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
-            final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
-            controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
+                final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
+                final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
+                controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
 
+                result.add(collectOperateServices(controllerServiceEntity, null));
+            } catch (Exception e) {
+                result.add(collectOperateServices(serviceEntity, e));
+                if (!skipInvalid) {
+                    throw e;
+
+                }
+            }
         }
+        return result;
     }
 
     // try to delete a bulk of controller services
-    private Set<ControllerServiceEntity> deleteControllerServices(Set<ControllerServiceEntity> servicesToDelete) {
-        Set<ControllerServiceEntity> deletedControllerServices = new HashSet<>();
+    private JSONArray deleteControllerServices(Set<ControllerServiceEntity> servicesToDelete, boolean skipInvalid) {
+        JSONArray result = new JSONArray();
         for (ControllerServiceEntity serviceEntity : servicesToDelete) {
-            final Revision revision = getRevision(serviceEntity.getRevision(), serviceEntity.getId());
-            deletedControllerServices.add(serviceFacade.deleteControllerService(revision, serviceEntity.getId()));
+            try {
+                final Revision revision = getRevision(serviceEntity.getRevision(), serviceEntity.getId());
+                final ControllerServiceEntity deleteControllerService = serviceFacade.deleteControllerService(revision, serviceEntity.getId());
+
+                result.add(collectOperateServices(deleteControllerService, null));
+            } catch (Exception e) {
+                result.add(collectOperateServices(serviceEntity, e));
+                if (!skipInvalid) {
+                    throw e;
+                }
+            }
         }
-        return deletedControllerServices;
+        return result;
     }
 
     /**

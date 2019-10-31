@@ -31,6 +31,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ControllerServicesBatchOperationEntity extends Entity {
     private String operation;
     private boolean includeDescendantGroups;
+    private boolean skipInvalid;
     private Boolean disconnectedNodeAcknowledged;
 
     /**
@@ -74,6 +75,14 @@ public class ControllerServicesBatchOperationEntity extends Entity {
 
     public void setDisconnectedNodeAcknowledged(Boolean disconnectedNodeAcknowledged) {
         this.disconnectedNodeAcknowledged = disconnectedNodeAcknowledged;
+    }
+
+    public boolean isSkipInvalid() {
+        return skipInvalid;
+    }
+
+    public void setSkipInvalid(boolean skipInvalid) {
+        this.skipInvalid = skipInvalid;
     }
 
     /**
