@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input, Select, Button } from 'antd';
-import { FormattedMessage } from 'umi-plugin-react/locale';
+import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
 import styles from './ApplicationSearch.less';
 
 const InputGroup = Input.Group;
@@ -32,9 +32,9 @@ export default class ApplicationSearch extends React.Component {
     return (
       <div className={styles.search}>
         <InputGroup compact>
-          <Select defaultValue="标签" onChange={this.handlePreSelect}>
-            <Option value="标签" key="标签">标签</Option>
-            <Option value="名称" key="名称">名称</Option>
+          <Select style={{ width: '70px' }} defaultValue="标签" onChange={this.handlePreSelect}>
+            <Option value="标签" key="标签">{formatMessage({ id: 'page.application.search.tag' })}</Option>
+            <Option value="名称" key="名称">{formatMessage({ id: 'page.application.search.name' })}</Option>
           </Select>
           {(selectValue === '标签') ? (
             <Select

@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'dva';
 import { Modal, Input, Form, Select } from 'antd';
+import { formatMessage } from 'umi-plugin-react/locale';
 
 const { TextArea } = Input;
 const FormItem = Form.Item;
@@ -46,10 +47,10 @@ class CreateOrEditApp extends React.Component {
             },
           })
         }
+        resetFields();
         handleCreateEditCancel();
       }
     });
-    resetFields();
   }
 
   handleCancel = () => {
@@ -68,11 +69,11 @@ class CreateOrEditApp extends React.Component {
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
-        sm: { span: 4 },
+        sm: { span: 6 },
       },
       wrapperCol: {
         xs: { span: 24 },
-        sm: { span: 18 },
+        sm: { span: 16 },
       },
     };
     const tags = [
@@ -88,36 +89,33 @@ class CreateOrEditApp extends React.Component {
           title={title}
           onCancel={this.handleCancel}
           onOk={this.handleCreateEditOk}
-          okText="确定"
-          cancelText="取消"
+          okText={formatMessage({ id: 'form.submit' })}
+          cancelText={formatMessage({ id: 'form.cancel' })}
           destroyOnClose
         >
           <Form {...formItemLayout}>
-            <FormItem label="应用名称">
+            <FormItem label={formatMessage({ id: 'form.application.appName' })}>
               {getFieldDecorator('name', {
-                rules: [{
-                  required: true, message: '应用名称不能为空!',
-                }],
+                rules: [
+                  { required: true, message: formatMessage({ id: 'validation.appName.required' }) },
+                  { max: 20, message: formatMessage({ id: 'validation.appName.placeholder' }) },
+                  { whitespace: true, message: formatMessage({ id: 'validation.appName.required' }) },
+                ],
                 initialValue: component ? component.name : '',
               })(
                 <Input />
               )}
             </FormItem>
-            <FormItem label="应用描述">
+            <FormItem label={formatMessage({ id: 'form.application.appDescription' })}>
               {getFieldDecorator('comments', {
-                // rules: [{
-                //   required: true, message: '请输入应用名称!',
-                // }],
+                rules: [{ required: false, max: 100, message: formatMessage({ id: 'validation.appDescription.placeholder' }) }],
                 initialValue: component ? component.comments : '',
               })(
                 <TextArea rows={4} />
               )}
             </FormItem>
-            <FormItem label="标签设置">
+            <FormItem label={formatMessage({ id: 'form.application.appTag' })}>
               {getFieldDecorator('tags', {
-                // rules: [{
-                //   required: true, message: '请输入应用名称!',
-                // }],
                 initialValue: component && component.tags && component.tags.length > 0 ? component.tags : [],
               })(
                 <Select
