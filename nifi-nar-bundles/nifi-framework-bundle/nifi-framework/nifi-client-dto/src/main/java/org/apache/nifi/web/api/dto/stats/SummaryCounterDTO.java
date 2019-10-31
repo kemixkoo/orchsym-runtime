@@ -24,6 +24,16 @@ import java.util.Map;
  *
  */
 public class SummaryCounterDTO {
+    private Long groupCount;  //所有模块总数
+    private Long groupLeavesCount;
+    private Long templateCount;
+    private Long labelCount;
+    private Long varCount;
+    private Long funnelCount;
+    private Integer inputPortCount;
+    private Integer outputPortCount;
+    private Long connectionCount;
+
     private Integer runningCount;
     private Integer stoppedCount;
     private Integer invalidCount;
@@ -38,28 +48,89 @@ public class SummaryCounterDTO {
     private Integer locallyModifiedAndStaleCount;
     private Integer syncFailureCount;
 
-    private Integer inputPortCount;
-    private Integer outputPortCount;
-
     private Long components; // 平台提供组件数
-    private Long componentsOwned; // 自主研发组件数
+    private Long componentsOwned; // 平台自主研发组件数
     private Long componentsUsed; // 使用组件数
-    private Long componentsUsedCount;
+    private Long componentsUsedCount; // 使用组件频次总数
     private Map<String, Long> componentsI18n;
 
-    private Long services; // all controller services for runtime to load
-    private Long servicesOwned; // provide by us
-    private Long servicesUsed;
-    private Long servicesUsedCount;
+    private Long services; // 平台提供的服务
+    private Long servicesOwned; // 自主研发服务
+    private Long servicesUsed; // 使用服务数
+    private Long servicesUsedCount; // 使用服务频次总数
     private Map<String, Long> servicesI18n;
 
-    private Long connectionCount;
-    private Long funnelCount;
-    private Long groupCount;
-    private Long groupLeavesCount;
-    private Long labelCount;
-    private Long varCount;
-    private Long templateCount;
+    public Long getGroupCount() {
+        return groupCount;
+    }
+
+    public void setGroupCount(Long groupCount) {
+        this.groupCount = groupCount;
+    }
+
+    public Long getGroupLeavesCount() {
+        return groupLeavesCount;
+    }
+
+    public void setGroupLeavesCount(Long groupLeavesCount) {
+        this.groupLeavesCount = groupLeavesCount;
+    }
+
+    public Long getTemplateCount() {
+        return templateCount;
+    }
+
+    public void setTemplateCount(Long templateCount) {
+        this.templateCount = templateCount;
+    }
+
+    public Long getLabelCount() {
+        return labelCount;
+    }
+
+    public void setLabelCount(Long labelCount) {
+        this.labelCount = labelCount;
+    }
+
+    public Long getVarCount() {
+        return varCount;
+    }
+
+    public void setVarCount(Long varCount) {
+        this.varCount = varCount;
+    }
+
+    public Long getFunnelCount() {
+        return funnelCount;
+    }
+
+    public void setFunnelCount(Long funnelCount) {
+        this.funnelCount = funnelCount;
+    }
+
+    public Integer getInputPortCount() {
+        return inputPortCount;
+    }
+
+    public void setInputPortCount(Integer inputPortCount) {
+        this.inputPortCount = inputPortCount;
+    }
+
+    public Integer getOutputPortCount() {
+        return outputPortCount;
+    }
+
+    public void setOutputPortCount(Integer outputPortCount) {
+        this.outputPortCount = outputPortCount;
+    }
+
+    public Long getConnectionCount() {
+        return connectionCount;
+    }
+
+    public void setConnectionCount(Long connectionCount) {
+        this.connectionCount = connectionCount;
+    }
 
     public Integer getRunningCount() {
         return runningCount;
@@ -149,22 +220,6 @@ public class SummaryCounterDTO {
         this.syncFailureCount = syncFailureCount;
     }
 
-    public Integer getInputPortCount() {
-        return inputPortCount;
-    }
-
-    public void setInputPortCount(Integer inputPortCount) {
-        this.inputPortCount = inputPortCount;
-    }
-
-    public Integer getOutputPortCount() {
-        return outputPortCount;
-    }
-
-    public void setOutputPortCount(Integer outputPortCount) {
-        this.outputPortCount = outputPortCount;
-    }
-
     public Long getComponents() {
         return components;
     }
@@ -243,62 +298,6 @@ public class SummaryCounterDTO {
 
     public void setServicesI18n(Map<String, Long> servicesI18n) {
         this.servicesI18n = servicesI18n;
-    }
-
-    public Long getConnectionCount() {
-        return connectionCount;
-    }
-
-    public void setConnectionCount(Long connectionCount) {
-        this.connectionCount = connectionCount;
-    }
-
-    public Long getFunnelCount() {
-        return funnelCount;
-    }
-
-    public void setFunnelCount(Long funnelCount) {
-        this.funnelCount = funnelCount;
-    }
-
-    public Long getGroupCount() {
-        return groupCount;
-    }
-
-    public void setGroupCount(Long groupCount) {
-        this.groupCount = groupCount;
-    }
-
-    public Long getGroupLeavesCount() {
-        return groupLeavesCount;
-    }
-
-    public void setGroupLeavesCount(Long groupLeavesCount) {
-        this.groupLeavesCount = groupLeavesCount;
-    }
-
-    public Long getLabelCount() {
-        return labelCount;
-    }
-
-    public void setLabelCount(Long labelCount) {
-        this.labelCount = labelCount;
-    }
-
-    public Long getVarCount() {
-        return varCount;
-    }
-
-    public void setVarCount(Long varCount) {
-        this.varCount = varCount;
-    }
-
-    public Long getTemplateCount() {
-        return templateCount;
-    }
-
-    public void setTemplateCount(Long templateCount) {
-        this.templateCount = templateCount;
     }
 
 }

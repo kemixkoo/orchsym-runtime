@@ -21,6 +21,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,26 +48,22 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.annotation.documentation.Marks;
 import org.apache.nifi.controller.FlowController;
+import org.apache.nifi.controller.ProcessorNode;
+import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.nar.i18n.LanguageHelper;
 import org.apache.nifi.nar.i18n.MessagesProvider;
 import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.Revision;
-import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
-import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.stats.ComponentCounterDTO;
 import org.apache.nifi.web.api.dto.stats.ServiceCounterDTO;
 import org.apache.nifi.web.api.dto.stats.StatsCounterDTO;
 import org.apache.nifi.web.api.dto.stats.SummaryCounterDTO;
 import org.apache.nifi.web.api.dto.stats.VarCounterDTO;
-import org.apache.nifi.web.api.entity.ControllerServiceEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
-import org.apache.nifi.web.api.entity.ProcessorEntity;
 import org.apache.nifi.web.api.entity.StatsCountersEntity;
-import org.apache.nifi.web.api.entity.StatsProcessorsEntity;
-import org.apache.nifi.web.api.entity.StatsServicesEntity;
 import org.apache.nifi.web.api.entity.StatsVarsEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryEntity;
@@ -74,9 +71,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -99,10 +93,6 @@ public class StatsResource extends AbsOrchsymResource {
 
     @Autowired
     private NiFiServiceFacade serviceFacade;
-    @Autowired
-    private ProcessorResource processorResource;
-    @Autowired
-    private ControllerServiceResource controllerServiceResource;
 
     /**
      * Retrieves all the counters of services, processors.
@@ -130,7 +120,8 @@ public class StatsResource extends AbsOrchsymResource {
             StatsCounterDTO dto = new StatsCounterDTO();
             entity.setCounters(dto);
 
-            final String rootGroupId = flowController.getRootGroupId();
+            final ProcessGroup rootGroup = flowController.getRootGroup();
+            final String rootGroupId = rootGroup.getIdentifier();
 
             final SummaryCounterDTO summaryDTO = getSummaryDTO();
             dto.setSummary(summaryDTO);
@@ -146,10 +137,14 @@ public class StatsResource extends AbsOrchsymResource {
             summaryDTO.setFunnelCount(getFunnelCount(rootGroupId));
             summaryDTO.setTemplateCount(getTemplateCount(rootGroupId));
 
-            final List<ComponentCounterDTO> processorCounters = getProcessorCounters(null, false);
-            summaryDTO.setComponentsUsed((long) processorCounters.size());
-            summaryDTO.setComponentsUsedCount(processorCounters.stream().collect(Collectors.summingLong(ComponentCounterDTO::getCount)));
-            dto.setProcessors(processorCounters.stream().sorted(new Comparator<ComponentCounterDTO>() {
+            //
+            final Map<String, List<String>> componentCategories = getComponentsCategories(null);
+            final Map<String, ComponentCounterDTO> processorCountersMap = new HashMap<>();
+            collectProcessorCounters(componentCategories, rootGroup, processorCountersMap);
+            summaryDTO.setComponentsUsed((long) processorCountersMap.size());
+            final Collection<ComponentCounterDTO> processorCountersList = processorCountersMap.values();
+            summaryDTO.setComponentsUsedCount(processorCountersList.stream().collect(Collectors.summingLong(ComponentCounterDTO::getCount)));
+            dto.setComponents(processorCountersList.stream().sorted(new Comparator<ComponentCounterDTO>() {
 
                 @Override
                 public int compare(ComponentCounterDTO o1, ComponentCounterDTO o2) {
@@ -161,10 +156,13 @@ public class StatsResource extends AbsOrchsymResource {
                 }
             }).collect(Collectors.toList()));
 
-            final List<ServiceCounterDTO> serviceCounters = getServiceCounters(null, false);
-            summaryDTO.setServicesUsed((long) serviceCounters.size());
-            summaryDTO.setServicesUsedCount(serviceCounters.stream().collect(Collectors.summingLong(ServiceCounterDTO::getCount)));
-            dto.setServices(serviceCounters.stream().sorted(new Comparator<ServiceCounterDTO>() {
+            //
+            final Map<String, ServiceCounterDTO> serviceCountersMap = new HashMap<>();
+            collectServiceCounters(rootGroup, serviceCountersMap);
+            summaryDTO.setServicesUsed((long) serviceCountersMap.size());
+            final Collection<ServiceCounterDTO> serviceCountersList = serviceCountersMap.values();
+            summaryDTO.setServicesUsedCount(serviceCountersList.stream().collect(Collectors.summingLong(ServiceCounterDTO::getCount)));
+            dto.setServices(serviceCountersList.stream().sorted(new Comparator<ServiceCounterDTO>() {
 
                 @Override
                 public int compare(ServiceCounterDTO o1, ServiceCounterDTO o2) {
@@ -180,13 +178,30 @@ public class StatsResource extends AbsOrchsymResource {
                 final StringBuilder result = new StringBuilder(500);
 
                 result.append("总览:\n");
+                addColumn(result, "模块总数", summaryDTO.getGroupCount());
+                addColumn(result, "子模块数", summaryDTO.getGroupLeavesCount());
+                addColumn(result, "模板数", summaryDTO.getTemplateCount());
+                addColumn(result, "定义变量数", summaryDTO.getVarCount());
+                addColumn(result, "标签总数", summaryDTO.getLabelCount());
+                addColumn(result, "汇集器数", summaryDTO.getFunnelCount());
+                addColumn(result, "输入端口数", summaryDTO.getInputPortCount());
+                addColumn(result, "输出端口数", summaryDTO.getOutputPortCount());
+                addColumn(result, "连接数", summaryDTO.getConnectionCount());
+
+                result.append('\n');
+                addColumn(result, "运行组件数", summaryDTO.getRunningCount());
+                addColumn(result, "停止组件数", summaryDTO.getStoppedCount());
+                addColumn(result, "有问题组件数", summaryDTO.getInvalidCount());
+                addColumn(result, "禁用组件数", summaryDTO.getDisabledCount());
+
                 // 平台
-                addColumn(result, "组件总数", summaryDTO.getComponents());
-                addColumn(result, "自主开发组件", summaryDTO.getComponentsOwned());
+                result.append('\n');
+                addColumn(result, "平台组件数", summaryDTO.getComponents());
+                addColumn(result, "平台自研组件数", summaryDTO.getComponentsOwned());
                 addColumn(result, "组件翻译", summaryDTO.getComponentsI18n());
 
                 addColumn(result, "服务总数", summaryDTO.getServices());
-                addColumn(result, "自主开发服务", summaryDTO.getServicesOwned());
+                addColumn(result, "平台自研服务数", summaryDTO.getServicesOwned());
                 addColumn(result, "服务翻译", summaryDTO.getServicesI18n());
 
                 result.append('\n');
@@ -196,28 +211,10 @@ public class StatsResource extends AbsOrchsymResource {
                 addColumn(result, "使用服务数", summaryDTO.getServicesUsed());
                 addColumn(result, "服务使用频次", summaryDTO.getServicesUsedCount());
 
-                addColumn(result, "模块总数", summaryDTO.getGroupCount());
-                addColumn(result, "子模块数", summaryDTO.getGroupLeavesCount());
-
-                addColumn(result, "输入端口数", summaryDTO.getInputPortCount());
-                addColumn(result, "输出端口数", summaryDTO.getOutputPortCount());
-                addColumn(result, "汇集器数", summaryDTO.getFunnelCount());
-
-                addColumn(result, "标签总数", summaryDTO.getLabelCount());
-                addColumn(result, "定义变量数", summaryDTO.getVarCount());
-                addColumn(result, "模板数", summaryDTO.getTemplateCount());
-
-                result.append('\n');
-                addColumn(result, "运行组件数", summaryDTO.getRunningCount());
-                addColumn(result, "停止组件数", summaryDTO.getStoppedCount());
-                addColumn(result, "禁用组件数", summaryDTO.getDisabledCount());
-                addColumn(result, "无效组件数", summaryDTO.getInvalidCount());
-                addColumn(result, "连接数", summaryDTO.getConnectionCount());
-
                 //
                 result.append("\n\n");
                 result.append("组件使用排行榜:\n");
-                dto.getProcessors().forEach(p -> addColumn(result, p.getName(), p.getCount()));
+                dto.getComponents().forEach(p -> addColumn(result, p.getName(), p.getCount()));
 
                 result.append("\n\n");
                 result.append("服务使用排行榜:\n");
@@ -245,94 +242,6 @@ public class StatsResource extends AbsOrchsymResource {
             t.printStackTrace(pw);
 
             return noCache(Response.serverError().entity(sw.toString())).build();
-        }
-    }
-
-    /**
-     * Retrieves all the details of processors.
-     *
-     * @return A StatsProcessorsEntity.
-     */
-    @GET
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/component/{type}")
-    @ApiOperation(value = "Gets all processors", //
-            response = StatsProcessorsEntity.class //
-    )
-    @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
-    })
-    public Response getProcessors(@PathParam("type") final String componentType) {
-        try {
-            // Set<DocumentedTypeDTO> processorTypes = serviceFacade.getProcessorTypes(null, null, null);
-            // processorTypes = processorTypes.stream().filter(t -> t.getType().endsWith('.' + componentType)).collect(Collectors.toSet());
-            //
-            // if (processorTypes.isEmpty()) {
-            // return Response.noContent().build();
-            // }
-            // List<ProcessorNode> usedComponent = flowController.getGroup(FlowController.ROOT_GROUP_ID_ALIAS).findAllProcessors();
-            // usedComponent = usedComponent.stream().filter(node -> node.getComponentType().equals(componentType)).collect(Collectors.toList());
-            //
-            // ComponentCounterDTO dto = new ComponentCounterDTO();
-            // dto.setName(componentType);
-            // dto.setVersion(processorTypes.iterator().next().getBundle().getVersion());
-            // dto.setCategories(getComponentsCategories(null).get(componentType));
-            // dto.setCount(Long.valueOf(usedComponent.size()));
-            // dto.setDetails(usedComponent.stream().map(node -> {
-            // ProcessorDTO p = new ProcessorDTO();
-            // ProcessorConfigDTO config=new ProcessorConfigDTO();
-            // p.setConfig(config);
-            //
-            // config.setProperties(node.getProperties());
-            // return p;
-            // }).collect(Collectors.toList()));
-
-            // StatsProcessorsEntity entity = new StatsProcessorsEntity();
-            // entity.setProcessors(Arrays.asList(dto));
-
-            List<ComponentCounterDTO> processorCounters = getProcessorCounters(componentType, true);
-            processorCounters = processorCounters.stream().filter(c -> c.getName().equals(componentType)).collect(Collectors.toList());
-            StatsProcessorsEntity entity = new StatsProcessorsEntity();
-            entity.setProcessors(processorCounters);
-            // generate the response
-            return generateOkResponse(entity).build();
-        } catch (Throwable t) {
-            return createExceptionResponse(t);
-        }
-    }
-
-    /**
-     * Retrieves all the details of Services.
-     *
-     * @return A StatsServicesEntity.
-     */
-    @GET
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/service/{type}")
-    @ApiOperation(value = "Gets all Services", //
-            response = StatsServicesEntity.class //
-    )
-    @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
-    })
-    public Response getServices(@PathParam("type") String serviceType) {
-        try {
-            List<ServiceCounterDTO> serviceCounters = getServiceCounters(serviceType, true);
-            serviceCounters = serviceCounters.stream().filter(c -> c.getService().equals(serviceType)).collect(Collectors.toList());
-            StatsServicesEntity entity = new StatsServicesEntity();
-            entity.setServices(serviceCounters);
-            // generate the response
-            return generateOkResponse(entity).build();
-        } catch (Throwable t) {
-            return createExceptionResponse(t);
         }
     }
 
@@ -498,166 +407,42 @@ public class StatsResource extends AbsOrchsymResource {
         return allVars;
     }
 
-    private List<ServiceCounterDTO> getServiceCounters(final String serviceType, final boolean withDetails) {
-        // get all the controller services
-        Set<ControllerServiceEntity> controllerServices = serviceFacade.getControllerServices(FlowController.ROOT_GROUP_ID_ALIAS, false, true);
-        controllerServices = controllerServiceResource.populateRemainingControllerServiceEntitiesContent(controllerServices);
-
-        // services error
-        List<ControllerServiceEntity> nullProcessorsList = controllerServices.stream() //
-                .filter(p -> p.getComponent() == null || p.getComponent().getType() == null).collect(Collectors.toList());
-        if (!nullProcessorsList.isEmpty()) { // exited null components?
-            logger.warn("All services: " + controllerServices.size());
-            logger.warn("NULL services: " + nullProcessorsList.size());
-
-            List<String> okComponents = controllerServices.stream().filter(p -> p.getComponent() != null && p.getComponent().getType() != null).map(p -> p.getComponent().getType())
-                    .map(t -> t.substring(t.lastIndexOf('.') + 1)).collect(Collectors.toList());
-            logger.info("OK services: " + String.join(",", okComponents));
-
-            for (int i = 0; i < nullProcessorsList.size(); i++) {
-                try {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    logger.error(i + " NULL service: " + objectMapper.writeValueAsString(nullProcessorsList.get(i)));
-                } catch (JsonProcessingException e1) {
-                    logger.error(e1.getMessage());
-                }
+    private void collectServiceCounters(final ProcessGroup group, final Map<String, ServiceCounterDTO> results) {
+        // group.getControllerServices(false).stream().collect(Collectors.groupingBy(node -> node.getComponentType(), Collectors.counting()));
+        String componentType = null;
+        ServiceCounterDTO dto = null;
+        for (ControllerServiceNode node : group.getControllerServices(false)) {
+            componentType = node.getComponentType();
+            dto = results.get(componentType);
+            if (null == dto) {
+                dto = new ServiceCounterDTO();
+                results.put(componentType, dto);
+                dto.setService(componentType);
             }
+            dto.setCount(dto.getCount() + 1);
         }
-        Set<ControllerServiceEntity> validControllerServices = controllerServices.stream() //
-                .filter(p -> p.getComponent() != null && p.getComponent().getType() != null)//
-                .filter(p -> null == serviceType || p.getComponent().getType().toLowerCase().endsWith('.' + serviceType.toLowerCase())) //
-                .collect(Collectors.toSet());
 
-        List<ServiceCounterDTO> serviceCounterList = new ArrayList<>();
-        validControllerServices.stream() //
-                .collect(Collectors.groupingBy(e -> e.getComponent().getType(), Collectors.counting())).entrySet() //
-                .forEach(entry -> {
-                    ServiceCounterDTO controllerServiceCounterDTO = new ServiceCounterDTO();
-                    String serviceName = removePackage(entry.getKey());
-                    controllerServiceCounterDTO.setService(serviceName);
-                    controllerServiceCounterDTO.setCount(entry.getValue());
-
-                    List<ControllerServiceDTO> details = validControllerServices.stream() //
-                            .filter(e -> e.getComponent().getType().equals(entry.getKey())) //
-                            .map(e -> e.getComponent())//
-                            .collect(Collectors.toList());
-
-                    if (withDetails) {
-                        controllerServiceCounterDTO.setDetails(details.stream().sorted(new Comparator<ControllerServiceDTO>() {
-
-                            @Override
-                            public int compare(ControllerServiceDTO o1, ControllerServiceDTO o2) {
-                                if (o1.getBundle() != null && o2.getBundle() != null) {
-                                    int compare = o2.getBundle().getGroup().compareTo(o1.getBundle().getGroup());
-                                    if (compare != 0) {
-                                        return compare;
-                                    }
-                                    compare = o2.getBundle().getArtifact().compareTo(o1.getBundle().getArtifact());
-                                    if (compare != 0) {
-                                        return compare;
-                                    }
-                                    compare = o2.getBundle().getVersion().compareTo(o1.getBundle().getVersion());
-                                    if (compare != 0) {
-                                        return compare;
-                                    }
-                                }
-                                return o2.getType().compareTo(o2.getType());
-                            }
-                        }).collect(Collectors.toList()));
-                    }
-
-                    serviceCounterList.add(controllerServiceCounterDTO);
-                });
-        return serviceCounterList;
+        group.getProcessGroups().forEach(subGroup -> collectServiceCounters(subGroup, results));
     }
 
-    private String removePackage(String fullname) {
-        String name = fullname;
-        final int packageIndex = name.lastIndexOf('.');
-        if (packageIndex > 0) {
-            name = name.substring(packageIndex + 1);
-        }
-        return name;
-    }
-
-    private List<ComponentCounterDTO> getProcessorCounters(final String componentType, final boolean withDetails) {
-        // final List<ProcessorNode> allProcessors = flowController.getGroup(FlowController.ROOT_GROUP_ID_ALIAS).findAllProcessors();
-
-        Set<ProcessorEntity> processors = serviceFacade.getProcessors(FlowController.ROOT_GROUP_ID_ALIAS, true);
-        processors = processorResource.populateRemainingProcessorEntitiesContent(processors);
-
-        // process error
-        List<ProcessorEntity> nullProcessorsList = processors.stream() //
-                .filter(p -> p.getComponent() == null || p.getComponent().getType() == null).collect(Collectors.toList());
-        if (!nullProcessorsList.isEmpty()) { // exited null components?
-            logger.warn("All components: " + processors.size());
-            logger.warn("NULL components: " + nullProcessorsList.size());
-
-            List<String> okComponents = processors.stream().filter(p -> p.getComponent() != null && p.getComponent().getType() != null).map(p -> p.getComponent().getType())
-                    .map(t -> t.substring(t.lastIndexOf('.') + 1)).collect(Collectors.toList());
-            logger.info("OK components: " + String.join(",", okComponents));
-
-            for (int i = 0; i < nullProcessorsList.size(); i++) {
-                try {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    logger.error(i + " NULL component: " + objectMapper.writeValueAsString(nullProcessorsList.get(i)));
-                } catch (JsonProcessingException e1) {
-                    logger.error(e1.getMessage());
-                }
+    private void collectProcessorCounters(final Map<String, List<String>> componentCategories, final ProcessGroup group, final Map<String, ComponentCounterDTO> results) {
+        //
+        String componentType = null;
+        ComponentCounterDTO dto = null;
+        for (ProcessorNode node : group.getProcessors()) {
+            componentType = node.getComponentType();
+            dto = results.get(componentType);
+            if (null == dto) {
+                dto = new ComponentCounterDTO();
+                results.put(componentType, dto);
+                dto.setName(componentType);
+                dto.setCategories(componentCategories.get(componentType));
             }
+            dto.setCount(dto.getCount() + 1);
         }
 
-        final List<ProcessorEntity> validComponentsList = processors.stream() //
-                .filter(p -> p.getComponent() != null && p.getComponent().getType() != null)//
-                .filter(p -> null == componentType || p.getComponent().getType().toLowerCase().endsWith('.' + componentType.toLowerCase())) //
-                .collect(Collectors.toList());
-
-        final Map<String, List<String>> componentCategories = getComponentsCategories(null);
-
-        List<ComponentCounterDTO> processorCounterList = new ArrayList<>();
-        validComponentsList.stream() //
-                .collect(Collectors.groupingBy(e -> e.getComponent().getType(), Collectors.counting())).entrySet() //
-                .forEach(entry -> {
-                    ComponentCounterDTO processorCounterDTO = new ComponentCounterDTO();
-                    final String type = entry.getKey();
-                    String compName = removePackage(type);
-                    processorCounterDTO.setName(compName);
-                    processorCounterDTO.setCount(entry.getValue());
-                    processorCounterDTO.setCategories(componentCategories.get(compName));
-
-                    List<ProcessorDTO> details = validComponentsList.stream() //
-                            .filter(e -> e.getComponent().getType().equals(type)) //
-                            .map(e -> e.getComponent())//
-                            .collect(Collectors.toList());
-
-                    if (withDetails) {
-                        processorCounterDTO.setDetails(details.stream().sorted(new Comparator<ProcessorDTO>() {
-
-                            @Override
-                            public int compare(ProcessorDTO o1, ProcessorDTO o2) {
-                                if (o1.getBundle() != null && o2.getBundle() != null) {
-                                    int compare = o2.getBundle().getGroup().compareTo(o1.getBundle().getGroup());
-                                    if (compare != 0) {
-                                        return compare;
-                                    }
-                                    compare = o2.getBundle().getArtifact().compareTo(o1.getBundle().getArtifact());
-                                    if (compare != 0) {
-                                        return compare;
-                                    }
-                                    compare = o2.getBundle().getVersion().compareTo(o1.getBundle().getVersion());
-                                    if (compare != 0) {
-                                        return compare;
-                                    }
-                                }
-                                return o2.getType().compareTo(o1.getType());
-                            }
-                        }).collect(Collectors.toList()));
-                    }
-
-                    processorCounterList.add(processorCounterDTO);
-                });
-
-        return processorCounterList;
+        //
+        group.getProcessGroups().forEach(subGroup -> collectProcessorCounters(componentCategories, subGroup, results));
     }
 
     @GET

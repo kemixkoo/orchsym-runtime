@@ -104,4 +104,9 @@ public class ComponentCounterDTO {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return name + (null == version ? "" : ":" + version);
+    }
+
 }

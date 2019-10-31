@@ -27,7 +27,7 @@ import java.util.List;
 public class StatsCounterDTO {
     private SummaryCounterDTO summary;
 
-    private List<ComponentCounterDTO> processors;
+    private List<ComponentCounterDTO> components;
     private List<ServiceCounterDTO> services;
 
     public SummaryCounterDTO getSummary() {
@@ -38,12 +38,14 @@ public class StatsCounterDTO {
         this.summary = summary;
     }
 
-    public List<ComponentCounterDTO> getProcessors() {
-        return processors;
+    
+
+    public List<ComponentCounterDTO> getComponents() {
+        return components;
     }
 
-    public void setProcessors(List<ComponentCounterDTO> processors) {
-        this.processors = processors;
+    public void setComponents(List<ComponentCounterDTO> components) {
+        this.components = components;
     }
 
     public List<ServiceCounterDTO> getServices() {
