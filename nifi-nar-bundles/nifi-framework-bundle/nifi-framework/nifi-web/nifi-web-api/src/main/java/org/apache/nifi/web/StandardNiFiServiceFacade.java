@@ -24,6 +24,7 @@ import org.apache.nifi.action.FlowChangeAction;
 import org.apache.nifi.action.Operation;
 import org.apache.nifi.action.details.FlowChangePurgeDetails;
 import org.apache.nifi.admin.service.AuditService;
+import org.apache.nifi.authorization.resource.ComponentAuthorizable;
 import org.apache.nifi.curator.apps.AppStateNotifyService;
 import org.apache.nifi.authorization.AccessDeniedException;
 import org.apache.nifi.authorization.AccessPolicy;
@@ -726,7 +727,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 public RevisionUpdate<D> update() {
                     // get the updated component
                     final C component = daoUpdate.get();
-
+                    updateAndCreateComponentCallBack(component, OperateType.UPDATE_COMPONENT);
                     // save updated controller
                     controllerFacade.save();
 
@@ -1377,6 +1378,12 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
             public D performTask() {
                 logger.debug("Attempting to delete component {} with claim {}", resource.getIdentifier(), claim);
 
+                if (dto instanceof ComponentDTO){
+                    ComponentDTO componentDTO = (ComponentDTO) dto;
+                    final String parentGroupId = componentDTO.getParentGroupId();
+                    updateAllParentGroupExcludeRoot(parentGroupId, System.currentTimeMillis());
+                }
+
                 // run the delete action
                 deleteAction.run();
 
@@ -1651,7 +1658,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         return revisionManager.updateRevision(claim, user, () -> {
             // add the component
             final C component = daoCreation.get();
-
+            updateAndCreateComponentCallBack(component,OperateType.CREATE_COMPONENT);
             // save the flow
             controllerFacade.save();
 
@@ -1660,6 +1667,80 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
             return new StandardRevisionUpdate<>(dto, lastMod);
         });
     }
+
+    /**
+     * ---------begin update time --------------
+     */
+
+    private enum OperateType{
+        /**
+         * 表示操作类型
+         */
+        CREATE_COMPONENT,
+        UPDATE_COMPONENT
+    }
+
+    public static final String createdTime = "CREATED_TIMESTAMP";
+    public static final String modifiedTime = "MODIFIED_TIMESTAMP";
+    private <C> void  updateAndCreateComponentCallBack(C c, OperateType operateType){
+        if (!(c instanceof ComponentAuthorizable)){
+            return;
+        }
+        ComponentAuthorizable component = (ComponentAuthorizable) c;
+        final long time = System.currentTimeMillis();
+        if (operateType.equals(OperateType.CREATE_COMPONENT)){
+            if (c instanceof  ProcessGroup){
+                ProcessGroup group = processGroupDAO.getProcessGroup(component.getIdentifier());
+                if (!group.isRootGroup()){
+                    updateDirectGroupTimeField(createdTime, time, group);
+                    updateDirectGroupTimeField(modifiedTime, time, group);
+                    updateAllParentGroupExcludeRoot(component,time);
+                }
+            }else {
+                updateAllParentGroupExcludeRoot(component,time);
+            }
+        }else if (operateType.equals(OperateType.UPDATE_COMPONENT)){
+            if (!(c instanceof ProcessGroup)){
+                updateAllParentGroupExcludeRoot(component,time);
+            }else{
+                ProcessGroup group = processGroupDAO.getProcessGroup(component.getIdentifier());
+                if(!group.isRootGroup()){
+                    updateDirectGroupTimeField(modifiedTime, time, group);
+                    updateAllParentGroupExcludeRoot(component,time);
+                }
+            }
+        }
+    }
+    // 更新指定的group时间字段
+    private void updateDirectGroupTimeField(String fieldName, long time, ProcessGroup group){
+        Map<String, String> additions = group.getAdditions();
+        Map<String,String> putMap = new HashMap<>();
+        putMap.putAll(additions);
+        putMap.put(fieldName, Long.toString(time));
+        group.setAdditions(putMap);
+    }
+
+    private  void updateAllParentGroupExcludeRoot(ComponentAuthorizable component,long time){
+        final String groupIdentifier = component.getProcessGroupIdentifier();
+        ProcessGroup group = processGroupDAO.getProcessGroup(groupIdentifier);
+        while (!group.isRootGroup()){
+            updateDirectGroupTimeField(modifiedTime,time,group);
+            group = processGroupDAO.getProcessGroup(group.getParent().getIdentifier());
+        }
+    }
+
+    private  void updateAllParentGroupExcludeRoot(String parentGroupId,long time){
+        ProcessGroup group = processGroupDAO.getProcessGroup(parentGroupId);
+        while (!group.isRootGroup()){
+            updateDirectGroupTimeField(modifiedTime,time,group);
+            group = processGroupDAO.getProcessGroup(group.getParent().getIdentifier());
+        }
+    }
+
+    /**
+     * ---------end update time --------------
+     */
+
 
     @Override
     public BulletinEntity createBulletin(final BulletinDTO bulletinDTO, final Boolean canRead){
@@ -2687,7 +2768,10 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         return controllerFacade.search(query, groupId);
     }
 
-
+    @Override
+    public SearchResultsDTO searchAppsOfController(String query, String groupId) {
+        return controllerFacade.searchApps(query, groupId);
+    }
 
     @Override
     public DownloadableContent getContent(final String connectionId, final String flowFileUuid, final String uri) {

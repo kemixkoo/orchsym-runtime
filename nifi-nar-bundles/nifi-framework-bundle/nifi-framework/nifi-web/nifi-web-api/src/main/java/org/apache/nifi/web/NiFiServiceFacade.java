@@ -200,6 +200,14 @@ public interface NiFiServiceFacade {
     SearchResultsDTO searchController(String query, String groupId);
 
     /**
+     * @apiNote 检索一级Group，即APP类型的group
+     * @param query
+     * @param groupId
+     * @return
+     */
+    SearchResultsDTO searchAppsOfController(String query, String groupId);
+
+    /**
      * Submits a provenance request.
      *
      * @param query query

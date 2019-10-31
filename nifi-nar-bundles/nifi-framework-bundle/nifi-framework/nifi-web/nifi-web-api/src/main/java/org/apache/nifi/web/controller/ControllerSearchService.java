@@ -163,6 +163,32 @@ public class ControllerSearchService {
         }
     }
 
+
+    /**
+     * @apiNote 仅检索一级Group 即APP类型
+     */
+    public void searchApp(final SearchResultsDTO results, final String search, final ProcessGroup group) {
+        final NiFiUser user = NiFiUserUtils.getNiFiUser();
+        for (final ProcessGroup processGroup : group.getProcessGroups()) {
+            if (group.isAuthorized(authorizer, RequestAction.READ, user)) {
+                if (search == null || search.isEmpty()){
+                    ComponentSearchResultDTO groupMatch = new ComponentSearchResultDTO();
+                    groupMatch.setGroupId(processGroup.getParent().getIdentifier());
+                    groupMatch.setId(processGroup.getIdentifier());
+                    results.getProcessGroupResults().add(groupMatch);
+                }else {
+                    final ComponentSearchResultDTO groupMatch = search(search, processGroup);
+                    if (groupMatch != null) {
+                        // get the parent group, not the current one
+                        groupMatch.setParentGroup(buildResultGroup(group.getParent(), user));
+                        groupMatch.setVersionedGroup(buildVersionedGroup(group.getParent(), user));
+                        results.getProcessGroupResults().add(groupMatch);
+                    }
+                }
+            }
+        }
+    }
+
     private ComponentSearchResultDTO search(final String searchStr, final Port port) {
         final List<String> matches = new ArrayList<>();
 
