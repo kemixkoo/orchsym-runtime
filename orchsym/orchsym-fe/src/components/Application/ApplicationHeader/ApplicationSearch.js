@@ -48,7 +48,8 @@ export default class ApplicationSearch extends React.Component {
             <Input style={{ width: '250px', borderRadius: '0' }} />
           )}
         </InputGroup>
-        <Button type="primary" className={styles.searchButton} onPressEnter={this.handleSearch}>
+        <Button type="primary" className={styles.searchButton}>
+          {/* onPressEnter={this.handleSearch} */}
           <FormattedMessage id="page.application.search" />
         </Button>
       </div>

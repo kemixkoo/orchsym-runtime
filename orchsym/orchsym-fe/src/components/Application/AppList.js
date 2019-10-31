@@ -115,10 +115,10 @@ class AppList extends PureComponent {
       payload: id,
       cb: () => {
         confirm({
-          title: '提示',
-          content: '删除后不可撤销，确定删除所选组件或模块吗？',
+          title: '确定放入回收站？',
+          content: '放入回收站后应用内的文件流不可恢复',
           okText: 'Yes',
-          okType: 'danger',
+          okType: 'warning',
           cancelText: 'No',
           onOk() {
             dispatch({
@@ -184,7 +184,7 @@ class AppList extends PureComponent {
     );
 
     const dropdown = (
-      <Dropdown overlay={menu}>
+      <Dropdown overlay={menu} trigger={['click']}>
         <a className="ant-dropdown-link" href="#">
           <Icon type="more" />
         </a>
@@ -242,7 +242,7 @@ class AppList extends PureComponent {
         <Card.Meta
           title={
             <div>
-              <IconFont type="OS-iconapi" style={{ fontSize: '20px' }} />
+              <IconFont type="OS-iconapi" style={{ fontSize: '20px', verticalAlign: 'baseline' }} />
               {/* <IconFont type="OS-icondingshirenwu" style={{ fontSize: '20px' }} /> */}
               <span className={styles.cardTitle}>
                 {item.component.name}
@@ -266,7 +266,7 @@ class AppList extends PureComponent {
         </div>
         {/* <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p> */}
         {(isError) ? (
-          <Dropdown overlay={<LogList />}>
+          <Dropdown trigger={['click']} overlay={<LogList />}>
             <span className={styles.triangle} />
           </Dropdown>
         ) : (null)}

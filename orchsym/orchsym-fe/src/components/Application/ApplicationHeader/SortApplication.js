@@ -30,7 +30,7 @@ export default class SortApplication extends React.Component {
       </Menu>
     );
     return (
-      <Dropdown overlay={menu} placement="bottomCenter">
+      <Dropdown trigger={['click']} overlay={menu} placement="bottomCenter">
         <Icon
           type={iconType}
           style={{ fontSize: '20px', margin: '5px 0' }}
