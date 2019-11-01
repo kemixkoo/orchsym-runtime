@@ -181,4 +181,44 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return noCache(Response.ok(entity)).build();
     }
 
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/check_name")
+    @ApiOperation(value = "Get the favorites of current user", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response checkAppName(
+            @QueryParam("name")String name,
+            @QueryParam("appId") @DefaultValue(StringUtils.EMPTY) String appId
+    ) {
+        final boolean isAppNameValid = checkAppNameValid(name,appId);
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("name",name);
+        resultMap.put("isValid", isAppNameValid);
+        return noCache(Response.ok(resultMap)).build();
+    }
+
+    /**
+     * 检查新的APP名称是否合法。重名校验
+     * @param appName
+     * @return
+     */
+    protected boolean checkAppNameValid(final String appName, final String appId) {
+        if (StringUtils.isBlank(appName)) {
+            return false;
+        }
+
+        return !flowController.getRootGroup().getProcessGroups().stream() //
+                .filter(g -> StringUtils.isBlank(appId) || !g.getIdentifier().equals(appId)) // exclude
+                .filter(p -> p.getName().equals(appName))// existed
+                .findFirst() //
+                .isPresent();//
+
+    }
 }
