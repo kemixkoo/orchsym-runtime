@@ -102,7 +102,6 @@ class CreateOrEditApp extends React.Component {
       <Option value="全量同步" key="全量同步">全量同步</Option>,
     ]
     const validTag = (rule, value, callback) => {
-      console.log(value)
       if (value && value.length > 3) {
         callback([new Error(formatMessage({ id: 'validation.tag.placeholder1' }))]);
       }
