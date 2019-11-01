@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import { createSnippets } from '@/services/studio';
 import { queryApplication, updateAppState } from '@/services/Flow';
-import { validationRunApp, validationDeleteApp } from '@/services/validation';
+import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
 import {
   detailApplication, editApplication, addApplication,
   deleteApplication, copeApplication, createApplicationTemp,
@@ -197,6 +197,11 @@ export default {
         });
       }
     },
+    * fetchValidationCheckName({ payload, cb }, { call, put }) {
+      const response = yield call(validationAppCheckName, payload);
+      yield cb && cb(response)
+    },
+
   },
 
   reducers: {

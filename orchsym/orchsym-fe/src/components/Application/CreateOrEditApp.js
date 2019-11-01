@@ -30,25 +30,45 @@ class CreateOrEditApp extends React.Component {
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
-        if (Object.keys(details).length === 0) {
-          dispatch({
-            type: 'application/fetchAddApplication',
-            payload: {
-              values,
-              parentId,
-            },
-          });
-        } else {
-          dispatch({
-            type: 'application/fetchEditApplication',
-            payload: {
-              values,
-              details,
-            },
-          })
+        const queryData = {
+          name: values.name,
+          appId: '',
         }
-        resetFields();
-        handleCreateEditCancel();
+        if (Object.keys(details).length > 0) {
+          queryData.appId = details.id
+        }
+        dispatch({
+          type: 'application/fetchValidationCheckName',
+          payload: queryData,
+          cb: (res) => {
+            if (res.isValid) {
+              if (Object.keys(details).length === 0) {
+                dispatch({
+                  type: 'application/fetchAddApplication',
+                  payload: {
+                    values,
+                    parentId,
+                  },
+                });
+              } else {
+                dispatch({
+                  type: 'application/fetchEditApplication',
+                  payload: {
+                    values,
+                    details,
+                  },
+                })
+              }
+              resetFields();
+              handleCreateEditCancel();
+            } else {
+              Modal.error({
+                title: formatMessage({ id: 'model.warning' }),
+                content: formatMessage({ id: 'validation.appName.duplicate' }),
+              });
+            }
+          },
+        });
       }
     });
   }
@@ -81,6 +101,20 @@ class CreateOrEditApp extends React.Component {
       <Option value="格式转换" key="格式转换">格式转换</Option>,
       <Option value="全量同步" key="全量同步">全量同步</Option>,
     ]
+    const validTag = (rule, value, callback) => {
+      console.log(value)
+      if (value && value.length > 3) {
+        callback([new Error(formatMessage({ id: 'validation.tag.placeholder1' }))]);
+      }
+      if (value) {
+        value.forEach(item => {
+          if (item.length > 5) {
+            return callback([new Error(formatMessage({ id: 'validation.tag.placeholder2' }))]);
+          }
+        })
+      }
+      callback();
+    }
     return (
 
       <div>
@@ -116,6 +150,9 @@ class CreateOrEditApp extends React.Component {
             </FormItem>
             <FormItem label={formatMessage({ id: 'form.application.appTag' })}>
               {getFieldDecorator('tags', {
+                rules: [
+                  { validator: validTag },
+                ],
                 initialValue: component && component.tags && component.tags.length > 0 ? component.tags : [],
               })(
                 <Select

@@ -8,3 +8,13 @@ export async function validationRunApp(id) {
 export async function validationDeleteApp(id) {
   return request(`/studio/nifi-api/stats/delete/${id}`);
 }
+
+// 验证 应用名称是否重名
+export async function validationAppCheckName(param) {
+  return request('/studio/nifi-api/application/app/check_name', {
+    params: {
+      name: param.name,
+      appId: param.appId,
+    },
+  });
+}

@@ -8,6 +8,10 @@ export default {
   'validation.appName.required': 'Please enter application name!',
   'validation.appName.placeholder': 'Application name do not more than 20 characters !',
   'validation.appDescription.placeholder': 'Application description do not more than 100 characters !',
+  'validation.appName.duplicate': 'Duplicate name, Please enter again!',
+  'validation.tag.placeholder1': 'The number of tags do not more than 3',
+  'validation.tag.placeholder2': 'Tag cannot exceed 5 characters',
+  'model.warning': 'Warning',
 
   'form.get-captcha': 'Get Captcha',
   'form.captcha.second': 'sec',

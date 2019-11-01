@@ -8,6 +8,10 @@ export default {
   'validation.appName.required': '请输入应用名称!',
   'validation.appName.placeholder': '应用名称不能超过20个字符!',
   'validation.appDescription.placeholder': '应用描述不能超过100个字符!',
+  'validation.appName.duplicate': '应用名称重复,请重新输入',
+  'validation.tag.placeholder1': '标签的个数不能超过5个',
+  'validation.tag.placeholder2': '每个标签不能超过5个字符',
+  'model.warning': '提示',
 
   'form.get-captcha': '获取验证码',
   'form.captcha.second': '秒',

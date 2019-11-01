@@ -25,7 +25,7 @@ import 'moment/locale/zh-tw';
 const baseNavigator = true;
 const useLocalStorage = true;
 
-import { ConfigProvider } from 'antd';
+import { LocaleProvider } from 'antd';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 let defaultAntd = require('antd/lib/locale-provider/zh_CN');
@@ -122,9 +122,9 @@ class LocaleWrapper extends React.Component{
         </LangContext.Provider>
       </InjectedWrapper>
     </IntlProvider>)
-     return (<ConfigProvider locale={appLocale.antd ? (appLocale.antd.default || appLocale.antd) : defaultAntd}>
+     return (<LocaleProvider locale={appLocale.antd ? (appLocale.antd.default || appLocale.antd) : defaultAntd}>
       {ret}
-    </ConfigProvider>);
+    </LocaleProvider>);
     return ret;
   }
 }

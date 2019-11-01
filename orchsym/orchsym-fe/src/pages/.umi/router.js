@@ -26,11 +26,11 @@ const routes = [
         component: __IS_BROWSER
           ? _dvaDynamic({
               component: () =>
-                import(/* webpackChunkName: "p__canvas" */ '../canvas'),
+                import(/* webpackChunkName: "p__Canvas" */ '../Canvas'),
               LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
                 .default,
             })
-          : require('../canvas').default,
+          : require('../Canvas').default,
         name: '画布',
         exact: true,
       },
