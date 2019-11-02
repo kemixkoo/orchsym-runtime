@@ -179,12 +179,8 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
             entity = new StringEntity(payload);
         }
 
-        Set<HttpHeader> requestHeader;
-        if (null == headers) {
-            requestHeader = new HashSet<>();
-        } else {
-            requestHeader = new HashSet<>(headers);
-        }
+        Set<HttpHeader> requestHeader = new HashSet<>();
+
         if (null != httpServletRequest) {
             final Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
             while (headerNames.hasMoreElements()) {
@@ -194,6 +190,9 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
                     requestHeader.add(new HttpHeader(headerName, headerValue));
                 }
             }
+        }
+        if (null != headers) { // overwrite the request for special request
+            requestHeader.addAll(headers);
         }
 
         final HttpResponse response = HttpRequestUtil.request(method, url, entity, requestHeader);
