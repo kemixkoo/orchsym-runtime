@@ -24,10 +24,10 @@ export default class ApplicationSearch extends React.Component {
   render() {
     const { selectValue } = this.state;
     const tags = [
-      <Option value="全部" key="全部">全部</Option>,
-      <Option value="数据同步" key="数据同步">数据同步</Option>,
-      <Option value="格式转换" key="格式转换">格式转换</Option>,
-      <Option value="全量同步" key="全量同步">全量同步</Option>,
+      // <Option value="全部" key="全部">全部</Option>,
+      // <Option value="数据同步" key="数据同步">数据同步</Option>,
+      // <Option value="格式转换" key="格式转换">格式转换</Option>,
+      // <Option value="全量同步" key="全量同步">全量同步</Option>,
     ]
     return (
       <div className={styles.search}>

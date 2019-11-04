@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal } from 'antd';
+import { Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal, Tooltip } from 'antd';
 import { connect } from 'dva';
 import { formatMessage } from 'umi-plugin-react/locale';
 import router from 'umi/router'
@@ -21,8 +21,8 @@ class AppList extends PureComponent {
     editVisible: null,
     createOrEdit: formatMessage({ id: 'page.application.editApp' }),
     saveTempVisible: null,
-    // isError: false,
     appItem: {},
+    errorData: [],
   };
 
   componentWillMount() {
@@ -135,6 +135,7 @@ class AppList extends PureComponent {
   }
 
   getCarList = (item) => {
+    const { errorData } = this.state;
     const menu = (
       <Menu>
         <Menu.Item key="1" onClick={() => { this.goToApp(item) }}>
@@ -167,7 +168,7 @@ class AppList extends PureComponent {
           <IconFont type="OS-iconfuzhi" />
           {`${formatMessage({ id: 'page.application.content.cope' })}`}
         </Menu.Item>
-        <Menu.Item key="8">
+        <Menu.Item key="8" disabled>
           <IconFont type="OS-iconCell-Download" />
           {`${formatMessage({ id: 'page.application.content.download' })}`}
         </Menu.Item>
@@ -233,7 +234,17 @@ class AppList extends PureComponent {
         </div>
       </Dropdown>
     );
-
+    const handleVisibleChange = flag => {
+      if (flag) {
+        this.setState({
+          errorData: item.bulletins,
+        });
+      } else {
+        this.setState({
+          errorData: [],
+        });
+      }
+    };
     const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.applicationCart} ${styles.errorApp}` : styles.applicationCart;
     return (
@@ -244,14 +255,18 @@ class AppList extends PureComponent {
             <div>
               <IconFont type="OS-iconapi" style={{ fontSize: '20px', verticalAlign: 'baseline' }} />
               {/* <IconFont type="OS-icondingshirenwu" style={{ fontSize: '20px' }} /> */}
-              <span className={styles.cardTitle}>
-                {item.component.name}
-              </span>
+              <Tooltip title={item.component.name}>
+                <span className={styles.cardTitle}>
+                  {item.component.name}
+                </span>
+              </Tooltip>
             </div>}
           description={
-            <p className={styles.lineEllipsis}>
-              {(!item.component.comments) ? '该应用暂无描述' : item.component.comments}
-            </p>
+            <Tooltip title={item.component.comments}>
+              <p className={styles.lineEllipsis}>
+                {(!item.component.comments) ? '该应用暂无描述' : item.component.comments}
+              </p>
+            </Tooltip>
           }
         />
         <div className={styles.cardExtra}>{dropdown}</div>
@@ -266,7 +281,7 @@ class AppList extends PureComponent {
         </div>
         {/* <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p> */}
         {(isError) ? (
-          <Dropdown trigger={['click']} overlay={<LogList />}>
+          <Dropdown trigger={['click']} onVisibleChange={handleVisibleChange} overlay={<LogList errorList={errorData} />}>
             <span className={styles.triangle} />
           </Dropdown>
         ) : (null)}

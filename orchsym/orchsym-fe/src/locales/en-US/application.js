@@ -10,7 +10,7 @@ export default {
   'page.application.search': 'Search',
   'page.application.search.tag': 'Tag',
   'page.application.search.name': 'Name',
-  'page.application.content.intoApp': 'Into Application',
+  'page.application.content.intoApp': 'Open Application',
   'page.application.content.running': 'Running',
   'page.application.content.stop': 'Stopped',
   'page.application.content.enable': 'Enable',

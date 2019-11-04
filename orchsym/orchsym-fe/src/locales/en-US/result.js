@@ -1,4 +1,5 @@
 export default {
+  'app.result.success': 'Success！',
   'app.result.error.title': 'Submission Failed',
   'app.result.error.description':
     'Please check and modify the following information before resubmitting.',
