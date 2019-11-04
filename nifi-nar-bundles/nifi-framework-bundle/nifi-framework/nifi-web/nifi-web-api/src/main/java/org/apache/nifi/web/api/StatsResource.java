@@ -56,7 +56,9 @@ import org.apache.nifi.nar.i18n.MessagesProvider;
 import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.Revision;
+import org.apache.nifi.web.api.dto.ClusterSummaryDTO;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
+import org.apache.nifi.web.api.dto.SystemDiagnosticsDTO;
 import org.apache.nifi.web.api.dto.stats.ComponentCounterDTO;
 import org.apache.nifi.web.api.dto.stats.ServiceCounterDTO;
 import org.apache.nifi.web.api.dto.stats.StatsCounterDTO;
@@ -92,7 +94,7 @@ public class StatsResource extends AbsOrchsymResource {
     private static final Logger logger = LoggerFactory.getLogger(StatsResource.class);
 
     @Autowired
-    private NiFiServiceFacade serviceFacade;
+    private FlowResource flowResource;
 
     /**
      * Retrieves all the counters of services, processors.
@@ -173,6 +175,14 @@ public class StatsResource extends AbsOrchsymResource {
                     return o2.getService().compareTo(o1.getService());
                 }
             }).collect(Collectors.toList()));
+
+            //
+            final SystemDiagnosticsDTO systemDiagnosticsDto = serviceFacade.getSystemDiagnostics();
+            entity.setSystem(systemDiagnosticsDto);
+
+            //
+            final ClusterSummaryDTO clusters = flowResource.getClusters();
+            entity.setCluster(clusters);
 
             if (isTextOutput) {
                 final StringBuilder result = new StringBuilder(500);
@@ -278,6 +288,12 @@ public class StatsResource extends AbsOrchsymResource {
 
     private SummaryCounterDTO getSummaryDTO() {
         SummaryCounterDTO summaryDTO = new SummaryCounterDTO();
+        final ProcessGroup rootGroup = flowController.getRootGroup();
+        final Set<ProcessGroup> processGroups = rootGroup.getProcessGroups();
+        summaryDTO.setAppCount(processGroups.size());
+        summaryDTO.setAppRunningCount((int) processGroups.stream().filter(app -> app.getCounts().getRunningCount() > 0).count());
+        summaryDTO.setAppStoppedCount((int) processGroups.stream().filter(app -> app.getCounts().getRunningCount() == 0).count());
+
         final ProcessGroupEntity processGroup = serviceFacade.getProcessGroup(FlowController.ROOT_GROUP_ID_ALIAS);
 
         summaryDTO.setActiveRemotePortCount(processGroup.getActiveRemotePortCount());

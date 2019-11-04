@@ -812,6 +812,15 @@ public class FlowResource extends ApplicationResource {
 
         authorizeFlow();
 
+        // create the response entity
+        final ClusteSummaryEntity entity = new ClusteSummaryEntity();
+        entity.setClusterSummary(getClusters());
+
+        // generate the response
+        return generateOkResponse(entity).build();
+    }
+
+    public ClusterSummaryDTO getClusters() {
         final ClusterSummaryDTO clusterConfiguration = new ClusterSummaryDTO();
         final ClusterCoordinator clusterCoordinator = getClusterCoordinator();
 
@@ -831,13 +840,7 @@ public class FlowResource extends ApplicationResource {
 
         clusterConfiguration.setClustered(isClustered());
         clusterConfiguration.setConnectedToCluster(isConnectedToCluster());
-
-        // create the response entity
-        final ClusteSummaryEntity entity = new ClusteSummaryEntity();
-        entity.setClusterSummary(clusterConfiguration);
-
-        // generate the response
-        return generateOkResponse(entity).build();
+        return clusterConfiguration;
     }
 
     /**

@@ -24,7 +24,12 @@ import java.util.Map;
  *
  */
 public class SummaryCounterDTO {
-    private Long groupCount;  //所有模块总数
+    // 应用
+    private Integer appCount;
+    private Integer appRunningCount;
+    private Integer appStoppedCount;
+
+    private Long groupCount; // 所有模块总数
     private Long groupLeavesCount;
     private Long templateCount;
     private Long labelCount;
@@ -59,6 +64,30 @@ public class SummaryCounterDTO {
     private Long servicesUsed; // 使用服务数
     private Long servicesUsedCount; // 使用服务频次总数
     private Map<String, Long> servicesI18n;
+
+    public Integer getAppCount() {
+        return appCount;
+    }
+
+    public void setAppCount(Integer appCount) {
+        this.appCount = appCount;
+    }
+
+    public Integer getAppRunningCount() {
+        return appRunningCount;
+    }
+
+    public void setAppRunningCount(Integer appRunningCount) {
+        this.appRunningCount = appRunningCount;
+    }
+
+    public Integer getAppStoppedCount() {
+        return appStoppedCount;
+    }
+
+    public void setAppStoppedCount(Integer appStoppedCount) {
+        this.appStoppedCount = appStoppedCount;
+    }
 
     public Long getGroupCount() {
         return groupCount;
