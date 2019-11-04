@@ -136,7 +136,7 @@ class CreateOrEditApp extends React.Component {
                 ],
                 initialValue: component ? component.name : '',
               })(
-                <Input />
+                <Input autocomplete="off" />
               )}
             </FormItem>
             <FormItem label={formatMessage({ id: 'form.application.appDescription' })}>
