@@ -115,8 +115,8 @@ class AppList extends PureComponent {
       payload: id,
       cb: () => {
         confirm({
-          title: '确定放入回收站？',
-          content: '放入回收站后应用内的文件流不可恢复',
+          title: formatMessage({ id: 'app.result.delete.title' }),
+          content: formatMessage({ id: 'app.result.delete.description' }),
           okText: 'Yes',
           okType: 'warning',
           cancelText: 'No',
