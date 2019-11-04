@@ -19,20 +19,25 @@ package org.apache.nifi.web.api;
 
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.nifi.authorization.RequestAction;
-import org.apache.nifi.authorization.resource.Authorizable;
-import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.controller.ProcessorNode;
+import org.apache.nifi.controller.ScheduledState;
+import org.apache.nifi.controller.service.ControllerServiceNode;
+import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
+import org.apache.nifi.services.FlowService;
 import org.apache.nifi.web.StandardNiFiServiceFacade;
 import org.apache.nifi.web.api.dto.search.ComponentSearchResultDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author liuxun
@@ -47,6 +52,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
      */
     private static final String createdTime = StandardNiFiServiceFacade.createdTime;
     private static final String modifiedTime = StandardNiFiServiceFacade.modifiedTime;
+
+    @Autowired
+    private FlowService flowService;
 
     /**
      * 为APP实体类赋值
@@ -185,7 +193,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/app/check_name")
-    @ApiOperation(value = "Get the favorites of current user", //
+    @ApiOperation(value = "check the name of current app", //
             response = String.class)
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
@@ -221,4 +229,106 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 .isPresent();//
 
     }
+
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/{appId}/status")
+    @ApiOperation(value = "Get the status of current app", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response getAppStatus(
+            @PathParam("appId") @DefaultValue(StringUtils.EMPTY) String appId
+    ) {
+        final ProcessGroup groupApp = flowController.getGroup(appId);
+        if (groupApp == null){
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+        }
+
+        Map<String,Integer> countMap = new HashMap<>();
+        countMap.put(runCount, 0);
+        countMap.put(stoppedCount, 0);
+        AtomicReference<Boolean> isStopped = new AtomicReference<>(false);
+        setStatusCountOfAppByDirectName(appId,isStopped,countMap);
+
+        Map<String,Object> resultMap = new HashMap<>();
+        resultMap.put("id", appId);
+        resultMap.put("canRun", countMap.get(stoppedCount) > 0);
+        resultMap.put("canStop", countMap.get(runCount) > 0 );
+
+        //  default value is can Disable 默认是已启用状态 可以禁用
+        Boolean canEnable = false;
+        Boolean canDisable = true;
+
+        final String isEnabledStr = groupApp.getAddition(IS_ENABLED);
+        if (isEnabledStr == null){
+            final Map<String, String> additions = groupApp.getAdditions();
+            Map<String,String> putMap = new HashMap<>();
+            putMap.putAll(additions);
+            putMap.put(IS_ENABLED, Boolean.toString(true));
+            groupApp.setAdditions(putMap);
+            flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+        }else {
+            final boolean isEnabled = Boolean.parseBoolean(isEnabledStr);
+            canEnable = !isEnabled;
+            canDisable = isEnabled;
+        }
+
+        resultMap.put("canEnable",canEnable);
+        resultMap.put("canDisable",canDisable);
+
+
+        return noCache(Response.ok(resultMap)).build();
+    }
+
+
+    private static final String runCount = "runCount";
+    private static final String stoppedCount = "stoppedCount";
+    private static final String IS_ENABLED = "IS_ENABLED";
+    private void setStatusCountOfAppByDirectName(String groupId, AtomicReference<Boolean> isStopped, Map<String,Integer> countMap){
+
+        if (isStopped.get()){
+            return;
+        }
+        final ProcessGroup group = flowController.getGroup(groupId);
+        if (group == null){
+            return;
+        }
+
+        // 一旦识别所有状态，立即返回
+        if (countMap.get(runCount) != 0 && countMap.get(stoppedCount)!= 0){
+            isStopped.set(true);
+            return;
+        }
+
+        for (final ProcessorNode processor : group.getProcessors()) {
+            final ScheduledState state = processor.getScheduledState();
+            if (state.equals(ScheduledState.RUNNING)){
+                countMap.put(runCount, countMap.get(runCount) + 1);
+            }else if (state.equals(ScheduledState.STOPPED)){
+                countMap.put(stoppedCount,countMap.get(stoppedCount) +1);
+            }
+        }
+
+        for (final ControllerServiceNode service : group.getControllerServices(false)){
+            final ControllerServiceState state = service.getState();
+            if (state.equals(ControllerServiceState.ENABLED)){
+                countMap.put(runCount, countMap.get(runCount) + 1);
+            }else if (state.equals(ControllerServiceState.DISABLED)){
+                countMap.put(stoppedCount, countMap.get(stoppedCount) +1);
+            }
+        }
+
+        for(ProcessGroup childGroup : group.getProcessGroups()){
+            setStatusCountOfAppByDirectName(childGroup.getIdentifier(), isStopped, countMap);
+        }
+
+    }
+
+
 }
