@@ -166,7 +166,7 @@
                             if (isVisible) {
                                 openGraphControl(graphControl);
                             } else {
-                                hideGraphControl(graphControl);
+                                // hideGraphControl(graphControl);
                             }
                         }
                     });
@@ -190,11 +190,13 @@
              */
             expand: function ($event) {
                 var icon = $($event.target);
-                if (icon.find('.fa-plus-square-o').length > 0 || icon.hasClass('fa-plus-square-o') || icon.parent().children().find('.fa-plus-square-o').length > 0) {
-                    openGraphControl(icon.closest('div.graph-control'));
-                } else {
-                    hideGraphControl(icon.closest('div.graph-control'));
-                }
+                console.log("icon", icon)
+                $("#graph-controls").toggle();
+                // if (icon.find('.fa-plus-square-o').length > 0 || icon.hasClass('fa-plus-square-o') || icon.parent().children().find('.fa-plus-square-o').length > 0) {
+                //     openGraphControl(icon.closest('div.graph-control'));
+                // } else {
+                //     hideGraphControl(icon.closest('div.graph-control'));
+                // }
             },
 
             toggleClassification: function (classification) {
@@ -283,7 +285,13 @@
             },
 
             openComponent: function () {
-                this.isComponentOpen = true
+                // this.isComponentOpen = true;
+                $("#component-panel").toggleClass("component-panel-toggleClass");
+                if($("#component-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
+                    $("#component-panel-tools > .acon").removeClass("blue");
+                } else {
+                    $("#component-panel-tools > .acon").addClass("blue");
+                }
             },
 
             closeComponent: function () {

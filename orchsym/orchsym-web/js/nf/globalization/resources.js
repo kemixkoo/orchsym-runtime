@@ -55,8 +55,18 @@ nf._ = (function () {
         else
             return null;
     }
-    locale = getCookie('locale') || defaultLocale;
-    localStorage.setItem('locale', locale);
+    //wanzhen 20191104
+    var locale = localStorage.getItem('umi_locale') || 'zh-CN';
+    if(locale.indexOf("zh")!==-1) {
+        localStorage.setItem("locale", "zh");
+        document.cookie = "locale = zh; path=/";
+    } else {
+        localStorage.setItem("locale", "en");
+        document.cookie = "locale = en; path=/";
+    }
+    // locale = getCookie('locale') || defaultLocale;
+    locale = localStorage.getItem('locale') || defaultLocale;
+    // localStorage.setItem('locale', locale);
     var en = {
         "empty": "",
         "nf-actions.UpdateResource": "Update Resource",

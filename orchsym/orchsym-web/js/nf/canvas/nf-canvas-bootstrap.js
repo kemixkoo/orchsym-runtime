@@ -299,7 +299,6 @@
 
             //Manually Boostrap Angular App
             nfNgBridge.injector = angular.bootstrap($('body'), ['ngCanvasApp'], {strictDi: true});
-
             //wanzhen 20191024
             // function getQueryVariable(variable) {
             //     var query = window.location.search.substring(1);

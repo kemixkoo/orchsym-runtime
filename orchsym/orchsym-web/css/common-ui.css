@@ -104,7 +104,8 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 
 body {
     display: block;
-    font-family: Roboto, sans-serif;
+    /*font-family: Roboto, sans-serif;*/
+    font-family: Microsoft Jhenghei, STXihei, Microsoft Yahei, 微软雅黑, Tahoma, Arial, Helvetica, STHeiti;
     overflow: hidden;
     color: #262626;
 }

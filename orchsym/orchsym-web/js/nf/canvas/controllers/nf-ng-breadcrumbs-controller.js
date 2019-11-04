@@ -55,7 +55,9 @@
 
         BreadcrumbsCtrl.prototype = {
             constructor: BreadcrumbsCtrl,
-
+            aconKey: function(){
+                return "addddddddddddddd"
+            },
             /**
              *  Register the breadcrumbs controller.
              */

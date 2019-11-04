@@ -765,6 +765,7 @@
      */
     var executeAction = function (action, selection, evt) {
         // execute the action
+        console.log("action", action, selection)
         nfActions[action](selection, evt);
 
         // close the context menu

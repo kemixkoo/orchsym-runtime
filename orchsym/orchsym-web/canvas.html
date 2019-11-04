@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="fonts/flowfont/flowfont.css?1.7.0-SNAPSHOT" type="text/css" />
     <link rel="stylesheet" href="assets/angular-material/angular-material.min.css?1.7.0-SNAPSHOT" type="text/css" />
     <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css?1.7.0-SNAPSHOT" type="text/css" />
+    <link rel="stylesheet" href="style.css" type="text/css" />
     <script>URLSearchParams=void 0;</script>
     <script type="text/javascript" src="assets/url-search-params/build/url-search-params.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/codemirror/lib/codemirror-compressed.js?1.7.0-SNAPSHOT"></script>
@@ -326,9 +327,9 @@
     </div>
 </md-toolbar>
 
-<div id="flow-status" flex layout="row" layout-align="space-between center">
+<div id="flow-status-top" flex layout="row" layout-align="space-between center">
     <div id="breadcrumbs" layout="row" layout-align="space-around center">
-        <nf-breadcrumbs
+        <nf-breadcrumbs style="width: 100%;"
             breadcrumbs="appCtrl.serviceProvider.breadcrumbsCtrl.getBreadcrumbs();"
             click-func="appCtrl.nf.CanvasUtils.getComponentByType('ProcessGroup').enterGroup"
             highlight-crumb-id="appCtrl.nf.CanvasUtils.getGroupId();"
@@ -337,6 +338,90 @@
             get-version-control-class="appCtrl.serviceProvider.breadcrumbsCtrl.getVersionControlClass"
             get-version-control-tooltip="appCtrl.serviceProvider.breadcrumbsCtrl.getVersionControlTooltip">
         </nf-breadcrumbs>
+        <div id="breadcrumbs-search">
+            <input type="text">
+            <span class="acon-search"></span>
+        </div>
+        <div id="data-flow-title-viewport">
+            <div id="data-flow-title-container">
+                <div class="action-button-right">
+                    <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openConfigureOrDetailsView();"
+                            ng-disabled="!(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
+                        <span class="acon-setting"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['managePolicies'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!(appCtrl.nf.CanvasUtils.canManagePolicies())">
+                        <span class="acon-key"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['fillColor'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isColorable(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-bg-colors"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['template'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() &amp;&amp; (appCtrl.nf.CanvasUtils.getSelection().empty() || appCtrl.nf.CanvasUtils.canRead(appCtrl.nf.CanvasUtils.getSelection())));">
+                        <span class="icon-template-save"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['uploadTemplate']();" ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() &amp;&amp; appCtrl.nf.CanvasUtils.getSelection().empty());">
+                        <span class="icon-template-import"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['group'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!(appCtrl.nf.CanvasUtils.getComponentByType('Connection').isDisconnected(appCtrl.nf.CanvasUtils.getSelection()) && appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection()));">
+                        <span class="acon-plus-square"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['showStats'](appCtrl.nf.CanvasUtils.getSelection());" ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-area-chart"></span>
+                    </button>
+                    <div class="svg-right">
+                        <div class="line"></div>
+                    </div>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-minus"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['expand'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-plus"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['disable'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-lock"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['enable'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-unlock"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['stop'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-stopb red"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['start'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-playb green"></span>
+                    </button>
+                    <div class="svg-right">
+                        <div class="line"></div>
+                    </div>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['delete'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-delete"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['paste'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isPastable()">
+                        <span class="acon-paste"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['copy'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-copy"></span>
+                    </button>
+                    <div class="svg-right">
+                        <div class="line"></div>
+                    </div>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['reload'](appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-reload"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 <!--    <div layout="row" layout-align="end center" style="height: 31px; border-bottom: 1px solid #FFFFFF;">-->
 <!--        <div id="language" ng-click="appCtrl.serviceProvider.breadcrumbsCtrl.switchLanguage()">{{appCtrl.serviceProvider.breadcrumbsCtrl.getLanguage()}}</div>-->
@@ -398,6 +483,31 @@
             <span id="stats-last-refreshed">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.statsLastRefreshed}}</span>
         </div>
         <div id="canvas-loading-container" class="loading-container"></div>
+    </div>
+    <div>
+        <div class="action-button-right">
+            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
+                <span class="acon-eye"></span>
+            </button>
+            <div class="svg-right" style="margin-right: 4px;">
+                <div class="line"></div>
+            </div>
+            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">
+                <span class="acon-zoom-in"></span>
+            </button>
+            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">
+                <span class="acon-zoom-out"></span>
+            </button>
+            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">
+                <span class="acon-fullscreen"></span>
+            </button>
+            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">
+                <span class="acon-shrink"></span>
+            </button>
+            <div class="svg-right">
+                <div class="line"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1098,13 +1208,13 @@
 <div id="canvas-container" class="unselectable"></div><div id="canvas-tooltips"><div id="processor-tooltips"></div><div id="port-tooltips"></div><div id="process-group-tooltips"></div><div id="remote-process-group-tooltips"></div></div>
 <div id="graph-controls">
     <div id="navigation-control" class="graph-control">
-        <div class="graph-control-docked pointer fa fa-compass" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Navigate'] }}"
+        <!--<div class="graph-control-docked pointer fa fa-compass" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Navigate'] }}"
              ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
-        </div>
+        </div>-->
         <div class="graph-control-header-container pointer"
              ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
-            <div class="graph-control-header-icon fa fa-compass">
-            </div>
+            <!--<div class="graph-control-header-icon fa fa-compass">
+            </div>-->
             <div class="graph-control-header">{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Navigate'] }}</div>
             <div class="graph-control-header-action">
                 <div class="graph-control-expansion fa fa-plus-square-o pointer"></div>
@@ -1112,38 +1222,39 @@
             <div class="clear"></div>
         </div>
         <div class="graph-control-content hidden">
-            <div id="navigation-buttons">
-                <!--  -->
-                <div id="naviagte-zoom-in" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-in-button'] }}"
-                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">
-                    <button><div class="graph-control-action-icon icon icon-zoom-in"></div></button>
-                </div>
-                <div class="button-spacer-small">&nbsp;</div>
-                <!--  -->
-                <div id="naviagte-zoom-out" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-out-button'] }}"
-                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">
-                    <button><div class="graph-control-action-icon icon icon-zoom-out"></div></button>
-                </div>
-                <div class="button-spacer-large">&nbsp;</div>
-                <!--  -->
-                <div id="naviagte-zoom-fit" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-fit-button'] }}"
-                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">
-                    <button><div class="graph-control-action-icon icon icon-zoom-fit"></div></button>
-                </div>
-                <div class="button-spacer-small">&nbsp;</div>
-                <!--  -->
-                <div id="naviagte-zoom-actual-size" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-actual-button'] }}"
-                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">
-                    <button><div class="graph-control-action-icon icon icon-zoom-actual"></div></button>
-                </div>
-                <div class="clear"></div>
-            </div>
+<!--            <div id="navigation-buttons">-->
+<!--                &lt;!&ndash;  &ndash;&gt;-->
+<!--                <div id="naviagte-zoom-in" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-in-button'] }}"-->
+<!--                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">-->
+<!--                    <button><div class="graph-control-action-icon icon icon-zoom-in"></div></button>-->
+<!--                </div>-->
+<!--                <div class="button-spacer-small">&nbsp;</div>-->
+<!--                &lt;!&ndash;  &ndash;&gt;-->
+<!--                <div id="naviagte-zoom-out" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-out-button'] }}"-->
+<!--                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">-->
+<!--                    <button><div class="graph-control-action-icon icon icon-zoom-out"></div></button>-->
+<!--                </div>-->
+<!--                <div class="button-spacer-large">&nbsp;</div>-->
+<!--                &lt;!&ndash;  &ndash;&gt;-->
+<!--                <div id="naviagte-zoom-fit" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-fit-button'] }}"-->
+<!--                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">-->
+<!--                    <button><div class="graph-control-action-icon icon icon-zoom-fit"></div></button>-->
+<!--                </div>-->
+<!--                <div class="button-spacer-small">&nbsp;</div>-->
+<!--                &lt;!&ndash;  &ndash;&gt;-->
+<!--                <div id="naviagte-zoom-actual-size" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.zoom-actual-button'] }}"-->
+<!--                     ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">-->
+<!--                    <button><div class="graph-control-action-icon icon icon-zoom-actual"></div></button>-->
+<!--                </div>-->
+<!--                <div class="clear"></div>-->
+<!--            </div>-->
             <div id="birdseye"></div>
         </div>
     </div>
-    <div id="operation-control" class="graph-control">
+    <!--wanzhen 20191104-->
+    <!--<div id="operation-control" class="graph-control">
 
-        <div class="graph-control-docked pointer fa fa-hand-o-up" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.navigation.Operate"] }}"
+        <div class="graph-control-docked pointer fa fa-hand-o-up" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.canvas.navigation.Operate'] }}"
              ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
         </div>
         <div class="graph-control-header-container pointer"
@@ -1170,13 +1281,13 @@
             </div>
             <div id="operation-buttons">
                 <div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-configure" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Configuration'] }}">
                         <button ng-click="appCtrl.serviceProvider.graphControlsCtrl.openConfigureOrDetailsView();"
                                 ng-disabled="!(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
                             <div class="graph-control-action-icon icon icon-settings"></div></button>
                     </div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div class="button-spacer-small" ng-if="appCtrl.nf.CanvasUtils.isConfigurableAuthorizer()">&nbsp;</div>
                     <div id="operate-policy" class="action-button"
                          title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Enable'] }}"
@@ -1186,42 +1297,42 @@
                             <div class="graph-control-action-icon fa fa-key"></div></button>
                     </div>
                     <div class="button-spacer-large">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-enable" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Enable'] }}">
                         <button ng-click="appCtrl.nf.Actions['enable'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon icon icon-enable"></div></button>
                     </div>
                     <div class="button-spacer-small">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-disable" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Disable'] }}">
                         <button ng-click="appCtrl.nf.Actions['disable'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon icon icon-enable-false"></div></button>
                     </div>
                     <div class="button-spacer-large">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-start" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Start'] }}">
                         <button ng-click="appCtrl.nf.Actions['start'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon icon icon-start"></div></button>
                     </div>
                     <div class="button-spacer-small">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-stop" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Stop'] }}">
                         <button ng-click="appCtrl.nf.Actions['stop'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon icon icon-stop"></div></button>
                     </div>
                     <div class="button-spacer-large">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-template" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.CreateTemplate'] }}">
                         <button ng-click="appCtrl.nf.Actions['template'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && (appCtrl.nf.CanvasUtils.getSelection().empty() || appCtrl.nf.CanvasUtils.canRead(appCtrl.nf.CanvasUtils.getSelection())));">
                             <div class="graph-control-action-icon icon icon-template-save"></div></button>
                     </div>
                     <div class="button-spacer-small">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-template-upload" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.UploadTemplate'] }}">
                         <button ng-click="appCtrl.nf.Actions['uploadTemplate']();"
                                 ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty());">
@@ -1230,49 +1341,49 @@
                     <div class="clear"></div>
                 </div>
                 <div style="margin-top: 5px;">
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-copy" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Copy'] }}">
                         <button ng-click="appCtrl.nf.Actions['copy'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon icon icon-copy"></div></button>
                     </div>
                     <div class="button-spacer-small">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-paste" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Paste'] }}">
                         <button ng-click="appCtrl.nf.Actions['paste'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.isPastable()">
                             <div class="graph-control-action-icon icon icon-paste"></div></button>
                     </div>
                     <div class="button-spacer-large">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-group" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Group'] }}">
                         <button ng-click="appCtrl.nf.Actions['group'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!(appCtrl.nf.CanvasUtils.getComponentByType('Connection').isDisconnected(appCtrl.nf.CanvasUtils.getSelection()) && appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection()));">
                             <div class="graph-control-action-icon icon icon-group"></div></button>
                     </div>
                     <div class="button-spacer-large">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-color" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.fillcolor'] }}">
                         <button ng-click="appCtrl.nf.Actions['fillColor'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.isColorable(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon icon icon-change-color"></div></button>
                     </div>
                     <div class="button-spacer-large">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-expand" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Expand'] }}">
                         <button ng-click="appCtrl.nf.Actions['expand'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon fa fa-plus"></div></button>
                     </div>
                     <div class="button-spacer-small">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-collapse" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Collapse'] }}">
                         <button ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
                             <div class="graph-control-action-icon fa fa-minus"></div></button>
                     </div>
                     <div class="button-spacer-large">&nbsp;</div>
-                    <!--  -->
+                    &lt;!&ndash;  &ndash;&gt;
                     <div id="operate-delete" class="action-button" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Delete'] }}">
                         <button ng-click="appCtrl.nf.Actions['delete'](appCtrl.nf.CanvasUtils.getSelection());"
                                 ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
@@ -1282,13 +1393,19 @@
                 </div>
             </div>
         </div>
+    </div>-->
+<!---->
+</div>
+<div class="component-panel-tools" id="component-panel-tools">
+    <div class="acon" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">
+        <span class="acon-api"></span>
     </div>
 </div>
-<div class="component-panel" id="component-panel">
+<div class="component-panel component-panel-toggleClass" id="component-panel">
 
     <div class="graph-control right docked"
-         ng-class="{true:'hidden',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]"
-         style="position: absolute; width:32px; right:0; top:25px;">
+         ng-class="{true:'hidden',false:'hidden'}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]"
+         style="position: absolute; width:32px; right:0; top:25px;display: none;">
         <div class="graph-control-docked pointer icon icon-processor"
              title="组件"
              ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()"
@@ -1299,12 +1416,12 @@
     </div>
 
     <div class="panel-main"
-         ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
+         ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
       <div class="panel-main-left">
         <div class="main-left-header">
           <div class="collapse">
             <img src="images/youshou.svg"
-                 ng-click="appCtrl.serviceProvider.graphControlsCtrl.closeComponent()">
+                 ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">
           </div>
           {{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName}}
         </div>
