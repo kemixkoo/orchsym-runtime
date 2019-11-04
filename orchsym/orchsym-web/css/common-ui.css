@@ -450,7 +450,7 @@ div.button-icon {
 }
 
 div.button {
-    height: 32px;
+    /*height: 32px;
     width: 90px;
     padding: 0 8px;
     text-transform: uppercase;
@@ -463,7 +463,28 @@ div.button {
     position: relative;
     background: #728E9B;
     color: #fff;
+    cursor: pointer;*/
+    /* border: 0.5px solid rgba(0, 0, 0, 0.15); */
+    /* background-color: #61affe!important; */
+    /* box-shadow: none; */
+    /* font-size: 0.9rem; */
+    /* font-weight: 600; */
+    width: auto;
+    float: right;
+    color: #fff !important;
+    background-color: #088af1!important;
+    box-shadow: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 3px;
+    padding: 5px 18px;
     cursor: pointer;
+    margin-right: 10px;
+    margin-top: -10px;
+}
+
+div.button:hover{
+    background-color: #0040a9 !important;
 }
 
 div.button.disabled-button {

@@ -504,6 +504,7 @@ span.breadcrumb-version-control-gray {
     bottom: 0;
     top: 100px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .classification-title{
