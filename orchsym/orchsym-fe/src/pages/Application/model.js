@@ -1,12 +1,13 @@
 import { message } from 'antd';
 import { createSnippets } from '@/services/studio';
 import { queryApplication, updateAppState } from '@/services/Flow';
-import { validationRunApp, validationDeleteApp } from '@/services/validation';
+import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
 import {
   detailApplication, editApplication, addApplication,
   deleteApplication, copeApplication, createApplicationTemp,
 } from '@/services/ProcessGroups';
 import { getClientId } from '@/utils/authority';
+import { formatMessage } from 'umi-plugin-react/locale';
 // import { notification } from "antd/lib/index";
 
 export default {
@@ -53,7 +54,7 @@ export default {
       }
       const response = yield call(editApplication, params);
       if (response) {
-        message.success('编辑应用成功！');
+        message.success(formatMessage({ id: 'app.result.success' }));
         yield put({
           type: 'fetchApplication',
         });
@@ -78,7 +79,7 @@ export default {
       }
       const response = yield call(addApplication, params);
       if (response) {
-        message.success('创建应用成功！');
+        message.success(formatMessage({ id: 'app.result.success' }));
         yield put({
           type: 'fetchApplication',
         });
@@ -115,7 +116,7 @@ export default {
     * fetchUpdateAppState({ payload }, { call, put }) {
       const response = yield call(updateAppState, payload);
       if (response) {
-        message.success('更新成功！');
+        message.success(formatMessage({ id: 'app.result.success' }));
         yield put({
           type: 'fetchApplication',
         });
@@ -152,7 +153,7 @@ export default {
       }
       const response = yield call(deleteApplication, queryData);
       if (response) {
-        message.success('删除应用成功！');
+        message.success(formatMessage({ id: 'app.result.success' }));
         yield put({
           type: 'fetchApplication',
         });
@@ -169,7 +170,7 @@ export default {
       }
       const response = yield call(copeApplication, queryDate);
       if (response) {
-        message.success('复制应用成功！');
+        message.success(formatMessage({ id: 'app.result.success' }));
         yield put({
           type: 'fetchApplication',
         });
@@ -191,12 +192,17 @@ export default {
       };
       const response = yield call(createApplicationTemp, params, errorHandler);
       if (response) {
-        message.success('存为模板成功！');
+        message.success(formatMessage({ id: 'app.result.success' }));
         yield put({
           type: 'fetchApplication',
         });
       }
     },
+    * fetchValidationCheckName({ payload, cb }, { call, put }) {
+      const response = yield call(validationAppCheckName, payload);
+      yield cb && cb(response)
+    },
+
   },
 
   reducers: {

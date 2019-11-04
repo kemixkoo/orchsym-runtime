@@ -1,8 +1,21 @@
 export default {
+  // 创建应用
+  'form.application.appName': 'Name',
+  'form.application.appDescription': 'Description',
+  'form.application.appTag': 'Tag',
+  'form.cancel': 'Cancel',
+  'form.submit': 'Submit',
+  'validation.appName.required': 'Please enter application name!',
+  'validation.appName.placeholder': 'Application name do not more than 20 characters !',
+  'validation.appDescription.placeholder': 'Application description do not more than 100 characters !',
+  'validation.appName.duplicate': 'Duplicate name, Please enter again!',
+  'validation.tag.placeholder1': 'The number of tags do not more than 3',
+  'validation.tag.placeholder2': 'Tag cannot exceed 5 characters',
+  'model.warning': 'Warning',
+
   'form.get-captcha': 'Get Captcha',
   'form.captcha.second': 'sec',
   'form.optional': ' (optional) ',
-  'form.submit': 'Submit',
   'form.save': 'Save',
   'form.email.placeholder': 'Email',
   'form.password.placeholder': 'Password',

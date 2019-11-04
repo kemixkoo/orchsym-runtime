@@ -1,10 +1,11 @@
 import React from 'react';
 import { connect } from 'dva';
 import { Modal, Input, Form, Select } from 'antd';
+import { formatMessage } from 'umi-plugin-react/locale';
 
 const { TextArea } = Input;
 const FormItem = Form.Item;
-const { Option } = Select;
+// const { Option } = Select;
 
 @connect(({ application }) => ({
   parentId: application.parentId,
@@ -29,27 +30,47 @@ class CreateOrEditApp extends React.Component {
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
-        if (Object.keys(details).length === 0) {
-          dispatch({
-            type: 'application/fetchAddApplication',
-            payload: {
-              values,
-              parentId,
-            },
-          });
-        } else {
-          dispatch({
-            type: 'application/fetchEditApplication',
-            payload: {
-              values,
-              details,
-            },
-          })
+        const queryData = {
+          name: values.name,
+          appId: '',
         }
-        handleCreateEditCancel();
+        if (Object.keys(details).length > 0) {
+          queryData.appId = details.id
+        }
+        dispatch({
+          type: 'application/fetchValidationCheckName',
+          payload: queryData,
+          cb: (res) => {
+            if (res.isValid) {
+              if (Object.keys(details).length === 0) {
+                dispatch({
+                  type: 'application/fetchAddApplication',
+                  payload: {
+                    values,
+                    parentId,
+                  },
+                });
+              } else {
+                dispatch({
+                  type: 'application/fetchEditApplication',
+                  payload: {
+                    values,
+                    details,
+                  },
+                })
+              }
+              resetFields();
+              handleCreateEditCancel();
+            } else {
+              Modal.error({
+                title: formatMessage({ id: 'model.warning' }),
+                content: formatMessage({ id: 'validation.appName.duplicate' }),
+              });
+            }
+          },
+        });
       }
     });
-    resetFields();
   }
 
   handleCancel = () => {
@@ -68,18 +89,31 @@ class CreateOrEditApp extends React.Component {
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
-        sm: { span: 4 },
+        sm: { span: 6 },
       },
       wrapperCol: {
         xs: { span: 24 },
-        sm: { span: 18 },
+        sm: { span: 16 },
       },
     };
     const tags = [
-      <Option value="数据同步" key="数据同步">数据同步</Option>,
-      <Option value="格式转换" key="格式转换">格式转换</Option>,
-      <Option value="全量同步" key="全量同步">全量同步</Option>,
+      // <Option value="数据同步" key="数据同步">数据同步</Option>,
+      // <Option value="格式转换" key="格式转换">格式转换</Option>,
+      // <Option value="全量同步" key="全量同步">全量同步</Option>,
     ]
+    // const validTag = (rule, value, callback) => {
+    //   if (value && value.length > 3) {
+    //     callback([new Error(formatMessage({ id: 'validation.tag.placeholder1' }))]);
+    //   }
+    //   if (value) {
+    //     value.forEach(item => {
+    //       if (item.length > 5) {
+    //         return callback([new Error(formatMessage({ id: 'validation.tag.placeholder2' }))]);
+    //       }
+    //     })
+    //   }
+    //   callback();
+    // }
     return (
 
       <div>
@@ -88,36 +122,36 @@ class CreateOrEditApp extends React.Component {
           title={title}
           onCancel={this.handleCancel}
           onOk={this.handleCreateEditOk}
-          okText="确定"
-          cancelText="取消"
+          okText={formatMessage({ id: 'form.submit' })}
+          cancelText={formatMessage({ id: 'form.cancel' })}
           destroyOnClose
         >
           <Form {...formItemLayout}>
-            <FormItem label="应用名称">
+            <FormItem label={formatMessage({ id: 'form.application.appName' })}>
               {getFieldDecorator('name', {
-                rules: [{
-                  required: true, message: '应用名称不能为空!',
-                }],
+                rules: [
+                  { required: true, message: formatMessage({ id: 'validation.appName.required' }) },
+                  { max: 20, message: formatMessage({ id: 'validation.appName.placeholder' }) },
+                  { whitespace: true, message: formatMessage({ id: 'validation.appName.required' }) },
+                ],
                 initialValue: component ? component.name : '',
               })(
-                <Input />
+                <Input autocomplete="off" />
               )}
             </FormItem>
-            <FormItem label="应用描述">
+            <FormItem label={formatMessage({ id: 'form.application.appDescription' })}>
               {getFieldDecorator('comments', {
-                // rules: [{
-                //   required: true, message: '请输入应用名称!',
-                // }],
+                rules: [{ required: false, max: 100, message: formatMessage({ id: 'validation.appDescription.placeholder' }) }],
                 initialValue: component ? component.comments : '',
               })(
                 <TextArea rows={4} />
               )}
             </FormItem>
-            <FormItem label="标签设置">
+            <FormItem label={formatMessage({ id: 'form.application.appTag' })}>
               {getFieldDecorator('tags', {
-                // rules: [{
-                //   required: true, message: '请输入应用名称!',
-                // }],
+                // rules: [
+                //   { validator: validTag },
+                // ],
                 initialValue: component && component.tags && component.tags.length > 0 ? component.tags : [],
               })(
                 <Select

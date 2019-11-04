@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
-import { Spin, Tag, Menu, Icon, Badge, Tooltip, Divider } from 'antd';
-// Avatar
+import { Spin, Tag, Menu, Icon, Tooltip, Divider } from 'antd';
+// Avatar Badge,
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import groupBy from 'lodash/groupBy';
@@ -11,7 +11,7 @@ import IconFont from '@/components/IconFont';
 import HeaderDropdown from '../HeaderDropdown';
 import SelectLang from '../SelectLang';
 import styles from './index.less';
-import LogList from '../LogList';
+// import LogList from '../LogList';
 
 export default class GlobalHeaderRight extends PureComponent {
   getNoticeData() {
@@ -161,13 +161,13 @@ export default class GlobalHeaderRight extends PureComponent {
           </a>
         </Tooltip>
         {/* 消息 */}
-        <HeaderDropdown overlay={<LogList />}>
+        {/* <HeaderDropdown overlay={<LogList />}>
           <span>
             <Badge count={0} className={styles.badge}>
               <Icon type="bell" className={styles.bell} />
             </Badge>
           </span>
-        </HeaderDropdown>
+        </HeaderDropdown> */}
         {/* <NoticeIcon
           className={styles.action}
           count={currentUser.unreadCount}

@@ -14,14 +14,14 @@ export default [
     routes: [
       {
         path: '/canvas/:processGroupId',
-        component: './canvas',
+        component: './Canvas',
         name: '画布',
       },
       {
         component: '404',
       },
     ],
-  },// 用户登录、注册等，使用自带的 UserLayout 布局
+  }, // 用户登录、注册等，使用自带的 UserLayout 布局
   {
     path: '/user',
     component: '../layouts/UserLayout',
@@ -40,7 +40,7 @@ export default [
     ],
   },
   // 空白页做登录逻辑处理
-   {
+  {
     path: '/blank',
     component: '../layouts/BlankLayout',
     routes: [
@@ -141,7 +141,7 @@ export default [
       {
         component: '404',
       },
-     
+
     ],
   },
 ];

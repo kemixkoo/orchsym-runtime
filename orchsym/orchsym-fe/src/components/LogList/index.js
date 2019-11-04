@@ -6,14 +6,14 @@ import styles from './index.less';
 
 class LogList extends React.Component {
   componentWillMount() {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'global/fetchNotices',
-    })
+    // if(errorList)
+    // dispatch({
+    //   type: 'global/fetchNotices',
+    // })
   }
 
   render() {
-    const { notices } = this.props;
+    const { errorList } = this.props;
     // const headerButton = (
     //   <div className={styles.headerIcon}>
     //   </div>
@@ -28,9 +28,9 @@ class LogList extends React.Component {
           // header={headerButton}
           split="false"
         >
-          {notices.map((item, i) => {
+          {errorList.map((item, i) => {
             const itemCls = classNames(styles.item, {
-              [styles.read]: item.read,
+              [styles.read]: item.canRead,
             });
             // eslint-disable-next-line no-nested-ternary
             // const leftIcon = item.avatar ? (
@@ -42,26 +42,26 @@ class LogList extends React.Component {
             // ) : null;
 
             return (
-              <List.Item className={itemCls} key={item.key || i}>
+              <List.Item className={itemCls} key={item.id || i}>
                 <List.Item.Meta
                   className={styles.meta}
                   title={
                     <Row>
                       <Col span={5}>
-                        <span className={styles.datetime}>{item.datetime}</span>
+                        <span className={styles.datetime}>{item.timestamp}</span>
                       </Col>
                       <Col span={4}>
-                        <span className={styles.extra}>{item.extra}</span>
+                        <span className={styles.extra}>{item.bulletin.level}</span>
                       </Col>
                       <Col span={14}>
-                        <span className={styles.title}>{item.title}</span>
+                        <span className={styles.title}>{item.sourceId}</span>
                       </Col>
                     </Row>
                   }
                   description={
                     <div>
-                      <div className={styles.description} title={item.description}>
-                        {item.description}
+                      <div className={styles.description} title={item.bulletin.message}>
+                        {item.bulletin.message}
                       </div>
                     </div>
                   }

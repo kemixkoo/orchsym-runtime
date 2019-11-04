@@ -1,8 +1,21 @@
 export default {
+  // 创建应用
+  'form.application.appName': '应用名称',
+  'form.application.appDescription': '应用描述',
+  'form.application.appTag': '标签设置',
+  'form.cancel': '取消',
+  'form.submit': '确认',
+  'validation.appName.required': '请输入应用名称!',
+  'validation.appName.placeholder': '应用名称不能超过20个字符!',
+  'validation.appDescription.placeholder': '应用描述不能超过100个字符!',
+  'validation.appName.duplicate': '应用名称重复,请重新输入',
+  'validation.tag.placeholder1': '标签的个数不能超过5个',
+  'validation.tag.placeholder2': '每个标签不能超过5个字符',
+  'model.warning': '提示',
+
   'form.get-captcha': '获取验证码',
   'form.captcha.second': '秒',
   'form.optional': '（选填）',
-  'form.submit': '提交',
   'form.save': '保存',
   'form.email.placeholder': '邮箱',
   'form.password.placeholder': '至少6位密码，区分大小写',

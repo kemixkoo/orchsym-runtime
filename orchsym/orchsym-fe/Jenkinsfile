@@ -28,8 +28,8 @@ pipeline {
       steps {
         script {
           // use an extra volume to cache node_modules
-          docker.image("${env.RUNTIME_DASHBOARD_NODE_DOCKER_IMAGE}").inside("-uroot -v ${pwd()}/orchsym/orchsym-fe/:/tmp/build/ -v ${env.JENKINS_EXTERNAL_DIR}/${env.PROJECT_NAME}-node_modules/:/tmp/build/node_modules/") {
-            sh "cd /tmp/build && npm install && npm run build"
+          docker.image("${env.RUNTIME_DASHBOARD_NODE_DOCKER_IMAGE}").inside("-uroot -v ${pwd()}/orchsym/:/tmp/build/ -v ${env.JENKINS_EXTERNAL_DIR}/${env.PROJECT_NAME}-node_modules/:/tmp/build/node_modules/") {
+            sh "cd /tmp/build/orchsym-fe && npm install && npm run build"
           }
         }
 
