@@ -5,7 +5,7 @@ import { formatMessage } from 'umi-plugin-react/locale';
 
 const { TextArea } = Input;
 const FormItem = Form.Item;
-const { Option } = Select;
+// const { Option } = Select;
 
 @connect(({ application }) => ({
   parentId: application.parentId,
@@ -97,23 +97,23 @@ class CreateOrEditApp extends React.Component {
       },
     };
     const tags = [
-      <Option value="数据同步" key="数据同步">数据同步</Option>,
-      <Option value="格式转换" key="格式转换">格式转换</Option>,
-      <Option value="全量同步" key="全量同步">全量同步</Option>,
+      // <Option value="数据同步" key="数据同步">数据同步</Option>,
+      // <Option value="格式转换" key="格式转换">格式转换</Option>,
+      // <Option value="全量同步" key="全量同步">全量同步</Option>,
     ]
-    const validTag = (rule, value, callback) => {
-      if (value && value.length > 3) {
-        callback([new Error(formatMessage({ id: 'validation.tag.placeholder1' }))]);
-      }
-      if (value) {
-        value.forEach(item => {
-          if (item.length > 5) {
-            return callback([new Error(formatMessage({ id: 'validation.tag.placeholder2' }))]);
-          }
-        })
-      }
-      callback();
-    }
+    // const validTag = (rule, value, callback) => {
+    //   if (value && value.length > 3) {
+    //     callback([new Error(formatMessage({ id: 'validation.tag.placeholder1' }))]);
+    //   }
+    //   if (value) {
+    //     value.forEach(item => {
+    //       if (item.length > 5) {
+    //         return callback([new Error(formatMessage({ id: 'validation.tag.placeholder2' }))]);
+    //       }
+    //     })
+    //   }
+    //   callback();
+    // }
     return (
 
       <div>
@@ -149,9 +149,9 @@ class CreateOrEditApp extends React.Component {
             </FormItem>
             <FormItem label={formatMessage({ id: 'form.application.appTag' })}>
               {getFieldDecorator('tags', {
-                rules: [
-                  { validator: validTag },
-                ],
+                // rules: [
+                //   { validator: validTag },
+                // ],
                 initialValue: component && component.tags && component.tags.length > 0 ? component.tags : [],
               })(
                 <Select

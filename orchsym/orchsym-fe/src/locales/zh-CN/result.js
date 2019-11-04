@@ -1,4 +1,5 @@
 export default {
+  'app.result.success': '成功',
   'app.result.error.title': '提交失败',
   'app.result.error.description': '请核对并修改以下信息后，再重新提交。',
   'app.result.error.hint-title': '您提交的内容有如下错误：',
