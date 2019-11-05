@@ -177,7 +177,7 @@ class AppList extends PureComponent {
           {`${formatMessage({ id: 'page.application.content.delete' })}`}
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>
+        <Menu.Item key="10" disabled onClick={() => { this.showSaveTemp(item) }}>
           <IconFont type="OS-iconmoban" />
           {`${formatMessage({ id: 'page.application.content.saveTemp' })}`}
         </Menu.Item>
