@@ -23,6 +23,9 @@ class GlobalHeader extends PureComponent {
     dispatch({
       type: 'login/fetchLicenseWarn',
     });
+    dispatch({
+      type: 'login/fetchGetClientId',
+    });
     if (match && processGroupId) {
       dispatch({
         type: 'canvas/fetchDetailApplication',
