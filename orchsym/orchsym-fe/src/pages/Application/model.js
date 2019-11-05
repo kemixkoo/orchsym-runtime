@@ -69,7 +69,7 @@ export default {
             name,
             comments,
             tags,
-            position: { x: 0, y: 0 },
+            // position: { x: 0, y: 0 },
           },
           revision: {
             clientId: getClientId(),
