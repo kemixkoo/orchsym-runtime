@@ -69,6 +69,9 @@ public class StandardProcessGroupDAO extends ComponentDAO implements ProcessGrou
         if (processGroup.getName() != null) {
             group.setName(processGroup.getName());
         }
+        if (processGroup.getComments() != null) {
+            group.setComments(processGroup.getComments());
+        }
         if (processGroup.getPosition() != null) {
             group.setPosition(new Position(processGroup.getPosition().getX(), processGroup.getPosition().getY()));
         }

@@ -2240,7 +2240,11 @@ public final class DtoFactory {
         dto.setVariables(variables);
 
         dto.setTags(group.getTags());
-        dto.setAdditions(group.getAdditions());
+        Map<String, String> additions = group.getAdditions();
+        if (null != additions) {
+            additions = new HashMap<>(additions);
+        }
+        dto.setAdditions(additions);
 
         final ProcessGroup parentGroup = group.getParent();
         if (parentGroup != null) {
