@@ -161,7 +161,7 @@
                 }).on('click', scope.cancel);
             $('<div></div>').css({
                 'position': 'relative',
-                'top': '10px',
+                // 'top': '10px',
                 'left': '20px',
                 'width': '212px',
                 'clear': 'both',
@@ -391,7 +391,7 @@
                 }).on('click', scope.cancel);
             $('<div></div>').css({
                 'position': 'relative',
-                'top': '10px',
+                // 'top': '10px',
                 'left': '20px',
                 'width': '212px',
                 'clear': 'both',
@@ -642,7 +642,7 @@
 
             $('<div></div>').css({
                 'position': 'relative',
-                'top': '10px',
+                // 'top': '10px',
                 'left': '20px',
                 'width': '212px',
                 'clear': 'both',

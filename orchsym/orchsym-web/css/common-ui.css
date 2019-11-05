@@ -498,24 +498,36 @@ div.button:hover:not(.disabled-button) {
 }
 
 div.secondary-button {
-    height: 32px;
-    width: 90px;
-    padding: 0 8px;
-    text-transform: uppercase;
-    font-weight: 500;
-    font-size: 11px;
-    line-height: 33px;
-    text-align: center;
-    border: 0px;
+    /*height: 32px;*/
+    /*width: 90px;*/
+    /*padding: 0 8px;*/
+    /*text-transform: uppercase;*/
+    /*font-weight: 500;*/
+    /*font-size: 11px;*/
+    /*line-height: 33px;*/
+    /*text-align: center;*/
+    /*border: 0px;*/
+    /*float: right;*/
+    /*position: relative;*/
+    /*background: #E3E8EB;*/
+    /*color: #004849;*/
+    /*cursor:pointer*/
+    width: auto;
     float: right;
-    position: relative;
-    background: #E3E8EB;
-    color: #004849;
-    cursor:pointer
+    color: #fff !important;
+    background-color: #088af1!important;
+    box-shadow: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 3px;
+    padding: 5px 18px;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-top: -10px;
 }
 
 div.secondary-button:hover {
-    background-color: #C7D2D7;
+    background-color: #0040a9 !important;
 }
 
 /* tooltips */
