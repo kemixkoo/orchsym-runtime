@@ -110,6 +110,7 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
     static final String STATEMENT_TYPE_ATTRIBUTE = "statement.type";
 
     static final String PUT_DATABASE_RECORD_ERROR = "putdatabaserecord.error";
+    static final String DATABASE_CONNECTION_IDENTIFIER = "database.connection.identifier";
 
     static final AllowableValue IGNORE_UNMATCHED_FIELD = new AllowableValue("Ignore Unmatched Fields", "Ignore Unmatched Fields",
             "Any field in the document that cannot be mapped to a column in the database is ignored");
@@ -288,6 +289,16 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
             .required(false)
             .identifiesControllerService(KeyValueLookupService.class)
             .build();
+    
+    static final PropertyDescriptor TRANSACTION_SESSION_ATTR = new PropertyDescriptor.Builder()
+            .name("database-transaction-session-attr")
+            .displayName("Database Transaction Session Attribute")
+            .description("The name of flow attribute for database transaction session."
+                    + " if empty, will use 'database.connection.identifier' by default, also even eval value is empty ")
+            .required(false)
+            .defaultValue(DATABASE_CONNECTION_IDENTIFIER)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .build();
 
     protected static List<PropertyDescriptor> propDescriptors;
 
@@ -325,6 +336,7 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
         pds.add(QUERY_TIMEOUT);
         pds.add(TRANSACATION_IN_FLOW);
         pds.add(TRANSACTION_SESSION_SERVICE);
+        pds.add(TRANSACTION_SESSION_ATTR);
         pds.add(RollbackOnFailure.ROLLBACK_ON_FAILURE);
 
         propDescriptors = Collections.unmodifiableList(pds);
@@ -387,7 +399,11 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
             String databaseConnectionIdentifier = UUID.randomUUID().toString();
             if (lookupService != null) {
                 lookupService.register(databaseConnectionIdentifier, conn);
-                session.putAttribute(flowFile, "database.connection.identifier", databaseConnectionIdentifier);
+                String transacationSessionAttr = context.getProperty(TRANSACTION_SESSION_ATTR).evaluateAttributeExpressions(flowFile).getValue();
+                if (StringUtils.isBlank(transacationSessionAttr)) {
+                    transacationSessionAttr = DATABASE_CONNECTION_IDENTIFIER;
+                }
+                session.putAttribute(flowFile, transacationSessionAttr, databaseConnectionIdentifier);
             }
         }
         exceptionHandler.execute(functionContext, flowFile, inputFlowFile -> {
