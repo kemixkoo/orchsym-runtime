@@ -117,7 +117,7 @@ class SaveTemp extends React.Component {
                     required: true, message: '应用名称不能为空!',
                   }],
                 })(
-                  <Input />
+                  <Input autocomplete="off" />
                 )}
               </FormItem>
               <FormItem label="模版描述">

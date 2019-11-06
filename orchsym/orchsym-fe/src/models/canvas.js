@@ -1,26 +1,24 @@
 import { detailApplication } from '@/services/ProcessGroups';
-import { queryApplication } from '@/services/Flow';
+import { querySearchApplication } from '@/services/application';
 
 export default {
   namespace: 'canvas',
 
   state: {
     applicationList: [],
-    parentId: '',
     appDetails: {},
   },
 
   effects: {
     *fetchApplication({ payload, cb }, { call, put }) {
-      const response = yield call(queryApplication);
+      const response = yield call(querySearchApplication, payload);
       yield put({
         type: 'appendValue',
         payload: {
-          applicationList: response.processGroupFlow.flow.processGroups,
-          parentId: response.processGroupFlow.id,
+          applicationList: response,
         },
       });
-      yield cb && cb(response.processGroupFlow.flow.processGroups)
+      yield cb && cb(response)
     },
     *fetchDetailApplication({ payload }, { call, put }) {
       const response = yield call(detailApplication, payload);
