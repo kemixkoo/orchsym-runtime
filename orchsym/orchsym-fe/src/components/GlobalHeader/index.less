@@ -147,14 +147,17 @@
   -webkit-box-orient: vertical;
   /* autoprefixer: on */
 }
+
 .listScrollbar {
   min-height: 50px;
   max-height: 400px;
   overflow: auto;
+
   &::-webkit-scrollbar {
     display: none;
   }
 }
+
 .appPopover {
   display: inline-block;
   margin-right: 10px;
@@ -185,8 +188,15 @@
   border: none;
   .appMenuIcon {
     position: absolute;
+    top: 0;
     right: 0;
   }
+  .appMenuName {
+    position: absolute;
+    top: 0;
+    left: 36px;
+  }
+
   :global {
     .ant-menu-item {
       height: 30px !important;
@@ -194,6 +204,7 @@
       padding: 0 16px;
       line-height: 30px !important;
     }
+
     .ant-menu-item-active {
       background: #e3f8ff;
     }

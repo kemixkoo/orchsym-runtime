@@ -8,7 +8,6 @@ import Ellipsis from '@/components/Ellipsis';
 import styles from './index.less';
 
 @connect(({ canvas, loading }) => ({
-  applicationList: canvas.applicationList,
   loading:
     loading.effects['canvas/fetchApplication'],
 }))
@@ -34,27 +33,22 @@ class AppPopover extends PureComponent {
   }
 
   doSearchAjax = value => {
-    const { dispatch, applicationList } = this.props;
-    if (value) {
-      const list = []
-      applicationList.forEach(item => {
-        if (item.component.name.indexOf(value) > 0) {
-          list.push(item)
-        }
-      })
-      this.setState({
-        appList: list,
-      });
-    } else {
-      dispatch({
-        type: 'canvas/fetchApplication',
-        cb: (res) => {
-          this.setState({
-            appList: res,
-          });
-        },
-      });
-    }
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'canvas/fetchApplication',
+      payload: {
+        q: value,
+        sortedField: 'name',
+        isDesc: 'true',
+        page: 1,
+        pageSize: 2000,
+      },
+      cb: (res) => {
+        this.setState({
+          appList: res.results,
+        });
+      },
+    });
   }
 
   handleVisibleChange = visible => {
@@ -63,9 +57,16 @@ class AppPopover extends PureComponent {
     if (visible) {
       dispatch({
         type: 'canvas/fetchApplication',
+        payload: {
+          q: '',
+          sortedField: 'name',
+          isDesc: 'true',
+          page: 1,
+          pageSize: 2000,
+        },
         cb: (res) => {
           this.setState({
-            appList: res,
+            appList: res.results,
           });
         },
       });
@@ -102,10 +103,10 @@ class AppPopover extends PureComponent {
               onMouseEnter={() => this.handleEnter(item.id)}
               onMouseLeave={() => this.handleLeave(item.id)}
             >
-              <Link to={`/canvas/${item.id}`} target="blank">
+              <Link to={`/canvas/${item.id}`} target="_blank">
                 <IconFont type="OS-iconapi" />
                 <Ellipsis tooltip length={13}>
-                  { item.component.name }
+                  {item.name}
                 </Ellipsis>
                 {onMouseId === item.id ?
                   (<span className={styles.appMenuIcon}><IconFont type="OS-iconai37" /></span>)
