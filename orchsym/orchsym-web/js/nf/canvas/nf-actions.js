@@ -703,7 +703,7 @@
                 var selectionData = selection.datum();
 
                 // open the provenance page with the specified component
-                nfShell.showPage('provenance?' + $.param({
+                nfShell.showPage('/orchsym-web/provenance.html?' + $.param({
                         componentId: selectionData.id
                     }));
             }

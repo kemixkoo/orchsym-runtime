@@ -868,7 +868,7 @@
 
             var contextMenu = $('#context-menu').empty();
             var canvasBody = $('#canvas-body').get(0);
-            var bannerFooter = $('#banner-footer').get(0);
+            // var bannerFooter = $('#banner-footer').get(0);
             var breadCrumb = $('#breadcrumbs').get(0);
 
             // get the current selection
@@ -884,7 +884,8 @@
 
             // determines if the specified menu positioned at y would overflow the available height
             var overflowBottom = function (y, menu) {
-                return y + menu.height() > (canvasBody.clientHeight - breadCrumb.clientHeight - bannerFooter.clientHeight);
+                // return y + menu.height() > (canvasBody.clientHeight - breadCrumb.clientHeight - bannerFooter.clientHeight);
+                return y + menu.height() > (canvasBody.clientHeight - breadCrumb.clientHeight);
             };
 
             // adds a menu item
@@ -1022,7 +1023,8 @@
                 position[0] = canvasBody.clientWidth - contextMenu.width() - 2;
             }
             if (overflowBottom(position[1], contextMenu)) {
-                position[1] = canvasBody.clientHeight - breadCrumb.clientHeight - bannerFooter.clientHeight - contextMenu.height() - 9;
+                // position[1] = canvasBody.clientHeight - breadCrumb.clientHeight - bannerFooter.clientHeight - contextMenu.height() - 9;
+                position[1] = canvasBody.clientHeight - breadCrumb.clientHeight - contextMenu.height() - 9;
             }
 
             // show the context menu

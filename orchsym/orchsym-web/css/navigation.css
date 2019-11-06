@@ -469,7 +469,7 @@ span.breadcrumb-version-control-gray {
 .panel-main-left {
     width: 213px;
     height: 100%;
-    background-color: #F9FAFC;
+    background-color: #fff;
     float: left;
     position: relative;
 }
@@ -483,7 +483,7 @@ span.breadcrumb-version-control-gray {
     position: relative;
     font-weight: bold;
     z-index: 1;
-    background-color: #F7F9FB;
+    background-color: #fff;
     border-bottom: 1px solid rgba(0,0,0,0.1);
     margin-bottom: 10px;
 }
@@ -524,7 +524,7 @@ span.breadcrumb-version-control-gray {
     height: 28px;
     width: 28px;
     border: 0px solid #CCDADB;
-    background-color: rgba(249, 250, 251, 0.97);
+    background-color: rgba(249, 250, 251, 0);
     color: #004849;
 }
 .system-tools-list button span{
@@ -562,7 +562,7 @@ span.breadcrumb-version-control-gray {
     cursor: pointer;
     padding-left: 10px;
     position: relative;
-    border-left: 2px solid #F7F9FB;
+    /*border-left: 2px solid #F7F9FB;*/
 }
 
 
