@@ -161,7 +161,8 @@
 </div>
 
 <div id="banner-header" class="main-banner-header"></div>
-<div id="banner-footer" class="main-banner-footer"></div><md-toolbar style="display: none;" id="header" layout-align="space-between center" layout="row" class="md-small md-accent md-hue-1">
+<!--
+<div id="banner-footer" class="main-banner-footer"></div><md-toolbar id="header" layout-align="space-between center" layout="row" class="md-small md-accent md-hue-1">
     <img id="nifi-logo" src="images/logo.svg">
     <div flex layout="row" layout-align="space-between center">
         <div id="component-container">
@@ -326,6 +327,7 @@
         </div>
     </div>
 </md-toolbar>
+-->
 
 <div id="flow-status-top" flex layout="row" layout-align="space-between center">
     <div id="breadcrumbs" layout="row" layout-align="space-around center">
@@ -1397,8 +1399,89 @@
 <!---->
 </div>
 <div class="component-panel-tools" id="component-panel-tools">
-    <div class="acon" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">
+    <div class="acon" type="component-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('component-panel')">
         <span class="acon-api"></span>
+    </div>
+    <div class="acon" type="system-tools-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('system-tools-panel')">
+        <span class="acon-appstore"></span>
+    </div>
+</div>
+<div class="component-panel component-panel-toggleClass" id="system-tools-panel">
+    <div class="panel-main" ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
+        <div class="panel-main-left">
+            <div class="main-left-header">
+                <div class="collapse">
+                    <!--            <img src="images/youshou.svg" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">-->
+                </div>
+                {{appCtrl.serviceProvider.graphControlsCtrl.systemToolsName}}
+            </div>
+            <div class="system-tools-list" id="system-tools-list">
+                <div class="button-box">
+                    <button id="processor-component"
+                            class="component-button icon icon-processor"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.processorComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.processor}}</span>
+                    </button>
+                </div>
+                <div class="button-box">
+                    <button id="port-in-component"
+                            class="component-button icon icon-port-in"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.inputPortComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.inputPort}}</span>
+                    </button>
+                </div>
+                <div class="button-box">
+                    <button id="port-out-component"
+                            class="component-button icon icon-port-out"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.outputPortComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.outputPort}}</span>
+                    </button>
+                </div>
+                <div class="button-box">
+                    <button id="group-component"
+                            class="component-button icon icon-group"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.groupComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.processGroup}}</span>
+                    </button>
+                </div>
+                <div class="button-box">
+                    <button id="group-remote-component"
+                            class="component-button icon icon-group-remote"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.remoteGroupComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.remoteProcessGroup}}</span>
+                    </button>
+                </div>
+                <div class="button-box">
+                    <button id="funnel-component"
+                            class="component-button icon icon-funnel"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.funnelComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.funnel}}</span>
+                    </button>
+                </div>
+                <div class="button-box">
+                    <button id="template-component"
+                            class="component-button icon icon-template"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.templateComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.template}}</span>
+                    </button>
+                </div>
+                <div class="button-box">
+                    <button id="label-component"
+                            class="component-button icon icon-label"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
+                            nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.labelComponent);">
+                        <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.label}}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <div class="component-panel component-panel-toggleClass" id="component-panel">
@@ -1415,13 +1498,11 @@
         </div>
     </div>
 
-    <div class="panel-main"
-         ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
+    <div class="panel-main" ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
       <div class="panel-main-left">
         <div class="main-left-header">
           <div class="collapse">
-            <img src="images/youshou.svg"
-                 ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">
+<!--            <img src="images/youshou.svg" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">-->
           </div>
           {{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName}}
         </div>
