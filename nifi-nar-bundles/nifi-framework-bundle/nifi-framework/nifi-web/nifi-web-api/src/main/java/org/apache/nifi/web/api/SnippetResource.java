@@ -355,7 +355,7 @@ public class SnippetResource extends ApplicationResource {
                     // ensure write permission to the parent process group
                     snippet.getParentProcessGroup().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
                 },
-                () -> serviceFacade.verifyDeleteSnippet(snippetId, requestRevisions.stream().map(rev -> rev.getComponentId()).collect(Collectors.toSet())),
+                null,
                 (revisions, entity) -> {
                     // delete the specified snippet
                     final SnippetEntity snippetEntity = serviceFacade.deleteSnippet(revisions, entity.getId());
