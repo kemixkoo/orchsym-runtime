@@ -68,6 +68,7 @@ import org.apache.nifi.registry.flow.VersionControlInformation;
 import org.apache.nifi.remote.RemoteGroupPort;
 import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.util.CharacterFilterUtils;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.util.StringUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -267,23 +268,10 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         for (final Map.Entry<VariableDescriptor, String> entry : variableRegistry.getVariableMap().entrySet()) {
             addVariable(element, entry.getKey().getName(), entry.getValue());
         }
-        
-        final Set<String> tags = group.getTags();
-        if (null != tags) {
-            for (String tag : tags) {
-                addTag(element, tag);
-            }
-        }
 
-        final Map<String, String> additions = group.getAdditions();
-        if (null != additions && !additions.isEmpty()) {
-            final Element additionsElement = element.getOwnerDocument().createElement(ProcessAdditions.ADDITIONS_NAME);
-            element.appendChild(additionsElement);
+        ProcessUtil.addTags(element, group.getTags());
 
-            for (Entry<String, String> entry : additions.entrySet()) {
-                addAddtion(additionsElement, entry.getKey(), entry.getValue());
-            }
-        }
+        ProcessUtil.addAddtions(element, group.getAdditions());
     }
 
     private static void addVariable(final Element parentElement, final String variableName, final String variableValue) {
@@ -291,18 +279,6 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         variableElement.setAttribute("name", variableName);
         variableElement.setAttribute("value", variableValue);
         parentElement.appendChild(variableElement);
-    }
-
-    private static void addTag(final Element parentElement, final String tagValue) {
-        final Element tagElement = parentElement.getOwnerDocument().createElement(ProcessTags.TAG_NAME);
-        tagElement.setTextContent(tagValue);
-        parentElement.appendChild(tagElement);
-    }
-
-    private static void addAddtion(final Element parentElement, final String additionName, final String additionValue) {
-        final Element additionElement = parentElement.getOwnerDocument().createElement(additionName);
-        additionElement.setTextContent(additionValue);
-        parentElement.appendChild(additionElement);
     }
 
     private static void addBundle(final Element parentElement, final BundleCoordinate coordinate) {

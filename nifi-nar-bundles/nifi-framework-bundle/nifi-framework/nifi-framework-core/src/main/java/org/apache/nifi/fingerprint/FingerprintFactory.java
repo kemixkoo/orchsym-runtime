@@ -46,6 +46,7 @@ import org.apache.nifi.nar.ExtensionManager;
 import org.apache.nifi.util.BundleUtils;
 import org.apache.nifi.util.DomUtils;
 import org.apache.nifi.util.LoggingXmlParserErrorHandler;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.ReportingTaskDTO;
@@ -364,6 +365,12 @@ public class FingerprintFactory {
             addVariableFingerprint(builder, varElem);
         }
 
+        // tags
+        ProcessUtil.getTags(processGroupElem).forEach(tag -> builder.append(tag));
+
+        // additions
+        ProcessUtil.getAdditions(processGroupElem).forEach((k, v) -> builder.append(k).append('=').append(v));
+
         return builder;
     }
 
@@ -406,6 +413,9 @@ public class FingerprintFactory {
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(processorElem, "executionNode"));
         // run duration nanos
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(processorElem, "runDurationNanos"));
+
+        // additions
+        ProcessUtil.getAdditions(processorElem).forEach((k, v) -> builder.append(k).append('=').append(v));
 
         // get the temp instance of the Processor so that we know the default property values
         final BundleCoordinate coordinate = getCoordinate(className, bundle);
@@ -470,6 +480,9 @@ public class FingerprintFactory {
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(portElem, "id"));
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(portElem, "versionedComponentId"));
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(portElem, "name"));
+
+        // additions
+        ProcessUtil.getAdditions(portElem).forEach((k, v) -> builder.append(k).append('=').append(v));
 
         final NodeList userAccessControlNodeList = DomUtils.getChildNodesByTagName(portElem, "userAccessControl");
         if (userAccessControlNodeList == null || userAccessControlNodeList.getLength() == 0) {
@@ -591,6 +604,10 @@ public class FingerprintFactory {
         // id
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(connectionElem, "id"));
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(connectionElem, "versionedComponentId"));
+
+        // additions
+        ProcessUtil.getAdditions(connectionElem).forEach((k, v) -> builder.append(k).append('=').append(v));
+
         // source id
         appendFirstValue(builder, DomUtils.getChildNodesByTagName(connectionElem, "sourceId"));
         // source group id

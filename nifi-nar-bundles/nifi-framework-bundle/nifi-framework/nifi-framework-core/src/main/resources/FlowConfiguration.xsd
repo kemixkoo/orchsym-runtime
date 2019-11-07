@@ -66,7 +66,6 @@
 
             <!-- The "name" is a nicely displayable description of the processor's duty-->
             <xs:element name="name" type="NonEmptyStringType"/>
-
             <xs:element name="position" type="PositionType" />
             <xs:element name="styles" type="Styles" />
 
@@ -119,6 +118,8 @@
             
             <!-- Indicates that a relationship with the given name can be auto-terminated -->
             <xs:element name="autoTerminatedRelationship" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+
+            <xs:element name="additions" type="AdditionsMapType" minOccurs="0" maxOccurs="1" /> <!-- TODO -->
         </xs:sequence>
     </xs:complexType>
     
@@ -136,7 +137,30 @@
             <xs:minLength value="1"/>
         </xs:restriction>
     </xs:simpleType>
-    
+
+    <xs:complexType name="TagsListType">
+        <xs:sequence>
+            <xs:element name="tag" type="xs:string"
+                minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AdditionsMapType">
+        <xs:sequence>
+            <xs:element name="addition"
+                type="AdditionElementType" minOccurs="0"
+                maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AdditionElementType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="name" use="required"></xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
     <xs:simpleType name="ScheduledState">
         <xs:restriction base="xs:string">
             <xs:enumeration value="DISABLED"></xs:enumeration>
@@ -168,6 +192,9 @@
             <xs:element name="controllerService" type="ControllerServiceType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="template" type="TemplateType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="variable" type="VariableType" minOccurs="0" maxOccurs="unbounded"  />
+
+            <xs:element name="tags" type="TagsListType"  minOccurs="0" maxOccurs="1" />
+            <xs:element name="additions" type="AdditionsMapType" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
     </xs:complexType>
     
@@ -211,6 +238,8 @@
             <xs:element name="connection" type="ConnectionType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="controllerService" type="ControllerServiceType" minOccurs="0" maxOccurs="unbounded" />
             <xs:element name="template" type="TemplateType" minOccurs="0" maxOccurs="unbounded" />
+
+            <xs:element name="additions" type="AdditionsMapType" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
     </xs:complexType>
     
@@ -293,6 +322,8 @@
             <!-- "queuePrioritizerClass" are Java classes that can be used to prioritize the work queues for this
             processor.  The order of the prioritizers is important.-->
             <xs:element name="queuePrioritizerClass" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+
+            <xs:element name="additions" type="AdditionsMapType" minOccurs="0" maxOccurs="1" /> <!-- TODO -->
         </xs:sequence>
     </xs:complexType>
     
@@ -304,6 +335,8 @@
             <xs:element name="position" type="PositionType" />
             <xs:element name="comments" type="xs:string" />
             <xs:element name="scheduledState" type="ScheduledState" />
+
+            <xs:element name="additions" type="AdditionsMapType" minOccurs="0" maxOccurs="1" /> <!-- TODO -->
         </xs:sequence>
     </xs:complexType>
     
@@ -431,6 +464,8 @@
     		
             <xs:element name="property" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="annotationData" type="xs:string" minOccurs="0" maxOccurs="1" />
+
+            <xs:element name="additions" type="AdditionsMapType" minOccurs="0" maxOccurs="1" /> <!-- TODO -->
         </xs:sequence>
     </xs:complexType>
     
