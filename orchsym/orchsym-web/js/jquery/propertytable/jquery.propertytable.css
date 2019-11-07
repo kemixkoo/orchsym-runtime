@@ -111,6 +111,8 @@ span.string-check-label {
 
 div.value pre {
     overflow: hidden;
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 /*
