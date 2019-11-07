@@ -48,8 +48,8 @@ class AppPopover extends PureComponent {
   handleVisibleChange = visible => {
     this.setState({ visible });
     if (visible) {
-      this.fetchApplication('', 'name', 'true', 3)
-      this.fetchApplication('', 'modifiedTime', 'false', 2000)
+      this.fetchApplication('', 'modifiedTime', 'true', 3)
+      this.fetchApplication('', 'name', 'false', 2000)
     } else {
       this.setState({
         searchValue: '',
