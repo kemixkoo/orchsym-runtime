@@ -1,0 +1,152 @@
+pipeline {
+  agent any
+
+  environment {
+    PROJECT_NAME = 'runtime-dashboard'
+  }
+
+  stages {
+    stage('NOCI check') {
+      steps {
+        abortPreviousBuilds()
+
+        noci action: 'check'
+
+        load_envs_common()
+        load_envs_runtime_dashboard()
+      }
+    }
+
+    stage('Print information') {
+      steps {
+        printInformation()
+      }
+    }
+
+
+    stage('Compile') {
+      steps {
+        script {
+          // use an extra volume to cache node_modules
+          docker.image("${env.RUNTIME_DASHBOARD_NODE_DOCKER_IMAGE}").inside("-uroot -v ${pwd()}/orchsym/:/tmp/build/ -v ${env.JENKINS_EXTERNAL_DIR}/${env.PROJECT_NAME}-node_modules/:/tmp/build/node_modules/") {
+            sh "cd /tmp/build/orchsym-fe && npm install && npm run build"
+          }
+        }
+
+        sendNotifications("INFO", "Compile finished")
+      }
+    }
+
+    stage('Package') {
+      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
+      steps {
+        sh """
+          cd orchsym/orchsym-fe/
+          bash create-package.sh ${env.PROJECT_NAME} ${env.BRANCH_NAME}
+        """
+
+        sendNotifications("INFO", "Package finished")
+      }
+    }
+
+    stage('Copy to Ansible host') {
+      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
+
+      steps {
+        copyServiceFileToAnsible("orchsym/orchsym-fe/${env.PROJECT_NAME}-${env.BRANCH_NAME}.tar.gz")
+      }
+    }
+
+    stage('Deploy to Dev') {
+      when { branch "${env.RUNTIME_DASHBOARD_DEV_VERSION}" }
+
+      steps {
+        deployToEnvironment(
+          "${env.RUNTIME_DASHBOARD_DEV_NAME}",
+          "${env.RUNTIME_DASHBOARD_DEV_VERSION}",
+          "${env.RUNTIME_DASHBOARD_DEV_ENVIRONMENT}"
+        )
+      }
+    }
+
+    stage('Deploy to Test') {
+      when { branch "${env.RUNTIME_DASHBOARD_TEST_VERSION}" }
+
+      steps {
+        deployToEnvironment(
+          "${env.RUNTIME_DASHBOARD_TEST_NAME}",
+          "${env.RUNTIME_DASHBOARD_TEST_VERSION}",
+          "${env.RUNTIME_DASHBOARD_TEST_ENVIRONMENT}"
+        )
+      }
+    }
+
+    stage('Deploy to Stage') {
+      when { branch "${env.RUNTIME_DASHBOARD_STAGE_VERSION}" }
+
+      steps {
+        deployToEnvironment(
+          "${env.RUNTIME_DASHBOARD_STAGE_NAME}",
+          "${env.RUNTIME_DASHBOARD_STAGE_VERSION}",
+          "${env.RUNTIME_DASHBOARD_STAGE_ENVIRONMENT}"
+        )
+      }
+    }
+
+    stage('Deploy to Prod') {
+      when { branch "${env.RUNTIME_DASHBOARD_PROD_VERSION}" }
+
+      steps {
+        deployToEnvironment(
+          "${env.RUNTIME_DASHBOARD_PROD_NAME}",
+          "${env.RUNTIME_DASHBOARD_PROD_VERSION}",
+          "${env.RUNTIME_DASHBOARD_PROD_ENVIRONMENT}"
+        )
+      }
+    }
+
+    stage('Upload to S3') {
+      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
+
+      steps {
+        uploadServiceFile("orchsym/orchsym-fe/${env.PROJECT_NAME}-${env.BRANCH_NAME}.tar.gz")
+      }
+    }
+
+    stage('Build/Push docker image') {
+      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
+
+      steps {
+        buildAndPushDockerImage2('', '', "orchsym/orchsym-fe")
+      }
+    }
+
+    stage('Capture Output') {
+      steps {
+        captureBuildOutput()
+      }
+    }
+  }
+
+  post {
+    always {
+      noci action: 'postProcess'
+    }
+
+    aborted {
+      sendNotifications("ABORTED", "Build aborted")
+    }
+
+    unstable {
+      sendNotifications("UNSTABLE", "Build unstable")
+    }
+
+    success {
+      sendNotifications("SUCCESS", "Build succeed", "${env.build_output}")
+    }
+
+    failure {
+      sendNotifications("FAILURE", "Build failed")
+    }
+  }
+}

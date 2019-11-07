@@ -121,13 +121,14 @@ pipeline {
       }
     }
 
-    stage('Build/Push docker image') {
-      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
+    // Enable it later
+    // stage('Build/Push docker image') {
+    //   when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
 
-      steps {
-        buildAndPushDockerImage("--build-arg VERSION_NAME=${env.VERSION_NAME} --pull -f Dockerfile .")
-      }
-    }
+    //   steps {
+    //     buildAndPushDockerImage("--build-arg VERSION_NAME=${env.VERSION_NAME} --pull -f Dockerfile .")
+    //   }
+    // }
 
     stage('Upload to Samba') {
       when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
