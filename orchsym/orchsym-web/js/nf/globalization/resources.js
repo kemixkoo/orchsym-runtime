@@ -21,6 +21,7 @@ window.productVersion = "";
 window.buildDate = "";
 window.supportEmail = "";
 window.apiHost = window.location.origin;
+window.advancedDomain = "https://172.18.28.230:8443";
 var configurationUrl = apiHost + "/nifi-api/flow/about";
 
 $.ajax({

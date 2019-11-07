@@ -849,9 +849,8 @@
                                     var openCustomUi = function () {
                                         // reset state and close the dialog manually to avoid hiding the faded background
                                         $('#processor-configuration').modal('hide');
-
                                         // show the custom ui
-                                        nfCustomUi.showCustomUi(processorResponse, processor.config.customUiUrl, true).done(function () {
+                                        nfCustomUi.showCustomUi(processorResponse, processor.config.customUiUrl, true, true).done(function () {
                                             // once the custom ui is closed, reload the processor
                                             nfProcessor.reload(processor.id);
 

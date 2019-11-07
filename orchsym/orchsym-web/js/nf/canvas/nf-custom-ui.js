@@ -50,7 +50,7 @@
          * @arugment {string} uri               The custom ui uri
          * @argument {boolean} editable         Whether the custom ui should support editing
          */
-        showCustomUi: function (entity, uri, editable) {
+        showCustomUi: function (entity, uri, editable, advanced) {
             return $.Deferred(function (deferred) {
                 nfCommon.getAccessToken(apiHost + "/nifi-api/access/ui-extension-token").done(function (uiExtensionToken) {
                     // record the processor id
@@ -72,7 +72,7 @@
                     }
 
                     // show the shell
-                    nfShell.showPage(apiHost + uri + '?' + $.param(customUiParams), false).done(function () {
+                    nfShell.showPage((advanced ? window.advancedDomain : apiHost) + uri + '?' + $.param(customUiParams), false).done(function () {
                         deferred.resolve();
                     });
                 }).fail(function () {
