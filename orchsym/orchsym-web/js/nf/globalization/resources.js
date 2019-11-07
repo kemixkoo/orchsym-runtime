@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-window.locale = "";
+window.locale = "zh";
 window.defaultLocale = "";
 window.productVersion = "";
 window.buildDate = "";
 window.supportEmail = "";
 window.apiHost = window.location.origin;
+window.advancedDomain = "https://172.18.28.230:8443";
 var configurationUrl = apiHost + "/nifi-api/flow/about";
 
 $.ajax({
@@ -226,6 +227,7 @@ nf._ = (function () {
         "nf-processor-component.Tags": "Tags",
         "nf-processor-component.NoDescriptionSpecified": "No Description Specified",
         "nf-processor-component.AllProcessor": "All components",
+        "nf-processor-component.SystemTools": "System tools",
         "nf-processor-configuration.Id": "Id",
         "nf-processor-configuration.Type": "Type",
         "nf-processor-configuration.Name": "Name",
@@ -1981,6 +1983,7 @@ nf._ = (function () {
         "nf-processor-component.Tags": "标签",
         "nf-processor-component.NoDescriptionSpecified": "未指定说明",
         "nf-processor-component.AllProcessor": "所有组件",
+        "nf-processor-component.SystemTools": "系统工具",
         "nf-processor-configuration.Id": "Id",
         "nf-processor-configuration.Type": "类型",
         "nf-processor-configuration.Name": "名称",

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="../nifi/assets/jquery-ui-dist/jquery-ui.min.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/assets/slickgrid/slick.grid.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/css/slick-nifi-theme.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/js/jquery/modal/jquery.modal.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/js/jquery/combo/jquery.combo.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/assets/qtip2/dist/jquery.qtip.min.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/js/codemirror/lib/codemirror.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/js/codemirror/addon/hint/show-hint.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/js/jquery/nfeditor/jquery.nfeditor.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/js/jquery/nfeditor/languages/nfel.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/fonts/flowfont/flowfont.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/assets/font-awesome/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/assets/reset.css/reset.css" type="text/css">
+    <link rel="stylesheet" href="css/main.css" type="text/css">
+    <link rel="stylesheet" href="../nifi/css/common-ui.css" type="text/css">
+    <script type="text/javascript" src="../nifi/assets/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/jquery.center.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/jquery.each.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/jquery.tab.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/modal/jquery.modal.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/combo/jquery.combo.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/jquery.ellipsis.js"></script>
+    <script type="text/javascript" src="../nifi/assets/jquery-ui-dist/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="../nifi/assets/qtip2/dist/jquery.qtip.min.js"></script>
+    <script type="text/javascript" src="../nifi/assets/JSON2/json2.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/lib/jquery.event.drag-2.3.0.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/plugins/slick.cellrangedecorator.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/plugins/slick.cellrangeselector.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/plugins/slick.cellselectionmodel.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/plugins/slick.rowselectionmodel.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/slick.formatters.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/slick.editors.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/slick.dataview.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/slick.core.js"></script>
+    <script type="text/javascript" src="../nifi/assets/slickgrid/slick.grid.js"></script>
+    <script type="text/javascript" src="../nifi/js/codemirror/lib/codemirror-compressed.js"></script>
+    <script type="text/javascript" src="../nifi/js/nf/nf-namespace.js"></script>
+    <script type="text/javascript" src="../nifi/js/nf/nf-storage.js"></script>
+    <script type="text/javascript" src="../nifi/js/nf/nf-ajax-setup.js"></script>
+    <script type="text/javascript" src="../nifi/js/nf/nf-universal-capture.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/nfeditor/languages/nfel.js"></script>
+    <script type="text/javascript" src="../nifi/js/jquery/nfeditor/jquery.nfeditor.js"></script>
+    <script type="text/javascript" src="js/application.js"></script>
+    <title>Update Attribute</title>
+    <style type="text/css" rel="stylesheet">.slickgrid_490073 .slick-header-column { left: 1000px; } .slickgrid_490073 .slick-top-panel { height:25px; } .slickgrid_490073 .slick-headerrow-columns { height:25px; } .slickgrid_490073 .slick-footerrow-columns { height:25px; } .slickgrid_490073 .slick-cell { height:18px; } .slickgrid_490073 .slick-row { height:25px; } .slickgrid_490073 .l0 { } .slickgrid_490073 .r0 { } .slickgrid_490073 .l1 { } .slickgrid_490073 .r1 { }</style><style type="text/css" rel="stylesheet">.slickgrid_433497 .slick-header-column { left: 1000px; } .slickgrid_433497 .slick-top-panel { height:25px; } .slickgrid_433497 .slick-headerrow-columns { height:25px; } .slickgrid_433497 .slick-footerrow-columns { height:25px; } .slickgrid_433497 .slick-cell { height:18px; } .slickgrid_433497 .slick-row { height:25px; } .slickgrid_433497 .l0 { } .slickgrid_433497 .r0 { } .slickgrid_433497 .l1 { } .slickgrid_433497 .r1 { } .slickgrid_433497 .l2 { } .slickgrid_433497 .r2 { }</style><script src="chrome-extension://mooikfkahbdckldjjndioackbalphokd/assets/prompt.js"></script></head>
+<body>
+<div id="attribute-updater-processor-id" class="hidden">f5daa332-084e-3b74-9d79-87167dbc7cc6</div>
+<div id="attribute-updater-client-id" class="hidden">4367e86a-016e-1000-c60c-9472ed640af8</div>
+<div id="attribute-updater-revision" class="hidden">0</div>
+<div id="attribute-updater-editable" class="hidden">true</div>
+<div id="attribute-updater-disconnected-node-acknowledged" class="hidden">false</div>
+<div id="update-attributes-content">
+    <div id="rule-list-panel">
+        <div id="flowfile-policy-container">
+            <span id="selected-flowfile-policy" class="hidden">USE_ORIGINAL</span>
+            <div id="flowfile-policy-label" class="large-label">FlowFile Policy</div>
+            <div class="info fa fa-question-circle" data-hasqtip="0" oldtitle="Defines the behavior when multiple rules match. Use clone will ensure that each matching rule is executed with a copy of the original flowfile. Use original will execute all matching rules with the original flowfile in the order specified below." title=""></div>
+            <div id="flowfile-policy" class="combo-button-normal pointer combo combo-button-over"><div class="combo-text" title="use original">use original</div><div class="combo-arrow fa fa-chevron-down"></div></div>
+            <div class="clear"></div>
+        </div>
+        <div id="rule-label-container">
+            <div id="rules-label" class="large-label">Rules</div>
+            <div class="info fa fa-question-circle" data-hasqtip="1" oldtitle="Click and drag to change the order that rules are evaluated." title=""></div>
+            <button id="new-rule" class="new-rule hidden fa fa-plus" style="display: inline-block;"></button>
+            <div class="clear"></div>
+        </div>
+        <div id="rule-list-container" style="display: none;">
+            <ul id="rule-list" class="ui-sortable"></ul>
+        </div>
+        <div id="no-rules" class="unset">No rules found.</div>
+        <div id="rule-filter-controls" class="hidden" style="display: none;">
+            <div id="rule-filter-container">
+                <input type="text" placeholder="Filter" id="rule-filter">
+                <div id="rule-filter-type" class="combo-button-normal pointer combo"><div class="combo-text" title="by name">by name</div><div class="combo-arrow fa fa-chevron-down"></div></div>
+            </div>
+            <div id="rule-filter-stats" class="filter-status">
+                Displaying&nbsp;<span id="displayed-rules">0</span>&nbsp;of&nbsp;<span id="total-rules">0</span>
+            </div>
+        </div>
+    </div>
+    <div id="rule-details-panel" style="border-bottom: 1px solid rgb(208, 219, 224);">
+        <div id="selected-rule-name-container" class="selected-rule-detail">
+            <div class="large-label">Rule Name</div>
+            <div id="selected-rule-id" class="hidden"></div>
+            <div id="no-rule-selected-label" class="unset">No rule selected.</div>
+            <input type="text" id="selected-rule-name" class="hidden">
+        </div>
+        <div id="selected-rule-conditions-container" class="selected-rule-detail">
+            <div class="large-label-container">
+                <div id="conditions-label" class="large-label">Conditions</div>
+                <div class="info fa fa-question-circle" data-hasqtip="2" oldtitle="All conditions must be met for this rule to match." title=""></div>
+                <button id="new-condition" title="New Condition" class="new-condition hidden fa fa-plus" style="display: inline-block;"></button>
+                <div class="clear"></div>
+            </div>
+            <div id="selected-rule-conditions" class="slickgrid_490073 ui-widget" style="overflow: hidden; outline: 0px; position: relative;"><div tabindex="0" hidefocus="" style="position:fixed;width:0;height:0;top:0;left:0;outline:0;"></div><div class="slick-header ui-state-default" style="overflow:hidden;position:relative;"><div class="slick-header-columns" style="left: -1000px; width: 1761px;" unselectable="on"><div class="ui-state-default slick-header-column slick-header-sortable" id="slickgrid_490073expression" title="" style="width: 685px;"><span class="slick-column-name">Expression</span><span class="slick-sort-indicator"></span></div><div class="ui-state-default slick-header-column slick-header-sortable" id="slickgrid_490073actions" title="" style="width: 41px;"><span class="slick-column-name">&nbsp;</span><span class="slick-sort-indicator"></span></div></div></div><div class="slick-headerrow ui-state-default" style="overflow: hidden; position: relative; display: none;"><div class="slick-headerrow-columns" style="width: 744px;"></div><div style="display: block; height: 1px; position: absolute; top: 0px; left: 0px; width: 744px;"></div></div><div class="slick-top-panel-scroller ui-state-default" style="overflow: hidden; position: relative; display: none;"><div class="slick-top-panel" style="width:10000px"></div></div><div class="slick-viewport" style="width: 100%; overflow: auto; outline: 0px; position: relative; height: 168px;"><div class="grid-canvas" style="width: 744px; height: 151px;"></div></div><div tabindex="0" hidefocus="" style="position:fixed;width:0;height:0;top:0;left:0;outline:0;"></div></div>
+        </div>
+        <div id="selected-rule-actions-container" class="selected-rule-detail">
+            <div class="large-label-container">
+                <div id="actions-label" class="large-label">Actions</div>
+                <button id="new-action" title="New Action" class="new-action hidden fa fa-plus" style="display: inline-block;"></button>
+                <div class="clear"></div>
+            </div>
+            <div id="selected-rule-actions" class="slickgrid_433497 ui-widget" style="overflow: hidden; outline: 0px; position: relative;"><div tabindex="0" hidefocus="" style="position:fixed;width:0;height:0;top:0;left:0;outline:0;"></div><div class="slick-header ui-state-default" style="overflow:hidden;position:relative;"><div class="slick-header-columns" style="left: -1000px; width: 1761px;" unselectable="on"><div class="ui-state-default slick-header-column slick-header-sortable" id="slickgrid_433497attribute" title="" style="width: 338px;"><span class="slick-column-name">Attribute</span><span class="slick-sort-indicator"></span><div class="slick-resizable-handle"></div></div><div class="ui-state-default slick-header-column slick-header-sortable" id="slickgrid_433497value" title="" style="width: 338px;"><span class="slick-column-name">Value</span><span class="slick-sort-indicator"></span></div><div class="ui-state-default slick-header-column slick-header-sortable" id="slickgrid_433497actions" title="" style="width: 41px;"><span class="slick-column-name">&nbsp;</span><span class="slick-sort-indicator"></span></div></div></div><div class="slick-headerrow ui-state-default" style="overflow: hidden; position: relative; display: none;"><div class="slick-headerrow-columns" style="width: 744px;"></div><div style="display: block; height: 1px; position: absolute; top: 0px; left: 0px; width: 744px;"></div></div><div class="slick-top-panel-scroller ui-state-default" style="overflow: hidden; position: relative; display: none;"><div class="slick-top-panel" style="width:10000px"></div></div><div class="slick-viewport" style="width: 100%; overflow: auto; outline: 0px; position: relative; height: 168px;"><div class="grid-canvas" style="width: 744px; height: 151px;"></div></div><div tabindex="0" hidefocus="" style="position:fixed;width:0;height:0;top:0;left:0;outline:0;"></div></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div id="message-and-save-container">
+        <div id="message"></div>
+        <div id="selected-rule-save" class="button hidden" style="display: block;">Save</div>
+    </div>
+    <div class="clear"></div>
+    <div id="glass-pane"></div>
+    <div id="ok-dialog" class="small-dialog dialog cancellable modal" style="display: none;"><div class="dialog-header"><span class="dialog-header-text"></span></div>
+        <div id="ok-dialog-content" class="dialog-content"></div>
+        <div class="dialog-buttons"><div class="button" style="background: rgb(114, 142, 155); color: rgb(255, 255, 255);"><span>Ok</span></div></div></div>
+    <div id="yes-no-dialog" class="small-dialog dialog cancellable modal" style="display: none;"><div class="dialog-header"><span class="dialog-header-text"></span></div>
+        <div id="yes-no-dialog-content" class="dialog-content"></div>
+    </div>
+    <div id="new-rule-dialog" class="small-dialog dialog cancellable modal" style="display: none;"><div class="dialog-header"><span class="dialog-header-text">Add Rule</span></div>
+        <div class="dialog-content">
+            <div class="rule-setting">
+                <div class="setting-name">Rule name</div>
+                <div>
+                    <input id="new-rule-name" type="text">
+                </div>
+            </div>
+            <div class="rule-setting">
+                <div class="setting-name">Copy from existing rule (optional)</div>
+                <div>
+                    <input id="copy-from-rule-name" placeholder="Search rule name" type="text" class="search ui-autocomplete-input" autocomplete="off">
+                </div>
+            </div>
+        </div>
+        <div class="dialog-buttons"><div class="button" style="background: rgb(114, 142, 155); color: rgb(255, 255, 255);"><span>Add</span></div><div class="button" style="background: rgb(227, 232, 235); color: rgb(0, 72, 73);"><span>Cancel</span></div></div></div>
+    <div id="new-condition-dialog" class="dialog ui-draggable ui-draggable-handle">
+        <div>
+            <div class="rule-setting">
+                <div class="setting-name">Expression</div>
+                <div>
+                    <div id="new-condition-expression" class="nfel-editor"><textarea style="display: none;"></textarea><div class="CodeMirror cm-s-default ui-resizable" style="width: 374px; height: 135px;"><div style="overflow: hidden; position: relative; width: 3px; height: 0px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" style="position: absolute; padding: 0px; width: 1000px; height: 1em; outline: none;" tabindex="0"></textarea></div><div class="CodeMirror-hscrollbar" style="left: 0px;"><div style="height: 100%; min-height: 1px;"></div></div><div class="CodeMirror-vscrollbar"><div style="min-width: 1px;"></div></div><div class="CodeMirror-scrollbar-filler"></div><div class="CodeMirror-gutter-filler"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; min-width: 3px;"><div style="position: relative;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"><span><span>​</span>x</span></div><div class="CodeMirror-measure"><pre><span style="padding-right: 0.1px;"><span style="display: inline-block; width: 1px; margin-right: -1px;">&nbsp;</span></span></pre></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"></div><div class="CodeMirror-code"></div></div></div></div></div><div style="position: absolute; height: 30px; width: 1px;"></div><div class="CodeMirror-gutters"><div class="CodeMirror-gutter CodeMirror-linenumbers" style="width: 0px;"></div></div></div><div class="ui-resizable-handle ui-resizable-se"></div></div></div>
+                </div>
+            </div>
+        </div>
+        <div id="new-condition-button-container">
+            <div id="new-condition-add" class="button button-normal">Add</div>
+            <div id="new-condition-cancel" class="secondary-button button-normal">Cancel</div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <div id="new-action-dialog" class="dialog ui-draggable ui-draggable-handle">
+        <div style="margin-bottom: 32px;">
+            <div class="rule-setting">
+                <div class="setting-name">Attribute</div>
+                <div id="new-action-attribute-container">
+                    <input id="new-action-attribute" type="text">
+                </div>
+            </div>
+            <div class="rule-setting">
+                <div class="setting-name">Value</div>
+                <div>
+                    <div id="new-action-value" class="nfel-editor"><textarea style="display: none;"></textarea><div class="CodeMirror cm-s-default ui-resizable" style="width: 374px; height: 135px;"><div style="overflow: hidden; position: relative; width: 3px; height: 0px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" style="position: absolute; padding: 0px; width: 1000px; height: 1em; outline: none;" tabindex="0"></textarea></div><div class="CodeMirror-hscrollbar" style="left: 0px;"><div style="height: 100%; min-height: 1px;"></div></div><div class="CodeMirror-vscrollbar"><div style="min-width: 1px;"></div></div><div class="CodeMirror-scrollbar-filler"></div><div class="CodeMirror-gutter-filler"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; min-width: 3px;"><div style="position: relative;"><div class="CodeMirror-lines"><div style="position: relative; outline: none;"><div class="CodeMirror-measure"><span><span>​</span>x</span></div><div class="CodeMirror-measure"><pre><span style="padding-right: 0.1px;"><span style="display: inline-block; width: 1px; margin-right: -1px;">&nbsp;</span></span></pre></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-cursors"></div><div class="CodeMirror-code"></div></div></div></div></div><div style="position: absolute; height: 30px; width: 1px;"></div><div class="CodeMirror-gutters"><div class="CodeMirror-gutter CodeMirror-linenumbers" style="width: 0px;"></div></div></div><div class="ui-resizable-handle ui-resizable-se"></div></div></div>
+                </div>
+            </div>
+        </div>
+        <div id="new-action-button-container">
+            <div id="new-action-add" class="button button-normal">Add</div>
+            <div id="new-action-cancel" class="secondary-button button-normal">Cancel</div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <ul id="ui-id-1" tabindex="0" class="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front" style="display: none;"></ul></div>
+
+<div role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></div></body></html>

@@ -284,13 +284,25 @@
                 item.open = !item.open
             },
 
-            openComponent: function () {
+            openComponent: function (type) {
                 // this.isComponentOpen = true;
-                $("#component-panel").toggleClass("component-panel-toggleClass");
-                if($("#component-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
-                    $("#component-panel-tools > .acon").removeClass("blue");
-                } else {
-                    $("#component-panel-tools > .acon").addClass("blue");
+                $("#component-panel-tools > .acon.blue").removeClass("blue");
+                if(type==='component-panel'){
+                    $("#system-tools-panel").addClass("component-panel-toggleClass");
+                    $("#component-panel").toggleClass("component-panel-toggleClass");
+                    if($("#component-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
+                        $("#component-panel-tools > .acon[type=component-panel]").removeClass("blue");
+                    } else {
+                        $("#component-panel-tools > .acon[type=component-panel]").addClass("blue");
+                    }
+                } else if(type==='system-tools-panel') {
+                    $("#component-panel").addClass("component-panel-toggleClass");
+                    $("#system-tools-panel").toggleClass("component-panel-toggleClass");
+                    if($("#system-tools-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
+                        $("#component-panel-tools > .acon[type=system-tools-panel]").removeClass("blue");
+                    } else {
+                        $("#component-panel-tools > .acon[type=system-tools-panel]").addClass("blue");
+                    }
                 }
             },
 

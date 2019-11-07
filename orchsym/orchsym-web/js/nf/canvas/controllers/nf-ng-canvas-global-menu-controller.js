@@ -461,6 +461,7 @@
         }
 
         var globalMenuCtrl = new GlobalMenuCtrl();
+        var locale = locale || localStorage.getItem('locale')
         globalMenuCtrl.constant = window[locale];
         globalMenuCtrl.register();
         return globalMenuCtrl;
