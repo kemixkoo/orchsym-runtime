@@ -51,6 +51,7 @@ ul li{
     color: #262626;
     border-bottom: 3px solid #1AD0A6 !important;
     font-weight: bold;
+    margin-top: -1px;
 }
 
 .tab-container {
