@@ -161,9 +161,17 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 if ("name".equalsIgnoreCase(sortedField)){
                     return isDesc? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
                 }else if ("createdTime".equalsIgnoreCase(sortedField)){
-                    return isDesc? o2.getCreatedTime().compareTo(o1.getCreatedTime()): o1.getCreatedTime().compareTo(o2.getCreatedTime());
+                    if (o1.getCreatedTime() != null && o2.getCreatedTime()!= null){
+                        return isDesc? o2.getCreatedTime().compareTo(o1.getCreatedTime()): o1.getCreatedTime().compareTo(o2.getCreatedTime());
+                    }else {
+                        return isDesc? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
+                    }
                 }else if ("modifiedTime".equalsIgnoreCase(sortedField)){
-                    return isDesc? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
+                    if (o1.getModifiedTime()!= null && o2.getModifiedTime()!= null){
+                        return isDesc? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
+                    }else {
+                        return isDesc? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
+                    }
                 }else {
                     return isDesc? o2.getId().compareTo(o1.getId()) : o1.getId().compareTo(o2.getId());
                 }
