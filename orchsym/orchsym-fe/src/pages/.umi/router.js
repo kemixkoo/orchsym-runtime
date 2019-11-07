@@ -160,72 +160,45 @@ models: () => [
         "name": "template",
         "icon": "OS-iconmoban",
         "path": "/template",
-        "routes": [
-          {
-            "name": "local",
-            "path": "/template/local",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "p__Template__Local" */'../Template/Local'),
-  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
-            "name": "remote",
-            "path": "/template/remote",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "p__Template__Remote" */'../Template/Remote'),
-  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
-            "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
-          }
-        ]
-      },
-      {
-        "name": "orchestrations",
-        "path": "/orchestrations",
-        "icon": "share-alt",
         "component": _dvaDynamic({
   
-  component: () => import(/* webpackChunkName: "p__Orchestrations__Index" */'../Orchestrations/Index'),
+  component: () => import(/* webpackChunkName: "p__Template" */'../Template'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
         "exact": true
       },
       {
-        "name": "result",
-        "icon": "check-circle-o",
-        "path": "/result",
-        "routes": [
-          {
-            "path": "/result/success",
-            "name": "success",
-            "component": _dvaDynamic({
+        "name": "controllerServices",
+        "icon": "OS-iconkongzhiqi",
+        "path": "/ControllerServices",
+        "component": _dvaDynamic({
   
-  component: () => import(/* webpackChunkName: "p__Result__Success" */'../Result/Success'),
+  component: () => import(/* webpackChunkName: "p__ControllerServices" */'../ControllerServices'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
-            "exact": true
-          },
-          {
-            "path": "/result/fail",
-            "name": "fail",
-            "component": _dvaDynamic({
+        "exact": true
+      },
+      {
+        "name": "tag",
+        "icon": "OS-iconbiaoqian",
+        "path": "/tag",
+        "component": _dvaDynamic({
   
-  component: () => import(/* webpackChunkName: "p__Result__Error" */'../Result/Error'),
+  component: () => import(/* webpackChunkName: "p__Tag" */'../Tag'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
-            "exact": true
-          },
-          {
-            "component": () => React.createElement(require('E:/bitbucket/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
-          }
-        ]
+        "exact": true
+      },
+      {
+        "name": "recycleBin",
+        "icon": "OS-iconhuishouzhan",
+        "path": "/recycleBin",
+        "component": _dvaDynamic({
+  
+  component: () => import(/* webpackChunkName: "p__RecycleBin" */'../RecycleBin'),
+  LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
+}),
+        "exact": true
       },
       {
         "name": "exception",
