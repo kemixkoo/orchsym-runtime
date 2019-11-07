@@ -666,7 +666,7 @@
                         $('#shell-close-button').click();
 
                         // open the provenance page with the specified component
-                        nfShell.showPage('provenance?' + $.param({
+                        nfShell.showPage('/orchsym-web/provenance.html?' + $.param({
                                 flowFileUuid: item.uuid
                             }));
                     }
