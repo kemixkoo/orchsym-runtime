@@ -68,9 +68,7 @@ export default class BaseMenu extends PureComponent {
                 {getIcon(item.icon, theme)}
                 <span>{name}</span>
               </span>
-            ) : (
-              name
-            )
+            ) : (name)
           }
           key={item.path}
         >
@@ -78,7 +76,7 @@ export default class BaseMenu extends PureComponent {
         </SubMenu>
       );
     }
-    return <Menu.Item key={item.path}>{this.getMenuItemPath(item, theme)}</Menu.Item>;
+    return <Menu.Item key={item.path} disabled={item.locale !== 'menu.application'}>{this.getMenuItemPath(item, theme)}</Menu.Item>;
   };
 
   /**
@@ -101,11 +99,7 @@ export default class BaseMenu extends PureComponent {
       );
     }
     const { location } = this.props;
-    return (
-      <Link to={itemPath} target={target} replace={itemPath === location.pathname}>
-        {icon}
-        <span>{name}</span>
-      </Link>
+    return (<Link to={itemPath} target={target} replace={itemPath === location.pathname}>{icon}<span>{name}</span></Link>
     );
   };
 

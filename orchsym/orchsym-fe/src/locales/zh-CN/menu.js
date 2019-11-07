@@ -6,8 +6,12 @@ export default {
   'menu.application': '应用管理',
   // 模板页面
   'menu.template': '模板管理',
-  'menu.template.local': '本地模板',
-  'menu.template.remote': '远程模板',
+  // 控制器服务页面
+  'menu.controllerServices': '控制器服务页面',
+  // 标签管理
+  'menu.tag': '标签管理',
+  // 回收站
+  'menu.recycleBin': '回收站',
   // 编排页面
   'menu.orchestrations': '编排',
 

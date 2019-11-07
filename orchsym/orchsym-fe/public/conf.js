@@ -7,7 +7,7 @@ const copyright = `2017-${new Date().getFullYear()} 白山云科技-数聚蜂巢
 const departmentNameEn = 'Orchsym Studio'
 const indexLogoPath = '/iconfont/logo.svg'
 const indexMiniLogoPath = '/iconfont/logo-mini.svg'
-const faviconPath = '/favicon.png'
+const faviconPath = '/favicon.ico'
 // 可配置企业logo
 window.logoHref = {
   companyLogoIndex: indexLogoPath,

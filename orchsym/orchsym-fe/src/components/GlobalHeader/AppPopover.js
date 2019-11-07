@@ -21,6 +21,7 @@ class AppPopover extends PureComponent {
     visible: false,
     onMouseId: '',
     appList: [],
+    topList: [],
     searchValue: '',
   };
 
@@ -33,49 +34,53 @@ class AppPopover extends PureComponent {
   }
 
   doSearchAjax = value => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'canvas/fetchApplication',
-      payload: {
-        q: value,
-        sortedField: 'name',
-        isDesc: 'true',
-        page: 1,
-        pageSize: 2000,
-      },
-      cb: (res) => {
-        this.setState({
-          appList: res.results,
-        });
-      },
-    });
+    if (value) {
+      this.setState({
+        topList: [],
+      });
+      this.fetchApplication(value, 'name', 'false', 2000)
+    } else {
+      this.fetchApplication('', 'modifiedTime', 'true', 3)
+      this.fetchApplication('', 'name', 'false', 2000)
+    }
   }
 
   handleVisibleChange = visible => {
-    const { dispatch } = this.props;
     this.setState({ visible });
     if (visible) {
-      dispatch({
-        type: 'canvas/fetchApplication',
-        payload: {
-          q: '',
-          sortedField: 'name',
-          isDesc: 'true',
-          page: 1,
-          pageSize: 2000,
-        },
-        cb: (res) => {
-          this.setState({
-            appList: res.results,
-          });
-        },
-      });
+      this.fetchApplication('', 'name', 'true', 3)
+      this.fetchApplication('', 'modifiedTime', 'false', 2000)
     } else {
       this.setState({
         searchValue: '',
       });
     }
   };
+
+  fetchApplication = (q, sortedField, isDesc, pageSize) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'canvas/fetchApplication',
+      payload: {
+        q,
+        sortedField,
+        isDesc,
+        page: 1,
+        pageSize,
+      },
+      cb: (res) => {
+        if (sortedField === 'modifiedTime') {
+          this.setState({
+            topList: res.results,
+          });
+        } else {
+          this.setState({
+            appList: res.results,
+          });
+        }
+      },
+    });
+  }
 
   handleEnter = id => {
     this.setState({
@@ -92,7 +97,7 @@ class AppPopover extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { visible, onMouseId, appList, searchValue } = this.state;
+    const { visible, onMouseId, appList, searchValue, topList } = this.state;
 
     const appMenu = (
       <Spin spinning={loading || false}>
@@ -117,6 +122,27 @@ class AppPopover extends PureComponent {
         </Menu>
       </Spin>
     );
+    const topMenu = (
+      <Menu className={styles.appMenu}>
+        {topList.map(item => (
+          <Menu.Item
+            key={item.id}
+            onMouseEnter={() => this.handleEnter(item.id)}
+            onMouseLeave={() => this.handleLeave(item.id)}
+          >
+            <Link to={`/canvas/${item.id}`} target="_blank">
+              <IconFont type="OS-iconapi" />
+              <Ellipsis tooltip length={13}>
+                {item.name}
+              </Ellipsis>
+              {onMouseId === item.id ?
+                (<span className={styles.appMenuIcon}><IconFont type="OS-iconai37" /></span>)
+                : (null)}
+            </Link>
+          </Menu.Item>
+        ))}
+      </Menu>
+    );
     const content = (
       <div className={styles.appPopoverWrapper}>
         <div className={styles.searchInput}>
@@ -129,12 +155,11 @@ class AppPopover extends PureComponent {
           />
         </div>
         <div className={styles.listScrollbar}>
-          <p className={styles.title}>全部</p>
+          {topList && topList.length === 0 ? (<div><p className={styles.title}>最近</p>{topMenu}<p className={styles.title}>全部</p></div>) : (null)}
           {appMenu}
         </div>
       </div>
     );
-
     return (
       <Popover
         placement="bottomLeft"

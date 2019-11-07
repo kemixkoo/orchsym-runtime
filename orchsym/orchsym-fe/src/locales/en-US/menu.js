@@ -5,12 +5,19 @@ export default {
   'menu.blank.sign': 'new page sub',
   // 应用页面
   'menu.application': 'Applications',
+  // 控制器服务页面
+  'menu.controllerServices': 'Controller services',
+  // 标签管理
+  'menu.tag': 'Tag',
+  // 回收站
+  'menu.recycleBin': 'Recycle bin',
   // 模板页面
   'menu.template': 'template',
   'menu.template.local': 'local template',
   'menu.template.remote': 'remote template',
   // 编排页面
   'menu.orchestrations': 'orchestrations',
+
 
   'menu.home': 'Home',
   'menu.login': 'Login',

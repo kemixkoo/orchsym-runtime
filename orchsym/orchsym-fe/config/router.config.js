@@ -71,42 +71,52 @@ export default [
         name: 'template',
         icon: 'OS-iconmoban',
         path: '/template',
-        routes: [
-          {
-            name: 'local',
-            path: '/template/local',
-            component: './Template/Local',
-          },
-          {
-            name: 'remote',
-            path: '/template/remote',
-            component: './Template/Remote',
-          },
-        ],
+        component: './Template',
       },
-      // 编排
+      // 控制器服务
       {
-        name: 'orchestrations',
-        path: '/orchestrations',
-        icon: 'share-alt',
-        component: './Orchestrations/Index',
+        name: 'controllerServices',
+        icon: 'OS-iconkongzhiqi',
+        path: '/ControllerServices',
+        component: './ControllerServices',
       },
-      // 自带的结果页面
+      // 标签管理
       {
-        name: 'result',
-        icon: 'check-circle-o',
-        path: '/result',
-        // hideInMenu: true,
-        routes: [
-          // result
-          {
-            path: '/result/success',
-            name: 'success',
-            component: './Result/Success',
-          },
-          { path: '/result/fail', name: 'fail', component: './Result/Error' },
-        ],
+        name: 'tag',
+        icon: 'OS-iconbiaoqian',
+        path: '/tag',
+        component: './Tag',
       },
+      // 回收站
+      {
+        name: 'recycleBin',
+        icon: 'OS-iconhuishouzhan',
+        path: '/recycleBin',
+        component: './RecycleBin',
+      },
+      // // 编排
+      // {
+      //   name: 'orchestrations',
+      //   path: '/orchestrations',
+      //   icon: 'share-alt',
+      //   component: './Orchestrations/Index',
+      // },
+      // // 自带的结果页面
+      // {
+      //   name: 'result',
+      //   icon: 'check-circle-o',
+      //   path: '/result',
+      //   // hideInMenu: true,
+      //   routes: [
+      //     // result
+      //     {
+      //       path: '/result/success',
+      //       name: 'success',
+      //       component: './Result/Success',
+      //     },
+      //     { path: '/result/fail', name: 'fail', component: './Result/Error' },
+      //   ],
+      // },
       // 401 403 404 500 等异常页面
       {
         name: 'exception',

@@ -232,97 +232,57 @@ const routes = [
         name: 'template',
         icon: 'OS-iconmoban',
         path: '/template',
-        routes: [
-          {
-            name: 'local',
-            path: '/template/local',
-            component: __IS_BROWSER
-              ? _dvaDynamic({
-                  component: () =>
-                    import(/* webpackChunkName: "p__Template__Local" */ '../Template/Local'),
-                  LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
-                    .default,
-                })
-              : require('../Template/Local').default,
-            exact: true,
-          },
-          {
-            name: 'remote',
-            path: '/template/remote',
-            component: __IS_BROWSER
-              ? _dvaDynamic({
-                  component: () =>
-                    import(/* webpackChunkName: "p__Template__Remote" */ '../Template/Remote'),
-                  LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
-                    .default,
-                })
-              : require('../Template/Remote').default,
-            exact: true,
-          },
-          {
-            component: () =>
-              React.createElement(
-                require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
-                  .default,
-                { pagesPath: 'src/pages', hasRoutesInConfig: true },
-              ),
-          },
-        ],
-      },
-      {
-        name: 'orchestrations',
-        path: '/orchestrations',
-        icon: 'share-alt',
         component: __IS_BROWSER
           ? _dvaDynamic({
               component: () =>
-                import(/* webpackChunkName: "p__Orchestrations__Index" */ '../Orchestrations/Index'),
+                import(/* webpackChunkName: "p__Template" */ '../Template'),
               LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
                 .default,
             })
-          : require('../Orchestrations/Index').default,
+          : require('../Template').default,
         exact: true,
       },
       {
-        name: 'result',
-        icon: 'check-circle-o',
-        path: '/result',
-        routes: [
-          {
-            path: '/result/success',
-            name: 'success',
-            component: __IS_BROWSER
-              ? _dvaDynamic({
-                  component: () =>
-                    import(/* webpackChunkName: "p__Result__Success" */ '../Result/Success'),
-                  LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
-                    .default,
-                })
-              : require('../Result/Success').default,
-            exact: true,
-          },
-          {
-            path: '/result/fail',
-            name: 'fail',
-            component: __IS_BROWSER
-              ? _dvaDynamic({
-                  component: () =>
-                    import(/* webpackChunkName: "p__Result__Error" */ '../Result/Error'),
-                  LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
-                    .default,
-                })
-              : require('../Result/Error').default,
-            exact: true,
-          },
-          {
-            component: () =>
-              React.createElement(
-                require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
-                  .default,
-                { pagesPath: 'src/pages', hasRoutesInConfig: true },
-              ),
-          },
-        ],
+        name: 'controllerServices',
+        icon: 'OS-iconkongzhiqi',
+        path: '/ControllerServices',
+        component: __IS_BROWSER
+          ? _dvaDynamic({
+              component: () =>
+                import(/* webpackChunkName: "p__ControllerServices" */ '../ControllerServices'),
+              LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
+                .default,
+            })
+          : require('../ControllerServices').default,
+        exact: true,
+      },
+      {
+        name: 'tag',
+        icon: 'OS-iconbiaoqian',
+        path: '/tag',
+        component: __IS_BROWSER
+          ? _dvaDynamic({
+              component: () =>
+                import(/* webpackChunkName: "p__Tag" */ '../Tag'),
+              LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
+                .default,
+            })
+          : require('../Tag').default,
+        exact: true,
+      },
+      {
+        name: 'recycleBin',
+        icon: 'OS-iconhuishouzhan',
+        path: '/recycleBin',
+        component: __IS_BROWSER
+          ? _dvaDynamic({
+              component: () =>
+                import(/* webpackChunkName: "p__RecycleBin" */ '../RecycleBin'),
+              LoadingComponent: require('/Users/ivy/project/baishan/nifi/orchsym/orchsym-fe/src/components/PageLoading/index')
+                .default,
+            })
+          : require('../RecycleBin').default,
+        exact: true,
       },
       {
         name: 'exception',
