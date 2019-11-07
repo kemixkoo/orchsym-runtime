@@ -22,16 +22,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.Template;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
-import org.apache.nifi.persistence.TemplateSerializer;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.StandardNiFiServiceFacade;
+import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.DropRequestDTO;
+import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
@@ -42,13 +45,16 @@ import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * @author liuxun
@@ -95,6 +101,14 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             groupEntity.setModifiedTime(modifyTime);
         }
 
+        if (additions != null){
+            if (Boolean.parseBoolean(additions.get(IS_DELETED))){
+                groupEntity.setDeleted(true);
+            }else {
+                groupEntity.setDeleted(false);
+            }
+        }
+
     }
 
     /**
@@ -120,7 +134,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("page") @DefaultValue("1") Integer page,
             @QueryParam("pageSize") @DefaultValue("10") Integer pageSize,
             @QueryParam("sortedField") @DefaultValue("name") String sortedField,
-            @QueryParam("isDesc") @DefaultValue("true") Boolean isDesc
+            @QueryParam("isDesc") @DefaultValue("true") Boolean isDesc,
+            @QueryParam("isDeleted") @DefaultValue("false") Boolean isDeleted,
+            @QueryParam("isDetail") @DefaultValue("false") Boolean isDetail
 
     ) throws InterruptedException {
 
@@ -134,6 +150,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             setTimeStampForApp(appGroupEntity, dto.getId());
             appGroupEntityList.add(appGroupEntity);
         }
+
+        // 进行筛选
+        appGroupEntityList = appGroupEntityList.stream().filter(appGroupEntity -> appGroupEntity.getDeleted().equals(isDeleted)).collect(Collectors.toList());
 
         // 进行排序
         Collections.sort(appGroupEntityList, new Comparator<AppGroupEntity>() {
@@ -166,11 +185,21 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             int endIndex = Math.min(index + pageSize, totalSize);
             resultList = appGroupEntityList.subList(index, endIndex);
         }
+
         Map<String,Object> resultMap = new HashMap<>();
         resultMap.put("totalSize",totalSize);
         resultMap.put("totalPage",totalPage);
         resultMap.put("currentPage",currentPage);
-        resultMap.put("results", resultList);
+
+        if (isDetail){
+            List<ProcessGroupEntity>  entities = new ArrayList<>();
+            for (AppGroupEntity app : resultList){
+                entities.add(serviceFacade.getProcessGroup(app.getId()));
+            }
+            resultMap.put("results", entities);
+        }else {
+            resultMap.put("results", resultList);
+        }
 
         // generate the response
         return noCache(Response.ok(resultMap)).build();
@@ -341,6 +370,166 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         for(ProcessGroup childGroup : group.getProcessGroups()){
             setStatusCountOfAppByDirectName(childGroup.getIdentifier(), isStopped, countMap);
         }
+
+    }
+
+    @DELETE
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/{appId}/logic_delete")
+    @ApiOperation(value = "delete the app logically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response loginDeleteApp(
+            @PathParam("appId") @DefaultValue(StringUtils.EMPTY) String appId
+    ) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.DELETE);
+        }
+
+        final ProcessGroup groupApp = flowController.getGroup(appId);
+        if (groupApp == null){
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+        }
+
+        if (!isCanLoginDeleteAppGroup(groupApp)){
+            return Response.status(Response.Status.BAD_REQUEST).entity("the app must be one level group and haven't be deleted").build();
+        }
+
+        ProcessGroupEntity groupEntity = new ProcessGroupEntity();
+        groupEntity.setId(groupApp.getIdentifier());
+
+        return withWriteLock(
+                serviceFacade,
+                groupEntity,
+                lookup -> {
+                    final Authorizable processGroup = lookup.getProcessGroup(appId).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+                },
+                null,
+                (entity) -> {
+                    final ProcessGroup group = flowController.getGroup(entity.getId());
+                    deleteGroupLogic(group);
+                    return generateOkResponse("success").build();
+                }
+        );
+    }
+
+    private static final String IS_DELETED = "IS_DELETED";
+    private Boolean  isCanLoginDeleteAppGroup(ProcessGroup group){
+        if (!group.getParent().isRootGroup()){
+            return false;
+        }
+        final String is_deleteStr = group.getAddition(IS_DELETED);
+        if (Boolean.parseBoolean(is_deleteStr)){
+            return false;
+        }
+        return true;
+    }
+
+    private void deleteGroupLogic(ProcessGroup group){
+        for (ProcessorNode processorNode : group.getProcessors()){
+            final ProcessorDTO processorDTO = new ProcessorDTO();
+            processorDTO.setId(processorNode.getIdentifier());
+            processorDTO.setState(ScheduleComponentsEntity.STATE_STOPPED);
+            Revision revision = revisionManager.getRevision(processorNode.getIdentifier());
+            serviceFacade.updateProcessor(revision, processorDTO);
+        }
+
+        for (Connection connection : group.getConnections()){
+            DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connection.getIdentifier(), generateUuid());
+            serviceFacade.deleteFlowFileDropRequest(connection.getIdentifier(), dropRequest.getId());
+        }
+
+        for (ControllerServiceNode controllerServiceNode : group.getControllerServices(false)){
+            Revision revision = revisionManager.getRevision(controllerServiceNode.getIdentifier());
+            ControllerServiceDTO controllerServiceDTO = new ControllerServiceDTO();
+            controllerServiceDTO.setId(controllerServiceNode.getIdentifier());
+            controllerServiceDTO.setState(ScheduleComponentsEntity.STATE_DISABLED);
+            serviceFacade.updateControllerService(revision,controllerServiceDTO);
+        }
+
+        for (ProcessGroup childGroup : group.getProcessGroups()){
+            deleteGroupLogic(childGroup);
+        }
+
+        // finally update status of group
+        if (group.getParent().isRootGroup()){
+            final Map<String, String> additions = group.getAdditions();
+            Map<String, String> putMap = new HashMap<>();
+            putMap.putAll(additions);
+            putMap.put(IS_DELETED, Boolean.toString(true));
+            group.setAdditions(putMap);
+            flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+        }
+    }
+
+
+    @PUT
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/{appId}/status")
+    @ApiOperation(value = "delete the app logically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response enableOrDisableOrRecoverApp(
+            @Context HttpServletRequest httpServletRequest,
+            @PathParam("appId") @DefaultValue(StringUtils.EMPTY) String appId,
+           final AppStatusEntity appStatusEntity
+
+    ) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, appStatusEntity);
+        }
+
+        final ProcessGroup groupApp = flowController.getGroup(appId);
+        if (groupApp == null){
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+        }
+
+        final Boolean isEnabled = appStatusEntity.getEnabled();
+        final Boolean isRecover = appStatusEntity.getRecover();
+
+        ProcessGroupEntity groupEntity = new ProcessGroupEntity();
+        groupEntity.setId(groupApp.getIdentifier());
+
+        return withWriteLock(
+                serviceFacade,
+                groupEntity,
+                lookup -> {
+                    final Authorizable processGroup = lookup.getProcessGroup(appId).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+                },
+                null,
+                (entity) -> {
+                    final ProcessGroup group = flowController.getGroup(entity.getId());
+                    if (isEnabled != null || isRecover != null){
+                        final Map<String, String> additions = group.getAdditions();
+                        Map<String, String> putMap = new HashMap<>();
+                        putMap.putAll(additions);
+                        if (isEnabled != null){
+                            putMap.put(IS_ENABLED, String.valueOf(isEnabled));
+                        }
+                        if (isRecover != null && isRecover){
+                            putMap.put(IS_DELETED, String.valueOf(false));
+                        }
+                        group.setAdditions(putMap);
+                        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+                    }
+                    return generateOkResponse("success").build();
+                }
+        );
+
 
     }
 

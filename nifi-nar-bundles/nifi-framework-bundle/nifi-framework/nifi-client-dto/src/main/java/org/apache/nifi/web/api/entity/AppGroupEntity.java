@@ -9,16 +9,9 @@ public class AppGroupEntity {
     private String comments;
     private Long createdTime;
     private Long modifiedTime;
+    private Boolean isDeleted;
 
     public AppGroupEntity() {
-    }
-
-    public AppGroupEntity(String id, String name, String comments, Long createdTime, Long modifiedTime) {
-        this.id = id;
-        this.name = name;
-        this.comments = comments;
-        this.createdTime = createdTime;
-        this.modifiedTime = modifiedTime;
     }
 
     public String getId() {
@@ -61,6 +54,14 @@ public class AppGroupEntity {
         this.modifiedTime = modifiedTime;
     }
 
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
     @Override
     public int hashCode() {
         return this.id.hashCode();
@@ -74,4 +75,5 @@ public class AppGroupEntity {
         }
         return false;
     }
+
 }
