@@ -19,22 +19,33 @@ package org.apache.nifi.web.api;
 
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.authorization.RequestAction;
+import org.apache.nifi.authorization.resource.Authorizable;
+import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ScheduledState;
+import org.apache.nifi.controller.Template;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
+import org.apache.nifi.persistence.TemplateSerializer;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.StandardNiFiServiceFacade;
+import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
+import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.ComponentSearchResultDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.*;
+import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,6 +66,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @Autowired
     private FlowService flowService;
+
+    @Autowired
+    private RevisionManager revisionManager;
 
     /**
      * 为APP实体类赋值
@@ -330,5 +344,61 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     }
 
+
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{groupId}/template")
+    @ApiOperation(value = "Get the template data of current app", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response getAppTemplateData(
+            @PathParam("groupId") @DefaultValue(StringUtils.EMPTY) String groupId
+    ) {
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
+        }
+
+        serviceFacade.authorizeAccess(lookup -> {
+            final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
+            processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+        });
+
+        final ProcessGroup groupApp = flowController.getGroup(groupId);
+        if (groupApp == null){
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+        }
+
+        // create snipped
+        final Revision revision = revisionManager.getRevision(groupId);
+        SnippetDTO snippetDTO = new SnippetDTO();
+        Map<String, RevisionDTO> revisionMap = new HashMap<>();
+        RevisionDTO revisionDTO = new RevisionDTO();
+        revisionDTO.setClientId(revision.getClientId());
+        revisionDTO.setVersion(revision.getVersion());
+        revisionMap.put(groupId,revisionDTO);
+        snippetDTO.setProcessGroups(revisionMap);
+        snippetDTO.setId(generateUuid());
+        snippetDTO.setParentGroupId(flowController.getRootGroupId());
+        final SnippetEntity snippetEntity = serviceFacade.createSnippet(snippetDTO);
+
+        // generate data of template
+        final String snippetId = snippetEntity.getSnippet().getId();
+        TemplateDTO templateDTO = serviceFacade.createTemplate(groupApp.getName(), groupApp.getComments(),
+                snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
+        final Template template = new Template(templateDTO);
+        final TemplateDTO templateCopy = serviceFacade.exportTemplate(template.getIdentifier());
+        flowController.getRootGroup().removeTemplate(template);
+        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+        templateCopy.setId(null);
+
+        return noCache(Response.ok(templateCopy)).build();
+    }
 
 }
