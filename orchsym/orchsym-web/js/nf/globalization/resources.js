@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-window.locale = "";
+window.locale = "zh";
 window.defaultLocale = "";
 window.productVersion = "";
 window.buildDate = "";
