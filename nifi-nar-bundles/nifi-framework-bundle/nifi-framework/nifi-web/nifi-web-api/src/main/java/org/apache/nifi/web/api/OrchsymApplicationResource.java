@@ -17,7 +17,31 @@
  */
 package org.apache.nifi.web.api;
 
-import io.swagger.annotations.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
@@ -30,6 +54,7 @@ import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.StandardNiFiServiceFacade;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
@@ -40,21 +65,21 @@ import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.ComponentSearchResultDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
-import org.apache.nifi.web.api.entity.*;
+import org.apache.nifi.web.api.entity.AppGroupEntity;
+import org.apache.nifi.web.api.entity.ProcessGroupEntity;
+import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
+import org.apache.nifi.web.api.entity.SearchResultsEntity;
+import org.apache.nifi.web.api.entity.SnippetEntity;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
 
 /**
  * @author liuxun
@@ -69,6 +94,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
      */
     private static final String createdTime = StandardNiFiServiceFacade.createdTime;
     private static final String modifiedTime = StandardNiFiServiceFacade.modifiedTime;
+    
+    private static final String IS_DELETED = "IS_DELETED";
+    private static final String IS_ENABLED = "IS_ENABLED";
 
     @Autowired
     private FlowService flowService;
@@ -76,6 +104,13 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @Autowired
     private RevisionManager revisionManager;
 
+    private Response verifyApp(String appId) {
+        boolean existed = flowController.getRootGroup().getProcessGroups().stream().filter(group -> group.getIdentifier().equals(appId)).findAny().isPresent();
+        if (existed) {
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+        }
+        return null;
+    }
     /**
      * 为APP实体类赋值
      * @param groupEntity
@@ -124,11 +159,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/app/search-results")
-    @ApiOperation(value = "Performs a search against this NiFi using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
+    @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
-    @ApiResponses(value = { @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
-            @ApiResponse(code = 401, message = "Client could not be authenticated."), @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
-            @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.") })
     public Response searchFlowAPPGroup(
             @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String value,
             @QueryParam("page") @DefaultValue("1") Integer page,
@@ -158,22 +190,14 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         Collections.sort(appGroupEntityList, new Comparator<AppGroupEntity>() {
             @Override
             public int compare(AppGroupEntity o1, AppGroupEntity o2) {
-                if ("name".equalsIgnoreCase(sortedField)){
-                    return isDesc? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
-                }else if ("createdTime".equalsIgnoreCase(sortedField)){
-                    if (o1.getCreatedTime() != null && o2.getCreatedTime()!= null){
-                        return isDesc? o2.getCreatedTime().compareTo(o1.getCreatedTime()): o1.getCreatedTime().compareTo(o2.getCreatedTime());
-                    }else {
-                        return isDesc? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
-                    }
-                }else if ("modifiedTime".equalsIgnoreCase(sortedField)){
-                    if (o1.getModifiedTime()!= null && o2.getModifiedTime()!= null){
-                        return isDesc? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
-                    }else {
-                        return isDesc? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
-                    }
-                }else {
-                    return isDesc? o2.getId().compareTo(o1.getId()) : o1.getId().compareTo(o2.getId());
+                if ("createdTime".equalsIgnoreCase(sortedField) //
+                        && o1.getCreatedTime() != null && o2.getCreatedTime() != null) {
+                    return isDesc ? o2.getCreatedTime().compareTo(o1.getCreatedTime()) : o1.getCreatedTime().compareTo(o2.getCreatedTime());
+                } else if ("modifiedTime".equalsIgnoreCase(sortedField) //
+                        && o1.getModifiedTime() != null && o2.getModifiedTime() != null) {
+                    return isDesc ? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
+                } else {
+                    return isDesc ? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
                 }
             }
         });
@@ -216,21 +240,16 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/component/{appId}/search-results")
-    @ApiOperation(value = "Performs a search against this NiFi using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
+    @Path("/group/{groupId}/search-results")
+    @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
-    @ApiResponses(value = { @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
-            @ApiResponse(code = 401, message = "Client could not be authenticated."), @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
-            @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.") })
-    public Response searchFlowByGroup(
-            @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String value,
-            @ApiParam(value = "The group id", required = true)
-            @PathParam("appId") @DefaultValue(StringUtils.EMPTY)
-            final String appId
+    public Response searchFlowByGroup(//
+            @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String value, //
+            @ApiParam(value = "The group id", required = true) @PathParam("groupId") final String groupId//
     ) throws InterruptedException {
 
         // query the controller
-        final SearchResultsDTO results = serviceFacade.searchController(value, appId);
+        final SearchResultsDTO results = serviceFacade.searchController(value, groupId);
 
         // create the entity
         final SearchResultsEntity entity = new SearchResultsEntity();
@@ -245,40 +264,26 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/app/check_name")
     @ApiOperation(value = "check the name of current app", //
-            response = String.class)
-    @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
-    })
-    public Response checkAppName(
-            @QueryParam("name")String name,
-            @QueryParam("appId") @DefaultValue(StringUtils.EMPTY) String appId
+            response = Map.class)
+    public Response checkAppName(//
+            @QueryParam("name") String name, //
+            @QueryParam("appId") String appId//
     ) {
-        final boolean isAppNameValid = checkAppNameValid(name,appId);
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("name",name);
-        resultMap.put("isValid", isAppNameValid);
-        return noCache(Response.ok(resultMap)).build();
-    }
-
-    /**
-     * 检查新的APP名称是否合法。重名校验
-     * @param appName
-     * @return
-     */
-    protected boolean checkAppNameValid(final String appName, final String appId) {
-        if (StringUtils.isBlank(appName)) {
-            return false;
+        boolean isAppNameValid = true;
+        if (StringUtils.isBlank(name)) {
+            isAppNameValid = false;
+        } else {
+            isAppNameValid = !flowController.getRootGroup().getProcessGroups().stream() //
+                    .filter(g -> StringUtils.isBlank(appId) || !g.getIdentifier().equals(appId)) // exclude
+                    .filter(p -> p.getName().equals(name))// existed
+                    .findFirst() //
+                    .isPresent();//
         }
 
-        return !flowController.getRootGroup().getProcessGroups().stream() //
-                .filter(g -> StringUtils.isBlank(appId) || !g.getIdentifier().equals(appId)) // exclude
-                .filter(p -> p.getName().equals(appName))// existed
-                .findFirst() //
-                .isPresent();//
-
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("name", name);
+        resultMap.put("isValid", isAppNameValid);
+        return noCache(Response.ok(resultMap)).build();
     }
 
     @GET
@@ -286,97 +291,76 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/app/{appId}/status")
     @ApiOperation(value = "Get the status of current app", //
-            response = String.class)
+            response = Map.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response getAppStatus(
-            @PathParam("appId") @DefaultValue(StringUtils.EMPTY) String appId
-    ) {
-        final ProcessGroup groupApp = flowController.getGroup(appId);
-        if (groupApp == null){
-            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+    public Response getAppStatus(@PathParam("appId") final String appId) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
         }
+        final ProcessGroup groupApp = flowController.getGroup(appId);
 
-        Map<String,Integer> countMap = new HashMap<>();
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("id", groupApp.getIdentifier());
+
+        // running/stopped
+        Map<String, Integer> countMap = new HashMap<>();
         countMap.put(runCount, 0);
         countMap.put(stoppedCount, 0);
         AtomicReference<Boolean> isStopped = new AtomicReference<>(false);
-        setStatusCountOfAppByDirectName(appId,isStopped,countMap);
-
-        Map<String,Object> resultMap = new HashMap<>();
-        resultMap.put("id", appId);
+        collectStatusCountOfAppByDirectName(appId, isStopped, countMap);
         resultMap.put("canRun", countMap.get(stoppedCount) > 0);
-        resultMap.put("canStop", countMap.get(runCount) > 0 );
+        resultMap.put("canStop", countMap.get(runCount) > 0);
 
-        //  default value is can Disable 默认是已启用状态 可以禁用
-        Boolean canEnable = false;
-        Boolean canDisable = true;
-
-        final String isEnabledStr = groupApp.getAddition(IS_ENABLED);
-        if (isEnabledStr == null){
-            final Map<String, String> additions = groupApp.getAdditions();
-            Map<String,String> putMap = new HashMap<>();
-            putMap.putAll(additions);
-            putMap.put(IS_ENABLED, Boolean.toString(true));
-            groupApp.setAdditions(putMap);
-            flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
-        }else {
-            final boolean isEnabled = Boolean.parseBoolean(isEnabledStr);
-            canEnable = !isEnabled;
-            canDisable = isEnabled;
-        }
-
-        resultMap.put("canEnable",canEnable);
-        resultMap.put("canDisable",canDisable);
-
+        // enabled/disabled
+        // 为兼容老版本，不设置，默认为enabled
+        boolean isEnabled = ProcessUtil.getGroupAdditionBooleanValue(groupApp, IS_ENABLED, true);
+        resultMap.put("canEnable", !isEnabled);
+        resultMap.put("canDisable", isEnabled);
 
         return noCache(Response.ok(resultMap)).build();
     }
 
-
     private static final String runCount = "runCount";
     private static final String stoppedCount = "stoppedCount";
-    private static final String IS_ENABLED = "IS_ENABLED";
-    private void setStatusCountOfAppByDirectName(String groupId, AtomicReference<Boolean> isStopped, Map<String,Integer> countMap){
 
-        if (isStopped.get()){
+    private void collectStatusCountOfAppByDirectName(String groupId, AtomicReference<Boolean> isStopped, Map<String, Integer> countMap) {
+        if (isStopped.get()) {
             return;
         }
         final ProcessGroup group = flowController.getGroup(groupId);
-        if (group == null){
+        if (group == null) {
             return;
         }
 
         // 一旦识别所有状态，立即返回
-        if (countMap.get(runCount) != 0 && countMap.get(stoppedCount)!= 0){
+        if (countMap.get(runCount) != 0 && countMap.get(stoppedCount) != 0) {
             isStopped.set(true);
             return;
         }
 
         for (final ProcessorNode processor : group.getProcessors()) {
             final ScheduledState state = processor.getScheduledState();
-            if (state.equals(ScheduledState.RUNNING)){
+            if (state.equals(ScheduledState.RUNNING)) {
                 countMap.put(runCount, countMap.get(runCount) + 1);
-            }else if (state.equals(ScheduledState.STOPPED)){
-                countMap.put(stoppedCount,countMap.get(stoppedCount) +1);
+            } else if (state.equals(ScheduledState.STOPPED)) {
+                countMap.put(stoppedCount, countMap.get(stoppedCount) + 1);
             }
         }
 
-        for (final ControllerServiceNode service : group.getControllerServices(false)){
+        for (final ControllerServiceNode service : group.getControllerServices(false)) {
             final ControllerServiceState state = service.getState();
-            if (state.equals(ControllerServiceState.ENABLED)){
+            if (state.equals(ControllerServiceState.ENABLED)) {
                 countMap.put(runCount, countMap.get(runCount) + 1);
-            }else if (state.equals(ControllerServiceState.DISABLED)){
-                countMap.put(stoppedCount, countMap.get(stoppedCount) +1);
+            } else if (state.equals(ControllerServiceState.DISABLED)) {
+                countMap.put(stoppedCount, countMap.get(stoppedCount) + 1);
             }
         }
 
-        for(ProcessGroup childGroup : group.getProcessGroups()){
-            setStatusCountOfAppByDirectName(childGroup.getIdentifier(), isStopped, countMap);
+        for (ProcessGroup childGroup : group.getProcessGroups()) {
+            collectStatusCountOfAppByDirectName(childGroup.getIdentifier(), isStopped, countMap);
         }
 
     }
@@ -388,60 +372,51 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiOperation(value = "delete the app logically", //
             response = String.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response loginDeleteApp(
-            @PathParam("appId") @DefaultValue(StringUtils.EMPTY) String appId
-    ) {
+    public Response loginDeleteApp(@PathParam("appId") final String appId) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         }
 
-        final ProcessGroup groupApp = flowController.getGroup(appId);
-        if (groupApp == null){
-            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
-        }
-
-        if (!isCanLoginDeleteAppGroup(groupApp)){
-            return Response.status(Response.Status.BAD_REQUEST).entity("the app must be one level group and haven't be deleted").build();
-        }
-
         ProcessGroupEntity groupEntity = new ProcessGroupEntity();
-        groupEntity.setId(groupApp.getIdentifier());
+        groupEntity.setId(appId);
 
-        return withWriteLock(
-                serviceFacade,
-                groupEntity,
-                lookup -> {
-                    final Authorizable processGroup = lookup.getProcessGroup(appId).getAuthorizable();
-                    processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
-                },
-                null,
-                (entity) -> {
-                    final ProcessGroup group = flowController.getGroup(entity.getId());
-                    deleteGroupLogic(group);
-                    return generateOkResponse("success").build();
-                }
-        );
+        return withWriteLock(serviceFacade, groupEntity, lookup -> {
+            final Authorizable processGroup = lookup.getProcessGroup(appId).getAuthorizable();
+            processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+        }, null, (entity) -> {
+            final ProcessGroup group = flowController.getGroup(entity.getId());
+            deleteGroupLogic(group);
+            saveAppStatus(entity.getId(), IS_DELETED, Boolean.TRUE);
+            return generateOkResponse("success").build();
+        });
     }
 
-    private static final String IS_DELETED = "IS_DELETED";
-    private Boolean  isCanLoginDeleteAppGroup(ProcessGroup group){
-        if (!group.getParent().isRootGroup()){
-            return false;
+    @DELETE
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/{appId}/physical_delete")
+    @ApiOperation(value = "delete the app or group physically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
+    })
+    public Response physicalDeleteApp(@PathParam("appId") String appId) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
         }
-        final String is_deleteStr = group.getAddition(IS_DELETED);
-        if (Boolean.parseBoolean(is_deleteStr)){
-            return false;
-        }
-        return true;
+        return forceDeleteGroup(appId);
     }
 
-    private void deleteGroupLogic(ProcessGroup group){
-        for (ProcessorNode processorNode : group.getProcessors()){
+    private void deleteGroupLogic(ProcessGroup group) {
+        for (ProcessorNode processorNode : group.getProcessors()) {
             final ProcessorDTO processorDTO = new ProcessorDTO();
             processorDTO.setId(processorNode.getIdentifier());
             processorDTO.setState(ScheduleComponentsEntity.STATE_STOPPED);
@@ -449,98 +424,99 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             serviceFacade.updateProcessor(revision, processorDTO);
         }
 
-        for (Connection connection : group.getConnections()){
+        for (Connection connection : group.getConnections()) {
             DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connection.getIdentifier(), generateUuid());
             serviceFacade.deleteFlowFileDropRequest(connection.getIdentifier(), dropRequest.getId());
         }
 
-        for (ControllerServiceNode controllerServiceNode : group.getControllerServices(false)){
+        for (ControllerServiceNode controllerServiceNode : group.getControllerServices(false)) {
             Revision revision = revisionManager.getRevision(controllerServiceNode.getIdentifier());
             ControllerServiceDTO controllerServiceDTO = new ControllerServiceDTO();
             controllerServiceDTO.setId(controllerServiceNode.getIdentifier());
             controllerServiceDTO.setState(ScheduleComponentsEntity.STATE_DISABLED);
-            serviceFacade.updateControllerService(revision,controllerServiceDTO);
+            serviceFacade.updateControllerService(revision, controllerServiceDTO);
         }
 
-        for (ProcessGroup childGroup : group.getProcessGroups()){
+        for (ProcessGroup childGroup : group.getProcessGroups()) {
             deleteGroupLogic(childGroup);
         }
-
-        // finally update status of group
-        if (group.getParent().isRootGroup()){
-            final Map<String, String> additions = group.getAdditions();
-            Map<String, String> putMap = new HashMap<>();
-            putMap.putAll(additions);
-            putMap.put(IS_DELETED, Boolean.toString(true));
-            group.setAdditions(putMap);
-            flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
-        }
     }
-
 
     @PUT
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/status")
-    @ApiOperation(value = "delete the app logically", //
+    @Path("/app/{appId}/recover")
+    @ApiOperation(value = "recover the app", //
             response = String.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response enableOrDisableOrRecoverApp(
-            @Context HttpServletRequest httpServletRequest,
-            @PathParam("appId") @DefaultValue(StringUtils.EMPTY) String appId,
-           final AppStatusEntity appStatusEntity
-
+    public Response recoverApp(@Context HttpServletRequest httpServletRequest, //
+            @PathParam("appId") String appId//
     ) {
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.PUT, appStatusEntity);
-        }
-
-        final ProcessGroup groupApp = flowController.getGroup(appId);
-        if (groupApp == null){
-            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
-        }
-
-        final Boolean isEnabled = appStatusEntity.getEnabled();
-        final Boolean isRecover = appStatusEntity.getRecover();
-
-        ProcessGroupEntity groupEntity = new ProcessGroupEntity();
-        groupEntity.setId(groupApp.getIdentifier());
-
-        return withWriteLock(
-                serviceFacade,
-                groupEntity,
-                lookup -> {
-                    final Authorizable processGroup = lookup.getProcessGroup(appId).getAuthorizable();
-                    processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
-                },
-                null,
-                (entity) -> {
-                    final ProcessGroup group = flowController.getGroup(entity.getId());
-                    if (isEnabled != null || isRecover != null){
-                        final Map<String, String> additions = group.getAdditions();
-                        Map<String, String> putMap = new HashMap<>();
-                        putMap.putAll(additions);
-                        if (isEnabled != null){
-                            putMap.put(IS_ENABLED, String.valueOf(isEnabled));
-                        }
-                        if (isRecover != null && isRecover){
-                            putMap.put(IS_DELETED, String.valueOf(false));
-                        }
-                        group.setAdditions(putMap);
-                        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
-                    }
-                    return generateOkResponse("success").build();
-                }
-        );
-
-
+        return updateAppStatus(appId, IS_DELETED, Boolean.FALSE);
     }
 
+    @PUT
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/{appId}/enable")
+    @ApiOperation(value = "enable the app logically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
+    })
+    public Response enableApp(@Context HttpServletRequest httpServletRequest, //
+            @PathParam("appId") String appId//
+    ) {
+        return updateAppStatus(appId, IS_ENABLED, Boolean.TRUE);
+    }
+
+    @PUT
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/{appId}/disable")
+    @ApiOperation(value = "disable the app logically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
+    })
+    public Response disableApp(@Context HttpServletRequest httpServletRequest, //
+            @PathParam("appId") String appId//
+    ) {
+        // TODO, need like logic delete or not? or just stop the service, won't clean data queue?
+        return updateAppStatus(appId, IS_ENABLED, Boolean.FALSE);
+    }
+
+    private Response updateAppStatus(final String appId, final String additionKey, final Object value) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT);
+        }
+
+        ProcessGroupEntity groupEntity = new ProcessGroupEntity();
+        groupEntity.setId(appId);
+
+        return withWriteLock(serviceFacade, groupEntity, lookup -> {
+            final Authorizable processGroup = lookup.getProcessGroup(appId).getAuthorizable();
+            processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+        }, null, (entity) -> {
+            saveAppStatus(entity.getId(), additionKey, value);
+            return generateOkResponse("success").build();
+        });
+    }
+
+    private void saveAppStatus(String appId, String key, Object value) {
+        final ProcessGroup group = flowController.getGroup(appId);
+
+        ProcessUtil.updateGroupAdditions(group, key, value);
+
+        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+    }
 
     @GET
     @Consumes(MediaType.WILDCARD)
@@ -555,7 +531,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
     public Response getAppTemplateData(
-            @PathParam("groupId") @DefaultValue(StringUtils.EMPTY) String groupId
+            @PathParam("groupId") String groupId
     ) {
 
         if (isReplicateRequest()) {
@@ -602,7 +578,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @DELETE
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/group/{groupId}/physics_delete")
+    @Path("/group/{groupId}/force_delete")
     @ApiOperation(value = "delete the app or group physically", //
             response = String.class)
     @ApiResponses(value = { //
@@ -611,8 +587,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
             @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
-    public Response physicsDeleteApp(
-            @PathParam("groupId") @DefaultValue(StringUtils.EMPTY) String groupId
+    public Response forceDeleteGroup(
+            @PathParam("groupId") String groupId
     ) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);

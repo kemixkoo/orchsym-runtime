@@ -40,6 +40,7 @@ import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.util.ProcessUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -146,10 +147,7 @@ public class AdditionsResource extends AbsOrchsymResource {
             return Response.status(Response.Status.UNAUTHORIZED).build(); // 401
         }
 
-        key = key.toUpperCase();
-
-        final Map<String, String> additions = group.getAdditions();
-        if (null == additions || !additions.containsKey(key) || StringUtils.isBlank(additions.get(key))) {
+        if (ProcessUtil.hasValueGroupAdditions(group, key)) {
             return Response.noContent().build(); // 204
         }
 
@@ -216,22 +214,12 @@ public class AdditionsResource extends AbsOrchsymResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node is disconnected from cluster").build(); // 400
         }
 
-        key = key.toUpperCase();
-
-        Map<String, String> additions = new HashMap<>();
-        if (null != group.getAdditions()) {
-            additions = new HashMap<>(group.getAdditions());
-        }
-
-        content = StringUtils.isBlank(content) ? "" : content;
-
-        final String oldValue = additions.get(key);
+        String oldValue = null;
         if (deleted) {
-            additions.remove(key);
+            oldValue = ProcessUtil.removeGroupAdditions(group, key);
         } else { // modify
-            additions.put(key, content); // replace
+            oldValue = ProcessUtil.updateGroupAdditions(group, key, content);
         }
-        group.setAdditions(additions);
 
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
 
