@@ -598,4 +598,54 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return noCache(Response.ok(templateCopy)).build();
     }
 
+
+    @DELETE
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/group/{groupId}/physics_delete")
+    @ApiOperation(value = "delete the app or group physically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response physicsDeleteApp(
+            @PathParam("groupId") @DefaultValue(StringUtils.EMPTY) String groupId
+    ) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.DELETE);
+        }
+
+        final ProcessGroup groupApp = flowController.getGroup(groupId);
+        if (groupApp == null){
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+        }
+
+        ProcessGroupEntity groupEntity = new ProcessGroupEntity();
+        groupEntity.setId(groupApp.getIdentifier());
+
+        return withWriteLock(
+                serviceFacade,
+                groupEntity,
+                lookup -> {
+                    final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                },
+                null,
+                (entity) -> {
+                    final ProcessGroup group = flowController.getGroup(entity.getId());
+                    // 先进行逻辑删除
+                    deleteGroupLogic(group);
+                    // 校验
+                    serviceFacade.verifyDeleteProcessGroup(entity.getId());
+                    // 物理删除
+                    serviceFacade.deleteProcessGroup(revisionManager.getRevision(entity.getId()), entity.getId());
+                    return generateOkResponse("success").build();
+                }
+        );
+    }
+
+
 }
