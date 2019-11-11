@@ -81,13 +81,15 @@ class GlobalHeader extends PureComponent {
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
             <Breadcrumb.Item>
               {(processGroupId === component.id) && !componentName ? component.name :
-                <Link to={url}>{component.name}</Link>
+                <Link to={url} target="_self">{component.name}</Link>
               }
             </Breadcrumb.Item>
             {componentName ? (<Breadcrumb.Item>
-              {componentName}
-            </Breadcrumb.Item>) : (null)
-            }
+              {processGroupId === component.id ? component.name :
+                <Link to={url} target="_self">{component.name}</Link>
+              }
+            </Breadcrumb.Item>) : (null)}
+
           </Breadcrumb>) : (null)
         }
         {
