@@ -37,6 +37,10 @@ class AppList extends PureComponent {
     router.push(`/canvas/${item.id}`)
   }
 
+  doubleGoToApp = (item) => {
+    router.push(`/canvas/${item.id}`)
+  }
+
   showEditModal = (item) => {
     const { dispatch } = this.props;
     dispatch({
@@ -245,11 +249,12 @@ class AppList extends PureComponent {
         });
       }
     };
+
     const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.applicationCart} ${styles.errorApp}` : styles.applicationCart;
     return (
       // <Col xl={6} lg={6} md={12} sm={12} xs={24} style={{ marginBottom: 16 }}>
-      <Card className={isErrorCarName} style={{ width: '100%', height: 165 }}>
+      <Card onDoubleClick={() => { this.doubleGoToApp(item) }} className={isErrorCarName} style={{ width: '100%', height: 165 }}>
         <Card.Meta
           title={
             <div>
