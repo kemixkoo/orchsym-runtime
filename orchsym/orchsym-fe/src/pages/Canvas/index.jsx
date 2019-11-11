@@ -5,6 +5,13 @@ import styles from './index.less';
 
 const logo = window.logoHref.companyLogoIndex
 export default class Index extends Component {
+  componentDidMount() {
+    window.gotoCanvasApp = (d) => {
+      console.log('processGroup', d)
+      window.history.pushState({ title: d.status.name }, d.status.name, `https://${window.location.host}/canvas/${d.id}`);
+    }
+  }
+
   render() {
     const { match, menuData } = this.props
     const { params } = match

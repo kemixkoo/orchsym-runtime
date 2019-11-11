@@ -188,6 +188,7 @@
         // always support selecting and navigation
         processGroup.on('dblclick', function (d) {
             // enter this group on double click
+            window.parent.gotoCanvasApp(d);
             nfProcessGroup.enterGroup(d.id);
         })
             .call(nfSelectable.activate).call(nfContextMenu.activate);
@@ -283,7 +284,8 @@
                                 return processGroupData.dimensions.width
                             },
                             'height': 24,
-                            'fill': '#e3e8eb'
+                            'fill': '#e3e8eb',
+                            'alibaba': 'alibaba'
                         });
 
                     details.append('rect')
