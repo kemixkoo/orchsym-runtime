@@ -5,14 +5,24 @@ import styles from './index.less';
 
 const logo = window.logoHref.companyLogoIndex
 export default class Index extends Component {
+  state = {
+    componentName: '',
+  };
+
   componentDidMount() {
     window.gotoCanvasApp = (d) => {
       console.log('processGroup', d)
+      this.setState(
+        {
+          componentName: d.status.name,
+        }
+      )
       window.history.pushState({ title: d.status.name }, d.status.name, `https://${window.location.host}/canvas/${d.id}`);
     }
   }
 
   render() {
+    const { componentName } = this.state
     const { match, menuData } = this.props
     const { params } = match
     const { processGroupId } = params
@@ -20,6 +30,7 @@ export default class Index extends Component {
     return (
       <div className={styles.canvasWrapper}>
         <Header
+          componentName={componentName}
           menuData={menuData}
           handleMenuCollapse={this.handleMenuCollapse}
           logo={logo}

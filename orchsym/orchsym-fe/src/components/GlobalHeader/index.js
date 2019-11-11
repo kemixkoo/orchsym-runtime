@@ -58,7 +58,7 @@ class GlobalHeader extends PureComponent {
   };
 
   render() {
-    const { pstyle, match, collapsed, leftDays, appDetails: { component } } = this.props;
+    const { pstyle, match, collapsed, leftDays, appDetails: { component }, componentName } = this.props;
     const { params } = match;
     const { processGroupId } = params;
     const onClose = e => {
@@ -80,10 +80,14 @@ class GlobalHeader extends PureComponent {
         {processGroupId && component ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
             <Breadcrumb.Item>
-              {processGroupId === component.id ? component.name :
-                <Link to={url} target="blank">{component.name}</Link>
+              {(processGroupId === component.id) && !componentName ? component.name :
+                <Link to={url}>{component.name}</Link>
               }
             </Breadcrumb.Item>
+            {componentName ? (<Breadcrumb.Item>
+              {componentName}
+            </Breadcrumb.Item>) : (null)
+            }
           </Breadcrumb>) : (null)
         }
         {
