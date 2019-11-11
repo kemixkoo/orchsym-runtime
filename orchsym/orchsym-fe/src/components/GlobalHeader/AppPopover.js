@@ -21,7 +21,7 @@ class AppPopover extends PureComponent {
     visible: false,
     onMouseId: '',
     appList: [],
-    // topList: [],
+    topList: [],
     searchValue: '',
   };
 
@@ -35,12 +35,12 @@ class AppPopover extends PureComponent {
 
   doSearchAjax = value => {
     if (value) {
-      // this.setState({
-      //   topList: [],
-      // });
+      this.setState({
+        topList: [],
+      });
       this.fetchApplication(value, 'name', 'false', 2000)
     } else {
-      // this.fetchApplication('', 'modifiedTime', 'true', 3)
+      this.fetchApplication('', 'modifiedTime', 'true', 3)
       this.fetchApplication('', 'name', 'false', 2000)
     }
   }
@@ -48,7 +48,7 @@ class AppPopover extends PureComponent {
   handleVisibleChange = visible => {
     this.setState({ visible });
     if (visible) {
-      // this.fetchApplication('', 'modifiedTime', 'true', 3)
+      this.fetchApplication('', 'modifiedTime', 'true', 3)
       this.fetchApplication('', 'name', 'false', 2000)
     } else {
       this.setState({
@@ -69,15 +69,15 @@ class AppPopover extends PureComponent {
         pageSize,
       },
       cb: (res) => {
-        // if (sortedField === 'modifiedTime') {
-        //   this.setState({
-        //     topList: res.results,
-        //   });
-        // } else {
-        this.setState({
-          appList: res.results,
-        });
-        // }
+        if (sortedField === 'modifiedTime') {
+          this.setState({
+            topList: res.results,
+          });
+        } else {
+          this.setState({
+            appList: res.results,
+          });
+        }
       },
     });
   }
@@ -97,7 +97,7 @@ class AppPopover extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { visible, onMouseId, appList, searchValue } = this.state;
+    const { visible, onMouseId, appList, searchValue, topList } = this.state;
 
     const appMenu = (
       <Spin spinning={loading || false}>
@@ -122,27 +122,27 @@ class AppPopover extends PureComponent {
         </Menu>
       </Spin>
     );
-    // const topMenu = (
-    //   <Menu className={styles.appMenu}>
-    //     {topList.map(item => (
-    //       <Menu.Item
-    //         key={item.id}
-    //         onMouseEnter={() => this.handleEnter(item.id)}
-    //         onMouseLeave={() => this.handleLeave(item.id)}
-    //       >
-    //         <Link to={`/canvas/${item.id}`} target="_blank">
-    //           <IconFont type="OS-iconapi" />
-    //           <Ellipsis tooltip length={13}>
-    //             {item.name}
-    //           </Ellipsis>
-    //           {onMouseId === item.id ?
-    //             (<span className={styles.appMenuIcon}><IconFont type="OS-iconai37" /></span>)
-    //             : (null)}
-    //         </Link>
-    //       </Menu.Item>
-    //     ))}
-    //   </Menu>
-    // );
+    const topMenu = (
+      <Menu className={styles.appMenu}>
+        {topList.map(item => (
+          <Menu.Item
+            key={item.id}
+            onMouseEnter={() => this.handleEnter(item.id)}
+            onMouseLeave={() => this.handleLeave(item.id)}
+          >
+            <Link to={`/canvas/${item.id}`} target="_blank">
+              <IconFont type="OS-iconapi" />
+              <Ellipsis tooltip length={13}>
+                {item.name}
+              </Ellipsis>
+              {onMouseId === item.id ?
+                (<span className={styles.appMenuIcon}><IconFont type="OS-iconai37" /></span>)
+                : (null)}
+            </Link>
+          </Menu.Item>
+        ))}
+      </Menu>
+    );
     const content = (
       <div className={styles.appPopoverWrapper}>
         <div className={styles.searchInput}>
@@ -155,8 +155,7 @@ class AppPopover extends PureComponent {
           />
         </div>
         <div className={styles.listScrollbar}>
-          {/* {topList && topList.length === 0 ? (<div><p className={styles.title}>最近</p>{topMenu}<p className={styles.title}>全部</p></div>) : (null)} */}
-          <p className={styles.title}>全部</p>
+          {topList && topList.length > 0 ? (<div><p className={styles.title}>最近</p>{topMenu}<p className={styles.title}>全部</p></div>) : (null)}
           {appMenu}
         </div>
       </div>
