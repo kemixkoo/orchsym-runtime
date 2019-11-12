@@ -862,4 +862,105 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
     }
 
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/component/{id}/navigator")
+    @ApiOperation(value = "Get the parents info of current app or component", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response getNavigatorInfo(
+            @PathParam("id") String id
+    ) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
+        }
+
+        final Object component = getComponentById(id);
+        if (component == null){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Map<String,Object> infoMap = getCurrentGroup(component);
+        ProcessGroup currentGroup = (ProcessGroup) infoMap.get("currentGroup");
+        String name = (String) infoMap.get("name");
+        if (currentGroup == null){
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        Map<String, Object> resultMap = new HashMap<>();
+        Boolean isGroup = currentGroup.getIdentifier().equals(id);
+        resultMap.put("id", id);
+        resultMap.put("name", name);
+        resultMap.put("parentGroupId", isGroup ? currentGroup.getParent().getIdentifier() : currentGroup.getIdentifier());
+        resultMap.put("parentGroupName", isGroup ? currentGroup.getParent().getName() : currentGroup.getName());
+
+        ProcessGroup tempGroup = currentGroup;
+        List<Map<String,String>> groups = new ArrayList<>();
+        while (!tempGroup.isRootGroup()){
+            Map<String,String> groupInfoMap = new HashMap<>();
+            groupInfoMap.put("id", tempGroup.getIdentifier());
+            groupInfoMap.put("name", tempGroup.getName());
+            groupInfoMap.put("parentGroupId", tempGroup.getParent().getIdentifier());
+            groups.add(groupInfoMap);
+            tempGroup = tempGroup.getParent();
+        }
+        Collections.reverse(groups);
+        ProcessGroup appGroup = flowController.getGroup(groups.get(0).get("id"));
+        final String path = StringUtils.join(groups.stream().map(map -> map.getOrDefault("name", "")).collect(Collectors.toList()), "/");
+
+        resultMap.put("applicationId", appGroup.getIdentifier());
+        resultMap.put("applicationName", appGroup.getName());
+        resultMap.put("path", path);
+        resultMap.put("groups", groups);
+
+        return Response.ok(resultMap).build();
+    }
+
+    private Map<String, Object> getCurrentGroup(Object  component){
+        ProcessGroup currentGroup = null;
+        String name = null;
+        if (component instanceof Label){
+            Label label = (Label) component;
+            currentGroup = label.getProcessGroup();
+        }else if (component instanceof ProcessorNode){
+            ProcessorNode processorNode = (ProcessorNode) component;
+            currentGroup = processorNode.getProcessGroup();
+            name = processorNode.getName();
+        }else if (component instanceof Connection){
+            Connection connection = ((Connection) component);
+            currentGroup = connection.getProcessGroup();
+            name = connection.getName();
+        }else if (component instanceof Port){
+            Port port = (Port) component;
+            currentGroup = port.getProcessGroup();
+            name = port.getName();
+        }else if (component instanceof Funnel){
+            Funnel funnel = (Funnel) component;
+            currentGroup = funnel.getProcessGroup();
+            name = funnel.getName();
+        }else if (component instanceof ControllerService){
+        }else if (component instanceof ReportingTaskNode){
+            ReportingTaskNode reportingTask = (ReportingTaskNode) component;
+            currentGroup = flowController.getGroup(reportingTask.getProcessGroupIdentifier());
+            name = reportingTask.getName();
+        }else if (component instanceof ProcessGroup){
+            currentGroup =  (ProcessGroup) component;
+            name = currentGroup.getName();
+        }else if (component instanceof Snippet){
+            final Snippet snippet = (Snippet) component;
+            currentGroup = flowController.getGroup(snippet.getParentGroupId());
+        }
+
+        Map<String, Object> infoMap = new HashMap<>();
+        infoMap.put("currentGroup", currentGroup);
+        infoMap.put("name", name);
+        return infoMap;
+    }
+
 }
