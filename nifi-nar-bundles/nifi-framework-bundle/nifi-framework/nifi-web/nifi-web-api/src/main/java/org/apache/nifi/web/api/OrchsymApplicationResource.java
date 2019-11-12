@@ -17,12 +17,7 @@
  */
 package org.apache.nifi.web.api;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -46,10 +41,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.connectable.Connection;
-import org.apache.nifi.controller.ProcessorNode;
-import org.apache.nifi.controller.ScheduledState;
-import org.apache.nifi.controller.Template;
+import org.apache.nifi.connectable.Funnel;
+import org.apache.nifi.connectable.Port;
+import org.apache.nifi.controller.*;
+import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
@@ -57,12 +54,7 @@ import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.StandardNiFiServiceFacade;
-import org.apache.nifi.web.api.dto.ControllerServiceDTO;
-import org.apache.nifi.web.api.dto.DropRequestDTO;
-import org.apache.nifi.web.api.dto.ProcessorDTO;
-import org.apache.nifi.web.api.dto.RevisionDTO;
-import org.apache.nifi.web.api.dto.SnippetDTO;
-import org.apache.nifi.web.api.dto.TemplateDTO;
+import org.apache.nifi.web.api.dto.*;
 import org.apache.nifi.web.api.dto.search.ComponentSearchResultDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.AppGroupEntity;
@@ -106,7 +98,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     private Response verifyApp(String appId) {
         boolean existed = flowController.getRootGroup().getProcessGroups().stream().filter(group -> group.getIdentifier().equals(appId)).findAny().isPresent();
-        if (existed) {
+        if (!existed) {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
         }
         return null;
@@ -374,7 +366,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response loginDeleteApp(@PathParam("appId") final String appId) {
+    public Response logicDeleteApp(@PathParam("appId") final String appId) {
         final Response verifyApp = verifyApp(appId);
         if (null != verifyApp) {// has error
             return verifyApp;
@@ -384,11 +376,42 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return replicate(HttpMethod.DELETE);
         }
 
+        return getResponseForLogicDeleteApp(flowController.getGroup(appId));
+    }
+
+    @PUT
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/logic_delete_by_name")
+    @ApiOperation(value = "delete the app via name logically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
+    })
+    public Response logicDeleteApp(final AppGroupEntity appGroupEntity) {
+        if (appGroupEntity == null || appGroupEntity.getName() == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("param cant be null and mast contains 'name'").build();
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, appGroupEntity);
+        }
+
+        final Optional<ProcessGroup> findFirst = flowController.getRootGroup().getProcessGroups().stream().filter(group -> group.getName().equals(appGroupEntity.getName())).findFirst();
+        if (!findFirst.isPresent()) {
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the app by the appName" + "'" + appGroupEntity.getName() + "'").build();
+        }
+
+        return getResponseForLogicDeleteApp(findFirst.get());
+    }
+
+    private Response getResponseForLogicDeleteApp(ProcessGroup pg){
         ProcessGroupEntity groupEntity = new ProcessGroupEntity();
-        groupEntity.setId(appId);
+        groupEntity.setId(pg.getIdentifier());
 
         return withWriteLock(serviceFacade, groupEntity, lookup -> {
-            final Authorizable processGroup = lookup.getProcessGroup(appId).getAuthorizable();
+            final Authorizable processGroup = lookup.getProcessGroup(groupEntity.getId()).getAuthorizable();
             processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
         }, null, (entity) -> {
             final ProcessGroup group = flowController.getGroup(entity.getId());
@@ -396,23 +419,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             saveAppStatus(entity.getId(), IS_DELETED, Boolean.TRUE);
             return generateOkResponse("success").build();
         });
-    }
-
-    @DELETE
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/physical_delete")
-    @ApiOperation(value = "delete the app or group physically", //
-            response = String.class)
-    @ApiResponses(value = { //
-            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
-    })
-    public Response physicalDeleteApp(@PathParam("appId") String appId) {
-        final Response verifyApp = verifyApp(appId);
-        if (null != verifyApp) {// has error
-            return verifyApp;
-        }
-        return forceDeleteGroup(appId);
     }
 
     private void deleteGroupLogic(ProcessGroup group) {
@@ -525,10 +531,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiOperation(value = "Get the template data of current app", //
             response = String.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
     public Response getAppTemplateData(
             @PathParam("groupId") String groupId
@@ -574,6 +577,22 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return noCache(Response.ok(templateCopy)).build();
     }
 
+    @DELETE
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/{appId}/force_delete")
+    @ApiOperation(value = "delete the app or group physically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
+    })
+    public Response forceDeleteApp(@PathParam("appId") String appId) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+        return forceDeleteGroup(appId);
+    }
 
     @DELETE
     @Consumes(MediaType.WILDCARD)
@@ -582,10 +601,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiOperation(value = "delete the app or group physically", //
             response = String.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
     public Response forceDeleteGroup(
             @PathParam("groupId") String groupId
@@ -596,17 +612,50 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         final ProcessGroup groupApp = flowController.getGroup(groupId);
         if (groupApp == null){
-            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the groupId").build();
         }
 
+        return getResponseForForceDeleteGroup(groupApp);
+    }
+
+    @PUT
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/app/force_delete_by_name")
+    @ApiOperation(value = "delete the app or group physically", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
+    })
+    public Response forceDeleteAppByName(
+            final AppGroupEntity  appGroupEntity
+    ) {
+        if (appGroupEntity == null || appGroupEntity.getName() == null){
+            return Response.status(Response.Status.BAD_REQUEST).entity("param cant be null and mast contains 'name'").build();
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, appGroupEntity);
+        }
+
+        final Optional<ProcessGroup> findFirst = flowController.getRootGroup().getProcessGroups().stream().filter(group -> group.getName().equals(appGroupEntity.getName())).findFirst();
+        if (!findFirst.isPresent()) {
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the app by the appName" + "'" + appGroupEntity.getName() + "'").build();
+        }
+
+        return getResponseForForceDeleteGroup(findFirst.get());
+    }
+
+    private Response getResponseForForceDeleteGroup(ProcessGroup gp){
         ProcessGroupEntity groupEntity = new ProcessGroupEntity();
-        groupEntity.setId(groupApp.getIdentifier());
+        groupEntity.setId(gp.getIdentifier());
 
         return withWriteLock(
                 serviceFacade,
                 groupEntity,
                 lookup -> {
-                    final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
+                    final Authorizable processGroup = lookup.getProcessGroup(groupEntity.getId()).getAuthorizable();
                     processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
                 },
                 null,
@@ -623,5 +672,194 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         );
     }
 
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/verify_delete_status")
+    @ApiOperation(value = "Get the status when delete", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
+    })
+    public Response getVeryDeleteStatus(
+            @PathParam("id") String id
+    ) {
+        final Object component = getComponentById(id);
+        if (component == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Map<String, Object> resultMap = new HashMap<>();
+        final String canDelete = "canDelete";
+        final String errorMessage = "errorMessage";
+
+        resultMap.put(canDelete, true);
+
+        try {
+            if (component instanceof Label) {
+                // enable to delete always
+            } else if (component instanceof ProcessorNode) {
+                serviceFacade.verifyDeleteProcessor(id);
+            } else if (component instanceof Connection) {
+                serviceFacade.verifyDeleteConnection(id);
+            } else if (component instanceof Port) {
+                Port port = (Port) component;
+                if (port.getConnectableType().equals(ConnectableType.INPUT_PORT)) {
+                    serviceFacade.verifyDeleteInputPort(id);
+                } else if (port.getConnectableType().equals(ConnectableType.OUTPUT_PORT)) {
+                    serviceFacade.verifyDeleteOutputPort(id);
+                }
+            } else if (component instanceof Funnel) {
+                serviceFacade.verifyDeleteFunnel(id);
+            } else if (component instanceof ControllerService) {
+                serviceFacade.verifyDeleteControllerService(id);
+            } else if (component instanceof ReportingTaskNode) {
+                serviceFacade.verifyDeleteReportingTask(id);
+            } else if (component instanceof ProcessGroup) {
+                try {
+                    serviceFacade.verifyDeleteProcessGroup(id);
+                } catch (Exception e) {
+                    Set<String> runningComponents = new HashSet<>();
+                    Set<String> runningServices = new HashSet<>();
+                    Set<String> queueConnections = new HashSet<>();
+                    Set<String> holdingConnections = new HashSet<>();
+                    collectGroupDetails(true, (ProcessGroup) component, runningComponents, runningServices, queueConnections, holdingConnections);
+                    resultMap.put("runningComponents", runningComponents);
+                    resultMap.put("runningServices", runningServices);
+                    resultMap.put("queueConnections", queueConnections);
+                    resultMap.put("holdingConnections", holdingConnections);
+                    throw e;
+                }
+            } else if (component instanceof Snippet) {
+                serviceFacade.verifyDeleteSnippet(id, serviceFacade.getRevisionsFromSnippet(id).stream().map(revision -> revision.getComponentId()).collect(Collectors.toSet()));
+            }
+        } catch (Exception e) {
+            resultMap.put(canDelete, false);
+            resultMap.put(errorMessage, e.getMessage());
+        }
+
+        return Response.ok().entity(resultMap).build();
+    }
+
+    private Object getComponentById(String id){
+        // 首先查找Label
+        final Label label = getLabel(id);
+        if (label != null){
+            return label;
+        }
+        final ProcessorNode processorNode = flowController.getProcessorNode(id);
+        if (processorNode != null){
+            return processorNode;
+        }
+
+        final Connection connection = flowController.getConnection(id);
+        if (connection != null){
+            return connection;
+        }
+
+        final Port inputPort = flowController.getInputPort(id);
+        if (inputPort != null){
+            return inputPort;
+        }
+
+        final Port outputPort = flowController.getOutputPort(id);
+        if (outputPort != null){
+            return outputPort;
+        }
+
+        final Funnel funnel = flowController.getFunnel(id);
+        if (funnel != null){
+            return funnel;
+        }
+
+        final ProcessGroup group = flowController.getGroup(id);
+        if (group != null){
+            return group;
+        }
+
+        final ControllerService controllerService = flowController.getControllerService(id);
+        if (controllerService != null){
+            return controllerService;
+        }
+
+        final ReportingTaskNode reportingTaskNode = flowController.getReportingTaskNode(id);
+        if (reportingTaskNode != null){
+            return reportingTaskNode;
+        }
+
+        final Snippet snippet = flowController.getSnippetManager().getSnippet(id);
+        if (snippet != null){
+            return snippet;
+        }
+        return null;
+    }
+
+    private Label getLabel(String id){
+        final ProcessGroup rootGroup = flowController.getGroup(flowController.getRootGroupId());
+        final Label label = rootGroup.findLabel(id);
+        return label;
+    }
+
+    private void collectGroupDetails(Boolean isBegin,ProcessGroup group, Set<String> runningComponents,
+                                 Set<String> runningServices, Set<String> queueConnections,
+                                 Set<String> holdingConnections
+                                ){
+        for(ProcessorNode processorNode : group.getProcessors()){
+            if (processorNode.getScheduledState().equals(ScheduledState.RUNNING)){
+                runningComponents.add(processorNode.getIdentifier());
+            }
+        }
+
+        for(Connection connection : group.getConnections()){
+            if(!connection.getFlowFileQueue().isEmpty()){
+                queueConnections.add(connection.getIdentifier());
+            }
+        }
+
+        for(ControllerServiceNode serviceNode : group.getControllerServices(false)){
+            if (serviceNode.getState().equals(ControllerServiceState.ENABLED)){
+                runningServices.add(serviceNode.getIdentifier());
+            }
+        }
+
+        if (isBegin){
+            // 查询有没有connection连接到当前Group ，
+            // 会将当前group有前置连接的ID 及 有后置连接且连接队列数据不为空的连接ID 放置到holdingConnections内
+            for (Port inputPort : group.getInputPorts()){
+                for (Connection connection : inputPort.getIncomingConnections()){
+                    if (!connection.getProcessGroup().equals(group) && connection.getDestination().equals(inputPort)){
+                        holdingConnections.add(connection.getIdentifier());
+                    }
+                }
+            }
+
+            for (Port outputPort : group.getOutputPorts()){
+                for(Connection connection : outputPort.getConnections()){
+                    if (!connection.getProcessGroup().equals(group) && connection.getSource().equals(outputPort) && !connection.getFlowFileQueue().isEmpty()){
+                        holdingConnections.add(connection.getIdentifier());
+                    }
+                }
+            }
+
+            for(Funnel funnel : group.getFunnels()){
+                for (Connection connection : funnel.getIncomingConnections()){
+                    if (!connection.getProcessGroup().equals(group) && connection.getDestination().equals(funnel)){
+                        holdingConnections.add(connection.getIdentifier());
+                    }
+                }
+
+                for (Connection connection : funnel.getConnections()){
+                    if (!connection.getProcessGroup().equals(group) && connection.getSource().equals(funnel) && !connection.getFlowFileQueue().isEmpty()){
+                        holdingConnections.add(connection.getIdentifier());
+                    }
+                }
+            }
+
+        }
+
+        for (ProcessGroup childGroup : group.getProcessGroups()){
+            collectGroupDetails(false, childGroup,runningComponents,runningServices,queueConnections,holdingConnections);
+        }
+    }
 
 }

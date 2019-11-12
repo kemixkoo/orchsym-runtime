@@ -461,6 +461,10 @@ public class StatsResource extends AbsOrchsymResource {
         group.getProcessGroups().forEach(subGroup -> collectProcessorCounters(componentCategories, subGroup, results));
     }
 
+    /**
+     * 
+     * @Deprecated will replace via "GET /{id}/verify_delete_status:
+     */
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
