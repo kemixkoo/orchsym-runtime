@@ -45,6 +45,7 @@ import org.apache.nifi.registry.flow.FlowRegistryClient;
 import org.apache.nifi.registry.flow.VersionControlInformation;
 import org.apache.nifi.registry.flow.VersionedFlowSnapshot;
 import org.apache.nifi.remote.RemoteGroupPort;
+import org.apache.nifi.web.api.dto.PositionDTO;
 
 /**
  * <p>
@@ -803,6 +804,45 @@ public interface ProcessGroup extends ComponentAuthorizable, Positionable, Versi
      * component that is not within this ProcessGroup
      */
     void move(final Snippet snippet, final ProcessGroup destination);
+
+    /**
+     * Moves all of the components whose ID's are specified within the given
+     * {@link Snippet} from this ProcessGroup into the given destination
+     * ProcessGroup
+     *
+     * @param snippet to move
+     * @param destination where to move
+     * @param positionOffset position offset
+     * @throws NullPointerException if either argument is null
+     * @throws IllegalStateException if any ID in the snippet refers to a
+     * component that is not within this ProcessGroup
+     */
+    default void move(final Snippet snippet, final ProcessGroup destination, final PositionDTO positionOffset){}
+
+    /**
+     * Moves all of the components whose ID's are specified within the given
+     * {@link Snippet} with the position offset
+     *
+     * @param snippet to move
+     * @param positionOffset position offset
+     * @throws NullPointerException if either argument is null
+     * @throws IllegalStateException if any ID in the snippet refers to a
+     * component that is not within this ProcessGroup
+     */
+    default void move(final Snippet snippet, final PositionDTO positionOffset){}
+
+    /**
+     * Moves all of Sontroller Services in the components whose ID's are specified within the given
+     * {@link Snippet} from this ProcessGroup into the given destination
+     * ProcessGroup
+     *
+     * @param snippet to move
+     * @param destination where to move
+     * @throws NullPointerException if either argument is null
+     * @throws IllegalStateException if any ID in the snippet refers to a
+     * component that is not within this ProcessGroup
+     */
+    default void moveControllerServices(final Snippet snippet, final ProcessGroup destination){}
 
     /**
      * Updates the Process Group to match the proposed flow

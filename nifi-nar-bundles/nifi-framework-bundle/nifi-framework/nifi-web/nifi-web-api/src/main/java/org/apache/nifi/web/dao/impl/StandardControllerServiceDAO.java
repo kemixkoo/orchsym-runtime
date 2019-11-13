@@ -193,6 +193,24 @@ public class StandardControllerServiceDAO extends ComponentDAO implements Contro
         return controllerService;
     }
 
+    @Override
+    public ControllerServiceNode moveControllerService(ControllerServiceDTO controllerServiceDTO, String targetGroupId) {
+        // get the controller service
+        final ControllerServiceNode controllerService = locateControllerService(controllerServiceDTO.getId());
+        // get the target Process Group
+        final ProcessGroup destination = locateProcessGroup(flowController, targetGroupId);
+
+        // ensure we can perform the movement
+        verifyMove(controllerService);
+
+        final ProcessGroup processGroup = controllerService.getProcessGroup();
+        if (processGroup != null) {
+            processGroup.removeControllerService(controllerService);
+            destination.addControllerService(controllerService);
+        }
+        return controllerService;
+    }
+
     private void updateBundle(final ControllerServiceNode controllerService, final ControllerServiceDTO controllerServiceDTO) {
         final BundleDTO bundleDTO = controllerServiceDTO.getBundle();
         if (bundleDTO != null) {
@@ -251,6 +269,12 @@ public class StandardControllerServiceDAO extends ComponentDAO implements Contro
     public void verifyUpdate(final ControllerServiceDTO controllerServiceDTO) {
         final ControllerServiceNode controllerService = locateControllerService(controllerServiceDTO.getId());
         verifyUpdate(controllerService, controllerServiceDTO);
+    }
+
+    @Override
+    public void verifyMove(final ControllerServiceDTO controllerServiceDTO) {
+        final ControllerServiceNode controllerService = locateControllerService(controllerServiceDTO.getId());
+        verifyMove(controllerService);
     }
 
     @Override
@@ -325,6 +349,11 @@ public class StandardControllerServiceDAO extends ComponentDAO implements Contro
         if (modificationRequest) {
             controllerService.verifyCanUpdate();
         }
+    }
+
+    private void verifyMove(final ControllerServiceNode controllerService) {
+        // Before moving a Controller Service, It must be stopped and have not be referenced.
+        controllerService.verifyCanUpdate();
     }
 
     private void configureControllerService(final ControllerServiceNode controllerService, final ControllerServiceDTO controllerServiceDTO) {

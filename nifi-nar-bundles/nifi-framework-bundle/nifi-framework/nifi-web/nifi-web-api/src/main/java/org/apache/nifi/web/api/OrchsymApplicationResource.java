@@ -17,7 +17,15 @@
  */
 package org.apache.nifi.web.api;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -28,6 +36,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -39,24 +48,40 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.RequestAction;
+import org.apache.nifi.authorization.SnippetAuthorizable;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Port;
-import org.apache.nifi.controller.*;
+import org.apache.nifi.controller.ControllerService;
+import org.apache.nifi.controller.ProcessorNode;
+import org.apache.nifi.controller.ReportingTaskNode;
+import org.apache.nifi.controller.ScheduledState;
+import org.apache.nifi.controller.Snippet;
+import org.apache.nifi.controller.Template;
 import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.StandardNiFiServiceFacade;
-import org.apache.nifi.web.api.dto.*;
+import org.apache.nifi.web.api.dto.AppCopyDTO;
+import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.DropRequestDTO;
+import org.apache.nifi.web.api.dto.PositionDTO;
+import org.apache.nifi.web.api.dto.ProcessGroupDTO;
+import org.apache.nifi.web.api.dto.ProcessorDTO;
+import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
+import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.ComponentSearchResultDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
+import org.apache.nifi.web.api.entity.AppCopyEntity;
 import org.apache.nifi.web.api.entity.AppGroupEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
@@ -739,6 +764,108 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
 
         return Response.ok().entity(resultMap).build();
+    }
+
+    // -----------------
+    // application copy
+    // -----------------
+
+    /**
+     * Copy the specified application.
+     *
+     * @param httpServletRequest request
+     * @param requestAppCopyEntity  The copy snippet request
+     * @return A flowSnippetEntity.
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/copy")
+    @ApiOperation(
+            value = "Copy a application.",
+            response = ProcessGroupEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /process-groups/{uuid}"),
+                    @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"),
+                    @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response copyApp(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The application copy request.",
+                    required = true
+            ) AppCopyEntity requestAppCopyEntity) {
+        if (requestAppCopyEntity == null || requestAppCopyEntity.getAppCopy() == null) {
+            throw new IllegalArgumentException("Application details must be specified.");
+        }
+
+        final AppCopyDTO requestAppCopyDTO = requestAppCopyEntity.getAppCopy();
+
+        if (requestAppCopyDTO.getAppId() == null) {
+            throw new IllegalArgumentException("Source application ID must be specified.");
+        }
+
+        final PositionDTO proposedPosition = requestAppCopyDTO.getPosition();
+        if (proposedPosition != null) {
+            if (proposedPosition.getX() == null || proposedPosition.getY() == null) {
+                throw new IllegalArgumentException("The x and y coordinate of the proposed position must be specified.");
+            }
+        } else { // if not set the position, find new one
+            final PositionDTO availablePosition = PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
+            requestAppCopyDTO.setPosition(availablePosition);
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.POST, requestAppCopyEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestAppCopyEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        final String rootId = flowController.getRootGroupId();
+
+        final SnippetDTO snippetDTO = new SnippetDTO();
+        snippetDTO.setId(generateUuid());
+        snippetDTO.setParentGroupId(rootId);
+        final Map<String, RevisionDTO> app = new HashMap<>();
+        app.put(requestAppCopyDTO.getAppId(), serviceFacade.getProcessGroup(requestAppCopyDTO.getAppId()).getRevision());
+        snippetDTO.setProcessGroups(app);
+
+        final ProcessGroupDTO processGroupDTO = new ProcessGroupDTO();
+        processGroupDTO.setId(requestAppCopyDTO.getAppId());
+        processGroupDTO.setName(requestAppCopyDTO.getName());
+        processGroupDTO.setComments(requestAppCopyDTO.getComments());
+        processGroupDTO.setTags(requestAppCopyDTO.getTags());
+        processGroupDTO.setPosition(requestAppCopyDTO.getPosition());
+
+        // get the revision from this snippet
+        return withWriteLock(
+                serviceFacade,
+                requestAppCopyEntity,
+                lookup -> {
+                    // ensure write access to the root process group
+                    lookup.getProcessGroup("root").getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // ensure write permission to every component in the snippet including referenced services
+                    final SnippetAuthorizable snippet = lookup.getSnippet(snippetDTO);
+                    authorizeSnippet(snippet, authorizer, lookup, RequestAction.WRITE, true, false);
+                },
+                null,
+                appCopyEntity -> {
+                    final ProcessGroupEntity entity = serviceFacade.copyProcessGroup(rootId, snippetDTO, processGroupDTO, getIdGenerationSeed().orElse(null));
+                    // generate the response
+                    return generateCreatedResponse(getAbsolutePath(), entity).build();
+                }
+        );
     }
 
     private Object getComponentById(String id){

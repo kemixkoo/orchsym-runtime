@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -47,6 +48,7 @@ import org.apache.nifi.attribute.expression.language.PreparedQuery;
 import org.apache.nifi.attribute.expression.language.Query;
 import org.apache.nifi.attribute.expression.language.SensitivePropertyValue;
 import org.apache.nifi.attribute.expression.language.StandardPropertyValue;
+import org.apache.nifi.authorization.AuthorizableLookup;
 import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
 import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.authorization.ComponentAuthorizable;
@@ -72,6 +74,7 @@ import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.VariableRegistryDTO;
 import org.apache.nifi.web.api.dto.dbcp.DbcpMetadataDTO;
 import org.apache.nifi.web.api.entity.ControllerServiceEntity;
+import org.apache.nifi.web.api.entity.ControllerServiceMoveEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceReferencingComponentEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceSimpleEntity;
 import org.apache.nifi.web.api.entity.ControllerServicesBatchOperationEntity;
@@ -191,24 +194,7 @@ public class ServiceResource extends AbsOrchsymResource {
             final NiFiUser user = NiFiUserUtils.getNiFiUser();
 
             final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
-            processGroup.authorize(authorizer, RequestAction.WRITE, user);
-
-            ComponentAuthorizable authorizable = null;
-            try {
-                authorizable = lookup.getConfigurableComponent(requestControllerService.getType(), requestControllerService.getBundle());
-
-                if (authorizable.isRestricted()) {
-                    authorizeRestrictions(authorizer, authorizable);
-                }
-
-                if (requestControllerService.getProperties() != null) {
-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestControllerService.getProperties(), authorizable, authorizer, lookup);
-                }
-            } finally {
-                if (authorizable != null) {
-                    authorizable.cleanUpResources();
-                }
-            }
+            authorizeProcessGroup(requestControllerService, lookup, user, processGroup);
         }, () -> serviceFacade.verifyCreateControllerService(requestControllerService), controllerServiceEntity -> {
             final ControllerServiceDTO controllerService = controllerServiceEntity.getComponent();
 
@@ -619,4 +605,232 @@ public class ServiceResource extends AbsOrchsymResource {
         }
         return propertyValue.evaluateAttributeExpressions().getValue(true);
     }
+
+    /**
+     * move the specified Controller Service.
+     *
+     * @param httpServletRequest      request
+     * @param id                      The id of the controller service to update.
+     * @param requestControllerServiceMoveEntity A controllerServiceEntity.
+     * @return A controllerServiceEntity.
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/move")
+    @ApiOperation(
+            value = "Move a controller service",
+            response = ControllerServiceEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /controller-services/{uuid}"),
+                    @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}")
+            }
+    )
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
+    })
+    public Response moveControllerService(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The controller service id.",
+                    required = true
+            )
+            @PathParam("id") final String id,
+            @ApiParam(
+                    value = "The controller service movement details.",
+                    required = true
+            ) final ControllerServiceMoveEntity requestControllerServiceMoveEntity) {
+
+        if (requestControllerServiceMoveEntity == null) {
+            throw new IllegalArgumentException("Controller service movement details must be specified.");
+        }
+
+        if (requestControllerServiceMoveEntity.getGroupId() == null) {
+            throw new IllegalArgumentException("Target Process Group id must be specified.");
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, requestControllerServiceMoveEntity);
+        }  else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestControllerServiceMoveEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        final ControllerServiceEntity controllerServiceEntity = serviceFacade.getControllerService(id);
+        if (controllerServiceEntity == null) {
+            throw new IllegalArgumentException(String.format("Unable to find Controller Service '%s'", id));
+        }
+
+        // handle expects request (usually from the cluster manager)
+        final Revision requestRevision = getRevision(controllerServiceEntity.getRevision(), id);
+        final ControllerServiceDTO controllerServiceDTO = controllerServiceEntity.getComponent();
+        return withWriteLock(
+                serviceFacade,
+                controllerServiceEntity,
+                requestRevision,
+                lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                    // authorize the service
+                    final ComponentAuthorizable authorizable = lookup.getControllerService(id);
+                    authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+
+                    // ensure write permission to the parent Process Group
+                    authorizable.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+
+                    // ensure write permission to the target Process Group
+                    lookup.getProcessGroup(requestControllerServiceMoveEntity.getGroupId()).getAuthorizable()
+                            .authorize(authorizer, RequestAction.WRITE, user);
+
+                    // authorize any referenced services
+                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
+                },
+                () -> serviceFacade.verifyMoveControllerService(controllerServiceDTO, requestControllerServiceMoveEntity.getGroupId()),
+                (revision, csEntity) -> {
+                    final ControllerServiceDTO controllerService = csEntity.getComponent();
+                    controllerService.setName(requestControllerServiceMoveEntity.getName());
+                    controllerService.setComments(requestControllerServiceMoveEntity.getComments());
+
+                    // move the controller service
+                    final ControllerServiceEntity entity = serviceFacade.moveControllerService(revision, controllerService, requestControllerServiceMoveEntity.getGroupId());
+                    controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
+
+                    return generateOkResponse(entity).build();
+                }
+        );
+    }
+
+    /**
+     * Copy a existing Controller Service.
+     *
+     * @param httpServletRequest      request
+     * @param requestControllerServiceCopyEntity A controllerServiceCopyEntity.
+     * @return A controllerServiceEntity.
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/copy")
+    @ApiOperation(
+            value = "Copy a existing Controller Service",
+            response = ControllerServiceEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /process-groups/{uuid}"),
+                    @Authorization(value = "Read - any referenced Controller Services - /controller-services/{uuid}"),
+                    @Authorization(value = "Write - if the Controller Service is restricted - /restricted-components")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response copyControllerService(
+            @Context final HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The controller service id.",
+                    required = true
+            )
+            @PathParam("id") final String id,
+            @ApiParam(
+                    value = "The Controller Service criteria",
+                    required = true
+            ) final ControllerServiceMoveEntity requestControllerServiceCopyEntity) {
+
+        if (requestControllerServiceCopyEntity == null) {
+            throw new IllegalArgumentException("The Controller service criteria must be specified.");
+        }
+
+
+        final ControllerServiceDTO controllerService = serviceFacade.getControllerService(id).getComponent();
+        if (controllerService == null) {
+            throw new IllegalArgumentException(String.format("Unable to find Controller Service '%s'", id));
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.POST, requestControllerServiceCopyEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestControllerServiceCopyEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        return withWriteLock(
+                serviceFacade,
+                requestControllerServiceCopyEntity,
+                lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
+
+                    // ensure write permission to the target process group
+                    final Authorizable processGroup = lookup.getProcessGroup(requestControllerServiceCopyEntity.getGroupId()).getAuthorizable();
+                    authorizeProcessGroup(controllerService, lookup, user, processGroup);
+                },
+                null,
+                controllerServiceCopyEntity -> {
+                    // handle sensitive properties
+                    final Map<String, String> serviceProperties = controllerService.getProperties();
+                    if (serviceProperties != null) {
+                        // find the corresponding controller service
+                        final ControllerServiceNode serviceNode = flowController.getControllerServiceNode(controllerService.getId());
+                        if (serviceNode == null) {
+                            throw new IllegalArgumentException(String.format("Unable to copy because Controller Service '%s' could not be found", controllerService.getId()));
+                        }
+
+                        // look for sensitive properties get the actual value
+                        for (Map.Entry<PropertyDescriptor, String> entry : serviceNode.getProperties().entrySet()) {
+                            final PropertyDescriptor descriptor = entry.getKey();
+
+                            if (descriptor.isSensitive()) {
+                                serviceProperties.put(descriptor.getName(), entry.getValue());
+                            }
+                        }
+                    }
+
+                    controllerService.setId(generateUuid());
+
+                    // create the controller service and generate the json
+                    final Revision revision = new Revision(0L, null, controllerService.getId());
+
+                    if (requestControllerServiceCopyEntity.getName() != null) {
+                        controllerService.setName(requestControllerServiceCopyEntity.getName());
+                    }
+                    if (requestControllerServiceCopyEntity.getComments() != null) {
+                        controllerService.setComments(requestControllerServiceCopyEntity.getComments());
+                    }
+                    controllerService.setState(ControllerServiceState.DISABLED.name());
+
+                    final ControllerServiceEntity entity = serviceFacade.createControllerService(revision, requestControllerServiceCopyEntity.getGroupId(), controllerService);
+                    controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
+
+                    // build the response
+                    return generateCreatedResponse(URI.create(entity.getUri()), entity).build();
+                }
+        );
+    }
+
+    private void authorizeProcessGroup(ControllerServiceDTO controllerService, AuthorizableLookup lookup, NiFiUser user, Authorizable processGroup) {
+        processGroup.authorize(authorizer, RequestAction.WRITE, user);
+
+        ComponentAuthorizable authorizable = null;
+        try {
+            authorizable = lookup.getConfigurableComponent(controllerService.getType(), controllerService.getBundle());
+
+            if (authorizable.isRestricted()) {
+                authorizeRestrictions(authorizer, authorizable);
+            }
+
+            if (controllerService.getProperties() != null) {
+                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService.getProperties(), authorizable, authorizer, lookup);
+            }
+        } finally {
+            if (authorizable != null) {
+                authorizable.cleanUpResources();
+            }
+        }
+    }
+
+
 }

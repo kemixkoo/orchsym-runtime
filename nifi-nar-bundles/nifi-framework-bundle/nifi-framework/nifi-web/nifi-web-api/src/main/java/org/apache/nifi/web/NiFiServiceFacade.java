@@ -20,6 +20,7 @@ import org.apache.nifi.authorization.AuthorizeAccess;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.controller.ScheduledState;
+import org.apache.nifi.controller.Snippet;
 import org.apache.nifi.controller.repository.claim.ContentDirection;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
@@ -28,6 +29,7 @@ import org.apache.nifi.registry.flow.VersionedFlowSnapshot;
 import org.apache.nifi.registry.flow.VersionedProcessGroup;
 import org.apache.nifi.web.api.dto.AccessPolicyDTO;
 import org.apache.nifi.web.api.dto.AffectedComponentDTO;
+import org.apache.nifi.web.api.dto.AppCopyDTO;
 import org.apache.nifi.web.api.dto.BulletinBoardDTO;
 import org.apache.nifi.web.api.dto.BulletinDTO;
 import org.apache.nifi.web.api.dto.BulletinQueryDTO;
@@ -49,6 +51,7 @@ import org.apache.nifi.web.api.dto.LabelDTO;
 import org.apache.nifi.web.api.dto.ListingRequestDTO;
 import org.apache.nifi.web.api.dto.NodeDTO;
 import org.apache.nifi.web.api.dto.PortDTO;
+import org.apache.nifi.web.api.dto.PositionDTO;
 import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.PropertyDescriptorDTO;
@@ -175,6 +178,22 @@ public interface NiFiServiceFacade {
      * @return component revisions from the snippet
      */
     Set<Revision> getRevisionsFromSnippet(String snippetId);
+
+    /**
+     * Gets the revisions from the specified snippet.
+     *
+     * @param snippet snippet
+     * @return component revisions from the snippet
+     */
+    Set<Revision> getRevisionsFromSnippet(Snippet snippet);
+
+    /**
+     * Gets the revisions from the specified snippet.
+     *
+     * @param snippetDTO snippetDTO
+     * @return component revisions from the snippet
+     */
+    Set<Revision> getRevisionsFromSnippet(SnippetDTO snippetDTO);
 
 
 
@@ -1780,6 +1799,16 @@ public interface NiFiServiceFacade {
     ControllerServiceEntity updateControllerService(Revision revision, ControllerServiceDTO controllerServiceDTO);
 
     /**
+     * Move the specified controller service.
+     *
+     * @param revision Revision to compare with current base revision
+     * @param controllerServiceDTO The controller service DTO
+     * @param targetGroupId Target Process Group id
+     * @return The controller service DTO
+     */
+    ControllerServiceEntity moveControllerService(Revision revision, ControllerServiceDTO controllerServiceDTO, String targetGroupId);
+
+    /**
      * Deletes the specified label.
      *
      * @param revision Revision to compare with current base revision
@@ -1794,6 +1823,14 @@ public interface NiFiServiceFacade {
      * @param controllerServiceDTO service
      */
     void verifyUpdateControllerService(ControllerServiceDTO controllerServiceDTO);
+
+    /**
+     * Verifies the specified controller service can be moved.
+     *
+     * @param controllerServiceDTO service
+     * @param targetGroupId target Process Group id
+     */
+    void verifyMoveControllerService(ControllerServiceDTO controllerServiceDTO, String targetGroupId);
 
     /**
      * Verifies the referencing components of the specified controller service can be updated.
@@ -2052,6 +2089,26 @@ public interface NiFiServiceFacade {
     SnippetEntity updateSnippet(Set<Revision> revisions, SnippetDTO snippetDto);
 
     /**
+     * If group id is specified, moves the specified snippet to the specified group.
+     *
+     * @param revisions revisions
+     * @param snippetDTO snippetDTO
+     * @param positionOffset position offset
+     * @param idGenerationSeed the seed to use for generating UUID's. May be null.
+     * @return snapshot
+     */
+    SnippetEntity cutSnippet(Set<Revision> revisions, SnippetDTO snippetDTO, PositionDTO positionOffset, String idGenerationSeed);
+
+    /**
+     * Copy an application to targetProcessGroup
+     * @param targetGroupId target Process Group id
+     * @param snippetDTO snippetDTO
+     * @param processGroupDTO    processGroupDTO
+     * @return  the application
+     */
+    ProcessGroupEntity copyProcessGroup(String targetGroupId, SnippetDTO snippetDTO, ProcessGroupDTO processGroupDTO, String idGenerationSeed);
+
+    /**
      * Determines if this snippet can be removed.
      *
      * @param id id
@@ -2067,6 +2124,15 @@ public interface NiFiServiceFacade {
      * @return snapshot
      */
     SnippetEntity deleteSnippet(Set<Revision> revisions, String snippetId);
+
+    /**
+     * Removes the specified snippet.
+     *
+     * @param revisions revisions
+     * @param snippet snippet
+     * @return snapshot
+     */
+    SnippetEntity deleteSnippet(Set<Revision> revisions, Snippet snippet);
 
     // ----------------------------------------
     // Cluster methods

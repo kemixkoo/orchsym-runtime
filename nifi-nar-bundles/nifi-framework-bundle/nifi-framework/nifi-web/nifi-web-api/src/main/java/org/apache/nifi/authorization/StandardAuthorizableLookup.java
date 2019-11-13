@@ -49,6 +49,7 @@ import org.apache.nifi.util.BundleUtils;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.FlowSnippetDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.controller.ControllerFacade;
 import org.apache.nifi.web.dao.AccessPolicyDAO;
 import org.apache.nifi.web.dao.ConnectionDAO;
@@ -365,8 +366,7 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
     }
 
     @Override
-    public SnippetAuthorizable getSnippet(final String id) {
-        final Snippet snippet = snippetDAO.getSnippet(id);
+    public SnippetAuthorizable getSnippet(Snippet snippet) {
         final ProcessGroup processGroup = processGroupDAO.getProcessGroup(snippet.getParentGroupId());
 
         return new SnippetAuthorizable() {
@@ -439,6 +439,20 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
                         .collect(Collectors.toSet());
             }
         };
+    }
+
+    @Override
+    public SnippetAuthorizable getSnippet(final String id) {
+        final Snippet snippet = snippetDAO.getSnippet(id);
+        return getSnippet(snippet);
+    }
+
+    @Override
+    public SnippetAuthorizable getSnippet(SnippetDTO snippetDTO) {
+        Snippet snippet = snippetDAO.createSnippet(snippetDTO);
+        // save the flow
+        controllerFacade.save();
+        return getSnippet(snippet);
     }
 
     @Override

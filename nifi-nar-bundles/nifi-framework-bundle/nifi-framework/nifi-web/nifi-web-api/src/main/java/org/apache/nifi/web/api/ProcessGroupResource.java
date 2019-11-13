@@ -24,7 +24,6 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
-import net.minidev.json.JSONObject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.AuthorizableLookup;
@@ -74,6 +73,7 @@ import org.apache.nifi.web.api.dto.ProcessorConfigDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.VariableRegistryDTO;
 import org.apache.nifi.web.api.dto.VersionControlInformationDTO;
@@ -105,6 +105,8 @@ import org.apache.nifi.web.api.entity.ProcessorsEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupsEntity;
 import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
+import org.apache.nifi.web.api.entity.SnippetCutEntity;
+import org.apache.nifi.web.api.entity.SnippetEntity;
 import org.apache.nifi.web.api.entity.TemplateApplicationEntity;
 import org.apache.nifi.web.api.entity.TemplateConfigEntity;
 import org.apache.nifi.web.api.entity.TemplateConfigComponentEntity;
@@ -117,7 +119,7 @@ import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
 import org.apache.nifi.web.security.token.NiFiAuthenticationToken;
 import org.apache.nifi.web.util.Pause;
-import org.apache.nifi.web.util.PositionCalcUtil;
+import org.apache.nifi.util.PositionCalcUtil;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,14 +155,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -1675,7 +1675,7 @@ public class ProcessGroupResource extends ApplicationResource {
                 throw new IllegalArgumentException("The x and y coordinate of the proposed position must be specified.");
             }
         } else { // if not set the position, find new one
-            final PositionDTO availablePosition = PositionCalcUtil.newAvailablePosition(serviceFacade);
+            final PositionDTO availablePosition = PositionCalcUtil.newAvailablePosition(serviceFacade.get);
             requestProcessGroupEntity.getComponent().setPosition(availablePosition);
         }
 
@@ -3152,6 +3152,109 @@ public class ProcessGroupResource extends ApplicationResource {
         );
     }
 
+
+    /**
+     * Cuts the specified snippet to this ProcessGroup.
+     *
+     * @param httpServletRequest request
+     * @param targetGroupId            The group id
+     * @param requestCutSnippetEntity  The copy snippet request
+     * @return A flowSnippetEntity.
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}/snippet-cutting")
+    @ApiOperation(
+            value = "Cuts a snippet.",
+            response = SnippetEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /process-groups/{uuid}"),
+                    @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"),
+                    @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response cutSnippet(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The target process group id.",
+                    required = true
+            )
+            @PathParam("id") String targetGroupId,
+            @ApiParam(
+                    value = "The cut snippet request.",
+                    required = true
+            ) SnippetCutEntity requestCutSnippetEntity) {
+        if (requestCutSnippetEntity == null || requestCutSnippetEntity.getSnippet() == null) {
+            throw new IllegalArgumentException("Snippet details must be specified.");
+        }
+
+        final SnippetDTO requestSnippetDTO = requestCutSnippetEntity.getSnippet();
+
+        if (requestSnippetDTO.getId() != null) {
+            throw new IllegalArgumentException("Snippet ID cannot be specified.");
+        }
+        // For convenience, we'll create a Snippet first.
+        requestSnippetDTO.setId(generateUuid());
+
+        // We need the parent Process Group id to locate the Snippet.
+        // After the Snippet is created, we'll changed the parentGroupId of the snippetDTO to the target process group's id.
+        // In this way, we can't reuse existing validation logic
+        if (requestSnippetDTO.getParentGroupId() == null) {
+            throw new IllegalArgumentException("The parent Process Group of the snippet must be specified.");
+        }
+
+        // ensure the position has been specified
+        if (requestCutSnippetEntity.getPositionOffset() == null ||
+                requestCutSnippetEntity.getPositionOffset().getX() == null || requestCutSnippetEntity.getPositionOffset().getY() == null) {
+            throw new IllegalArgumentException("The position offset (x, y) must be specified");
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, requestCutSnippetEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestCutSnippetEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        // get the revision from this snippet
+        final Set<Revision> requestRevisions = serviceFacade.getRevisionsFromSnippet(requestSnippetDTO);
+        return withWriteLock(
+                serviceFacade,
+                requestCutSnippetEntity,
+                requestRevisions,
+                lookup -> {
+                    // ensure write access to the target process group
+                    lookup.getProcessGroup(targetGroupId).getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // ensure write permission to every component in the snippet including referenced services
+                    final SnippetAuthorizable snippet = lookup.getSnippet(requestSnippetDTO);
+                    authorizeSnippet(snippet, authorizer, lookup, RequestAction.WRITE, true, false);
+                },
+                null,
+                (revisions, copySnippetRequestEntity) -> {
+                    // change the parent Process Group id to target Process Group
+                    requestSnippetDTO.setParentGroupId(targetGroupId);
+
+                    // moves the specified snippet to the specified group.
+                    SnippetEntity snippetEntity = serviceFacade.cutSnippet(revisions, requestSnippetDTO,
+                            copySnippetRequestEntity.getPositionOffset(), getIdGenerationSeed().orElse(null));
+
+                    // generate the response
+                    return generateCreatedResponse(getAbsolutePath(), snippetEntity).build();
+                }
+        );
+    }
+
+
     // -----------------
     // template instance
     // -----------------
@@ -3972,6 +4075,33 @@ public class ProcessGroupResource extends ApplicationResource {
             // generate the response
             return generateCreatedResponse(getAbsolutePath(), responseEntity).build();
         });
+    }
+
+    /**
+     * Authorizes the specified snippet request with the specified request action. This method is used when creating a snippet. Because we do not know what
+     * the snippet will be used for, we just ensure the user has permissions to each selected component. Some actions may require additional permissions
+     * (including referenced services) but those will be enforced when the snippet is used.
+     *
+     * @param authorizer authorizer
+     * @param lookup     lookup
+     * @param action     action
+     */
+    private void authorizeSnippetRequest(final SnippetDTO snippetRequest, final Authorizer authorizer, final AuthorizableLookup lookup, final RequestAction action) {
+        final Consumer<Authorizable> authorize = authorizable -> authorizable.authorize(authorizer, action, NiFiUserUtils.getNiFiUser());
+
+        // note - we are not authorizing templates or controller services as they are not considered when using this snippet
+        snippetRequest.getProcessGroups().keySet().stream().map(id -> lookup.getProcessGroup(id)).forEach(processGroupAuthorizable -> {
+            // we are not checking referenced services since we do not know how this snippet will be used. these checks should be performed
+            // in a subsequent action with this snippet
+            authorizeProcessGroup(processGroupAuthorizable, authorizer, lookup, action, false, false, false, false);
+        });
+        snippetRequest.getRemoteProcessGroups().keySet().stream().map(id -> lookup.getRemoteProcessGroup(id)).forEach(authorize);
+        snippetRequest.getProcessors().keySet().stream().map(id -> lookup.getProcessor(id).getAuthorizable()).forEach(authorize);
+        snippetRequest.getInputPorts().keySet().stream().map(id -> lookup.getInputPort(id)).forEach(authorize);
+        snippetRequest.getOutputPorts().keySet().stream().map(id -> lookup.getOutputPort(id)).forEach(authorize);
+        snippetRequest.getConnections().keySet().stream().map(id -> lookup.getConnection(id).getAuthorizable()).forEach(authorize);
+        snippetRequest.getFunnels().keySet().stream().map(id -> lookup.getFunnel(id)).forEach(authorize);
+        snippetRequest.getLabels().keySet().stream().map(id -> lookup.getLabel(id)).forEach(authorize);
     }
 
     private static class UpdateVariableRegistryRequestWrapper extends Entity {

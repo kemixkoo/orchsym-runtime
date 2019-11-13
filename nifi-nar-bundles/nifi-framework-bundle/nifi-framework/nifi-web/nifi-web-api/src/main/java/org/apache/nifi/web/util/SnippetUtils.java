@@ -57,6 +57,7 @@ import org.apache.nifi.web.api.dto.PropertyDescriptorDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupContentsDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupPortDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.entity.TenantEntity;
 import org.apache.nifi.web.dao.AccessPolicyDAO;
 import org.slf4j.Logger;
@@ -297,6 +298,208 @@ public final class SnippetUtils {
         snippetDto.setRemoteProcessGroups(remoteProcessGroups);
 
         return snippetDto;
+    }
+
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public FlowSnippetDTO populateFlowSnippet(final SnippetDTO snippetDTO, final boolean recurse, final boolean includeControllerServices) {
+        final FlowSnippetDTO flowSnippetDTO = new FlowSnippetDTO();
+        final String originParentGroupId = snippetDTO.getParentGroupId();
+        final ProcessGroup processGroup = flowController.getGroup(originParentGroupId);
+
+        // ensure the group could be found
+        if (processGroup == null) {
+            throw new IllegalStateException("The parent process group for this snippet could not be found.");
+        }
+
+        // We need to ensure that the Controller Services that are added get added to the proper group.
+        // This can potentially get a little bit tricky. Consider this scenario:
+        // We have a Process Group G1. Within Process Group G1 is a Controller Service C1.
+        // Also within G1 is a child Process Group, G2. Within G2 is a child Process Group, G3.
+        // Within G3 are two child Process Groups: G4 and G5. Within each of these children,
+        // we have a Processor (P1, P2) that references the Controller Service C1, defined 3 levels above.
+        // Now, we create a template that encompasses only Process Groups G4 and G5. We need to ensure
+        // that the Controller Service C1 is included at the 'root' of the template so that those
+        // Processors within G4 and G5 both have access to the same Controller Service. This can be drawn
+        // out thus:
+        //
+        // G1 -- C1
+        // |
+        // |
+        // G2
+        // |
+        // |
+        // G3
+        // |  \
+        // |   \
+        // G4   G5
+        // |    |
+        // |    |
+        // P1   P2
+        //
+        // Both P1 and P2 reference C1.
+        //
+        // In order to accomplish this, we maintain two collections. First, we keep a Set of all Controller Services that have
+        // been added. If we add a new Controller Service to the set, then we know it hasn't been added anywhere in the Snippet.
+        // In that case, we determine the service's group ID. In the flow described above, if we template just groups G4 and G5,
+        // then we need to include the Controller Service defined at G1. So we also keep a Map of Group ID to controller services
+        // in that group. If the ParentGroupId of a Controller Service is not in our snippet, then we instead update the parent
+        // ParentGroupId to be that of our highest-level process group (in this case G3, as that's where the template is created)
+        // and then add the controller services to that group (NOTE: here, when we say we change the group ID and add to that group,
+        // we are talking only about the DTO objects that make up the snippet. We do not actually modify the Process Group or the
+        // Controller Services in our flow themselves!)
+        final Set<ControllerServiceDTO> allServicesReferenced = new HashSet<>();
+        final Map<String, FlowSnippetDTO> contentsByGroup = new HashMap<>();
+        contentsByGroup.put(originParentGroupId, flowSnippetDTO);
+
+        // add any processors
+        final Set<ControllerServiceDTO> controllerServices = new HashSet<>();
+        final Set<ProcessorDTO> processors = new LinkedHashSet<>();
+        if (!snippetDTO.getProcessors().isEmpty()) {
+            for (final String processorId : snippetDTO.getProcessors().keySet()) {
+                final ProcessorNode processor = processGroup.getProcessor(processorId);
+                if (processor == null) {
+                    throw new IllegalStateException("A processor in this snippet could not be found.");
+                }
+                processors.add(dtoFactory.createProcessorDto(processor));
+
+                if (includeControllerServices) {
+                    // Include all referenced services that are not already included in this snippet.
+                    getControllerServices(processor.getProperties()).stream()
+                            .filter(allServicesReferenced::add)
+                            .forEach(svc -> {
+                                final String svcGroupId = svc.getParentGroupId();
+                                final String destinationGroupId = contentsByGroup.containsKey(svcGroupId) ? svcGroupId : processGroup.getIdentifier();
+                                svc.setParentGroupId(destinationGroupId);
+                                controllerServices.add(svc);
+                            });
+                }
+            }
+        }
+
+        // add any connections
+        final Set<ConnectionDTO> connections = new LinkedHashSet<>();
+        if (!snippetDTO.getConnections().isEmpty()) {
+            for (final String connectionId : snippetDTO.getConnections().keySet()) {
+                final Connection connection = processGroup.getConnection(connectionId);
+                if (connection == null) {
+                    throw new IllegalStateException("A connection in this snippet could not be found.");
+                }
+                connections.add(dtoFactory.createConnectionDto(connection));
+            }
+        }
+
+        // add any funnels
+        final Set<FunnelDTO> funnels = new LinkedHashSet<>();
+        if (!snippetDTO.getFunnels().isEmpty()) {
+            for (final String funnelId : snippetDTO.getFunnels().keySet()) {
+                final Funnel funnel = processGroup.getFunnel(funnelId);
+                if (funnel == null) {
+                    throw new IllegalStateException("A funnel in this snippet could not be found.");
+                }
+                funnels.add(dtoFactory.createFunnelDto(funnel));
+            }
+        }
+
+        // add any input ports
+        final Set<PortDTO> inputPorts = new LinkedHashSet<>();
+        if (!snippetDTO.getInputPorts().isEmpty()) {
+            for (final String inputPortId : snippetDTO.getInputPorts().keySet()) {
+                final Port inputPort = processGroup.getInputPort(inputPortId);
+                if (inputPort == null) {
+                    throw new IllegalStateException("An input port in this snippet could not be found.");
+                }
+                inputPorts.add(dtoFactory.createPortDto(inputPort));
+            }
+        }
+
+        // add any labels
+        final Set<LabelDTO> labels = new LinkedHashSet<>();
+        if (!snippetDTO.getLabels().isEmpty()) {
+            for (final String labelId : snippetDTO.getLabels().keySet()) {
+                final Label label = processGroup.getLabel(labelId);
+                if (label == null) {
+                    throw new IllegalStateException("A label in this snippet could not be found.");
+                }
+                labels.add(dtoFactory.createLabelDto(label));
+            }
+        }
+
+        // add any output ports
+        final Set<PortDTO> outputPorts = new LinkedHashSet<>();
+        if (!snippetDTO.getOutputPorts().isEmpty()) {
+            for (final String outputPortId : snippetDTO.getOutputPorts().keySet()) {
+                final Port outputPort = processGroup.getOutputPort(outputPortId);
+                if (outputPort == null) {
+                    throw new IllegalStateException("An output port in this snippet could not be found.");
+                }
+                outputPorts.add(dtoFactory.createPortDto(outputPort));
+            }
+        }
+
+        // add any process groups
+        final Set<ProcessGroupDTO> processGroups = new LinkedHashSet<>();
+        if (!snippetDTO.getProcessGroups().isEmpty()) {
+            for (final String childGroupId : snippetDTO.getProcessGroups().keySet()) {
+                final ProcessGroup childGroup = processGroup.getProcessGroup(childGroupId);
+                if (childGroup == null) {
+                    throw new IllegalStateException("A process group in this snippet could not be found.");
+                }
+
+                final ProcessGroupDTO childGroupDto = dtoFactory.createProcessGroupDto(childGroup, recurse);
+                processGroups.add(childGroupDto);
+
+                // maintain a listing of visited groups starting with each group in the snippet. this is used to determine
+                // whether a referenced controller service should be included in the resulting snippet. if the service is
+                // defined at groupId or one of it's ancestors, its considered outside of this snippet and will only be included
+                // when the includeControllerServices is set to true. this happens above when considering the processors in this snippet
+                final Set<String> visitedGroupIds = new HashSet<>();
+                addControllerServices(childGroup, childGroupDto, allServicesReferenced, includeControllerServices, visitedGroupIds, contentsByGroup, processGroup.getIdentifier());
+            }
+        }
+
+        // add any remote process groups
+        final Set<RemoteProcessGroupDTO> remoteProcessGroups = new LinkedHashSet<>();
+        if (!snippetDTO.getRemoteProcessGroups().isEmpty()) {
+            for (final String remoteProcessGroupId : snippetDTO.getRemoteProcessGroups().keySet()) {
+                final RemoteProcessGroup remoteProcessGroup = processGroup.getRemoteProcessGroup(remoteProcessGroupId);
+                if (remoteProcessGroup == null) {
+                    throw new IllegalStateException("A remote process group in this snippet could not be found.");
+                }
+                remoteProcessGroups.add(dtoFactory.createRemoteProcessGroupDto(remoteProcessGroup));
+            }
+        }
+
+
+        // Normalize the coordinates based on the locations of the other components
+        final List<? extends ComponentDTO> components = new ArrayList<>();
+        components.addAll((Set) processors);
+        components.addAll((Set) connections);
+        components.addAll((Set) funnels);
+        components.addAll((Set) inputPorts);
+        components.addAll((Set) labels);
+        components.addAll((Set) outputPorts);
+        components.addAll((Set) processGroups);
+        components.addAll((Set) remoteProcessGroups);
+        normalizeCoordinates(components);
+
+        Set<ControllerServiceDTO> updatedControllerServices = flowSnippetDTO.getControllerServices();
+        if (updatedControllerServices == null) {
+            updatedControllerServices = new HashSet<>();
+        }
+        updatedControllerServices.addAll(controllerServices);
+        flowSnippetDTO.setControllerServices(updatedControllerServices);
+
+        flowSnippetDTO.setProcessors(processors);
+        flowSnippetDTO.setConnections(connections);
+        flowSnippetDTO.setFunnels(funnels);
+        flowSnippetDTO.setInputPorts(inputPorts);
+        flowSnippetDTO.setLabels(labels);
+        flowSnippetDTO.setOutputPorts(outputPorts);
+        flowSnippetDTO.setProcessGroups(processGroups);
+        flowSnippetDTO.setRemoteProcessGroups(remoteProcessGroups);
+
+        return flowSnippetDTO;
     }
 
     /**

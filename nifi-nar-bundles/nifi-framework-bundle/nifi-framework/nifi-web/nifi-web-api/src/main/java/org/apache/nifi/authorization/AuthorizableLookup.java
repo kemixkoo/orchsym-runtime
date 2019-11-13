@@ -19,8 +19,10 @@ package org.apache.nifi.authorization;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.components.ConfigurableComponent;
 import org.apache.nifi.components.RequiredPermission;
+import org.apache.nifi.controller.Snippet;
 import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.FlowSnippetDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
 
 public interface AuthorizableLookup {
 
@@ -218,10 +220,26 @@ public interface AuthorizableLookup {
     /**
      * Get the snippet of authorizable's.
      *
+     * @param snippet snippet
+     * @return snippet of authorizable's
+     */
+    SnippetAuthorizable getSnippet(Snippet snippet);
+
+    /**
+     * Get the snippet of authorizable's.
+     *
      * @param id snippet id
      * @return snippet of authorizable's
      */
     SnippetAuthorizable getSnippet(String id);
+
+    /**
+     * Get the snippet of authorizable's.
+     *
+     * @param snippetDTO snippetDTO
+     * @return snippet of authorizable's
+     */
+    SnippetAuthorizable getSnippet(SnippetDTO snippetDTO);
 
     /**
      * Get the {@link Authorizable} that represents the resource of users and user groups.

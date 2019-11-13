@@ -170,7 +170,7 @@ public class AdditionsResource extends AbsOrchsymResource {
             @ApiParam(value = "The key of addition") @PathParam("key") final String key, //
             @ApiParam(value = "The value of addition for the key", required = true) @RequestBody final String content //
     ) {
-        return writeAdditions(groupId, key, content, false);
+        return writeAdditions(HttpMethod.POST, groupId, key, content, false);
     }
 
     @DELETE
@@ -188,10 +188,10 @@ public class AdditionsResource extends AbsOrchsymResource {
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") final String groupId, //
             @ApiParam(value = "The key of addition") @PathParam("key") final String key //
     ) {
-        return writeAdditions(groupId, key, null, true);
+        return writeAdditions(HttpMethod.DELETE, groupId, key, null, true);
     }
 
-    private Response writeAdditions(String groupId, String key, String content, boolean deleted) {
+    private Response writeAdditions(String method, String groupId, String key, String content, boolean deleted) {
         final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(groupId)) ? flowController.getRootGroup() : flowController.getGroup(groupId);
         if (group == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("not found the group by groupId").build(); // 404
@@ -209,7 +209,7 @@ public class AdditionsResource extends AbsOrchsymResource {
         }
 
         if (isReplicateRequest()) {
-            replicate(HttpMethod.POST, content);
+            return replicate(method, content);
         } else if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node is disconnected from cluster").build(); // 400
         }
