@@ -22,8 +22,7 @@ tarcmd='tar'
 if [[ `uname -s` ==  "Darwin" ]]; then
   echo "Warn! It seems that you are on Mac OS, the default 'tar' command on Mac OS is not compatible with GNU tar."
   echo "Try to found 'gtar' command..."
-  command -v gtar >/dev/null
-  if [[ $? -eq 0 ]]; then
+  if command -v gtar >/dev/null; then
     echo "Found 'gtar', will use 'gtar'."
     tarcmd='gtar'
   else
