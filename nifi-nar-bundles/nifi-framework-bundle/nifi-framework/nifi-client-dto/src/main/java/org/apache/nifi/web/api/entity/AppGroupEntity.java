@@ -10,6 +10,7 @@ public class AppGroupEntity {
     private Long createdTime;
     private Long modifiedTime;
     private Boolean isDeleted;
+    private Boolean isEnabled;
 
     public AppGroupEntity() {
     }
@@ -60,6 +61,14 @@ public class AppGroupEntity {
 
     public void setDeleted(Boolean deleted) {
         isDeleted = deleted;
+    }
+
+    public Boolean getEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        isEnabled = enabled;
     }
 
     @Override

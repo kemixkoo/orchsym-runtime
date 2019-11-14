@@ -285,6 +285,7 @@ import org.apache.nifi.web.revision.UpdateRevisionTask;
 import org.apache.nifi.web.util.SnippetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.ThreadLocalUtil;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -763,7 +764,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 public RevisionUpdate<D> update() {
                     // get the updated component
                     final C component = daoUpdate.get();
-                    updateAndCreateComponentCallBack(component, OperateType.UPDATE_COMPONENT);
+                    // updateAndCreateComponentCallBack(component, OperateType.UPDATE_COMPONENT);
                     // save updated controller
                     controllerFacade.save();
 
@@ -1464,11 +1465,13 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
             public D performTask() {
                 logger.debug("Attempting to delete component {} with claim {}", resource.getIdentifier(), claim);
 
+                /*
                 if (dto instanceof ComponentDTO){
                     ComponentDTO componentDTO = (ComponentDTO) dto;
                     final String parentGroupId = componentDTO.getParentGroupId();
-                    updateAllParentGroupExcludeRoot(parentGroupId, System.currentTimeMillis());
+                    updateAppGroup(parentGroupId, System.currentTimeMillis());
                 }
+                 */
 
                 // run the delete action
                 deleteAction.run();
@@ -1748,7 +1751,15 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         return revisionManager.updateRevision(claim, user, () -> {
             // add the component
             final C component = daoCreation.get();
-            updateAndCreateComponentCallBack(component,OperateType.CREATE_COMPONENT);
+            if (component instanceof ProcessGroup){
+                ProcessGroup app = (ProcessGroup) component;
+                final ThreadLocal threadLocal = ThreadLocalUtil.getInstance();
+                if (app.getParent().isRootGroup() && threadLocal != null && threadLocal.get() instanceof  Long){
+                    Long createdTime = (Long) threadLocal.get();
+                    threadLocal.remove();
+                    updateDirectGroupTimeField(StandardNiFiServiceFacade.createdTime, createdTime, app);
+                }
+            }
             // save the flow
             controllerFacade.save();
 
@@ -1762,16 +1773,17 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
      * ---------begin update time --------------
      */
 
+    /*
     private enum OperateType{
-        /**
-         * 表示操作类型
-         */
         CREATE_COMPONENT,
         UPDATE_COMPONENT
     }
+     */
 
     public static final String createdTime = "CREATED_TIMESTAMP";
     public static final String modifiedTime = "MODIFIED_TIMESTAMP";
+
+    /*
     private <C> void  updateAndCreateComponentCallBack(C c, OperateType operateType){
         if (!(c instanceof ComponentAuthorizable)){
             return;
@@ -1782,25 +1794,34 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
             if (c instanceof  ProcessGroup){
                 ProcessGroup group = processGroupDAO.getProcessGroup(component.getIdentifier());
                 if (!group.isRootGroup()){
-                    updateDirectGroupTimeField(createdTime, time, group);
-                    updateDirectGroupTimeField(modifiedTime, time, group);
-                    updateAllParentGroupExcludeRoot(component,time);
+                    if (group.getParent().isRootGroup()){
+                      updateTimeByCreateApp(time, group);
+                    }else {
+                      updateAppGroup(component,time);
+                    }
                 }
             }else {
-                updateAllParentGroupExcludeRoot(component,time);
+                updateAppGroup(component,time);
             }
         }else if (operateType.equals(OperateType.UPDATE_COMPONENT)){
             if (!(c instanceof ProcessGroup)){
-                updateAllParentGroupExcludeRoot(component,time);
+                updateAppGroup(component,time);
             }else{
                 ProcessGroup group = processGroupDAO.getProcessGroup(component.getIdentifier());
                 if(!group.isRootGroup()){
                     updateDirectGroupTimeField(modifiedTime, time, group);
-                    updateAllParentGroupExcludeRoot(component,time);
+                    updateAppGroup(component,time);
                 }
             }
         }
     }
+
+    private void updateTimeByCreateApp(long time, ProcessGroup group){
+        updateDirectGroupTimeField(createdTime, time, group);
+        updateDirectGroupTimeField(modifiedTime, time, group);
+    }
+     */
+
     // 更新指定的group时间字段
     private void updateDirectGroupTimeField(String fieldName, long time, ProcessGroup group){
         Map<String, String> additions = group.getAdditions();
@@ -1810,22 +1831,31 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         group.setAdditions(putMap);
     }
 
-    private  void updateAllParentGroupExcludeRoot(ComponentAuthorizable component,long time){
+    /*
+    private  void updateAppGroup(ComponentAuthorizable component, long time){
         final String groupIdentifier = component.getProcessGroupIdentifier();
         ProcessGroup group = processGroupDAO.getProcessGroup(groupIdentifier);
         while (!group.isRootGroup()){
-            updateDirectGroupTimeField(modifiedTime,time,group);
+            if (group.getParent().isRootGroup()){
+                updateDirectGroupTimeField(modifiedTime,time,group);
+                break;
+            }
             group = processGroupDAO.getProcessGroup(group.getParent().getIdentifier());
         }
+
     }
 
-    private  void updateAllParentGroupExcludeRoot(String parentGroupId,long time){
+    private  void updateAppGroup(String parentGroupId, long time){
         ProcessGroup group = processGroupDAO.getProcessGroup(parentGroupId);
         while (!group.isRootGroup()){
-            updateDirectGroupTimeField(modifiedTime,time,group);
+            if (group.getParent().isRootGroup()){
+                updateDirectGroupTimeField(modifiedTime,time,group);
+                break;
+            }
             group = processGroupDAO.getProcessGroup(group.getParent().getIdentifier());
         }
     }
+     */
 
     /**
      * ---------end update time --------------

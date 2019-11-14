@@ -125,6 +125,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import utils.ThreadLocalUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -1657,8 +1658,13 @@ public class ProcessGroupResource extends ApplicationResource {
                     required = true
         ) final ProcessGroupEntity requestProcessGroupEntity) throws IOException {
 
+
         if (requestProcessGroupEntity == null || requestProcessGroupEntity.getComponent() == null) {
             throw new IllegalArgumentException("Process group details must be specified.");
+        }
+
+        if (requestProcessGroupEntity.getCreateTimestamp() == null){
+            requestProcessGroupEntity.setCreateTimestamp(System.currentTimeMillis());
         }
 
         if (requestProcessGroupEntity.getRevision() == null || (requestProcessGroupEntity.getRevision().getVersion() == null || requestProcessGroupEntity.getRevision().getVersion() != 0)) {
@@ -1766,6 +1772,9 @@ public class ProcessGroupResource extends ApplicationResource {
                 },
                 processGroupEntity -> {
                     final ProcessGroupDTO processGroup = processGroupEntity.getComponent();
+
+                    // 设置创建时间戳
+                    ThreadLocalUtil.getInstance().set(processGroupEntity.getCreateTimestamp());
 
                     // set the processor id as appropriate
                     processGroup.setId(generateUuid());

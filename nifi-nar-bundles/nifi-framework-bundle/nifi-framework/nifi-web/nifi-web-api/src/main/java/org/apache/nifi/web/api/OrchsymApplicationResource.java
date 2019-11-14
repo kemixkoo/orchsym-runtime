@@ -120,6 +120,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @Autowired
     private RevisionManager revisionManager;
+    
+    @Autowired
+    private OrchsymGroupResource groupResource;
 
     private Response verifyApp(String appId) {
         boolean existed = flowController.getRootGroup().getProcessGroups().stream().filter(group -> group.getIdentifier().equals(appId)).findAny().isPresent();
@@ -159,6 +162,12 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             }else {
                 groupEntity.setDeleted(false);
             }
+
+            if (Boolean.parseBoolean(additions.get(IS_ENABLED))){
+                groupEntity.setEnabled(true);
+            }else {
+                groupEntity.setEnabled(false);
+            }
         }
 
     }
@@ -185,9 +194,19 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("sortedField") @DefaultValue("name") String sortedField,
             @QueryParam("isDesc") @DefaultValue("true") Boolean isDesc,
             @QueryParam("isDeleted") @DefaultValue("false") Boolean isDeleted,
-            @QueryParam("isDetail") @DefaultValue("false") Boolean isDetail
+            @QueryParam("isDetail") @DefaultValue("false") Boolean isDetail,
+            @QueryParam("isEnabled")  Boolean isEnabled,
+            @QueryParam("isRunning")  Boolean isRunning,
+            @QueryParam("hasDataQueue")  Boolean hasDataQueue,
+            @QueryParam("timeField") @DefaultValue("createdTime") String timeField,
+            @QueryParam("beginTime") Long beginTime,
+            @QueryParam("endTime") Long endTime
 
     ) throws InterruptedException {
+
+        if (! "createdTime".equals(timeField)){
+            return Response.status(Response.Status.BAD_REQUEST).entity("now the timeField only support 'createdTime' ").build();
+        }
 
         List<AppGroupEntity> appGroupEntityList = new ArrayList<>();
 
@@ -201,16 +220,52 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
 
         // 进行筛选
-        appGroupEntityList = appGroupEntityList.stream().filter(appGroupEntity -> appGroupEntity.getDeleted().equals(isDeleted)).collect(Collectors.toList());
+        appGroupEntityList = appGroupEntityList.stream().filter(appGroupEntity -> {
+            if (!appGroupEntity.getDeleted().equals(isDeleted)){
+                return false;
+            }
+            if (isEnabled != null && !appGroupEntity.getEnabled().equals(isEnabled)){
+               return false;
+            }
+            final ProcessGroupEntity groupEntity = serviceFacade.getProcessGroup(appGroupEntity.getId());
+            if (isRunning != null && (groupEntity.getRunningCount() > 0) != isRunning){
+                return false;
+            }
+            if (hasDataQueue != null && !isGroupHasDataQueue(appGroupEntity.getId()).equals(hasDataQueue)){
+                return false;
+            }
+
+            if (timeField != null && (beginTime != null || endTime != null)){
+                if ("createdTime".equals(timeField)){
+                    final Long createdTime = appGroupEntity.getCreatedTime();
+                    if ( beginTime != null && createdTime < beginTime){
+                        return false;
+                    }
+                    if (endTime != null && createdTime > endTime){
+                        return false;
+                    }
+                }else if ("modifiedTime".equals(timeField)){
+                    final Long modifiedTime = appGroupEntity.getModifiedTime();
+                    if ( beginTime != null && modifiedTime < beginTime){
+                        return false;
+                    }
+
+                    if (endTime != null && modifiedTime > endTime){
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }).collect(Collectors.toList());
 
         // 进行排序
         Collections.sort(appGroupEntityList, new Comparator<AppGroupEntity>() {
             @Override
             public int compare(AppGroupEntity o1, AppGroupEntity o2) {
-                if ("createdTime".equalsIgnoreCase(sortedField) //
+                if ("createdTime".equalsIgnoreCase(sortedField)
                         && o1.getCreatedTime() != null && o2.getCreatedTime() != null) {
                     return isDesc ? o2.getCreatedTime().compareTo(o1.getCreatedTime()) : o1.getCreatedTime().compareTo(o2.getCreatedTime());
-                } else if ("modifiedTime".equalsIgnoreCase(sortedField) //
+                } else if ("modifiedTime".equalsIgnoreCase(sortedField)
                         && o1.getModifiedTime() != null && o2.getModifiedTime() != null) {
                     return isDesc ? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
                 } else {
@@ -254,26 +309,27 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return noCache(Response.ok(resultMap)).build();
     }
 
-    @GET
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/group/{groupId}/search-results")
-    @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
-            @Authorization(value = "Read - /flow") })
-    public Response searchFlowByGroup(//
-            @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String value, //
-            @ApiParam(value = "The group id", required = true) @PathParam("groupId") final String groupId//
-    ) throws InterruptedException {
+    private Boolean isGroupHasDataQueue(String groupId){
+        final ProcessGroup group = flowController.getGroup(groupId);
+        AtomicReference<Boolean> hasDataQueue = new AtomicReference<>(false);
+        verifyHasDataQueue(group, hasDataQueue);
+        return  hasDataQueue.get();
+    }
 
-        // query the controller
-        final SearchResultsDTO results = serviceFacade.searchController(value, groupId);
+    private void verifyHasDataQueue(ProcessGroup group, AtomicReference<Boolean> hasDataQueue){
+        if (hasDataQueue.get()){
+            return;
+        }
+        for (Connection connection : group.getConnections()){
+            if (!connection.getFlowFileQueue().isEmpty()){
+                hasDataQueue.set(true);
+                return;
+            }
+        }
 
-        // create the entity
-        final SearchResultsEntity entity = new SearchResultsEntity();
-        entity.setSearchResultsDTO(results);
-
-        // generate the response
-        return noCache(Response.ok(entity)).build();
+        for (ProcessGroup childGroup : group.getProcessGroups()){
+            verifyHasDataQueue(childGroup,hasDataQueue);
+        }
     }
 
     @GET
@@ -616,31 +672,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         if (null != verifyApp) {// has error
             return verifyApp;
         }
-        return forceDeleteGroup(appId);
-    }
-
-    @DELETE
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/group/{groupId}/force_delete")
-    @ApiOperation(value = "delete the app or group physically", //
-            response = String.class)
-    @ApiResponses(value = { //
-            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
-    })
-    public Response forceDeleteGroup(
-            @PathParam("groupId") String groupId
-    ) {
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.DELETE);
-        }
-
-        final ProcessGroup groupApp = flowController.getGroup(groupId);
-        if (groupApp == null){
-            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the groupId").build();
-        }
-
-        return getResponseForForceDeleteGroup(groupApp);
+        return groupResource.forceDeleteGroup(appId);
     }
 
     @PUT
@@ -709,7 +741,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     public Response getVeryDeleteStatus(
             @PathParam("id") String id
     ) {
-        final Object component = getComponentById(id);
+        final Object component = groupResource.getComponentById(id);
         if (component == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -766,10 +798,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return Response.ok().entity(resultMap).build();
     }
 
-    // -----------------
-    // application copy
-    // -----------------
-
     /**
      * Copy the specified application.
      *
@@ -788,15 +816,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     @Authorization(value = "Write - /process-groups/{uuid}"),
                     @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"),
                     @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components")
-            }
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
-                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
-                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
-                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
-                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
             }
     )
     public Response copyApp(
@@ -868,65 +887,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         );
     }
 
-    private Object getComponentById(String id){
-        // 首先查找Label
-        final Label label = getLabel(id);
-        if (label != null){
-            return label;
-        }
-        final ProcessorNode processorNode = flowController.getProcessorNode(id);
-        if (processorNode != null){
-            return processorNode;
-        }
-
-        final Connection connection = flowController.getConnection(id);
-        if (connection != null){
-            return connection;
-        }
-
-        final Port inputPort = flowController.getInputPort(id);
-        if (inputPort != null){
-            return inputPort;
-        }
-
-        final Port outputPort = flowController.getOutputPort(id);
-        if (outputPort != null){
-            return outputPort;
-        }
-
-        final Funnel funnel = flowController.getFunnel(id);
-        if (funnel != null){
-            return funnel;
-        }
-
-        final ProcessGroup group = flowController.getGroup(id);
-        if (group != null){
-            return group;
-        }
-
-        final ControllerService controllerService = flowController.getControllerService(id);
-        if (controllerService != null){
-            return controllerService;
-        }
-
-        final ReportingTaskNode reportingTaskNode = flowController.getReportingTaskNode(id);
-        if (reportingTaskNode != null){
-            return reportingTaskNode;
-        }
-
-        final Snippet snippet = flowController.getSnippetManager().getSnippet(id);
-        if (snippet != null){
-            return snippet;
-        }
-        return null;
-    }
-
-    private Label getLabel(String id){
-        final ProcessGroup rootGroup = flowController.getGroup(flowController.getRootGroupId());
-        final Label label = rootGroup.findLabel(id);
-        return label;
-    }
-
     private void collectGroupDetails(Boolean isBegin,ProcessGroup group, Set<String> runningComponents,
                                  Set<String> runningServices, Set<String> queueConnections,
                                  Set<String> holdingConnections
@@ -987,107 +947,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         for (ProcessGroup childGroup : group.getProcessGroups()){
             collectGroupDetails(false, childGroup,runningComponents,runningServices,queueConnections,holdingConnections);
         }
-    }
-
-    @GET
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/component/{id}/navigator")
-    @ApiOperation(value = "Get the parents info of current app or component", //
-            response = String.class)
-    @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
-    })
-    public Response getNavigatorInfo(
-            @PathParam("id") String id
-    ) {
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.GET);
-        }
-
-        final Object component = getComponentById(id);
-        if (component == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        Map<String,Object> infoMap = getCurrentGroup(component);
-        ProcessGroup currentGroup = (ProcessGroup) infoMap.get("currentGroup");
-        String name = (String) infoMap.get("name");
-        if (currentGroup == null){
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        Map<String, Object> resultMap = new HashMap<>();
-        Boolean isGroup = currentGroup.getIdentifier().equals(id);
-        resultMap.put("id", id);
-        resultMap.put("name", name);
-        resultMap.put("parentGroupId", isGroup ? currentGroup.getParent().getIdentifier() : currentGroup.getIdentifier());
-        resultMap.put("parentGroupName", isGroup ? currentGroup.getParent().getName() : currentGroup.getName());
-
-        ProcessGroup tempGroup = currentGroup;
-        List<Map<String,String>> groups = new ArrayList<>();
-        while (!tempGroup.isRootGroup()){
-            Map<String,String> groupInfoMap = new HashMap<>();
-            groupInfoMap.put("id", tempGroup.getIdentifier());
-            groupInfoMap.put("name", tempGroup.getName());
-            groupInfoMap.put("parentGroupId", tempGroup.getParent().getIdentifier());
-            groups.add(groupInfoMap);
-            tempGroup = tempGroup.getParent();
-        }
-        Collections.reverse(groups);
-        ProcessGroup appGroup = flowController.getGroup(groups.get(0).get("id"));
-        final String path = StringUtils.join(groups.stream().map(map -> map.getOrDefault("name", "")).collect(Collectors.toList()), "/");
-
-        resultMap.put("applicationId", appGroup.getIdentifier());
-        resultMap.put("applicationName", appGroup.getName());
-        resultMap.put("path", path);
-        resultMap.put("groups", groups);
-
-        return Response.ok(resultMap).build();
-    }
-
-    private Map<String, Object> getCurrentGroup(Object  component){
-        ProcessGroup currentGroup = null;
-        String name = null;
-        if (component instanceof Label){
-            Label label = (Label) component;
-            currentGroup = label.getProcessGroup();
-        }else if (component instanceof ProcessorNode){
-            ProcessorNode processorNode = (ProcessorNode) component;
-            currentGroup = processorNode.getProcessGroup();
-            name = processorNode.getName();
-        }else if (component instanceof Connection){
-            Connection connection = ((Connection) component);
-            currentGroup = connection.getProcessGroup();
-            name = connection.getName();
-        }else if (component instanceof Port){
-            Port port = (Port) component;
-            currentGroup = port.getProcessGroup();
-            name = port.getName();
-        }else if (component instanceof Funnel){
-            Funnel funnel = (Funnel) component;
-            currentGroup = funnel.getProcessGroup();
-            name = funnel.getName();
-        }else if (component instanceof ControllerService){
-        }else if (component instanceof ReportingTaskNode){
-            ReportingTaskNode reportingTask = (ReportingTaskNode) component;
-            currentGroup = flowController.getGroup(reportingTask.getProcessGroupIdentifier());
-            name = reportingTask.getName();
-        }else if (component instanceof ProcessGroup){
-            currentGroup =  (ProcessGroup) component;
-            name = currentGroup.getName();
-        }else if (component instanceof Snippet){
-            final Snippet snippet = (Snippet) component;
-            currentGroup = flowController.getGroup(snippet.getParentGroupId());
-        }
-
-        Map<String, Object> infoMap = new HashMap<>();
-        infoMap.put("currentGroup", currentGroup);
-        infoMap.put("name", name);
-        return infoMap;
     }
 
 }
