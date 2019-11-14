@@ -1675,7 +1675,7 @@ public class ProcessGroupResource extends ApplicationResource {
                 throw new IllegalArgumentException("The x and y coordinate of the proposed position must be specified.");
             }
         } else { // if not set the position, find new one
-            final PositionDTO availablePosition = PositionCalcUtil.newAvailablePosition(serviceFacade.get);
+            final PositionDTO availablePosition = PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
             requestProcessGroupEntity.getComponent().setPosition(availablePosition);
         }
 
