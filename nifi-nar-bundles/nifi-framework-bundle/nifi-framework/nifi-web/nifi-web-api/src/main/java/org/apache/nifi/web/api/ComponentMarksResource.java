@@ -49,11 +49,9 @@ import javax.ws.rs.core.Response;
 import org.apache.nifi.components.ComponentsContext;
 import org.apache.nifi.i18n.DtoI18nHelper;
 import org.apache.nifi.i18n.Messages;
-import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -447,6 +445,7 @@ public class ComponentMarksResource extends AbsOrchsymResource {
             entity.vendor = dto.getVendor();
             entity.categories = dto.getCategories();
             entity.note = dto.getNote();
+            entity.desc=dto.getDescription();
             marksEntities.add(entity);
         }
         return marksEntities;
@@ -481,6 +480,7 @@ public class ComponentMarksResource extends AbsOrchsymResource {
         public String createdDate = "";
         public Set<String> categories;
         public String name = "";
+        public String desc="";
         public String note = "";
     }
 

@@ -104,7 +104,7 @@ import io.swagger.annotations.Authorization;
  */
 @Component
 @Path("/application")
-@Api(value = "/application", description = "app search")
+@Api(value = "/application", description = "app API")
 public class OrchsymApplicationResource extends AbsOrchsymResource {
     /**
      * @apiNote group中相关的创建和修改时间
@@ -175,7 +175,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/search-results")
+    @Path("/search-results")
     @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
     public Response searchFlowAPPGroup(
@@ -279,7 +279,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/check_name")
+    @Path("/check_name")
     @ApiOperation(value = "check the name of current app", //
             response = Map.class)
     public Response checkAppName(//
@@ -306,7 +306,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/status")
+    @Path("/{appId}/status")
     @ApiOperation(value = "Get the status of current app", //
             response = Map.class)
     @ApiResponses(value = { //
@@ -385,7 +385,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @DELETE
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/logic_delete")
+    @Path("/{appId}/logic_delete")
     @ApiOperation(value = "delete the app logically", //
             response = String.class)
     @ApiResponses(value = { //
@@ -407,7 +407,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @PUT
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/logic_delete_by_name")
+    @Path("/logic_delete_by_name")
     @ApiOperation(value = "delete the app via name logically", //
             response = String.class)
     @ApiResponses(value = { //
@@ -476,7 +476,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @PUT
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/recover")
+    @Path("/{appId}/recover")
     @ApiOperation(value = "recover the app", //
             response = String.class)
     @ApiResponses(value = { //
@@ -491,7 +491,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @PUT
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/enable")
+    @Path("/{appId}/enable")
     @ApiOperation(value = "enable the app logically", //
             response = String.class)
     @ApiResponses(value = { //
@@ -506,7 +506,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @PUT
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/disable")
+    @Path("/{appId}/disable")
     @ApiOperation(value = "disable the app logically", //
             response = String.class)
     @ApiResponses(value = { //
@@ -605,7 +605,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @DELETE
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/{appId}/force_delete")
+    @Path("/{appId}/force_delete")
     @ApiOperation(value = "delete the app or group physically", //
             response = String.class)
     @ApiResponses(value = { //
@@ -646,7 +646,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @PUT
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/app/force_delete_by_name")
+    @Path("/force_delete_by_name")
     @ApiOperation(value = "delete the app or group physically", //
             response = String.class)
     @ApiResponses(value = { //
