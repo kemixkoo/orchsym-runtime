@@ -71,7 +71,7 @@ public class AdditionsResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{groupId}/{key}")
+    @Path("/{groupId}/{name}")
     @ApiOperation(value = "get value of addition in process group", //
             response = JSONObject.class)
     @ApiResponses(value = { //
@@ -80,7 +80,7 @@ public class AdditionsResource extends AbsOrchsymResource {
     })
     public Response getAdditionsByGroupId(@Context final HttpServletRequest httpServletRequest, //
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
-            @ApiParam(value = "The key of addition") @PathParam("key") String key //
+            @ApiParam(value = "The key of addition") @PathParam("name") String name //
     ) {
 
         final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(groupId)) ? flowController.getRootGroup() : flowController.getGroup(groupId);
@@ -99,17 +99,17 @@ public class AdditionsResource extends AbsOrchsymResource {
             return Response.status(Response.Status.UNAUTHORIZED).build(); // 401
         }
 
-        key = key.toUpperCase();
+        name = name.toUpperCase();
 
         String content = null;
         final Map<String, String> additions = group.getAdditions();
         if (null != additions) {
-            content = additions.get(key);
+            content = additions.get(name);
         }
 
         JSONObject result = new JSONObject();
         result.put(KEY_ID, groupId);
-        result.put(ProcessAdditions.ADDITION_KEY_NAME, key);
+        result.put(ProcessAdditions.ADDITION_KEY_NAME, name);
         result.put(ProcessAdditions.ADDITION_VALUE_NAME, StringUtils.isBlank(content) ? "" : content);
         return noCache(Response.ok(result.toJSONString())).build();
     }
@@ -117,7 +117,7 @@ public class AdditionsResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.WILDCARD)
-    @Path("/{groupId}/{key}/status")
+    @Path("/{groupId}/{name}/status")
     @ApiOperation(value = "get value of addition in process group", //
             response = JSONObject.class)
     @ApiResponses(value = { //
@@ -128,7 +128,7 @@ public class AdditionsResource extends AbsOrchsymResource {
 
     public Response getAdditionsStatusByGroupId(@Context final HttpServletRequest httpServletRequest, //
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
-            @ApiParam(value = "The key of addition") @PathParam("key") String key //
+            @ApiParam(value = "The key of addition") @PathParam("name") String name //
     ) {
 
         final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(groupId)) ? flowController.getRootGroup() : flowController.getGroup(groupId);
@@ -147,7 +147,7 @@ public class AdditionsResource extends AbsOrchsymResource {
             return Response.status(Response.Status.UNAUTHORIZED).build(); // 401
         }
 
-        if (ProcessUtil.hasValueGroupAdditions(group, key)) {
+        if (ProcessUtil.hasValueGroupAdditions(group, name)) {
             return Response.noContent().build(); // 204
         }
 
