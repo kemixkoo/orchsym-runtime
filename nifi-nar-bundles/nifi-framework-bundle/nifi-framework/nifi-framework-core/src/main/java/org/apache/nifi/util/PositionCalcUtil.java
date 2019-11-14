@@ -51,7 +51,7 @@ public final class PositionCalcUtil {
             return new Position(0.0, 0.0);
         }
         final List<Position> positions = rootGroup.getProcessGroups().stream() //
-                .filter(g -> g.getComments() != null && g.getPosition() != null) //
+                .filter(g -> g.getPosition() != null) //
                 .map(g -> g.getPosition())//
                 .collect(Collectors.toList());
 
