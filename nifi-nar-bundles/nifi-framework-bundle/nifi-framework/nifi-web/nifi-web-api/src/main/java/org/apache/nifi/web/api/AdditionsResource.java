@@ -17,13 +17,11 @@
  */
 package org.apache.nifi.web.api;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
@@ -36,14 +34,18 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.authorization.RequestAction;
+import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.ResourceType;
+import org.apache.nifi.authorization.user.NiFiUser;
+import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.controller.FlowController;
+import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.ProcessUtil;
+import org.apache.nifi.web.api.entity.AdditionConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -62,8 +64,6 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "/additions", description = "operate additions in group")
 public class AdditionsResource extends AbsOrchsymResource {
     public static final String KEY_ID = "id";
-    public static final String KEY_KEY = "key";
-    public static final String KEY_VALUE = "value";
 
     @Autowired
     private FlowService flowService;
@@ -109,8 +109,8 @@ public class AdditionsResource extends AbsOrchsymResource {
 
         JSONObject result = new JSONObject();
         result.put(KEY_ID, groupId);
-        result.put(KEY_KEY, key);
-        result.put(KEY_VALUE, StringUtils.isBlank(content) ? "" : content);
+        result.put(ProcessAdditions.ADDITION_KEY_NAME, key);
+        result.put(ProcessAdditions.ADDITION_VALUE_NAME, StringUtils.isBlank(content) ? "" : content);
         return noCache(Response.ok(result.toJSONString())).build();
     }
 
@@ -157,82 +157,80 @@ public class AdditionsResource extends AbsOrchsymResource {
     @POST
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{groupId}/{key}")
+    @Path("/group/{groupId}")
     @ApiOperation(value = "add addition in process group", //
             response = JSONObject.class)
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response setAdditions(@Context final HttpServletRequest httpServletRequest, //
-            @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") final String groupId, //
-            @ApiParam(value = "The key of addition") @PathParam("key") final String key, //
-            @ApiParam(value = "The value of addition for the key", required = true) @RequestBody final String content //
-    ) {
-        return writeAdditions(HttpMethod.POST, groupId, key, content, false);
+    public Response changeGroupAdditions(@Context final HttpServletRequest httpServletRequest, //
+            @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
+            AdditionConfEntity confEntity) {
+        if (StringUtils.isBlank(confEntity.getId())) {
+            confEntity.setId(groupId);
+        } else if (!groupId.equals(confEntity.getId())) {
+            return Response.status(Response.Status.CONFLICT).build();
+        }
+        return modifyGroupAdditions(httpServletRequest, confEntity);
     }
 
-    @DELETE
+    @POST
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{groupId}/{key}")
+    @Path("/group")
     @ApiOperation(value = "add addition in process group", //
             response = JSONObject.class)
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response deleteAdditions(@Context final HttpServletRequest httpServletRequest, //
-            @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") final String groupId, //
-            @ApiParam(value = "The key of addition") @PathParam("key") final String key //
-    ) {
-        return writeAdditions(HttpMethod.DELETE, groupId, key, null, true);
-    }
-
-    private Response writeAdditions(String method, String groupId, String key, String content, boolean deleted) {
-        final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(groupId)) ? flowController.getRootGroup() : flowController.getGroup(groupId);
-        if (group == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("not found the group by groupId").build(); // 404
-        }
-        groupId = group.getIdentifier(); // get the real id
-
-        try {
-            authorize(ResourceType.ProcessGroup, RequestAction.WRITE, groupId);
-            // serviceFacade.authorizeAccess(lookup -> {
-            // final Authorizable flow = lookup.getProcessGroup(groupId).getAuthorizable();
-            // flow.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-            // });
-        } catch (Exception e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build(); // 401
+    public Response modifyGroupAdditions(@Context final HttpServletRequest httpServletRequest, //
+            AdditionConfEntity confEntity) {
+        final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(confEntity.getId())) ? flowController.getRootGroup() : flowController.getGroup(confEntity.getId());
+        if (null == group) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         if (isReplicateRequest()) {
-            return replicate(method, content);
+            return replicate(HttpMethod.POST, confEntity);
         } else if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node is disconnected from cluster").build(); // 400
         }
 
-        String oldValue = null;
-        if (deleted) {
-            oldValue = ProcessUtil.removeGroupAdditions(group, key);
-        } else { // modify
-            oldValue = ProcessUtil.updateGroupAdditions(group, key, content);
-        }
+        return withWriteLock(serviceFacade, confEntity, //
+                lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                    final Authorizable processGroup = lookup.getProcessGroup(group.getIdentifier()).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.WRITE, user);
+                }, null, //
+                entity -> {
+                    final String id = entity.getId();
+                    final String name = entity.getName();
+                    final String value = entity.getValue();
+                    final boolean isDelete = entity.isDelete();
 
-        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+                    String oldValue = null;
+                    if (isDelete) {
+                        oldValue = ProcessUtil.removeGroupAdditions(group, name);
+                    } else { // modify
+                        oldValue = ProcessUtil.updateGroupAdditions(group, name, value);
+                    }
 
-        JSONObject result = new JSONObject();
-        result.put(KEY_ID, groupId);
-        result.put(KEY_KEY, key);
-        if (deleted) {
-            result.put(KEY_VALUE, StringUtils.isBlank(oldValue) ? "" : oldValue);
-        } else {
-            result.put("oldValue", StringUtils.isBlank(oldValue) ? "" : oldValue);
-            result.put("newValue", content);
-        }
-        return generateOkResponse(result.toJSONString()).build();
+                    flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+
+                    JSONObject result = new JSONObject();
+                    result.put(KEY_ID, id);
+                    result.put(ProcessAdditions.ADDITION_KEY_NAME, name);
+                    if (isDelete) {
+                        result.put(ProcessAdditions.ADDITION_VALUE_NAME, StringUtils.isBlank(oldValue) ? "" : oldValue);
+                    } else {
+                        result.put("oldValue", StringUtils.isBlank(oldValue) ? "" : oldValue);
+                        result.put("newValue", value);
+                    }
+                    return generateOkResponse(result.toJSONString()).build();
+                });
     }
 
 }

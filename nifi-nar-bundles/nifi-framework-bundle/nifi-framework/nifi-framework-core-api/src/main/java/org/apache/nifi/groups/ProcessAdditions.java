@@ -22,25 +22,26 @@ import java.util.Map;
 public interface ProcessAdditions {
     String ADDITIONS_NAME = "additions";
     String ADDITION_NAME = "addition";
-    // String ADDITION_KEY_NAME = "name";
-    // String ADDITION_VALUE_NAME = "value";
+
+    String ADDITION_KEY_NAME = "name";
+    String ADDITION_VALUE_NAME = "value";
 
     Map<String, String> getAdditions();
 
     void setAdditions(Map<String, String> additions);
 
-    default boolean hasAddition(String key) {
+    default boolean hasAddition(String name) {
         final Map<String, String> additions = getAdditions();
         if (null == additions || additions.isEmpty())
             return false;
-        return additions.containsKey(key);
+        return additions.containsKey(name);
     }
 
-    default String getAddition(String key) {
+    default String getAddition(String name) {
         final Map<String, String> additions = getAdditions();
         if (null == additions || additions.isEmpty())
             return null;
-        return additions.get(key);
+        return additions.get(name);
     }
 
 }

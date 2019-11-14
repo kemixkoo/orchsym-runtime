@@ -106,7 +106,7 @@ public final class ProcessUtil {
 
             final List<Element> additionElements = DomUtils.getChildElementsByTagName(additionsElement, ProcessAdditions.ADDITION_NAME);
             for (Element additionElement : additionElements) {
-                final String name = additionElement.getAttribute("name");
+                final String name = additionElement.getAttribute(ProcessAdditions.ADDITION_KEY_NAME);
                 final String additionValue = additionElement.getTextContent();
 
                 additions.put(name, additionValue);
@@ -153,7 +153,7 @@ public final class ProcessUtil {
                 final Element additionElement = ownerDocument.createElement(ProcessAdditions.ADDITION_NAME);
                 additionsElement.appendChild(additionElement);
 
-                additionElement.setAttribute("name", entry.getKey());
+                additionElement.setAttribute(ProcessAdditions.ADDITION_KEY_NAME, entry.getKey());
                 additionElement.setTextContent(entry.getValue());
             }
         }
@@ -162,19 +162,19 @@ public final class ProcessUtil {
     /**
      * update the value of key for additions
      */
-    public static String updateGroupAdditions(ProcessGroup group, String key, Object value) {
-        key = key.toUpperCase();
+    public static String updateGroupAdditions(ProcessGroup group, String name, Object value) {
+        name = checkAdditionName(name);
 
         String oldValue = null;
 
         Map<String, String> newAdditions = new HashMap<>();
         final Map<String, String> additions = group.getAdditions();
         if (null != additions) {
-            oldValue = additions.get(key);
+            oldValue = additions.get(name);
 
             newAdditions.putAll(additions);
         }
-        newAdditions.put(key, Objects.isNull(value) ? "" : value.toString());
+        newAdditions.put(name, Objects.isNull(value) ? "" : value.toString());
 
         group.setAdditions(newAdditions);
 
@@ -184,19 +184,19 @@ public final class ProcessUtil {
     /**
      * remove the key for additions
      */
-    public static String removeGroupAdditions(ProcessGroup group, String key) {
-        key = key.toUpperCase();
+    public static String removeGroupAdditions(ProcessGroup group, String name) {
+        name = checkAdditionName(name);
 
         String oldValue = null;
 
         Map<String, String> newAdditions = new HashMap<>();
         final Map<String, String> additions = group.getAdditions();
         if (null != additions) {
-            oldValue = additions.get(key);
+            oldValue = additions.get(name);
 
             newAdditions.putAll(additions);
         }
-        newAdditions.remove(key);
+        newAdditions.remove(name);
 
         group.setAdditions(newAdditions);
 
@@ -206,38 +206,39 @@ public final class ProcessUtil {
     /**
      * check the value of key for additions
      */
-    public static boolean hasValueGroupAdditions(ProcessGroup group, String key) {
-        key = key.toUpperCase();
+    public static boolean hasValueGroupAdditions(ProcessGroup group, String name) {
+        name = checkAdditionName(name);
 
-        return hasGroupAdditions(group, key) //
-                && StringUtils.isNotBlank(group.getAdditions().get(key));
+        return hasGroupAdditions(group, name) //
+                && StringUtils.isNotBlank(group.getAdditions().get(name));
     }
 
     /**
      * check the key for additions
      */
-    public static boolean hasGroupAdditions(ProcessGroup group, String key) {
-        key = key.toUpperCase();
+    public static boolean hasGroupAdditions(ProcessGroup group, String name) {
 
         final Map<String, String> additions = group.getAdditions();
-        if (null != additions && additions.containsKey(key)) {
+        if (null != additions && additions.containsKey(checkAdditionName(name))) {
             return true;
         }
 
         return false;
     }
 
-    public static boolean getGroupAdditionBooleanValue(ProcessGroup group, String key) {
-        return getGroupAdditionBooleanValue(group, key, false);
+    public static boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
+        return getGroupAdditionBooleanValue(group, name, false);
     }
 
-    public static boolean getGroupAdditionBooleanValue(ProcessGroup group, String key, boolean defaultValue) {
-        key = key.toUpperCase();
-
-        final String valueStr = group.getAddition(key);
+    public static boolean getGroupAdditionBooleanValue(ProcessGroup group, String name, boolean defaultValue) {
+        final String valueStr = group.getAddition(checkAdditionName(name));
         if (StringUtils.isNotBlank(valueStr)) {
             return Boolean.parseBoolean(valueStr);
         }
         return defaultValue;
+    }
+
+    private static String checkAdditionName(String name) {
+        return name.toUpperCase();
     }
 }
