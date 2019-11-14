@@ -3942,7 +3942,7 @@ public class ProcessGroupResource extends ApplicationResource {
             templateContents.getEncapsulatedControllerServices().forEach(authorizeRestricted);
         }, () -> serviceFacade.verifyComponentTypes(requestTemplateConfigurationEntity.getSnippet()), templateConfigurationEntity -> {
             // get available position
-            final PositionDTO positionDTO = PositionCalcUtil.newAvailablePosition(serviceFacade);
+            final PositionDTO positionDTO =PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
 
             // create the template and generate the json
             final FlowEntity entity = serviceFacade.createTemplateInstance(rootGroupId, positionDTO.getX(), positionDTO.getY(), templateConfigurationEntity.getEncodingVersion(),
