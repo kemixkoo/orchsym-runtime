@@ -109,8 +109,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     /**
      * @apiNote group中相关的创建和修改时间
      */
-    private static final String createdTime = StandardNiFiServiceFacade.createdTime;
-    private static final String modifiedTime = StandardNiFiServiceFacade.modifiedTime;
+    private static final String KEY_CREATED_TIME = StandardNiFiServiceFacade.createdTime;
+    private static final String KEY_MODIFIED_TIME = StandardNiFiServiceFacade.modifiedTime;
+    private static final String PARAM_MODIFIED_TIME = "modifiedTime";
+    private static final String PARAM_CREATED_TIME = "createdTime";
     
     private static final String IS_DELETED = "IS_DELETED";
     private static final String IS_ENABLED = "IS_ENABLED";
@@ -146,13 +148,13 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         groupEntity.setComments(group.getComments());
 
         final Map<String, String> additions = group.getAdditions();
-        if (additions != null && additions.containsKey(createdTime)){
-            long createTime = Long.parseLong(additions.get(createdTime));
+        if (additions != null && additions.containsKey(KEY_CREATED_TIME)){
+            long createTime = Long.parseLong(additions.get(KEY_CREATED_TIME));
             groupEntity.setCreatedTime(createTime);
         }
 
-        if (additions != null && additions.containsKey(modifiedTime)){
-            long modifyTime = Long.parseLong(additions.get(modifiedTime));
+        if (additions != null && additions.containsKey(KEY_MODIFIED_TIME)){
+            long modifyTime = Long.parseLong(additions.get(KEY_MODIFIED_TIME));
             groupEntity.setModifiedTime(modifyTime);
         }
 
@@ -204,16 +206,23 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     ) throws InterruptedException {
 
-        if (! "createdTime".equals(timeField)){
-            return Response.status(Response.Status.BAD_REQUEST).entity("now the timeField only support 'createdTime' ").build();
+        // FIXME, need find one way to support the modified_time
+        if (PARAM_MODIFIED_TIME.equals(timeField)) {
+            timeField = PARAM_CREATED_TIME;
         }
+        final String matchTimeField=timeField;
+        if (PARAM_MODIFIED_TIME.equals(sortedField)) {
+            sortedField = PARAM_CREATED_TIME;
+        }
+        final String sortTimeField=sortedField;
+        
 
         List<AppGroupEntity> appGroupEntityList = new ArrayList<>();
 
         // 进行数据封装抽取
-        final SearchResultsDTO results = serviceFacade.searchAppsOfController(value,flowController.getRootGroupId());
+        final SearchResultsDTO results = serviceFacade.searchAppsOfController(value, flowController.getRootGroupId());
         final List<ComponentSearchResultDTO> processGroupResults = results.getProcessGroupResults();
-        for (ComponentSearchResultDTO dto : processGroupResults){
+        for (ComponentSearchResultDTO dto : processGroupResults) {
             final AppGroupEntity appGroupEntity = new AppGroupEntity();
             setTimeStampForApp(appGroupEntity, dto.getId());
             appGroupEntityList.add(appGroupEntity);
@@ -221,36 +230,36 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // 进行筛选
         appGroupEntityList = appGroupEntityList.stream().filter(appGroupEntity -> {
-            if (!appGroupEntity.getDeleted().equals(isDeleted)){
+            if (!appGroupEntity.getDeleted().equals(isDeleted)) {
                 return false;
             }
-            if (isEnabled != null && !appGroupEntity.getEnabled().equals(isEnabled)){
-               return false;
+            if (isEnabled != null && !appGroupEntity.getEnabled().equals(isEnabled)) {
+                return false;
             }
             final ProcessGroupEntity groupEntity = serviceFacade.getProcessGroup(appGroupEntity.getId());
-            if (isRunning != null && (groupEntity.getRunningCount() > 0) != isRunning){
+            if (isRunning != null && (groupEntity.getRunningCount() > 0) != isRunning) {
                 return false;
             }
-            if (hasDataQueue != null && !isGroupHasDataQueue(appGroupEntity.getId()).equals(hasDataQueue)){
+            if (hasDataQueue != null && !isGroupHasDataQueue(appGroupEntity.getId()).equals(hasDataQueue)) {
                 return false;
             }
 
-            if (timeField != null && (beginTime != null || endTime != null)){
-                if ("createdTime".equals(timeField)){
+            if (matchTimeField != null && (beginTime != null || endTime != null)) {
+                if (PARAM_CREATED_TIME.equals(matchTimeField)) {
                     final Long createdTime = appGroupEntity.getCreatedTime();
-                    if ( beginTime != null && createdTime < beginTime){
+                    if (beginTime != null && createdTime < beginTime) {
                         return false;
                     }
-                    if (endTime != null && createdTime > endTime){
+                    if (endTime != null && createdTime > endTime) {
                         return false;
                     }
-                }else if ("modifiedTime".equals(timeField)){
+                } else if (PARAM_MODIFIED_TIME.equals(matchTimeField)) {
                     final Long modifiedTime = appGroupEntity.getModifiedTime();
-                    if ( beginTime != null && modifiedTime < beginTime){
+                    if (beginTime != null && modifiedTime < beginTime) {
                         return false;
                     }
 
-                    if (endTime != null && modifiedTime > endTime){
+                    if (endTime != null && modifiedTime > endTime) {
                         return false;
                     }
                 }
@@ -262,18 +271,15 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         Collections.sort(appGroupEntityList, new Comparator<AppGroupEntity>() {
             @Override
             public int compare(AppGroupEntity o1, AppGroupEntity o2) {
-                if ("createdTime".equalsIgnoreCase(sortedField)
-                        && o1.getCreatedTime() != null && o2.getCreatedTime() != null) {
+                if (PARAM_CREATED_TIME.equalsIgnoreCase(sortTimeField) && o1.getCreatedTime() != null && o2.getCreatedTime() != null) {
                     return isDesc ? o2.getCreatedTime().compareTo(o1.getCreatedTime()) : o1.getCreatedTime().compareTo(o2.getCreatedTime());
-                } else if ("modifiedTime".equalsIgnoreCase(sortedField)
-                        && o1.getModifiedTime() != null && o2.getModifiedTime() != null) {
+                } else if (PARAM_MODIFIED_TIME.equalsIgnoreCase(sortTimeField) && o1.getModifiedTime() != null && o2.getModifiedTime() != null) {
                     return isDesc ? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
                 } else {
                     return isDesc ? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
                 }
             }
         });
-
 
         // 处理分页
         // 总条数 与 总页数
@@ -283,25 +289,25 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         int currentPage = page;
 
         List<AppGroupEntity> resultList = null;
-        if (index >= totalSize ){
+        if (index >= totalSize) {
             resultList = new ArrayList<>();
-        }else {
+        } else {
             int endIndex = Math.min(index + pageSize, totalSize);
             resultList = appGroupEntityList.subList(index, endIndex);
         }
 
-        Map<String,Object> resultMap = new HashMap<>();
-        resultMap.put("totalSize",totalSize);
-        resultMap.put("totalPage",totalPage);
-        resultMap.put("currentPage",currentPage);
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("totalSize", totalSize);
+        resultMap.put("totalPage", totalPage);
+        resultMap.put("currentPage", currentPage);
 
-        if (isDetail){
-            List<ProcessGroupEntity>  entities = new ArrayList<>();
-            for (AppGroupEntity app : resultList){
+        if (isDetail) {
+            List<ProcessGroupEntity> entities = new ArrayList<>();
+            for (AppGroupEntity app : resultList) {
                 entities.add(serviceFacade.getProcessGroup(app.getId()));
             }
             resultMap.put("results", entities);
-        }else {
+        } else {
             resultMap.put("results", resultList);
         }
 
