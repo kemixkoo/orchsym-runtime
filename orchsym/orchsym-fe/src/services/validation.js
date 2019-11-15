@@ -11,7 +11,7 @@ export async function validationDeleteApp(id) {
 
 // 验证 应用名称是否重名
 export async function validationAppCheckName(param) {
-  return request('/studio/nifi-api/application/app/check_name', {
+  return request('/studio/nifi-api/application/check_name', {
     params: {
       name: param.name,
       appId: param.appId,

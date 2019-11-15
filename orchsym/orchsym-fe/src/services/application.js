@@ -2,7 +2,7 @@
 import request from '@/utils/request';
 
 export async function querySearchApplication(param) {
-  return request('/studio/nifi-api/application/app/search-results', {
+  return request('/studio/nifi-api/application/search-results', {
     method: 'GET',
     params: {
       q: param.q,
