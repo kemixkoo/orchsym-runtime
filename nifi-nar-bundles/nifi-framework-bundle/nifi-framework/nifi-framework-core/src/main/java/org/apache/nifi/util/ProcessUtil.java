@@ -226,14 +226,27 @@ public final class ProcessUtil {
         return false;
     }
 
-    public static boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
-        return getGroupAdditionBooleanValue(group, name, false);
+    public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
+        return getGroupAdditionBooleanValue(group, name, null);
     }
 
-    public static boolean getGroupAdditionBooleanValue(ProcessGroup group, String name, boolean defaultValue) {
+    public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name, Boolean defaultValue) {
         final String valueStr = group.getAddition(checkAdditionName(name));
         if (StringUtils.isNotBlank(valueStr)) {
             return Boolean.parseBoolean(valueStr);
+        }
+        return defaultValue;
+    }
+
+    public static Long getGroupAdditionLongValue(ProcessGroup group, String name) {
+        return getGroupAdditionLongValue(group, name, null);
+    }
+
+    public static Long getGroupAdditionLongValue(ProcessGroup group, String name, Long defaultValue) {
+        final String valueStr = group.getAddition(checkAdditionName(name));
+
+        if (StringUtils.isNotBlank(valueStr)) {
+            return Long.parseLong(valueStr);
         }
         return defaultValue;
     }

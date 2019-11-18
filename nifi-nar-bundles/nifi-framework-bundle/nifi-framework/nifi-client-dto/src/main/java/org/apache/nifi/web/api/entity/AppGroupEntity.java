@@ -1,16 +1,19 @@
 package org.apache.nifi.web.api.entity;
 
+import java.util.Set;
+
 /**
  * @apiNote 所有的一级group
  */
-public class AppGroupEntity {
+public class AppGroupEntity extends Entity {
     private String id;
     private String name;
     private String comments;
     private Long createdTime;
     private Long modifiedTime;
-    private Boolean isDeleted;
-    private Boolean isEnabled;
+    private Boolean deleted;
+    private Boolean enabled;
+    private Set<String> tags;
 
     public AppGroupEntity() {
     }
@@ -55,20 +58,28 @@ public class AppGroupEntity {
         this.modifiedTime = modifiedTime;
     }
 
-    public Boolean getDeleted() {
-        return isDeleted;
+    public Boolean isDeleted() {
+        return deleted;
     }
 
     public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
+        this.deleted = deleted;
     }
 
-    public Boolean getEnabled() {
-        return isEnabled;
+    public Boolean isEnabled() {
+        return enabled;
     }
 
     public void setEnabled(Boolean enabled) {
-        isEnabled = enabled;
+        this.enabled = enabled;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override
@@ -78,7 +89,7 @@ public class AppGroupEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof AppGroupEntity){
+        if (obj instanceof AppGroupEntity) {
             AppGroupEntity app = (AppGroupEntity) obj;
             return this.id.equals(app.getId());
         }

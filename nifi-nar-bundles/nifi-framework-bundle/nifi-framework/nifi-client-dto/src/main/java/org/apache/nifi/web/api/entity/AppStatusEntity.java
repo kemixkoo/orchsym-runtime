@@ -3,7 +3,7 @@ package org.apache.nifi.web.api.entity;
 /**
  * @author liuxun
  */
-public class AppStatusEntity {
+public class AppStatusEntity extends Entity {
     private Boolean isEnabled;
     private Boolean isRecover;
 

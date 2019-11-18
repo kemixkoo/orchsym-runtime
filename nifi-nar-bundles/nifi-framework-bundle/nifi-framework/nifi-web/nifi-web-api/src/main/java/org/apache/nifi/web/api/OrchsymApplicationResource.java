@@ -18,6 +18,7 @@
 package org.apache.nifi.web.api;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -79,10 +81,10 @@ import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
-import org.apache.nifi.web.api.dto.search.ComponentSearchResultDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.AppCopyEntity;
 import org.apache.nifi.web.api.entity.AppGroupEntity;
+import org.apache.nifi.web.api.entity.AppSearchEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
@@ -91,6 +93,7 @@ import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.lang.Objects;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -113,7 +116,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     private static final String KEY_MODIFIED_TIME = StandardNiFiServiceFacade.modifiedTime;
     private static final String PARAM_MODIFIED_TIME = "modifiedTime";
     private static final String PARAM_CREATED_TIME = "createdTime";
-    
+
     private static final String IS_DELETED = "IS_DELETED";
     private static final String IS_ENABLED = "IS_ENABLED";
 
@@ -122,7 +125,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @Autowired
     private RevisionManager revisionManager;
-    
+
     @Autowired
     private OrchsymGroupResource groupResource;
 
@@ -133,53 +136,14 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
         return null;
     }
-    /**
-     * 为APP实体类赋值
-     * @param groupEntity
-     * @param groupId
-     */
-    private void setTimeStampForApp(AppGroupEntity groupEntity, String  groupId){
-        final ProcessGroup group = flowController.getGroup(groupId);
-        if (group == null){
-            return;
-        }
-        groupEntity.setId(group.getIdentifier());
-        groupEntity.setName(group.getName());
-        groupEntity.setComments(group.getComments());
-
-        final Map<String, String> additions = group.getAdditions();
-        if (additions != null && additions.containsKey(KEY_CREATED_TIME)){
-            long createTime = Long.parseLong(additions.get(KEY_CREATED_TIME));
-            groupEntity.setCreatedTime(createTime);
-        }
-
-        if (additions != null && additions.containsKey(KEY_MODIFIED_TIME)){
-            long modifyTime = Long.parseLong(additions.get(KEY_MODIFIED_TIME));
-            groupEntity.setModifiedTime(modifyTime);
-        }
-
-        if (additions != null){
-            if (Boolean.parseBoolean(additions.get(IS_DELETED))){
-                groupEntity.setDeleted(true);
-            }else {
-                groupEntity.setDeleted(false);
-            }
-
-            if (Boolean.parseBoolean(additions.get(IS_ENABLED))){
-                groupEntity.setEnabled(true);
-            }else {
-                groupEntity.setEnabled(false);
-            }
-        }
-
-    }
 
     /**
      *
-     * @param value
+     * @param text
      * @param page
      * @param pageSize
-     * @param sortedField 有以下几个取值类型: name createdTime modifiedTime 名称、创建时间、修改时间
+     * @param sortedField
+     *            有以下几个取值类型: name createdTime modifiedTime 名称、创建时间、修改时间
      * @return
      * @throws InterruptedException
      */
@@ -189,63 +153,168 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @Path("/search-results")
     @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
-    public Response searchFlowAPPGroup(
-            @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String value,
-            @QueryParam("page") @DefaultValue("1") Integer page,
-            @QueryParam("pageSize") @DefaultValue("10") Integer pageSize,
-            @QueryParam("sortedField") @DefaultValue("name") String sortedField,
-            @QueryParam("isDesc") @DefaultValue("true") Boolean isDesc,
-            @QueryParam("isDeleted") @DefaultValue("false") Boolean isDeleted,
-            @QueryParam("isDetail") @DefaultValue("false") Boolean isDetail,
-            @QueryParam("isEnabled")  Boolean isEnabled,
-            @QueryParam("isRunning")  Boolean isRunning,
-            @QueryParam("hasDataQueue")  Boolean hasDataQueue,
-            @QueryParam("timeField") @DefaultValue("createdTime") String timeField,
-            @QueryParam("beginTime") Long beginTime,
-            @QueryParam("endTime") Long endTime
+    public Response searchApp(//
+            @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String text, //
+
+            //
+            @QueryParam("page") Integer currentPage, //
+            @QueryParam("pageSize") Integer pageSize, //
+
+            // sort
+            @QueryParam("sortedField") String sortedField, //
+            @QueryParam("isDesc") Boolean isDesc, //
+
+            // filter
+            @QueryParam("isDeleted") Boolean isDeleted, //
+            @QueryParam("isEnabled") Boolean isEnabled, //
+            @QueryParam("isRunning") Boolean isRunning, //
+            @QueryParam("hasDataQueue") Boolean hasDataQueue, //
+            @QueryParam("timeField") String timeField, //
+            @QueryParam("beginTime") Long beginTime, //
+            @QueryParam("endTime") Long endTime, //
+            @QueryParam("tags") String tags, // 英文逗号分隔多个
+
+            //
+            @QueryParam("isDetail") Boolean needDetail //
 
     ) throws InterruptedException {
+        AppSearchEntity searchEnity = new AppSearchEntity();
+        searchEnity.setText(text);
+        searchEnity.setCurrentPage(currentPage);
+        searchEnity.setPageSize(pageSize);
+        searchEnity.setSortedField(sortedField);
+        searchEnity.setIsDesc(isDesc);
+        searchEnity.setDeleted(isDeleted);
+        searchEnity.setEnabled(isEnabled);
+        searchEnity.setIsRunning(isRunning);
+        searchEnity.setHasDataQueue(hasDataQueue);
+        searchEnity.setFilterTimeField(timeField);
+        searchEnity.setBeginTime(beginTime);
+        searchEnity.setEndTime(endTime);
+        searchEnity.setTags(null != tags ? Arrays.asList(tags.split(",")).stream().filter(t -> StringUtils.isNotBlank(t)).map(t -> t.trim()).collect(Collectors.toSet()) : Collections.emptySet());
+        searchEnity.setNeedDetail(needDetail);
 
-        // FIXME, need find one way to support the modified_time
-        if (PARAM_MODIFIED_TIME.equals(timeField)) {
-            timeField = PARAM_CREATED_TIME;
-        }
-        final String matchTimeField=timeField;
-        if (PARAM_MODIFIED_TIME.equals(sortedField)) {
-            sortedField = PARAM_CREATED_TIME;
-        }
-        final String sortTimeField=sortedField;
-        
+        return searchApp(searchEnity);
+    }
 
-        List<AppGroupEntity> appGroupEntityList = new ArrayList<>();
+    private static final String DEFAULT_SORT_FIELD = "name";
+    private static final boolean DEFAULT_SORT_DESC = true;
 
-        // 进行数据封装抽取
-        final SearchResultsDTO results = serviceFacade.searchAppsOfController(value, flowController.getRootGroupId());
-        final List<ComponentSearchResultDTO> processGroupResults = results.getProcessGroupResults();
-        for (ComponentSearchResultDTO dto : processGroupResults) {
-            final AppGroupEntity appGroupEntity = new AppGroupEntity();
-            setTimeStampForApp(appGroupEntity, dto.getId());
-            appGroupEntityList.add(appGroupEntity);
+    private static final int DEFAULT_PAGE = 1;
+    private static final int DEFAULT_PAGE_SIZE = 10;// 每页10
+
+    private static final boolean DEFAULT_NEED_DETAIL = false;// 无详情
+
+    private static final Function<? super String, ? extends String> FUN_LOWERCASE = t -> t.toLowerCase();
+
+    private void fixDefaultSearchEnity(final AppSearchEntity searchEnity) {
+        // 排序默认值
+        if (null == searchEnity.getSortedField()) {
+            searchEnity.setSortedField(DEFAULT_SORT_FIELD);
         }
+        if (null == searchEnity.getIsDesc()) {
+            searchEnity.setIsDesc(DEFAULT_SORT_DESC);
+        }
+
+        // 分页默认值
+        if (null == searchEnity.getCurrentPage()) {
+            searchEnity.setCurrentPage(DEFAULT_PAGE);
+        }
+        if (null == searchEnity.getPageSize()) {
+            searchEnity.setPageSize(DEFAULT_PAGE_SIZE);
+        }
+
+        if (null == searchEnity.getNeedDetail()) {
+            searchEnity.setNeedDetail(DEFAULT_NEED_DETAIL);
+        }
+
+        // FIXME, 暂不支持modified_time，否应该删除统一到创建日期上
+        if (PARAM_MODIFIED_TIME.equals(searchEnity.getSortedField())) {
+            searchEnity.setSortedField(PARAM_CREATED_TIME);
+        }
+        if (PARAM_MODIFIED_TIME.equals(searchEnity.getFilterTimeField())) {
+            searchEnity.setFilterTimeField(PARAM_CREATED_TIME);
+        }
+
+    }
+
+    @POST
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/search-results")
+    @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
+            @Authorization(value = "Read - /flow") })
+    public Response searchApp(final AppSearchEntity searchEnity) throws InterruptedException {
+        fixDefaultSearchEnity(searchEnity);
+
+        // 搜索
+        final SearchResultsDTO results = serviceFacade.searchAppsOfController(searchEnity.getText(), flowController.getRootGroupId());
+        // 数据封装
+        List<AppGroupEntity> appGroupEntityList = results.getProcessGroupResults().stream() //
+                .map(dto -> {
+                    final AppGroupEntity groupEntity = new AppGroupEntity();
+                    final ProcessGroup group = flowController.getGroup(dto.getId());
+                    if (null != group) {
+                        groupEntity.setId(group.getIdentifier());
+                        groupEntity.setName(group.getName());
+                        groupEntity.setComments(group.getComments());
+
+                        groupEntity.setCreatedTime(ProcessUtil.getGroupAdditionLongValue(group, KEY_CREATED_TIME));
+                        groupEntity.setModifiedTime(ProcessUtil.getGroupAdditionLongValue(group, KEY_MODIFIED_TIME));
+
+                        groupEntity.setDeleted(ProcessUtil.getGroupAdditionBooleanValue(group, IS_DELETED));
+                        groupEntity.setEnabled(ProcessUtil.getGroupAdditionBooleanValue(group, IS_ENABLED));
+
+                        if (null != group.getTags()) {
+                            groupEntity.setTags(new HashSet<>(group.getTags()));
+                        }
+                    }
+
+                    return groupEntity;
+                }).collect(Collectors.toList());
 
         // 进行筛选
+        final Boolean deleted = searchEnity.getDeleted();
+        final Boolean enabled = searchEnity.getEnabled();
+        final Boolean isRunning = searchEnity.getIsRunning();
+        final Boolean hasDataQueue = searchEnity.getHasDataQueue();
+        final Set<String> tags = searchEnity.getTags();
+        final String filterTimeField = searchEnity.getFilterTimeField();
+        final Long beginTime = searchEnity.getBeginTime();
+        final Long endTime = searchEnity.getEndTime();
+
         appGroupEntityList = appGroupEntityList.stream().filter(appGroupEntity -> {
-            if (!appGroupEntity.getDeleted().equals(isDeleted)) {
+            if (null != deleted && !appGroupEntity.isDeleted().equals(deleted)) {
                 return false;
             }
-            if (isEnabled != null && !appGroupEntity.getEnabled().equals(isEnabled)) {
+            if (null != enabled && !appGroupEntity.isEnabled().equals(enabled)) {
                 return false;
             }
-            final ProcessGroupEntity groupEntity = serviceFacade.getProcessGroup(appGroupEntity.getId());
-            if (isRunning != null && (groupEntity.getRunningCount() > 0) != isRunning) {
+            if (null != isRunning) {
+                final ProcessGroupEntity groupEntity = serviceFacade.getProcessGroup(appGroupEntity.getId());
+                if (!isRunning.equals((groupEntity.getRunningCount() > 0))) {
+                    return false;
+                }
+            }
+            if (null != hasDataQueue && !isGroupHasDataQueue(appGroupEntity.getId()).equals(hasDataQueue)) {
                 return false;
             }
-            if (hasDataQueue != null && !isGroupHasDataQueue(appGroupEntity.getId()).equals(hasDataQueue)) {
-                return false;
+            if (null != tags) {
+                final Set<String> tagList = tags.stream()//
+                        .filter(t -> StringUtils.isNotBlank(t))//
+                        .map(FUN_LOWERCASE)//
+                        .collect(Collectors.toSet());
+                if (tagList.size() > 0) { // 设置了tag过滤
+                    Set<String> appTags = (null != appGroupEntity.getTags()) ? appGroupEntity.getTags() : Collections.emptySet();
+                    boolean existed = appTags.stream().map(FUN_LOWERCASE).filter(t -> tagList.contains(t)).findAny().isPresent();
+                    if (!existed) {
+                        return false;
+                    }
+                }
             }
 
-            if (matchTimeField != null && (beginTime != null || endTime != null)) {
-                if (PARAM_CREATED_TIME.equals(matchTimeField)) {
+            if (null != filterTimeField && (beginTime != null || endTime != null)) {
+                if (PARAM_CREATED_TIME.equals(filterTimeField)) {
                     final Long createdTime = appGroupEntity.getCreatedTime();
                     if (beginTime != null && createdTime < beginTime) {
                         return false;
@@ -253,7 +322,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     if (endTime != null && createdTime > endTime) {
                         return false;
                     }
-                } else if (PARAM_MODIFIED_TIME.equals(matchTimeField)) {
+                } else if (PARAM_MODIFIED_TIME.equals(filterTimeField)) {
                     final Long modifiedTime = appGroupEntity.getModifiedTime();
                     if (beginTime != null && modifiedTime < beginTime) {
                         return false;
@@ -268,12 +337,14 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }).collect(Collectors.toList());
 
         // 进行排序
+        final String sortField = searchEnity.getSortedField();
+        final Boolean isDesc = searchEnity.getIsDesc();
         Collections.sort(appGroupEntityList, new Comparator<AppGroupEntity>() {
             @Override
             public int compare(AppGroupEntity o1, AppGroupEntity o2) {
-                if (PARAM_CREATED_TIME.equalsIgnoreCase(sortTimeField) && o1.getCreatedTime() != null && o2.getCreatedTime() != null) {
+                if (PARAM_CREATED_TIME.equalsIgnoreCase(sortField) && o1.getCreatedTime() != null && o2.getCreatedTime() != null) {
                     return isDesc ? o2.getCreatedTime().compareTo(o1.getCreatedTime()) : o1.getCreatedTime().compareTo(o2.getCreatedTime());
-                } else if (PARAM_MODIFIED_TIME.equalsIgnoreCase(sortTimeField) && o1.getModifiedTime() != null && o2.getModifiedTime() != null) {
+                } else if (PARAM_MODIFIED_TIME.equalsIgnoreCase(sortField) && o1.getModifiedTime() != null && o2.getModifiedTime() != null) {
                     return isDesc ? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
                 } else {
                     return isDesc ? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
@@ -283,10 +354,11 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // 处理分页
         // 总条数 与 总页数
+        final Integer pageSize = searchEnity.getPageSize();
+        final Integer currentPage = searchEnity.getCurrentPage();
         int totalSize = appGroupEntityList.size();
         int totalPage = (totalSize + pageSize - 1) / pageSize;
-        int index = (page - 1) * pageSize;
-        int currentPage = page;
+        int index = (currentPage - 1) * pageSize;
 
         List<AppGroupEntity> resultList = null;
         if (index >= totalSize) {
@@ -301,7 +373,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         resultMap.put("totalPage", totalPage);
         resultMap.put("currentPage", currentPage);
 
-        if (isDetail) {
+        if (null != searchEnity.getNeedDetail() && searchEnity.getNeedDetail()) {
             List<ProcessGroupEntity> entities = new ArrayList<>();
             for (AppGroupEntity app : resultList) {
                 entities.add(serviceFacade.getProcessGroup(app.getId()));
@@ -315,26 +387,26 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return noCache(Response.ok(resultMap)).build();
     }
 
-    private Boolean isGroupHasDataQueue(String groupId){
+    private Boolean isGroupHasDataQueue(String groupId) {
         final ProcessGroup group = flowController.getGroup(groupId);
         AtomicReference<Boolean> hasDataQueue = new AtomicReference<>(false);
         verifyHasDataQueue(group, hasDataQueue);
-        return  hasDataQueue.get();
+        return hasDataQueue.get();
     }
 
-    private void verifyHasDataQueue(ProcessGroup group, AtomicReference<Boolean> hasDataQueue){
-        if (hasDataQueue.get()){
+    private void verifyHasDataQueue(ProcessGroup group, AtomicReference<Boolean> hasDataQueue) {
+        if (hasDataQueue.get()) {
             return;
         }
-        for (Connection connection : group.getConnections()){
-            if (!connection.getFlowFileQueue().isEmpty()){
+        for (Connection connection : group.getConnections()) {
+            if (!connection.getFlowFileQueue().isEmpty()) {
                 hasDataQueue.set(true);
                 return;
             }
         }
 
-        for (ProcessGroup childGroup : group.getProcessGroups()){
-            verifyHasDataQueue(childGroup,hasDataQueue);
+        for (ProcessGroup childGroup : group.getProcessGroups()) {
+            verifyHasDataQueue(childGroup, hasDataQueue);
         }
     }
 
@@ -365,6 +437,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return noCache(Response.ok(resultMap)).build();
     }
 
+    private static final boolean DEFAULT_FILTER_DELETED = false; // 未删除
+    private static final boolean DEFAULT_FILTER_ENABLED = true; // 可用
+
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
@@ -378,6 +453,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         final Response verifyApp = verifyApp(appId);
         if (null != verifyApp) {// has error
             return verifyApp;
+        }
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
         }
         final ProcessGroup groupApp = flowController.getGroup(appId);
 
@@ -395,9 +473,12 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // enabled/disabled
         // 为兼容老版本，不设置，默认为enabled
-        boolean isEnabled = ProcessUtil.getGroupAdditionBooleanValue(groupApp, IS_ENABLED, true);
+        boolean isEnabled = ProcessUtil.getGroupAdditionBooleanValue(groupApp, IS_ENABLED, DEFAULT_FILTER_ENABLED);
         resultMap.put("canEnable", !isEnabled);
         resultMap.put("canDisable", isEnabled);
+
+        boolean isDeleted = ProcessUtil.getGroupAdditionBooleanValue(groupApp, IS_DELETED, DEFAULT_FILTER_DELETED);
+        resultMap.put("canDelete", !isDeleted);
 
         return noCache(Response.ok(resultMap)).build();
     }
@@ -493,7 +574,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return getResponseForLogicDeleteApp(findFirst.get());
     }
 
-    private Response getResponseForLogicDeleteApp(ProcessGroup pg){
+    private Response getResponseForLogicDeleteApp(ProcessGroup pg) {
         ProcessGroupEntity groupEntity = new ProcessGroupEntity();
         groupEntity.setId(pg.getIdentifier());
 
@@ -620,9 +701,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response getAppTemplateData(
-            @PathParam("groupId") String groupId
-    ) {
+    public Response getAppTemplateData(@PathParam("groupId") String groupId) {
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.GET);
@@ -634,7 +713,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         });
 
         final ProcessGroup groupApp = flowController.getGroup(groupId);
-        if (groupApp == null){
+        if (groupApp == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
         }
 
@@ -645,7 +724,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         RevisionDTO revisionDTO = new RevisionDTO();
         revisionDTO.setClientId(revision.getClientId());
         revisionDTO.setVersion(revision.getVersion());
-        revisionMap.put(groupId,revisionDTO);
+        revisionMap.put(groupId, revisionDTO);
         snippetDTO.setProcessGroups(revisionMap);
         snippetDTO.setId(generateUuid());
         snippetDTO.setParentGroupId(flowController.getRootGroupId());
@@ -653,8 +732,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // generate data of template
         final String snippetId = snippetEntity.getSnippet().getId();
-        TemplateDTO templateDTO = serviceFacade.createTemplate(groupApp.getName(), groupApp.getComments(),
-                snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
+        TemplateDTO templateDTO = serviceFacade.createTemplate(groupApp.getName(), groupApp.getComments(), snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
         final Template template = new Template(templateDTO);
         final TemplateDTO templateCopy = serviceFacade.exportTemplate(template.getIdentifier());
         flowController.getRootGroup().removeTemplate(template);
@@ -691,10 +769,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response forceDeleteAppByName(
-            final AppGroupEntity  appGroupEntity
-    ) {
-        if (appGroupEntity == null || appGroupEntity.getName() == null){
+    public Response forceDeleteAppByName(final AppGroupEntity appGroupEntity) {
+        if (appGroupEntity == null || appGroupEntity.getName() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("param cant be null and mast contains 'name'").build();
         }
 
@@ -710,18 +786,18 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return getResponseForForceDeleteGroup(findFirst.get());
     }
 
-    private Response getResponseForForceDeleteGroup(ProcessGroup gp){
+    private Response getResponseForForceDeleteGroup(ProcessGroup gp) {
         ProcessGroupEntity groupEntity = new ProcessGroupEntity();
         groupEntity.setId(gp.getIdentifier());
 
-        return withWriteLock(
-                serviceFacade,
-                groupEntity,
+        return withWriteLock(//
+                serviceFacade, //
+                groupEntity, //
                 lookup -> {
                     final Authorizable processGroup = lookup.getProcessGroup(groupEntity.getId()).getAuthorizable();
                     processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                },
-                null,
+                }, //
+                null, //
                 (entity) -> {
                     final ProcessGroup group = flowController.getGroup(entity.getId());
                     // 先进行逻辑删除
@@ -731,8 +807,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     // 物理删除
                     serviceFacade.deleteProcessGroup(revisionManager.getRevision(entity.getId()), entity.getId());
                     return generateOkResponse("success").build();
-                }
-        );
+                });
     }
 
     @GET
@@ -744,9 +819,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response getVeryDeleteStatus(
-            @PathParam("id") String id
-    ) {
+    public Response getVeryDeleteStatus(@PathParam("id") String id) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
+        }
         final Object component = groupResource.getComponentById(id);
         if (component == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -807,29 +883,23 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     /**
      * Copy the specified application.
      *
-     * @param httpServletRequest request
-     * @param requestAppCopyEntity  The copy snippet request
+     * @param httpServletRequest
+     *            request
+     * @param requestAppCopyEntity
+     *            The copy snippet request
      * @return A flowSnippetEntity.
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/copy")
-    @ApiOperation(
-            value = "Copy a application.",
-            response = ProcessGroupEntity.class,
-            authorizations = {
-                    @Authorization(value = "Write - /process-groups/{uuid}"),
-                    @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"),
-                    @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components")
-            }
-    )
-    public Response copyApp(
-            @Context HttpServletRequest httpServletRequest,
-            @ApiParam(
-                    value = "The application copy request.",
-                    required = true
-            ) AppCopyEntity requestAppCopyEntity) {
+    @ApiOperation(value = "Copy a application.", response = ProcessGroupEntity.class, authorizations = { @Authorization(value = "Write - /process-groups/{uuid}"), //
+            @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"), //
+            @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components") }) //
+    public Response copyApp(//
+            @Context HttpServletRequest httpServletRequest, //
+            @ApiParam(value = "The application copy request.", required = true) AppCopyEntity requestAppCopyEntity//
+    ) {
         if (requestAppCopyEntity == null || requestAppCopyEntity.getAppCopy() == null) {
             throw new IllegalArgumentException("Application details must be specified.");
         }
@@ -873,9 +943,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         processGroupDTO.setPosition(requestAppCopyDTO.getPosition());
 
         // get the revision from this snippet
-        return withWriteLock(
-                serviceFacade,
-                requestAppCopyEntity,
+        return withWriteLock(//
+                serviceFacade, //
+                requestAppCopyEntity, //
                 lookup -> {
                     // ensure write access to the root process group
                     lookup.getProcessGroup("root").getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
@@ -883,66 +953,62 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     // ensure write permission to every component in the snippet including referenced services
                     final SnippetAuthorizable snippet = lookup.getSnippet(snippetDTO);
                     authorizeSnippet(snippet, authorizer, lookup, RequestAction.WRITE, true, false);
-                },
-                null,
+                }, //
+                null, //
                 appCopyEntity -> {
                     final ProcessGroupEntity entity = serviceFacade.copyProcessGroup(rootId, snippetDTO, processGroupDTO, getIdGenerationSeed().orElse(null));
                     // generate the response
                     return generateCreatedResponse(getAbsolutePath(), entity).build();
-                }
-        );
+                });
     }
 
-    private void collectGroupDetails(Boolean isBegin,ProcessGroup group, Set<String> runningComponents,
-                                 Set<String> runningServices, Set<String> queueConnections,
-                                 Set<String> holdingConnections
-                                ){
-        for(ProcessorNode processorNode : group.getProcessors()){
-            if (processorNode.getScheduledState().equals(ScheduledState.RUNNING)){
+    private void collectGroupDetails(Boolean isBegin, ProcessGroup group, Set<String> runningComponents, Set<String> runningServices, Set<String> queueConnections, Set<String> holdingConnections) {
+        for (ProcessorNode processorNode : group.getProcessors()) {
+            if (processorNode.getScheduledState().equals(ScheduledState.RUNNING)) {
                 runningComponents.add(processorNode.getIdentifier());
             }
         }
 
-        for(Connection connection : group.getConnections()){
-            if(!connection.getFlowFileQueue().isEmpty()){
+        for (Connection connection : group.getConnections()) {
+            if (!connection.getFlowFileQueue().isEmpty()) {
                 queueConnections.add(connection.getIdentifier());
             }
         }
 
-        for(ControllerServiceNode serviceNode : group.getControllerServices(false)){
-            if (serviceNode.getState().equals(ControllerServiceState.ENABLED)){
+        for (ControllerServiceNode serviceNode : group.getControllerServices(false)) {
+            if (serviceNode.getState().equals(ControllerServiceState.ENABLED)) {
                 runningServices.add(serviceNode.getIdentifier());
             }
         }
 
-        if (isBegin){
+        if (isBegin) {
             // 查询有没有connection连接到当前Group ，
             // 会将当前group有前置连接的ID 及 有后置连接且连接队列数据不为空的连接ID 放置到holdingConnections内
-            for (Port inputPort : group.getInputPorts()){
-                for (Connection connection : inputPort.getIncomingConnections()){
-                    if (!connection.getProcessGroup().equals(group) && connection.getDestination().equals(inputPort)){
+            for (Port inputPort : group.getInputPorts()) {
+                for (Connection connection : inputPort.getIncomingConnections()) {
+                    if (!connection.getProcessGroup().equals(group) && connection.getDestination().equals(inputPort)) {
                         holdingConnections.add(connection.getIdentifier());
                     }
                 }
             }
 
-            for (Port outputPort : group.getOutputPorts()){
-                for(Connection connection : outputPort.getConnections()){
-                    if (!connection.getProcessGroup().equals(group) && connection.getSource().equals(outputPort) && !connection.getFlowFileQueue().isEmpty()){
+            for (Port outputPort : group.getOutputPorts()) {
+                for (Connection connection : outputPort.getConnections()) {
+                    if (!connection.getProcessGroup().equals(group) && connection.getSource().equals(outputPort) && !connection.getFlowFileQueue().isEmpty()) {
                         holdingConnections.add(connection.getIdentifier());
                     }
                 }
             }
 
-            for(Funnel funnel : group.getFunnels()){
-                for (Connection connection : funnel.getIncomingConnections()){
-                    if (!connection.getProcessGroup().equals(group) && connection.getDestination().equals(funnel)){
+            for (Funnel funnel : group.getFunnels()) {
+                for (Connection connection : funnel.getIncomingConnections()) {
+                    if (!connection.getProcessGroup().equals(group) && connection.getDestination().equals(funnel)) {
                         holdingConnections.add(connection.getIdentifier());
                     }
                 }
 
-                for (Connection connection : funnel.getConnections()){
-                    if (!connection.getProcessGroup().equals(group) && connection.getSource().equals(funnel) && !connection.getFlowFileQueue().isEmpty()){
+                for (Connection connection : funnel.getConnections()) {
+                    if (!connection.getProcessGroup().equals(group) && connection.getSource().equals(funnel) && !connection.getFlowFileQueue().isEmpty()) {
                         holdingConnections.add(connection.getIdentifier());
                     }
                 }
@@ -950,8 +1016,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         }
 
-        for (ProcessGroup childGroup : group.getProcessGroups()){
-            collectGroupDetails(false, childGroup,runningComponents,runningServices,queueConnections,holdingConnections);
+        for (ProcessGroup childGroup : group.getProcessGroups()) {
+            collectGroupDetails(false, childGroup, runningComponents, runningServices, queueConnections, holdingConnections);
         }
     }
 

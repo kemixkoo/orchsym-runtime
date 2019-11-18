@@ -67,7 +67,9 @@ public class QueueResource extends AbsOrchsymResource {
     @Path("/status")
     public Response getConnectionsStatus(@Context final HttpServletRequest httpServletRequest, //
             @ApiParam(value = "The selected queue and groups.", required = true) final QueueSnippetEntity queueSnippetEntity) {
-        if (isDisconnectedFromCluster()) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.POST, queueSnippetEntity);
+        } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(queueSnippetEntity.getDisconnectedNodeAcknowledged());
         }
 

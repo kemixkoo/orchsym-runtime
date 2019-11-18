@@ -82,6 +82,9 @@ public class AdditionsResource extends AbsOrchsymResource {
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
             @ApiParam(value = "The key of addition") @PathParam("name") String name //
     ) {
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
+        }
 
         final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(groupId)) ? flowController.getRootGroup() : flowController.getGroup(groupId);
         if (group == null) {
@@ -130,7 +133,9 @@ public class AdditionsResource extends AbsOrchsymResource {
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
             @ApiParam(value = "The key of addition") @PathParam("name") String name //
     ) {
-
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
+        }
         final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(groupId)) ? flowController.getRootGroup() : flowController.getGroup(groupId);
         if (group == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("not found the group by groupId").build(); // 404
