@@ -2188,6 +2188,12 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
 
     @Override
     public TemplateDTO createTemplate(final String name, final String description, final String snippetId, final String groupId, final Optional<String> idGenerationSeed) {
+        return createTemplate(null, null, name, description, snippetId, groupId, idGenerationSeed);
+    }
+
+    @Override
+    public TemplateDTO createTemplate(final Map<String, String> additionsMap, Set<String> tags, final String name, final String description, final String snippetId, final String groupId,
+            final Optional<String> idGenerationSeed) {
         // get the specified snippet
         final Snippet snippet = snippetDAO.getSnippet(snippetId);
 
@@ -2202,6 +2208,14 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         // set the id based on the specified seed
         final String uuid = idGenerationSeed.isPresent() ? (UUID.nameUUIDFromBytes(idGenerationSeed.get().getBytes(StandardCharsets.UTF_8))).toString() : UUID.randomUUID().toString();
         templateDTO.setId(uuid);
+
+        if (additionsMap != null && !additionsMap.isEmpty()){
+            templateDTO.setAdditions(new HashMap<>(additionsMap));
+        }
+
+        if (tags != null && !tags.isEmpty()){
+            templateDTO.setTags(new HashSet<>(tags));
+        }
 
         // create the template
         final Template template = templateDAO.createTemplate(templateDTO, groupId);

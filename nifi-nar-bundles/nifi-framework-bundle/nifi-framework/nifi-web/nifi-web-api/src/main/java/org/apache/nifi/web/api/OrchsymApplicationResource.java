@@ -68,6 +68,8 @@ import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.templates.TemplateFiledName;
+import org.apache.nifi.templates.TemplateSourceType;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
@@ -703,8 +705,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     })
     public Response getAppTemplateData(@PathParam("groupId") String groupId) {
 
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.GET);
+        if (isDisconnectedFromCluster()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
         }
 
         serviceFacade.authorizeAccess(lookup -> {
@@ -733,12 +735,20 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         // generate data of template
         final String snippetId = snippetEntity.getSnippet().getId();
         TemplateDTO templateDTO = serviceFacade.createTemplate(groupApp.getName(), groupApp.getComments(), snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
+
         final Template template = new Template(templateDTO);
         final TemplateDTO templateCopy = serviceFacade.exportTemplate(template.getIdentifier());
         flowController.getRootGroup().removeTemplate(template);
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
         templateCopy.setId(null);
 
+        // 取消直接持久化 改为直接复制
+        Map<String, String> additionsMap = new HashMap<>();
+        additionsMap.put(TemplateFiledName.CREATED_TIME, Long.toString(System.currentTimeMillis()));
+        additionsMap.put(TemplateFiledName.CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
+        additionsMap.put(TemplateFiledName.SOURCE_TYPE, Integer.toString(TemplateSourceType.SAVE_AS_TYPE.value()));
+        templateCopy.setAdditions(additionsMap);
+        templateCopy.setTags(groupApp.getTags());
         return noCache(Response.ok(templateCopy)).build();
     }
 

@@ -478,6 +478,18 @@ public interface NiFiServiceFacade {
     TemplateDTO createTemplate(String name, String description, String snippetId, String groupId, Optional<String> idGenerationSeed);
 
     /**
+     * Creates a new Template based off the specified snippet.
+     * @param contentsMap 增强模板的附加信息
+     * @param name
+     * @param description
+     * @param snippetId
+     * @param groupId
+     * @param idGenerationSeed
+     * @return
+     */
+    TemplateDTO createTemplate(Map<String, String> contentsMap,Set<String> tags, String name, String description, String snippetId, String groupId, Optional<String> idGenerationSeed);
+
+    /**
      * Imports the specified Template.
      *
      * @param templateDTO The template dto
@@ -2199,4 +2211,5 @@ public interface NiFiServiceFacade {
      * @return the resources
      */
     List<ResourceDTO> getResources();
+
 }

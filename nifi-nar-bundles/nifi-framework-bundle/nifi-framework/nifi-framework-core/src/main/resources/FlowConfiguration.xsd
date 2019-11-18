@@ -499,6 +499,8 @@
             <xs:element name="name" type="NonEmptyStringType" />
             <xs:element name="snippet" type="SnippetType" />
             <xs:element name="timestamp" type="xs:string" />
+            <xs:element name="tags" type="TagsListType"  minOccurs="0" maxOccurs="1" />
+            <xs:element name="additions" type="AdditionsMapType" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
         <xs:attribute name="encoding-version" type="xs:string" />
     </xs:complexType>

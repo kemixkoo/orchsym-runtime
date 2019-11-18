@@ -945,6 +945,14 @@ public final class DtoFactory {
         copy.setUri(original.getUri());
         copy.setEncodingVersion(original.getEncodingVersion());
 
+        if (original.getTags() != null) {
+            copy.setTags(new HashSet<>(original.getTags()));
+        }
+
+        if (original.getAdditions() != null) {
+            copy.setAdditions(new HashMap<>(original.getAdditions()));
+        }
+
         return copy;
     }
 

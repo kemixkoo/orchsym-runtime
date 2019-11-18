@@ -44,12 +44,12 @@ public final class ProcessUtil {
     /**
      * get the tags from flow.xml
      */
-    public static Set<String> getTags(final Element processGroupElement) {
+    public static Set<String> getTags(final Element parentElement) {
         final Set<String> tags = new HashSet<>();
-        final Element tagsElement = DomUtils.getChild(processGroupElement, ProcessTags.TAGS_NAME);
+        final Element tagsElement = DomUtils.getChild(parentElement, ProcessTags.TAGS_NAME);
 
         // FIXME maybe should do migration task for this
-        tags.addAll(getOldTags(processGroupElement));
+        tags.addAll(getOldTags(parentElement));
 
         if (null != tagsElement) {
             final List<Element> tagElements = DomUtils.getChildElementsByTagName(tagsElement, ProcessTags.TAG_NAME);
@@ -63,9 +63,9 @@ public final class ProcessUtil {
         return tags;
     }
 
-    private static Set<String> getOldTags(final Element processGroupElement) {
+    private static Set<String> getOldTags(final Element parentElement) {
         final Set<String> tags = new HashSet<>();
-        final List<Element> tagElements = DomUtils.getChildElementsByTagName(processGroupElement, ProcessTags.TAG_NAME);
+        final List<Element> tagElements = DomUtils.getChildElementsByTagName(parentElement, ProcessTags.TAG_NAME);
         for (final Element tagElement : tagElements) {
             final String value = tagElement.getTextContent();
             if (StringUtils.isNotBlank(value)) {
@@ -96,9 +96,9 @@ public final class ProcessUtil {
     /**
      * get the additions map from flow.xml
      */
-    public static Map<String, String> getAdditions(final Element processGroupElement) {
+    public static Map<String, String> getAdditions(final Element parentElement) {
         final Map<String, String> additions = new HashMap<>();
-        final Element additionsElement = DomUtils.getChild(processGroupElement, ProcessAdditions.ADDITIONS_NAME);
+        final Element additionsElement = DomUtils.getChild(parentElement, ProcessAdditions.ADDITIONS_NAME);
 
         if (null != additionsElement) {
             // FIXME maybe should do migration task for this

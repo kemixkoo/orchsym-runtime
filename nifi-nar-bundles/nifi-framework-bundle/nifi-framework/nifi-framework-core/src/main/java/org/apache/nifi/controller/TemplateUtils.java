@@ -18,6 +18,7 @@
 package org.apache.nifi.controller;
 
 import org.apache.nifi.persistence.TemplateDeserializer;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.api.dto.ConnectableDTO;
 import org.apache.nifi.web.api.dto.ConnectionDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
@@ -57,8 +58,11 @@ public class TemplateUtils {
             final TransformerFactory transformerFactory = TransformerFactory.newInstance();
             final Transformer transformer = transformerFactory.newTransformer();
             transformer.transform(domSource, streamResult);
-
-            return parseDto(baos.toByteArray());
+            // get and set additions
+            final TemplateDTO templateDTO = parseDto(baos.toByteArray());
+            templateDTO.setAdditions(ProcessUtil.getAdditions(templateElement));
+            templateDTO.setTags(ProcessUtil.getTags(templateElement));
+            return templateDTO;
         } catch (final Exception e) {
             throw new RuntimeException("Could not parse XML as a valid template", e);
         }

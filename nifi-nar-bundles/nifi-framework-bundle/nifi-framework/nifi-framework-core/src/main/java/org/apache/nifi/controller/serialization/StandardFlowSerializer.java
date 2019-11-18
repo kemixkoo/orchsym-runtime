@@ -70,6 +70,7 @@ import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.util.CharacterFilterUtils;
 import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.util.StringUtils;
+import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -629,6 +630,15 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
 
     public static void addTemplate(final Element element, final Template template) {
         try {
+            Map<String,String> additionsMap = template.getDetails().getAdditions();
+            final Set<String> tagsSet = template.getDetails().getTags();
+            // 防止字节序列化时默认将Map序列化为Entry，需将additions置为null
+            template.getDetails().setAdditions(null);
+            template.getDetails().setTags(null);
+            for(ProcessGroupDTO groupDTO  : template.getDetails().getSnippet().getProcessGroups()){
+                // 序列化模板时，不需要序列化Snippet中GroupDTO的Additions相关信息
+                groupDTO.setAdditions(null);
+            }
             final byte[] serialized = TemplateSerializer.serialize(template.getDetails());
 
             final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -639,7 +649,20 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
             }
 
             final Node templateNode = element.getOwnerDocument().importNode(document.getDocumentElement(), true);
+
+            // serialize additions of template
+            if (additionsMap!= null && !additionsMap.isEmpty()){
+                ProcessUtil.addAddtions((Element) templateNode, additionsMap);
+            }
+
+            if (tagsSet!= null && !tagsSet.isEmpty()){
+                ProcessUtil.addTags((Element) templateNode, tagsSet);
+            }
+
             element.appendChild(templateNode);
+            // finally set additions and set to template
+            template.getDetails().setAdditions(additionsMap);
+            template.getDetails().setTags(tagsSet);
         } catch (final Exception e) {
             throw new FlowSerializationException(e);
         }
