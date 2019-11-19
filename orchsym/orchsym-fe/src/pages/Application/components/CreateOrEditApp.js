@@ -8,8 +8,8 @@ const FormItem = Form.Item;
 // const { Option } = Select;
 
 @connect(({ application }) => ({
-  parentId: application.parentId,
-  details: application.details,
+  // parentId: application.parentId,
+  appDetails: application.appDetails,
 }))
 class CreateOrEditApp extends React.Component {
   // handleOk = () => {
@@ -20,13 +20,13 @@ class CreateOrEditApp extends React.Component {
     dispatch({
       type: 'application/appendValue',
       payload: {
-        details: {},
+        appDetails: {},
       },
     });
   }
 
   handleCreateEditOk = (e) => {
-    const { parentId, details, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
+    const { appDetails, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
@@ -34,20 +34,20 @@ class CreateOrEditApp extends React.Component {
           name: values.name,
           appId: '',
         }
-        if (Object.keys(details).length > 0) {
-          queryData.appId = details.id
+        if (Object.keys(appDetails).length > 0) {
+          queryData.appId = appDetails.id
         }
         dispatch({
           type: 'application/fetchValidationCheckName',
           payload: queryData,
           cb: (res) => {
             if (res.isValid) {
-              if (Object.keys(details).length === 0) {
+              if (Object.keys(appDetails).length === 0) {
                 dispatch({
                   type: 'application/fetchAddApplication',
                   payload: {
                     values,
-                    parentId,
+                    // parentId,
                   },
                 });
               } else {
@@ -55,7 +55,7 @@ class CreateOrEditApp extends React.Component {
                   type: 'application/fetchEditApplication',
                   payload: {
                     values,
-                    details,
+                    appDetails,
                   },
                 })
               }
@@ -84,7 +84,7 @@ class CreateOrEditApp extends React.Component {
       form: { getFieldDecorator },
       visible,
       title,
-      details: { component },
+      appDetails: { component },
     } = this.props;
     const formItemLayout = {
       labelCol: {

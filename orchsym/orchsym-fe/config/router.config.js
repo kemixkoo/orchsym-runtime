@@ -66,12 +66,12 @@ export default [
         path: '/runtime',
         component: './Application',
       },
-      // 模板
+      // 模版
       {
         name: 'template',
         icon: 'OS-iconmoban',
-        path: '/template',
-        component: './Template',
+        path: '/template/:Template',
+        component: './$Template',
       },
       // 控制器服务
       {

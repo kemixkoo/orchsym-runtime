@@ -17,3 +17,12 @@ export async function queryClientId() {
 export async function queryCurrentUser() {
   return request('/studio/nifi-api/flow/current-user');
 }
+
+// 获得模版列表
+export async function queryTemplates() {
+  return request('/studio/nifi-api/flow/templates');
+}
+// 控制器服务
+export async function queryControllerServices() {
+  return request('/studio/nifi-api/flow/controller/controller-services');
+}

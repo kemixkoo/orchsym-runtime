@@ -1,6 +1,7 @@
 import { message } from 'antd';
 import { createSnippets } from '@/services/studio';
-import { queryApplication, updateAppState } from '@/services/Flow';
+import { querySearchApplication } from '@/services/application';
+import { updateAppState } from '@/services/Flow';
 import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
 import {
   detailApplication, editApplication, addApplication,
@@ -14,28 +15,51 @@ export default {
   namespace: 'application',
 
   state: {
+    applicationNameList: [],
     applicationList: [],
     parentId: '',
-    details: {},
+    appDetails: {},
   },
 
   effects: {
-    *fetchApplication({ payload }, { call, put }) {
-      const response = yield call(queryApplication);
-      yield put({
-        type: 'appendValue',
-        payload: {
-          applicationList: response.processGroupFlow.flow.processGroups,
-          parentId: response.processGroupFlow.id,
-        },
-      });
+    *fetchApplication({ payload, cb }, { call, put }) {
+      const response = yield call(querySearchApplication, payload);
+      if (payload.isDetail) {
+        yield put({
+          type: 'appendValue',
+          payload: {
+            applicationList: response,
+            applicationNameList: [],
+          },
+        });
+      } else {
+        yield put({
+          type: 'appendValue',
+          payload: {
+            applicationList: [],
+            applicationNameList: response,
+          },
+        });
+      }
+
+      yield cb && cb(response)
     },
+    // *fetchApplication({ payload }, { call, put }) {
+    //   const response = yield call(queryApplication);
+    //   yield put({
+    //     type: 'appendValue',
+    //     payload: {
+    //       applicationList: response.processGroupFlow.flow.processGroups,
+    //       parentId: response.processGroupFlow.id,
+    //     },
+    //   });
+    // },
     *fetchDetailApplication({ payload }, { call, put }) {
       const response = yield call(detailApplication, payload);
       yield put({
         type: 'appendValue',
         payload: {
-          details: response,
+          appDetails: response,
         },
       });
     },
@@ -61,9 +85,9 @@ export default {
       }
     },
     *fetchAddApplication({ payload }, { call, put }) {
-      const { values: { name, comments, tags }, parentId } = payload;
+      const { values: { name, comments, tags } } = payload;
       const params = {
-        parentId,
+        // parentId,
         value: {
           component: {
             name,

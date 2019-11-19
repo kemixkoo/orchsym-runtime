@@ -5,6 +5,6 @@
  * Time: 11:54
  */
 export default {
-  'page.template.local.content': '本地模板页面内容',
-  'page.template.remote.content': '远程模板页面内容',
+  'page.template.local.content': '本地模版页面内容',
+  'page.template.remote.content': '远程模版页面内容',
 }

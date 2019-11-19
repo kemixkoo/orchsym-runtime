@@ -1,18 +1,19 @@
 import React, { PureComponent } from 'react';
-import { Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal, Tooltip } from 'antd';
+import { Popover, Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal, Tooltip } from 'antd';
 import { connect } from 'dva';
-import { formatMessage } from 'umi-plugin-react/locale';
+import { formatMessage, getLocale } from 'umi-plugin-react/locale';
 import router from 'umi/router'
+import moment from 'moment';
 import styles from './AppList.less';
 import SaveTemp from './SaveTemp';
 import IconFont from '@/components/IconFont';
-import LogList from '../LogList';
+import LogList from '@/components/LogList';
 import CreateOrEditApp from './CreateOrEditApp';
 
 const { confirm } = Modal;
 @connect(({ application, loading }) => ({
   applicationList: application.applicationList,
-  details: application.details,
+  Details: application.Details,
   snippet: application.snippet,
   loading: loading.effects['application/fetchApplication'] || loading.effects['application/fetchValidationRunApp'],
 }))
@@ -23,13 +24,63 @@ class AppList extends PureComponent {
     saveTempVisible: null,
     appItem: {},
     errorData: [],
+    pageNum: 1,
+    pageSizeNum: 10,
   };
 
   componentWillMount() {
+    const { pageNum, pageSizeNum } = this.state
+    const { sortedField, isDesc } = this.props
+    const query = {
+      page: pageNum,
+      pageSize: pageSizeNum,
+      isDetail: true,
+      sortedField,
+      isDesc,
+    }
+    this.getAppList(query)
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { pageSizeNum } = this.state
+    const { searchVal, sortedField, isDesc } = this.props
+    // 如果数据发生变化，则更新图表
+    if (prevProps.searchVal !== searchVal) {
+      this.pageOne()
+      const query = {
+        page: 1,
+        pageSize: pageSizeNum,
+        isDetail: true,
+        q: searchVal,
+      }
+      this.getAppList(query)
+    }
+    if ((prevProps.sortedField !== sortedField) || (prevProps.isDesc !== isDesc)) {
+      this.pageOne()
+      const query = {
+        page: 1,
+        pageSize: pageSizeNum,
+        isDetail: true,
+        q: searchVal,
+        sortedField,
+        isDesc,
+      }
+      this.getAppList(query)
+    }
+  }
+
+  getAppList = (query) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'application/fetchApplication',
+      payload: query,
     });
+  }
+
+  pageOne = () => {
+    this.setState({
+      pageNum: 1,
+    })
   }
 
   goToApp = (item) => {
@@ -249,7 +300,44 @@ class AppList extends PureComponent {
         });
       }
     };
-
+    const formatMsgTime = (timeSpan) => {
+      let timeSpanStr;
+      if (timeSpan) {
+        timeSpanStr = moment(Number(timeSpan)).fromNow();
+      }
+      // time = time.replace(/-/g, ':').replace(' ', ':');
+      // time = time.split(':');
+      // const dateTime = new Date(2019, 7, 12, time[0], time[1], time[2]);
+      // const year = dateTime.getFullYear();
+      // const month = dateTime.getMonth() + 1;
+      // const day = dateTime.getDate();
+      // const hour = dateTime.getHours();
+      // const minute = dateTime.getMinutes();
+      // // const second = dateTime.getSeconds();
+      // const now = new Date().getTime();
+      // const timeOld = new Date(2019, 7, 12, time[0], time[1], time[2]).getTime();
+      // let milliseconds = 0;
+      // moment("20120620", "YYYYMMDD").fromNow(); // 7 年前
+      // moment().startOf('day').fromNow();        // 15 小时前
+      // moment().endOf('day').fromNow();          // 9 小时内
+      // moment(Number(timeSpan)).startOf('hour').fromNow();       // 33 分钟前
+      // milliseconds = now - timeOld;
+      // if (milliseconds <= 1000 * 60 * 1) {
+      //   timeSpanStr = '刚刚';
+      // } else if (1000 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60) {
+      //   timeSpanStr = `${Math.round((milliseconds / (1000 * 60)))}分钟前`;
+      // } else if (1000 * 60 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24) {
+      //   timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60))}小时前`;
+      // } else if (1000 * 60 * 60 * 24 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24 * 15) {
+      //   timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60 * 24))}天前`;
+      // } else if (milliseconds > 1000 * 60 * 60 * 24 * 15 && year === (new Date()).getFullYear()) {
+      //   timeSpanStr = `${month}-${day} ${hour}:${minute}`;
+      // } else {
+      //   timeSpanStr = `${year}-${month}-${day} ${hour}:${minute}`;
+      // }
+      return timeSpanStr;
+    };
+    const tagContent = <div className={styles.tagContent}>{item.component.tags.map((i) => (<Tag color="blue">{i}</Tag>))}</div>
     const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.applicationCart} ${styles.errorApp}` : styles.applicationCart;
     return (
@@ -260,14 +348,14 @@ class AppList extends PureComponent {
             <div>
               <IconFont type="OS-iconapi" style={{ fontSize: '20px', verticalAlign: 'baseline' }} />
               {/* <IconFont type="OS-icondingshirenwu" style={{ fontSize: '20px' }} /> */}
-              <Tooltip title={item.component.name}>
+              <Tooltip title={item.component.name} placement="topLeft">
                 <span className={styles.cardTitle}>
                   {item.component.name}
                 </span>
               </Tooltip>
             </div>}
           description={
-            <Tooltip title={item.component.comments}>
+            <Tooltip title={item.component.comments} placement="topLeft">
               <p className={styles.lineEllipsis}>
                 {(!item.component.comments) ? '该应用暂无描述' : item.component.comments}
               </p>
@@ -275,16 +363,16 @@ class AppList extends PureComponent {
           }
         />
         <div className={styles.cardExtra}>{dropdown}</div>
-        <div className={styles.lineEllipsis} style={{ marginBottom: '10px' }}>
-          {(!item.component.tags.length) ? '该应用暂无标签' : (item.component.tags.map((i) => (
-            <Tag color="blue">{i}</Tag>
-          )))}
+        <div style={{ marginBottom: '10px' }}>
+          {(!item.component.tags.length) ? '该应用暂无标签' :
+            (<Popover placement="topLeft" content={tagContent}><div className={styles.lineEllipsis}>{(item.component.tags.map((i) => (<Tag color="blue">{i}</Tag>)))}</div></Popover>)
+          }
         </div>
         <Divider style={{ margin: 0 }} />
         <div className={styles.cardFoot}>
           {dropdown2}
         </div>
-        {/* <p className={styles.cardTime}>{this.formatMsgTime(item.status.statsLastRefreshed)}</p> */}
+        <p className={styles.cardTime}>{formatMsgTime(item.component.additions.MODIFIED_TIMESTAMP)}</p>
         {(isError) ? (
           <Dropdown trigger={['click']} onVisibleChange={handleVisibleChange} overlay={<LogList errorList={errorData} />}>
             <span className={styles.triangle} />
@@ -295,41 +383,17 @@ class AppList extends PureComponent {
     );
   }
 
-  formatMsgTime = (timeSpan) => {
-    let time = timeSpan.split(' ')[0];
-    time = time.replace(/-/g, ':').replace(' ', ':');
-    time = time.split(':');
-    const dateTime = new Date(2019, 7, 12, time[0], time[1], time[2]);
-    const year = dateTime.getFullYear();
-    const month = dateTime.getMonth() + 1;
-    const day = dateTime.getDate();
-    const hour = dateTime.getHours();
-    const minute = dateTime.getMinutes();
-    // const second = dateTime.getSeconds();
-    const now = new Date().getTime();
-    const timeOld = new Date(2019, 7, 12, time[0], time[1], time[2]).getTime();
-    let milliseconds = 0;
-    let timeSpanStr;
-    milliseconds = now - timeOld;
-    if (milliseconds <= 1000 * 60 * 1) {
-      timeSpanStr = '刚刚';
-    } else if (1000 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60) {
-      timeSpanStr = `${Math.round((milliseconds / (1000 * 60)))}分钟前`;
-    } else if (1000 * 60 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24) {
-      timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60))}小时前`;
-    } else if (1000 * 60 * 60 * 24 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24 * 15) {
-      timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60 * 24))}天前`;
-    } else if (milliseconds > 1000 * 60 * 60 * 24 * 15 && year === (new Date()).getFullYear()) {
-      timeSpanStr = `${month}-${day} ${hour}:${minute}`;
-    } else {
-      timeSpanStr = `${year}-${month}-${day} ${hour}:${minute}`;
-    }
-    return timeSpanStr;
-  };
-
   render() {
-    const { saveTempVisible, editVisible, createOrEdit, appItem } = this.state;
-    const { applicationList, details, loading } = this.props;
+    const { saveTempVisible, editVisible, createOrEdit, appItem, pageNum, pageSizeNum } = this.state;
+    const { applicationList: { results, totalSize }, appDetails, loading } = this.props;
+
+    const showTotal = (total) => {
+      if (getLocale() === 'zh-CN') {
+        return `共 ${total} 个`;
+      } else {
+        return `Total ${total} items`;
+      }
+    }
 
     return (
       <div className={styles.infiniteContainer}>
@@ -344,12 +408,45 @@ class AppList extends PureComponent {
             xl: 4,
             xxl: 4,
           }}
-          dataSource={applicationList}
+          dataSource={results}
           renderItem={item => (
             <List.Item key={item.id}>
               {this.getCarList(item)}
             </List.Item>
           )}
+          pagination={{
+            onChange: (page, pageSize) => {
+              const query = {
+                page,
+                pageSize,
+                isDetail: true,
+              }
+              this.getAppList(query)
+              this.setState({
+                pageNum: page,
+                pageSizeNum: pageSize,
+              })
+            },
+            onShowSizeChange: (current, size) => {
+              const query = {
+                page: current,
+                pageSize: size,
+                isDetail: true,
+              }
+              this.getAppList(query)
+              this.setState({
+                pageNum: current,
+                pageSizeNum: size,
+              })
+            },
+            current: pageNum,
+            pageSize: pageSizeNum,
+            total: totalSize,
+            showTotal,
+            showSizeChanger: true,
+            showQuickJumper: true,
+
+          }}
         />
         <SaveTemp visible={saveTempVisible} handleSaveCancel={this.handleSaveCancel} appItem={appItem} />
         {
@@ -358,7 +455,7 @@ class AppList extends PureComponent {
               visible={editVisible}
               handleCreateEditCancel={this.handleCreateEditCancel}
               title={createOrEdit}
-              details={details}
+              details={appDetails}
             />
           )
         }

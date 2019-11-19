@@ -14,7 +14,7 @@ import blank from './en-US/blank';
 
 // 应用页面
 import application from './en-US/application';
-// 模板页面
+// 模版页面
 import template from './en-US/template';
 // 编排页面
 import orchestrations from './en-US/orchestrations';
