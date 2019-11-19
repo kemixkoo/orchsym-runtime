@@ -57,7 +57,7 @@ import net.minidev.json.JSONObject;
 @Component
 @Path("/queue")
 @Api(value = "/queue", description = "clear queues of relational connections")
-public class QueueResource extends AbsOrchsymResource {
+public class OrchsymQueueResource extends AbsOrchsymResource {
     public static final String KEY_CONNS = "connections";
     public static final String KEY_CONN = "connection";
 

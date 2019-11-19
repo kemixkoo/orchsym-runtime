@@ -53,7 +53,6 @@ import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.nar.i18n.LanguageHelper;
 import org.apache.nifi.nar.i18n.MessagesProvider;
-import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.ClusterSummaryDTO;
@@ -86,12 +85,12 @@ import io.swagger.annotations.ApiResponses;
  * @author GU Guoqiang
  */
 @Component
-@Path(StatsResource.PATH)
-@Api(value = StatsResource.PATH, description = "Endpoint for accessing the statistics of flows and components.")
-public class StatsResource extends AbsOrchsymResource {
+@Path(OrchsymStatsResource.PATH)
+@Api(value = OrchsymStatsResource.PATH, description = "Endpoint for accessing the statistics of flows and components.")
+public class OrchsymStatsResource extends AbsOrchsymResource {
     public static final String PATH = "/stats";
 
-    private static final Logger logger = LoggerFactory.getLogger(StatsResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymStatsResource.class);
 
     @Autowired
     private FlowResource flowResource;

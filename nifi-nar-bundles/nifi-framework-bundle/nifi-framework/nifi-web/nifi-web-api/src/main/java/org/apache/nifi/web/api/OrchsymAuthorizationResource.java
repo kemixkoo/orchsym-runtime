@@ -65,11 +65,11 @@ import org.springframework.web.bind.annotation.RequestBody;
  *
  */
 @Component
-@Path(AuthorizationResource.PATH)
-@Api(value = AuthorizationResource.PATH, description = "Endpoint for check the authorization")
-public class AuthorizationResource extends AbsOrchsymResource {
+@Path(OrchsymAuthorizationResource.PATH)
+@Api(value = OrchsymAuthorizationResource.PATH, description = "Endpoint for check the authorization")
+public class OrchsymAuthorizationResource extends AbsOrchsymResource {
     static final String PATH = "/auth";
-    private static final Logger logger = LoggerFactory.getLogger(AuthorizationResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymAuthorizationResource.class);
 
     @Autowired
     private JwtService jwtService;

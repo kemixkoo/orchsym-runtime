@@ -70,11 +70,11 @@ import net.sourceforge.pinyin4j.PinyinHelper;
  * RESTful endpoint for retrieving system diagnostics.
  */
 @Component
-@Path(ComponentMarksResource.PATH)
-@Api(value = ComponentMarksResource.PATH, //
+@Path(OrchsymComponentMarksResource.PATH)
+@Api(value = OrchsymComponentMarksResource.PATH, //
         description = "Endpoint for accessing components marks.")
-public class ComponentMarksResource extends AbsOrchsymResource {
-    private static final Logger logger = LoggerFactory.getLogger(ComponentMarksResource.class);
+public class OrchsymComponentMarksResource extends AbsOrchsymResource {
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymComponentMarksResource.class);
     public static final String PATH = "/component-marks";
 
     enum Category {
@@ -132,7 +132,7 @@ public class ComponentMarksResource extends AbsOrchsymResource {
         Map<Category, CategoryItem> items = new LinkedHashMap<>();
         try {
             final ObjectMapper mapper = new ObjectMapper();
-            final InputStream stream = ComponentMarksResource.class.getResourceAsStream("/json/classification.json");
+            final InputStream stream = OrchsymComponentMarksResource.class.getResourceAsStream("/json/classification.json");
             JsonFactory factory = new JsonFactory();
             JsonParser parser = factory.createParser(stream);
             parser.nextToken();
@@ -200,10 +200,10 @@ public class ComponentMarksResource extends AbsOrchsymResource {
             response = MarkEntity.class //
     )
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = StatsResource.CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = StatsResource.CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = StatsResource.CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
     public Response getComponentsMarks(//
             @QueryParam("type") final String filterType, //
@@ -255,10 +255,10 @@ public class ComponentMarksResource extends AbsOrchsymResource {
             response = MarkEntity.class //
     )
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = StatsResource.CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = StatsResource.CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = StatsResource.CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
     public Response getComponentsClassification() {
         // authorizeSystem();

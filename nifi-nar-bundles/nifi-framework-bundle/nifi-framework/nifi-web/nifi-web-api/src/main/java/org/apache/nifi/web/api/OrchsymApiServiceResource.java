@@ -75,10 +75,10 @@ import io.swagger.annotations.ApiResponses;
  * RESTful endpoint for retrieving api informaitions
  */
 @Component
-@Path(ApiServiceResource.PATH)
-@Api(value = ApiServiceResource.PATH, //
+@Path(OrchsymApiServiceResource.PATH)
+@Api(value = OrchsymApiServiceResource.PATH, //
         description = "Endpoint  for retrieving api informaitions")
-public class ApiServiceResource extends AbsOrchsymResource {
+public class OrchsymApiServiceResource extends AbsOrchsymResource {
 
     private static final String PROPERTIES_NIFI_WEB_HTTP_HOST = "nifi.web.http.host";
     private static final String PROPERTIES_NIFI_WEB_HTTP_PORT = "nifi.web.http.port";
@@ -86,7 +86,7 @@ public class ApiServiceResource extends AbsOrchsymResource {
     private static final String PROPERTIES_NIFI_WEB_HTTPS_PORT = "nifi.web.https.port";
     public static final String PATH = "/apis";
 
-    private static final Logger logger = LoggerFactory.getLogger(ApiServiceResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymApiServiceResource.class);
 
     @Autowired
     private FlowController flowController;
@@ -98,9 +98,9 @@ public class ApiServiceResource extends AbsOrchsymResource {
     @ApiOperation(value = "Gets all api informaitions or filter by a group id", //
             response = ArrayList.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = StatsResource.CODE_MESSAGE_400), //
-            @ApiResponse(code = 404, message = StatsResource.CODE_MESSAGE_404), //
-            @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
+            @ApiResponse(code = 400, message = OrchsymStatsResource.CODE_MESSAGE_400), //
+            @ApiResponse(code = 404, message = OrchsymStatsResource.CODE_MESSAGE_404), //
+            @ApiResponse(code = 409, message = OrchsymStatsResource.CODE_MESSAGE_409) //
     })
     public Response getApiInformations(//
             @QueryParam("groupid") final String groupid) throws InterruptedException {
@@ -161,9 +161,9 @@ public class ApiServiceResource extends AbsOrchsymResource {
     @ApiOperation(value = "Gets all api informaitions or filter by a group id", //
             response = ArrayList.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = StatsResource.CODE_MESSAGE_400), //
-            @ApiResponse(code = 404, message = StatsResource.CODE_MESSAGE_404), //
-            @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
+            @ApiResponse(code = 400, message = OrchsymStatsResource.CODE_MESSAGE_400), //
+            @ApiResponse(code = 404, message = OrchsymStatsResource.CODE_MESSAGE_404), //
+            @ApiResponse(code = 409, message = OrchsymStatsResource.CODE_MESSAGE_409) //
     })
     public Response getApiSwaggerInformations(//
             @QueryParam("id") String id) throws InterruptedException {
@@ -184,6 +184,7 @@ public class ApiServiceResource extends AbsOrchsymResource {
         return Response.ok(swaggerInfo).build();
     }
 
+    @SuppressWarnings("deprecation")
     private String getSwaggerinfo(final List<ApiInfo> apiInfoList, String processorId) throws Exception {
 
         String url = getPropertyUrl(processorId);

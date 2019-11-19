@@ -66,12 +66,12 @@ import net.minidev.json.JSONObject;
  *
  */
 @Component
-@Path(UsageDataResource.PATH)
-@Api(value = StatsResource.PATH, description = "Endpoint for collecting the usage data of platform.")
-public class UsageDataResource extends AbsOrchsymResource {
+@Path(OrchsymUsageDataResource.PATH)
+@Api(value = OrchsymUsageDataResource.PATH, description = "Endpoint for collecting the usage data of platform.")
+public class OrchsymUsageDataResource extends AbsOrchsymResource {
     public static final String PATH = "/udc";
 
-    private static final Logger logger = LoggerFactory.getLogger(UsageDataResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymUsageDataResource.class);
 
     @GET
     @Consumes(MediaType.WILDCARD)

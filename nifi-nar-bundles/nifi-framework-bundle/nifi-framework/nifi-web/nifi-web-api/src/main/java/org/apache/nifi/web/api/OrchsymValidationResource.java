@@ -71,13 +71,13 @@ import io.swagger.annotations.ApiResponses;
  * RESTful endpoint for retrieving a Processor or Process Group's validation informations.
  */
 @Component
-@Path(ValidationResource.PATH)
-@Api(value = ValidationResource.PATH, //
+@Path(OrchsymValidationResource.PATH)
+@Api(value = OrchsymValidationResource.PATH, //
         description = "Endpoint  for retrieving a Processor or Process Group's validation informations, return the processors that validate failed")
-public class ValidationResource extends AbsOrchsymResource {
+public class OrchsymValidationResource extends AbsOrchsymResource {
     public static final String PATH = "/validation";
 
-    private static final Logger logger = LoggerFactory.getLogger(ValidationResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymValidationResource.class);
     @Autowired
     private FlowController flowController;
 
@@ -176,9 +176,9 @@ public class ValidationResource extends AbsOrchsymResource {
     @ApiOperation(value = "Gets a processor's validation informations", //
             response = ArrayList.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = StatsResource.CODE_MESSAGE_400), //
-            @ApiResponse(code = 404, message = StatsResource.CODE_MESSAGE_401), //
-            @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
     public Response handleProcessor(//
             @ApiParam(value = "The processor id.", required = true) //
@@ -194,9 +194,9 @@ public class ValidationResource extends AbsOrchsymResource {
     @ApiOperation(value = "Gets all processor's validation informations in a process group", //
             response = ArrayList.class)
     @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = StatsResource.CODE_MESSAGE_400), //
-            @ApiResponse(code = 404, message = StatsResource.CODE_MESSAGE_401), //
-            @ApiResponse(code = 409, message = StatsResource.CODE_MESSAGE_409) //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
     public Response handleProcessorGroup(//
             @ApiParam(value = "The group id.", required = true) //
@@ -253,7 +253,7 @@ public class ValidationResource extends AbsOrchsymResource {
 
     private List<String> loadBlacklist() throws Exception {
         Gson gson = new Gson();
-        final InputStream stream = ValidationResource.class.getResourceAsStream("/json/scheduling_period_validation_blacklist.json");
+        final InputStream stream = OrchsymValidationResource.class.getResourceAsStream("/json/scheduling_period_validation_blacklist.json");
         String jsonStr = IOUtils.toString(stream, StandardCharsets.UTF_8);
 
         JsonObject object = new JsonParser().parse(jsonStr).getAsJsonObject();

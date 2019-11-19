@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
@@ -47,6 +48,7 @@ import org.apache.nifi.controller.ControllerService;
 import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ReportingTaskNode;
 import org.apache.nifi.controller.Snippet;
+import org.apache.nifi.controller.Template;
 import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.groups.ProcessGroup;
@@ -188,49 +190,60 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         ProcessGroupEntity groupEntity = new ProcessGroupEntity();
         groupEntity.setId(gp.getIdentifier());
 
-        return withWriteLock(serviceFacade, groupEntity, lookup -> {
-            final Authorizable processGroup = lookup.getProcessGroup(groupEntity.getId()).getAuthorizable();
-            processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-        }, null, (entity) -> {
-            final ProcessGroup group = flowController.getGroup(entity.getId());
-            // 先进行逻辑删除
-            deleteGroupLogic(group);
-            // 校验
-            serviceFacade.verifyDeleteProcessGroup(entity.getId());
-            // 物理删除
-            serviceFacade.deleteProcessGroup(revisionManager.getRevision(entity.getId()), entity.getId());
-            return generateOkResponse("success").build();
-        });
+        return withWriteLock(//
+                serviceFacade, //
+                groupEntity, //
+                lookup -> {
+                    final Authorizable processGroup = lookup.getProcessGroup(groupEntity.getId()).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                }, //
+                null, //
+                (entity) -> {
+                    final ProcessGroup group = flowController.getGroup(entity.getId());
+                    // 为保证删除成功，清理数据
+                    safeCleanGroup(group, true, true, true, true);
+                    // 校验
+                    serviceFacade.verifyDeleteProcessGroup(entity.getId());
+                    // 物理删除
+                    serviceFacade.deleteProcessGroup(revisionManager.getRevision(entity.getId()), entity.getId());
+                    return generateOkResponse("success").build();
+                });
     }
 
-    void deleteGroupLogic(ProcessGroup group) {
-        // 停止所有组件
-        for (ProcessorNode processorNode : group.getProcessors()) {
-            final ProcessorDTO processorDTO = new ProcessorDTO();
-            processorDTO.setId(processorNode.getIdentifier());
-            processorDTO.setState(ScheduleComponentsEntity.STATE_STOPPED);
-            Revision revision = revisionManager.getRevision(processorNode.getIdentifier());
-            serviceFacade.updateProcessor(revision, processorDTO);
+    void safeCleanGroup(ProcessGroup group, boolean stopComponents, boolean stopServices, boolean cleanQueue, boolean removeTemplates) {
+        if (stopComponents) { // 停止所有组件
+            for (ProcessorNode processorNode : group.getProcessors()) {
+                final ProcessorDTO processorDTO = new ProcessorDTO();
+                processorDTO.setId(processorNode.getIdentifier());
+                processorDTO.setState(ScheduleComponentsEntity.STATE_STOPPED);
+                Revision revision = revisionManager.getRevision(processorNode.getIdentifier());
+                serviceFacade.updateProcessor(revision, processorDTO);
+            }
         }
-
-        // 清空队列
-        for (Connection connection : group.getConnections()) {
-            DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connection.getIdentifier(), generateUuid());
-            serviceFacade.deleteFlowFileDropRequest(connection.getIdentifier(), dropRequest.getId());
+        if (stopServices) { // 停止服务
+            for (ControllerServiceNode controllerServiceNode : group.getControllerServices(false)) {
+                Revision revision = revisionManager.getRevision(controllerServiceNode.getIdentifier());
+                ControllerServiceDTO controllerServiceDTO = new ControllerServiceDTO();
+                controllerServiceDTO.setId(controllerServiceNode.getIdentifier());
+                controllerServiceDTO.setState(ScheduleComponentsEntity.STATE_DISABLED);
+                serviceFacade.updateControllerService(revision, controllerServiceDTO);
+            }
         }
-
-        // 停止服务
-        for (ControllerServiceNode controllerServiceNode : group.getControllerServices(false)) {
-            Revision revision = revisionManager.getRevision(controllerServiceNode.getIdentifier());
-            ControllerServiceDTO controllerServiceDTO = new ControllerServiceDTO();
-            controllerServiceDTO.setId(controllerServiceNode.getIdentifier());
-            controllerServiceDTO.setState(ScheduleComponentsEntity.STATE_DISABLED);
-            serviceFacade.updateControllerService(revision, controllerServiceDTO);
+        if (cleanQueue) { // 清空队列
+            for (Connection connection : group.getConnections()) {
+                DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connection.getIdentifier(), generateUuid());
+                serviceFacade.deleteFlowFileDropRequest(connection.getIdentifier(), dropRequest.getId());
+            }
+        }
+        if (removeTemplates) { // 删除应用内所有模块下的模板
+            for (Template template : group.getTemplates()) {
+                // TODO
+            }
         }
 
         // 迭代处理子模块
         for (ProcessGroup childGroup : group.getProcessGroups()) {
-            deleteGroupLogic(childGroup);
+            safeCleanGroup(childGroup, stopComponents, stopServices, cleanQueue, removeTemplates);
         }
     }
 

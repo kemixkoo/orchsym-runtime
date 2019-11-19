@@ -62,7 +62,7 @@ import io.swagger.annotations.ApiResponses;
 @Component
 @Path("/additions")
 @Api(value = "/additions", description = "operate additions in group")
-public class AdditionsResource extends AbsOrchsymResource {
+public class OrchsymAdditionsResource extends AbsOrchsymResource {
     public static final String KEY_ID = "id";
 
     @Autowired

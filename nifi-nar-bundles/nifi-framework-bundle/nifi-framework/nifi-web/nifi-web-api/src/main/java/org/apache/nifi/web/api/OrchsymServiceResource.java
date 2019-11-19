@@ -102,8 +102,8 @@ import net.minidev.json.JSONObject;
 @Component
 @Path("/service")
 @Api(value = "/service", description = "Endpoint for managing a Controller Service.")
-public class ServiceResource extends AbsOrchsymResource {
-    private static final Logger logger = LoggerFactory.getLogger(ServiceResource.class);
+public class OrchsymServiceResource extends AbsOrchsymResource {
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymServiceResource.class);
 
     private static final String DBCP_CLASS = "org.apache.nifi.dbcp.DBCPConnectionPool";
 
