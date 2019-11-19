@@ -63,7 +63,7 @@ export default {
         },
       });
     },
-    *fetchEditApplication({ payload }, { call, put }) {
+    *fetchEditApplication({ payload, cb }, { call, put }) {
       const { values: { name, tags, comments }, details: { id, revision } } = payload;
       const params = {
         value: {
@@ -83,6 +83,7 @@ export default {
           type: 'fetchApplication',
         });
       }
+      yield cb && cb(response)
     },
     *fetchAddApplication({ payload }, { call, put }) {
       const { values: { name, comments, tags } } = payload;
