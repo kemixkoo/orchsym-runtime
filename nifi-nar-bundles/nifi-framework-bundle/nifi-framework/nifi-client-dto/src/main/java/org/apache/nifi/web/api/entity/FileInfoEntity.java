@@ -32,7 +32,7 @@ public class FileInfoEntity extends Entity {
      */
     private String fileName;
     /**
-     * 文件二进制数据
+     * 文件正则匹配
      */
     private String filePattern;
     /**

@@ -93,9 +93,11 @@ public abstract class NiFiProperties {
      * 上传文件
      */
     public static final String UPLOAD_REPO_PATH = "orchsym.upload.repository.directory";
+    public static final String UPLOAD_REPO_PATH_VAR = "upload.repository.dir";
     public static final String UPLOAD_MAX_FILE_SIZE = "orchsym.upload.max.file.size";
     public static final String DEFAULT_UPLOAD_REPO_PATH = "./upload_repository";
     public static final String DEFAULT_UPLOAD_MAX_FILE_SIZE = "30 MB";
+    
 
     // content repository properties
     public static final String REPOSITORY_CONTENT_PREFIX = "nifi.content.repository.directory.";

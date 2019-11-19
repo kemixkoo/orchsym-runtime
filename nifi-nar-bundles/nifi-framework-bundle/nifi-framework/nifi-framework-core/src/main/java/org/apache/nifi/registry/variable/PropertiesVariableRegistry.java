@@ -34,7 +34,7 @@ import org.apache.nifi.util.NiFiProperties;
 public class PropertiesVariableRegistry implements VariableRegistry {
     private final Map<VariableDescriptor, String> map;
 
-    private final static VariableDescriptor UPLOAD_REPO_PATH_VAR = new VariableDescriptor("upload.repository.dir");
+    private final static VariableDescriptor UPLOAD_REPO_PATH_VAR = new VariableDescriptor(NiFiProperties.UPLOAD_REPO_PATH_VAR);
 
     public PropertiesVariableRegistry(final VariableRegistry variableRegistry, final NiFiProperties properties) {
         final Map<VariableDescriptor, String> newMap = new HashMap<>(variableRegistry.getVariableMap());
