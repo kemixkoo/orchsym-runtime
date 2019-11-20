@@ -155,13 +155,10 @@ export default {
         const blob = new Blob([response], { type: 'application/octet-stream' })
         const a = document.createElement('a')
         a.setAttribute('href', window.URL.createObjectURL(blob))
-        const fileName = localStorage.getItem('fileName');
-        a.setAttribute('download', fileName)
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
       }
-      localStorage.removeItem('fileName')
       yield cb && cb(response)
     },
     * fetchValidationRunApp({ payload }, { call, put }) {
