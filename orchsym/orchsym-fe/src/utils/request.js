@@ -77,8 +77,10 @@ request.interceptors.request.use((url, options) => {
     options.headers.Authorization = `Bearer ${getToken()}`;
   }
   if (url.indexOf('/download') > 0) { // 判断是否是模版下载
-    const fileName = options.headers['content-disposition'].split('filename=')[1]
-    localStorage.setItem('fileName', fileName);
+    console.log(options.headers)
+    console.log(options.headers['content-disposition'])
+    // const fileName = options.headers['content-disposition'].split('filename=')[1]
+    // localStorage.setItem('fileName', fileName);
   }
   options.headers.Locale = localStorage.getItem('umi_locale') || 'zh-CN';
   return (
