@@ -464,9 +464,9 @@ class AppList extends PureComponent {
             xs: 1,
             sm: 2,
             md: 2,
-            lg: 5,
-            xl: 5,
-            xxl: 5,
+            lg: 4,
+            xl: 4,
+            xxl: 6,
           }}
           dataSource={results}
           renderItem={(item, index) => (
@@ -493,6 +493,7 @@ class AppList extends PureComponent {
             pageSize: pageSizeNum,
             total: totalSize,
             showTotal,
+            pageSizeOptions: ['12', '24'],
             showSizeChanger: true,
             showQuickJumper: true,
 

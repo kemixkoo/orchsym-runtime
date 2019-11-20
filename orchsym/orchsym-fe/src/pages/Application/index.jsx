@@ -27,7 +27,7 @@ class Application extends React.Component {
     selectedKeys: 'modifyDesc',
     iconType: 'sort-ascending',
     pageNum: 1,
-    pageSizeNum: 10,
+    pageSizeNum: 12,
     searchVal: '',
     sortedField: 'createdTime',
     isDesc: true,
