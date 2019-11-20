@@ -107,8 +107,9 @@ request.interceptors.response.use((response, options) => {
   }
   if (response.url.indexOf('/download') > 0) { // 判断是否是模版下载
     console.log(response)
-    console.log(response.headers['content-disposition'])
+    console.log(response.headers)
     const fileName = options.headers['content-disposition'].split('filename=')[1]
+    console.log(fileName)
     localStorage.setItem('fileName', fileName);
   }
 

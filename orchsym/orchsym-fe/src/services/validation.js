@@ -21,3 +21,7 @@ export async function validationAppCheckName(param) {
     },
   });
 }
+// 验证是否可下载
+export async function validationDownApp() {
+  return request('/studio/orchsym-api/helper/state', { getResponse: true });
+}
