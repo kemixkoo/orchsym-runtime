@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'dva';
-import { Modal, Input, Form, Select } from 'antd';
+import { Modal, Input, Form, Select, message } from 'antd';
 import { formatMessage } from 'umi-plugin-react/locale';
 
 const { TextArea } = Input;
@@ -12,9 +12,6 @@ const FormItem = Form.Item;
   appDetails: application.appDetails,
 }))
 class CreateOrEditApp extends React.Component {
-  // handleOk = () => {
-
-  // }
   componentWillUnmount() {
     const { dispatch } = this.props
     dispatch({
@@ -26,7 +23,7 @@ class CreateOrEditApp extends React.Component {
   }
 
   handleCreateEditOk = (e) => {
-    const { appDetails, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
+    const { editOrCope, appDetails, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
@@ -43,21 +40,11 @@ class CreateOrEditApp extends React.Component {
           cb: (res) => {
             if (res.isValid) {
               if (Object.keys(appDetails).length === 0) {
-                dispatch({
-                  type: 'application/fetchAddApplication',
-                  payload: {
-                    values,
-                    // parentId,
-                  },
-                });
+                this.addFetch(values)
+              } else if (editOrCope === 'EDIT') {
+                this.editFetch(values)
               } else {
-                dispatch({
-                  type: 'application/fetchEditApplication',
-                  payload: {
-                    values,
-                    appDetails,
-                  },
-                })
+                this.copeFetch(values)
               }
               resetFields();
               handleCreateEditCancel();
@@ -70,6 +57,70 @@ class CreateOrEditApp extends React.Component {
           },
         });
       }
+    });
+  }
+
+  addFetch = (values) => {
+    const { onSearchChange, dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchAddApplication',
+      payload: {
+        values,
+        // parentId,
+      },
+      cb: () => {
+        message.success(formatMessage({ id: 'app.result.success' }));
+        onSearchChange({
+          pageNum: 1,
+          searchVal: '',
+        })
+        this.freshAppList(1)
+      },
+    });
+  }
+
+  editFetch = (values) => {
+    const { pageNum, appDetails, dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchEditApplication',
+      payload: {
+        values,
+        appDetails,
+      },
+      cb: () => {
+        message.success(formatMessage({ id: 'app.result.success' }));
+        this.freshAppList(pageNum)
+      },
+    })
+  }
+
+  copeFetch = (values) => {
+    const { pageNum, appDetails, dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchCopeApplication',
+      payload: {
+        values,
+        appDetails,
+      },
+      cb: () => {
+        message.success(formatMessage({ id: 'app.result.success' }));
+        this.freshAppList(pageNum)
+      },
+    })
+  }
+
+  freshAppList = (page) => {
+    const { pageSizeNum, searchVal, sortedField, isDesc, dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchApplication',
+      payload: {
+        page,
+        pageSize: pageSizeNum,
+        isDetail: true,
+        sortedField,
+        isDesc,
+        searchVal,
+      },
     });
   }
 
@@ -114,8 +165,19 @@ class CreateOrEditApp extends React.Component {
     //   }
     //   callback();
     // }
+    const componentName = v => {
+      const { editOrCope } = this.props;
+      let str = ''
+      if (v) {
+        if (editOrCope === 'COPE') {
+          str = `App copy ${v.name}`
+        } else {
+          str = v.name
+        }
+      }
+      return str
+    }
     return (
-
       <div>
         <Modal
           visible={visible}
@@ -134,7 +196,7 @@ class CreateOrEditApp extends React.Component {
                   { max: 20, message: formatMessage({ id: 'validation.appName.placeholder' }) },
                   { whitespace: true, message: formatMessage({ id: 'validation.appName.required' }) },
                 ],
-                initialValue: component ? component.name : '',
+                initialValue: componentName(component),
               })(
                 <Input autocomplete="off" />
               )}

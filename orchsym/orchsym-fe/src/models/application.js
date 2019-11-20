@@ -1,14 +1,18 @@
 import { message } from 'antd';
 import { createSnippets } from '@/services/studio';
-import { querySearchApplication } from '@/services/application';
+import { formatMessage } from 'umi-plugin-react/locale';
+import {
+  querySearchApplication, updateAppEnable, updateAppDisable,
+  showAppStatus, deleteApplication, copeApplication,
+} from '@/services/application';
 import { updateAppState } from '@/services/Flow';
 import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
 import {
   detailApplication, editApplication, addApplication,
-  deleteApplication, copeApplication, createApplicationTemp,
+  createApplicationTemp,
 } from '@/services/ProcessGroups';
+import { downloadApplication } from '@/services/template';
 import { getClientId } from '@/utils/authority';
-import { formatMessage } from 'umi-plugin-react/locale';
 // import { notification } from "antd/lib/index";
 
 export default {
@@ -19,6 +23,7 @@ export default {
     applicationList: [],
     parentId: '',
     appDetails: {},
+    appStatus: {},
   },
 
   effects: {
@@ -64,7 +69,7 @@ export default {
       });
     },
     *fetchEditApplication({ payload, cb }, { call, put }) {
-      const { values: { name, tags, comments }, details: { id, revision } } = payload;
+      const { values: { name, tags, comments }, appDetails: { id, revision } } = payload;
       const params = {
         value: {
           component: {
@@ -76,16 +81,10 @@ export default {
           revision,
         },
       }
-      const response = yield call(editApplication, params);
-      if (response) {
-        message.success(formatMessage({ id: 'app.result.success' }));
-        yield put({
-          type: 'fetchApplication',
-        });
-      }
-      yield cb && cb(response)
+      yield call(editApplication, params);
+      yield cb && cb()
     },
-    *fetchAddApplication({ payload }, { call, put }) {
+    *fetchAddApplication({ payload, cb }, { call, put }) {
       const { values: { name, comments, tags } } = payload;
       const params = {
         // parentId,
@@ -102,13 +101,8 @@ export default {
           },
         },
       }
-      const response = yield call(addApplication, params);
-      if (response) {
-        message.success(formatMessage({ id: 'app.result.success' }));
-        yield put({
-          type: 'fetchApplication',
-        });
-      }
+      yield call(addApplication, params);
+      yield cb && cb()
     },
 
     *fetchCreateSnippets({ payload, cb }, { call, put }) {
@@ -138,14 +132,37 @@ export default {
       })
       yield cb && cb(response.snippet)
     },
-    * fetchUpdateAppState({ payload }, { call, put }) {
-      const response = yield call(updateAppState, payload);
+    // 状态变化
+    * fetchUpdateAppState({ payload, cb }, { call, put }) {
+      yield call(updateAppState, payload);
+      yield cb && cb()
+    },
+    * fetchUpdateEnable({ payload, cb }, { call, put }) {
+      yield call(updateAppEnable, payload);
+      yield cb && cb()
+    },
+    * fetchUpdateDisable({ payload, cb }, { call, put }) {
+      yield call(updateAppDisable, payload);
+      yield cb && cb()
+    },
+    * fetchIsShowStatus({ payload, cb }, { call, put }) {
+      const response = yield call(showAppStatus, payload);
+      yield cb && cb(response)
+    },
+    * fetchDownloadApp({ payload, cb }, { call, put }) {
+      const response = yield call(downloadApplication, payload);
       if (response) {
-        message.success(formatMessage({ id: 'app.result.success' }));
-        yield put({
-          type: 'fetchApplication',
-        });
+        const blob = new Blob([response], { type: 'application/octet-stream' })
+        const a = document.createElement('a')
+        a.setAttribute('href', window.URL.createObjectURL(blob))
+        const fileName = localStorage.getItem('fileName');
+        a.setAttribute('download', fileName)
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
       }
+      localStorage.removeItem('fileName')
+      yield cb && cb(response)
     },
     * fetchValidationRunApp({ payload }, { call, put }) {
       const response = yield call(validationRunApp, payload.snippetId);
@@ -159,48 +176,74 @@ export default {
         });
       }
     },
+
+    // 删除
     * fetchValidationDeleteApp({ payload, cb }, { call, put }) {
-      try {
-        yield call(validationDeleteApp, payload);
-        yield cb && cb()
-      } catch {
-        yield put({
-          type: 'fetchDeleteApplication',
-          payload,
-        });
-      }
+      const response = yield call(validationDeleteApp, payload);
+      yield cb && cb(response)
     },
-    * fetchDeleteApplication({ payload }, { call, put }) {
-      const queryData = {
-        id: payload,
-        clientId: getClientId(),
-        version: 0,
-      }
-      const response = yield call(deleteApplication, queryData);
-      if (response) {
-        message.success(formatMessage({ id: 'app.result.success' }));
-        yield put({
-          type: 'fetchApplication',
-        });
-      }
+
+    * fetchDeleteApplication({ payload, cb }, { call, put }) {
+      yield call(deleteApplication, payload);
+      yield cb && cb()
     },
-    * fetchCopeApplication({ payload }, { call, put }) {
-      const queryDate = {
-        id: payload.id,
-        body: {
-          originX: 0,
-          originY: 0,
-          snippetId: payload.snippetId,
-        },
+
+    // 复制
+    * fetchCopeApplication({ payload, cb }, { call, put }) {
+      const { values, appDetails: { id } } = payload;
+      const body = {
+        appId: id,
+        ...values,
+        // name,
+        // comments,
+        // tags,
       }
-      const response = yield call(copeApplication, queryDate);
-      if (response) {
-        message.success(formatMessage({ id: 'app.result.success' }));
-        yield put({
-          type: 'fetchApplication',
-        });
-      }
+      yield call(copeApplication, body);
+      yield cb && cb()
     },
+    // * fetchValidationDeleteApp({ payload, cb }, { call, put }) {
+    //   try {
+    //     yield call(validationDeleteApp, payload);
+    //     yield cb && cb()
+    //   } catch {
+    //     yield put({
+    //       type: 'fetchDeleteApplication',
+    //       payload,
+    //     });
+    //   }
+    // },
+
+    // * fetchDeleteApplication({ payload }, { call, put }) {
+    //   const queryData = {
+    //     id: payload,
+    //     clientId: getClientId(),
+    //     version: 0,
+    //   }
+    //   const response = yield call(deleteApplication, queryData);
+    //   if (response) {
+    //     message.success(formatMessage({ id: 'app.result.success' }));
+    //     yield put({
+    //       type: 'fetchApplication',
+    //     });
+    //   }
+    // },
+    // * fetchCopeApplication({ payload }, { call, put }) {
+    //   const queryDate = {
+    //     id: payload.id,
+    //     body: {
+    //       originX: 0,
+    //       originY: 0,
+    //       snippetId: payload.snippetId,
+    //     },
+    //   }
+    //   const response = yield call(copeApplication, queryDate);
+    //   if (response) {
+    //     message.success(formatMessage({ id: 'app.result.success' }));
+    //     yield put({
+    //       type: 'fetchApplication',
+    //     });
+    //   }
+    // },
     * fetchCreateAppTemp({ payload }, { call, put }) {
       const { snippetId, values, id } = payload;
       const params = {

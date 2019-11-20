@@ -21,3 +21,35 @@ export async function querySearchApplication(param) {
     },
   });
 }
+
+// 启用和禁用
+export async function updateAppEnable(appId) {
+  return request(`/studio/nifi-api/application/${appId}/enable`, {
+    method: 'PUT',
+  });
+}
+export async function updateAppDisable(appId) {
+  return request(`/studio/nifi-api/application/${appId}/disable`, {
+    method: 'PUT',
+  });
+}
+
+// 应用状态
+export async function showAppStatus(appId) {
+  return request(`/studio/nifi-api/application/${appId}/status`);
+}
+
+// 应用逻辑删除
+export async function deleteApplication(appId) {
+  return request(`/studio/nifi-api/application/${appId}/logic_delete`, {
+    method: 'DELETE',
+  })
+}
+
+// 复制粘贴
+export async function copeApplication(body) {
+  return request('/studio/nifi-api/application/copy', {
+    method: 'POST',
+    data: body,
+  });
+}

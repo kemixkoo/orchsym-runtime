@@ -26,8 +26,10 @@ class Application extends React.Component {
     // selectValue: '名称',
     selectedKeys: 'modifyDesc',
     iconType: 'sort-ascending',
+    pageNum: 1,
+    pageSizeNum: 10,
     searchVal: '',
-    sort: '',
+    sortedField: 'createdTime',
     isDesc: true,
   };
 
@@ -37,11 +39,9 @@ class Application extends React.Component {
   }
 
   doSearchAjax = value => {
-    if (value) {
-      this.setState({
-        searchVal: value,
-      });
-    }
+    this.setState({
+      searchVal: value,
+    });
   }
 
   handleSort = ({ key }) => {
@@ -51,25 +51,25 @@ class Application extends React.Component {
     if (key === 'nameSort') {
       this.setState({
         iconType: 'sort-descending',
-        sort: 'name',
+        sortedField: 'name',
         isDesc: false,
       })
     } else if (key === 'nameDesc') {
       this.setState({
         iconType: 'sort-ascending',
-        sort: 'name',
+        sortedField: 'name',
         isDesc: true,
       })
     } else if (key === 'modifySort') {
       this.setState({
         iconType: 'sort-descending',
-        sort: 'createdTime',
+        sortedField: 'createdTime',
         isDesc: false,
       })
     } else if (key === 'modifyDesc') {
       this.setState({
         iconType: 'sort-ascending',
-        sort: 'createdTime',
+        sortedField: 'createdTime',
         isDesc: true,
       })
     }
@@ -97,9 +97,15 @@ class Application extends React.Component {
   //   })
   // }
 
+  onSearchChange = (obj) => {
+    Object.keys(obj).forEach((key) => {
+      this.setState({ [key]: obj[key] })
+    })
+  }
+
   render() {
     const { createAppVisible, createOrEdit, selectedKeys, iconType,
-      searchVal, sort, isDesc } = this.state;
+      searchVal, sortedField, isDesc, pageSizeNum, pageNum } = this.state;
     const menu = (
       <Menu onClick={this.handleSort} selectedKeys={[selectedKeys]}>
         <MenuItem key="nameSort"><FormattedMessage id="page.application.nameSort" /></MenuItem>
@@ -160,8 +166,18 @@ class Application extends React.Component {
             </Col>
           </Row>
         </div>
-        <AppList searchVal={searchVal} sortedField={sort} isDesc={isDesc} />
-        <CreateOrEditApp visible={createAppVisible} handleCreateEditCancel={this.handleCreateEditCancel} title={createOrEdit} />
+        <AppList onSearchChange={this.onSearchChange} pageNum={pageNum} pageSizeNum={pageSizeNum} searchVal={searchVal} sortedField={sortedField} isDesc={isDesc} />
+        <CreateOrEditApp
+          onSearchChange={this.onSearchChange}
+          visible={createAppVisible}
+          handleCreateEditCancel={this.handleCreateEditCancel}
+          title={createOrEdit}
+          pageNum={pageNum}
+          pageSizeNum={pageSizeNum}
+          searchVal={searchVal}
+          sortedField={sortedField}
+          isDesc={isDesc}
+        />
       </PageHeaderWrapper>
     );
   }

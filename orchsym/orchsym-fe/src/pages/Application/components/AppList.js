@@ -1,6 +1,10 @@
 import React, { PureComponent } from 'react';
-import { Popover, Card, Menu, Icon, Dropdown, Divider, Tag, List, Modal, Tooltip } from 'antd';
+import {
+  Popover, Card, Menu, Icon, Dropdown, Divider,
+  Tag, List, Modal, Tooltip, message,
+} from 'antd';
 import { connect } from 'dva';
+import { cloneDeep } from 'lodash'
 import { formatMessage, getLocale } from 'umi-plugin-react/locale';
 import router from 'umi/router'
 import moment from 'moment';
@@ -24,63 +28,38 @@ class AppList extends PureComponent {
     saveTempVisible: null,
     appItem: {},
     errorData: [],
-    pageNum: 1,
-    pageSizeNum: 10,
+    editOrCope: '',
   };
 
   componentWillMount() {
-    const { pageNum, pageSizeNum } = this.state
-    const { sortedField, isDesc } = this.props
-    const query = {
-      page: pageNum,
-      pageSize: pageSizeNum,
-      isDetail: true,
-      sortedField,
-      isDesc,
-    }
-    this.getAppList(query)
+    const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props
+    this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { pageSizeNum } = this.state
-    const { searchVal, sortedField, isDesc } = this.props
+    const { onSearchChange, pageSizeNum, searchVal, sortedField, isDesc } = this.props
     // 如果数据发生变化，则更新图表
-    if (prevProps.searchVal !== searchVal) {
-      this.pageOne()
-      const query = {
-        page: 1,
-        pageSize: pageSizeNum,
-        isDetail: true,
-        q: searchVal,
-      }
-      this.getAppList(query)
-    }
-    if ((prevProps.sortedField !== sortedField) || (prevProps.isDesc !== isDesc)) {
-      this.pageOne()
-      const query = {
-        page: 1,
-        pageSize: pageSizeNum,
-        isDetail: true,
-        q: searchVal,
-        sortedField,
-        isDesc,
-      }
-      this.getAppList(query)
+    if ((prevProps.searchVal !== searchVal) || (prevProps.sortedField !== sortedField) || (prevProps.isDesc !== isDesc)) {
+      this.getAppList(1, pageSizeNum, sortedField, isDesc, searchVal)
+      onSearchChange({
+        pageNum: 1,
+      })
     }
   }
 
-  getAppList = (query) => {
+  getAppList = (page, pageSize, sortedField, isDesc, q) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'application/fetchApplication',
-      payload: query,
+      payload: {
+        page,
+        pageSize,
+        isDetail: true,
+        q,
+        sortedField,
+        isDesc,
+      },
     });
-  }
-
-  pageOne = () => {
-    this.setState({
-      pageNum: 1,
-    })
   }
 
   goToApp = (item) => {
@@ -92,7 +71,7 @@ class AppList extends PureComponent {
     router.push(`/canvas/${item.id}`)
   }
 
-  showEditModal = (item) => {
+  showEditModal = (item, state) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'application/fetchDetailApplication',
@@ -100,6 +79,7 @@ class AppList extends PureComponent {
     });
     this.setState({
       editVisible: true,
+      editOrCope: state,
     });
   }
 
@@ -124,21 +104,45 @@ class AppList extends PureComponent {
 
   // 状态操作
   updateStates = (item, state) => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'application/fetchUpdateAppState',
-      payload: {
-        id: item.id,
-        state,
-      },
-    });
+    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    if (state === 'ENABLED') {
+      dispatch({
+        type: 'application/fetchUpdateEnable',
+        payload: item.id,
+        cb: () => {
+          message.success(formatMessage({ id: 'app.result.success' }));
+          this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        },
+      });
+    } else if (state === 'DISABLED') {
+      dispatch({
+        type: 'application/fetchUpdateDisable',
+        payload: item.id,
+        cb: () => {
+          message.success(formatMessage({ id: 'app.result.success' }));
+          this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        },
+      });
+    } else {
+      dispatch({
+        type: 'application/fetchUpdateAppState',
+        payload: {
+          id: item.id,
+          state,
+        },
+        cb: () => {
+          message.success(formatMessage({ id: 'app.result.success' }));
+          this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        },
+      });
+    }
   }
 
   // 创建snippets
   createSnippets = (item, state) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'application/fetchCreateSnippets',
+      type: 'application/fetchcreateSnippets',
       payload: item,
       cb: (res) => {
         if (state === 'RUNNING') { // 运行
@@ -149,15 +153,16 @@ class AppList extends PureComponent {
               snippetId: res.id,
             },
           });
-        } else if (state === 'COPE') { // 复制
-          dispatch({
-            type: 'application/fetchCopeApplication',
-            payload: {
-              id: item.id,
-              snippetId: res.id,
-            },
-          });
         }
+        // else if (state === 'COPE') { // 复制
+        //   dispatch({
+        //     type: 'application/fetchCopeApplication',
+        //     payload: {
+        //       id: item.id,
+        //       snippetId: res.id,
+        //     },
+        //   });
+        // }
       },
     });
   }
@@ -168,28 +173,63 @@ class AppList extends PureComponent {
     dispatch({
       type: 'application/fetchValidationDeleteApp',
       payload: id,
-      cb: () => {
-        confirm({
-          title: formatMessage({ id: 'app.result.delete.title' }),
-          content: formatMessage({ id: 'app.result.delete.description' }),
-          okText: 'Yes',
-          okType: 'warning',
-          cancelText: 'No',
-          onOk() {
-            dispatch({
-              type: 'application/fetchDeleteApplication',
-              payload: id,
-            });
-          },
-          onCancel() {
-            console.log('Cancel');
-          },
-        });
+      cb: (res) => {
+        const that = this
+        if (res.canDelete) {
+          confirm({
+            title: formatMessage({ id: 'app.result.delete.title' }),
+            content: formatMessage({ id: 'app.result.delete.description' }),
+            okText: 'Yes',
+            okType: 'warning',
+            cancelText: 'No',
+            onOk() {
+              that.deleteFetch(id)
+            },
+            onCancel() {
+              console.log('Cancel');
+            },
+          });
+        } else {
+          confirm({
+            title: formatMessage({ id: 'app.result.delete.title' }),
+            content: formatMessage({ id: 'app.result.delete.description' }),
+            okText: 'Yes',
+            okType: 'warning',
+            cancelText: 'No',
+            onOk() {
+              that.deleteFetch(id)
+            },
+            onCancel() {
+              console.log('Cancel');
+            },
+          });
+        }
       },
     });
   }
 
-  getCarList = (item) => {
+  deleteFetch = (id) => {
+    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    dispatch({
+      type: 'application/fetchDeleteApplication',
+      payload: id,
+      cb: () => {
+        message.success(formatMessage({ id: 'app.result.success' }));
+        this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+      },
+    })
+  }
+
+  // 下载
+  downloadApp = (appId) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchDownloadApp',
+      payload: appId,
+    });
+  }
+
+  getCarList = (item, index) => {
     const { errorData } = this.state;
     const menu = (
       <Menu>
@@ -197,33 +237,33 @@ class AppList extends PureComponent {
           <IconFont type="OS-iconi-jr" />
           {`${formatMessage({ id: 'page.application.content.intoApp' })}`}
         </Menu.Item>
-        <Menu.Item key="2" onClick={() => { this.showEditModal(item) }}>
+        <Menu.Item key="2" onClick={() => { this.showEditModal(item, 'EDIT') }}>
           <IconFont type="OS-iconbianji" />
           {`${formatMessage({ id: 'page.application.editApp' })}`}
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="3" onClick={() => { this.createSnippets(item, 'RUNNING') }}>
+        <Menu.Item key="3" disabled={!item.canRun} onClick={() => { this.createSnippets(item, 'RUNNING') }}>
           <IconFont type="OS-iconqidong" />
           {`${formatMessage({ id: 'page.application.content.running' })}`}
         </Menu.Item>
-        <Menu.Item key="4" onClick={() => { this.updateStates(item, 'STOPPED') }}>
+        <Menu.Item key="4" disabled={!item.canStop} onClick={() => { this.updateStates(item, 'STOPPED') }}>
           <IconFont type="OS-icontingzhi" />
           {`${formatMessage({ id: 'page.application.content.stop' })}`}
         </Menu.Item>
-        <Menu.Item key="5" onClick={() => { this.updateStates(item, 'ENABLED') }}>
+        <Menu.Item key="5" disabled={!item.canEnable} onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <IconFont type="OS-iconqiyong" />
           {`${formatMessage({ id: 'page.application.content.enable' })}`}
         </Menu.Item>
-        <Menu.Item key="6" onClick={() => { this.updateStates(item, 'DISABLED') }}>
+        <Menu.Item key="6" disabled={!item.canDisable} onClick={() => { this.updateStates(item, 'DISABLED') }}>
           <IconFont type="OS-iconjinyong" />
           {`${formatMessage({ id: 'page.application.content.disable' })}`}
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="7" onClick={() => { this.createSnippets(item, 'COPE') }}>
+        <Menu.Item key="7" onClick={() => { this.showEditModal(item, 'COPE') }}>
           <IconFont type="OS-iconfuzhi" />
           {`${formatMessage({ id: 'page.application.content.cope' })}`}
         </Menu.Item>
-        <Menu.Item key="8" disabled>
+        <Menu.Item key="8" onClick={() => { this.downloadApp(item.id) }}>
           <IconFont type="OS-iconCell-Download" />
           {`${formatMessage({ id: 'page.application.content.download' })}`}
         </Menu.Item>
@@ -237,14 +277,6 @@ class AppList extends PureComponent {
           {`${formatMessage({ id: 'page.application.content.saveTemp' })}`}
         </Menu.Item>
       </Menu>
-    );
-
-    const dropdown = (
-      <Dropdown overlay={menu} trigger={['click']}>
-        <a className="ant-dropdown-link" href="#">
-          <Icon type="more" />
-        </a>
-      </Dropdown>
     );
 
     const menu2 = (
@@ -300,6 +332,27 @@ class AppList extends PureComponent {
         });
       }
     };
+
+    const appMenuChange = visible => {
+      const { applicationList, dispatch } = this.props
+      if (visible) {
+        dispatch({
+          type: 'application/fetchIsShowStatus',
+          payload: item.id,
+          cb: (res) => {
+            const resultsCopy = cloneDeep(applicationList)
+            Object.assign(resultsCopy.results[index], res)
+            dispatch({
+              type: 'application/appendValue',
+              payload: {
+                applicationList: resultsCopy,
+              },
+            })
+          },
+        });
+      }
+    };
+
     const formatMsgTime = (timeSpan) => {
       let timeSpanStr;
       if (timeSpan) {
@@ -341,7 +394,6 @@ class AppList extends PureComponent {
     const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.applicationCart} ${styles.errorApp}` : styles.applicationCart;
     return (
-      // <Col xl={6} lg={6} md={12} sm={12} xs={24} style={{ marginBottom: 16 }}>
       <Card onDoubleClick={() => { this.doubleGoToApp(item) }} className={isErrorCarName} style={{ width: '100%', height: 165 }}>
         <Card.Meta
           title={
@@ -362,7 +414,13 @@ class AppList extends PureComponent {
             </Tooltip>
           }
         />
-        <div className={styles.cardExtra}>{dropdown}</div>
+        <div className={styles.cardExtra}>
+          <Dropdown overlay={menu} trigger={['click']} onVisibleChange={appMenuChange}>
+            <a className="ant-dropdown-link" href="#">
+              <Icon type="more" />
+            </a>
+          </Dropdown>
+        </div>
         <div style={{ marginBottom: '10px' }}>
           {(!item.component.tags.length) ? '该应用暂无标签' :
             (<Popover placement="topLeft" content={tagContent}><div className={styles.lineEllipsis}>{(item.component.tags.map((i) => (<Tag color="blue">{i}</Tag>)))}</div></Popover>)
@@ -373,19 +431,21 @@ class AppList extends PureComponent {
           {dropdown2}
         </div>
         <p className={styles.cardTime}>{formatMsgTime(item.component.additions.MODIFIED_TIMESTAMP)}</p>
-        {(isError) ? (
-          <Dropdown trigger={['click']} onVisibleChange={handleVisibleChange} overlay={<LogList errorList={errorData} />}>
-            <span className={styles.triangle} />
-          </Dropdown>
-        ) : (null)}
+        {
+          (isError) ? (
+            <Dropdown trigger={['click']} onVisibleChange={handleVisibleChange} overlay={<LogList errorList={errorData} />}>
+              <span className={styles.triangle} />
+            </Dropdown>
+          ) : (null)
+        }
       </Card>
-      // </Col>
     );
   }
 
   render() {
-    const { saveTempVisible, editVisible, createOrEdit, appItem, pageNum, pageSizeNum } = this.state;
-    const { applicationList: { results, totalSize }, appDetails, loading } = this.props;
+    const { saveTempVisible, editVisible, createOrEdit, appItem, editOrCope } = this.state;
+    const { applicationList: { results, totalSize }, appDetails, loading,
+      onSearchChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
 
     const showTotal = (total) => {
       if (getLocale() === 'zh-CN') {
@@ -409,32 +469,22 @@ class AppList extends PureComponent {
             xxl: 4,
           }}
           dataSource={results}
-          renderItem={item => (
+          renderItem={(item, index) => (
             <List.Item key={item.id}>
-              {this.getCarList(item)}
+              {this.getCarList(item, index)}
             </List.Item>
           )}
           pagination={{
             onChange: (page, pageSize) => {
-              const query = {
-                page,
-                pageSize,
-                isDetail: true,
-              }
-              this.getAppList(query)
-              this.setState({
+              this.getAppList(page, pageSize, sortedField, isDesc, searchVal)
+              onSearchChange({
                 pageNum: page,
                 pageSizeNum: pageSize,
               })
             },
             onShowSizeChange: (current, size) => {
-              const query = {
-                page: current,
-                pageSize: size,
-                isDetail: true,
-              }
-              this.getAppList(query)
-              this.setState({
+              this.getAppList(current, size, sortedField, isDesc, searchVal)
+              onSearchChange({
                 pageNum: current,
                 pageSizeNum: size,
               })
@@ -452,10 +502,17 @@ class AppList extends PureComponent {
         {
           editVisible && (
             <CreateOrEditApp
+              editOrCope={editOrCope}
               visible={editVisible}
               handleCreateEditCancel={this.handleCreateEditCancel}
               title={createOrEdit}
               details={appDetails}
+              onSearchChange={this.onSearchChange}
+              pageNum={pageNum}
+              pageSizeNum={pageSizeNum}
+              searchVal={searchVal}
+              sortedField={sortedField}
+              isDesc={isDesc}
             />
           )
         }
