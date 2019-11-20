@@ -151,13 +151,11 @@ export default {
     },
     * fetchDownloadApp({ payload, cb }, { call, put }) {
       const res = yield call(downloadApplication, payload.id);
-      console.log(res)
       if (res) {
-        const file = res.data
-        const blob = new Blob([file], { type: 'application/octet-stream' })
+        const blob = new Blob([res], { type: 'application/octet-stream' })
         const a = document.createElement('a')
         a.setAttribute('href', window.URL.createObjectURL(blob))
-        const fileName = `${payload.name} .xml`;
+        const fileName = `${payload.name}.xml`;
         a.setAttribute('download', fileName)
         document.body.appendChild(a)
         a.click()
