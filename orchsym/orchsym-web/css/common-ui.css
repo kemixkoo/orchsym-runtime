@@ -569,11 +569,17 @@ div.nifi-tooltip {
     font-size: 13px;
     padding:3px 0;
     background-color:rgba(249,250,251,0.97); /*tint base-color 96%*/
-    border:1px solid #004849; /*link-color*/
+    border: 1px solid #666;
+    border-radius: 3px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.3);
     width: 215px;
     max-height: inherit;
-    color:#004849
+    color:#555;
+    overflow: hidden;
+}
+
+#stop-menu-item {
+    color: #f00 !important;
 }
 
 div.context-menu-item {

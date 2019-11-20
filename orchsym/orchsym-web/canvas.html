@@ -161,6 +161,92 @@
 </div>
 
 <div id="banner-header" class="main-banner-header"></div>
+<!--wanzhen 2019-11-20-->
+<md-menu md-position-mode="target-right target" md-offset="-1 44" id="global-menu-button-box">
+    <button md-menu-origin id="global-menu-button" ng-click="$mdOpenMenu()">
+        <div class="icon icon-menu" style="margin-right: -30px;"></div>
+    </button>
+    <md-menu-content id="global-menu-content">
+        <md-menu-item layout-align="space-around center">
+            <a id="reporting-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.summary.shell.launch();">
+                <i class="fa fa-table"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Summary'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center">
+            <a id="counters-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.counters.shell.launch();"
+               ng-class="{disabled: !appCtrl.nf.Common.canAccessCounters()}">
+                <i class="icon icon-menu-counters"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Counter'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center">
+            <a id="bulletin-board-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.bulletinBoard.shell.launch();">
+                <i class="icon icon-bell"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.BulletinBoard'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item
+                layout-align="space-around center">
+            <a id="provenance-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.dataProvenance.shell.launch();"
+               ng-class="{disabled: !appCtrl.nf.Common.canAccessProvenance()}">
+                <i class="icon icon-provenance"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.DataProvenance'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item layout-align="space-around center">
+            <a id="flow-settings-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.controllerSettings.shell.launch();">
+                <i class="icon icon-menu-contorller-settings"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.ControllerSettings'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item ng-if="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.cluster.visible();"
+                      layout-align="space-around center">
+            <a id="cluster-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.cluster.shell.launch();"
+               ng-class="{disabled: !appCtrl.nf.Common.canAccessController()}">
+                <i class="fa fa-cubes"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Cluster'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center">
+            <a id="history-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.flowConfigHistory.shell.launch();">
+                <i class="icon icon-menu-history"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.OperationHistory'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider ng-if="appCtrl.nf.CanvasUtils.isConfigurableAuthorizer()"></md-menu-divider>
+        <md-menu-item layout-align="space-around center" ng-if="appCtrl.nf.CanvasUtils.isConfigurableAuthorizer()">
+            <a id="users-link" layout="row"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.users.shell.launch();"
+               ng-class="{disabled: !(appCtrl.nf.Common.canAccessTenants())}">
+                <i class="fa fa-users"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Users'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center" ng-if="appCtrl.nf.CanvasUtils.isConfigurableAuthorizer()">
+            <a id="policies-link" layout="row"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.policies.shell.launch();"
+               ng-class="{disabled: !(appCtrl.nf.Common.canAccessTenants() && appCtrl.nf.Common.canModifyPolicies())}">
+                <i class="fa fa-key"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Policies'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item layout-align="space-around center">
+            <a id="templates-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.templates.shell.launch();">
+                <i class="icon icon-template"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Templates'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item layout-align="space-around center">
+            <a id="about-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.about.modal.show();">
+                <i class="icon icon-menu-about"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.About'] }}
+            </a>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>
 <!--
 <div id="banner-footer" class="main-banner-footer"></div><md-toolbar id="header" layout-align="space-between center" layout="row" class="md-small md-accent md-hue-1">
     <img id="nifi-logo" src="images/logo.svg">
@@ -353,7 +439,7 @@
                     </button>
                     <button class="svg-right" ng-click="appCtrl.nf.Actions['managePolicies'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!(appCtrl.nf.CanvasUtils.canManagePolicies())">
-                        <span class="acon-key"></span>
+                        <span class="fa fa-key"></span>
                     </button>
                     <button class="svg-right" ng-click="appCtrl.nf.Actions['fillColor'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.isColorable(appCtrl.nf.CanvasUtils.getSelection());">
@@ -488,25 +574,25 @@
     </div>
     <div>
         <div class="action-button-right">
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
-                <span class="acon-eye"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
+                <span class="acon-eye" style="font-size: 18px;"></span>
             </button>
-            <div class="svg-right" style="margin-right: 4px;">
+            <div class="svg-right" style="margin-top: 0px;">
                 <div class="line"></div>
             </div>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">
-                <span class="acon-zoom-in"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">
+                <span class="acon-zoom-in" style="font-size: 18px;"></span>
             </button>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">
-                <span class="acon-zoom-out"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">
+                <span class="acon-zoom-out" style="font-size: 18px;"></span>
             </button>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">
-                <span class="acon-fullscreen"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">
+                <span class="acon-fullscreen" style="font-size: 18px;"></span>
             </button>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">
-                <span class="acon-shrink"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">
+                <span class="acon-shrink" style="font-size: 18px;"></span>
             </button>
-            <div class="svg-right">
+            <div class="svg-right" style="margin-top: 0px;">
                 <div class="line"></div>
             </div>
         </div>

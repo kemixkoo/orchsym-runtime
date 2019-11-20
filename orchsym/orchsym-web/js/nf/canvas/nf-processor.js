@@ -225,6 +225,7 @@
     };
 
     var paintSmallProcessor = function (processor, processorData) {
+        console.log("processorData", processorData)
         // processor border
         processor.append('rect')
             .attrs({

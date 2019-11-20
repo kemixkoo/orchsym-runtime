@@ -362,7 +362,7 @@ rect.birdseye-brush {
 
 #breadcrumbs {
     background-color: #fff;
-    height: 33px;
+    height: 50px;
     width: 100%;
 }
 
@@ -430,7 +430,7 @@ span.breadcrumb-version-control-gray {
 
 .component-panel {
     position: absolute;
-    top: 34px;
+    top: 50px;
     right: 40px;
     bottom: 34px;
     z-index: 5;
@@ -439,7 +439,7 @@ span.breadcrumb-version-control-gray {
 .component-panel-tools {
     width: 40px;
     position: absolute;
-    top: 34px;
+    top: 50px;
     right: 0;
     bottom: 34px;
     z-index: 5;
@@ -747,6 +747,7 @@ span.breadcrumb-version-control-gray {
 }
 div.action-button-right{
     float: right;
+    margin-top: 6px;
 }
 .svg-right{
     margin-top: 4px;
@@ -765,7 +766,7 @@ button.svg-right:disabled {
 .svg-right span{
     height: 32px;
     opacity: 0.6;
-    font-size: 18px;
+    font-size: 24px;
     padding-left: 0px;
 }
 .svg-right span:hover{
@@ -778,11 +779,11 @@ button.svg-right:disabled {
     color: rgb(24, 224, 32);
 }
 .svg-right .line{
-    height: 20px;
+    height: 24px;
     width: 3px;
     margin-right: 2px;
     border-right: 1px solid rgba(0,0,0,0.26);
-    margin-top: 3px;
+    margin-top: 2px;
 }
 #breadcrumbs-search{
     width: 20%;

@@ -19,6 +19,7 @@ export default class Index extends Component {
       )
       window.history.pushState({ title: d.status.name }, d.status.name, `https://${window.location.host}/canvas/${d.id}`);
     }
+    console.log('this.canvasIframe', this.canvasIframe.contentWindow, this.canvasIframe.contentWindow.iframeEnterGroup)
   }
 
   render() {
@@ -40,7 +41,7 @@ export default class Index extends Component {
           title="canvas"
           style={{ width: '100%', height: '100%', overflow: 'visible' }}
           src={src}
-          // ref={(R) => { this.canvasIframe = R }}
+          ref={(R) => { this.canvasIframe = R }}
           width="100%"
           height="100%"
           scrolling="no"

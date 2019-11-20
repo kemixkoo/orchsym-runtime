@@ -1676,6 +1676,7 @@
             });
         }
     };
-
+    // wanzhen 2019.11.13
+    window.iframeEnterGroup = nfProcessGroup.enterGroup;
     return nfProcessGroup;
 }));

@@ -622,7 +622,6 @@
 
                                 serviceProvider.graphControlsCtrl.componentDict[documentedType.name] = documentedType
                             });
-
                             $.ajax({
                                 type: 'GET',
                                 url: serviceProvider.headerCtrl.toolboxCtrl.config.urls.marks,
