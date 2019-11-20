@@ -76,12 +76,6 @@ request.interceptors.request.use((url, options) => {
   if (getToken()) {
     options.headers.Authorization = `Bearer ${getToken()}`;
   }
-  if (url.indexOf('/download') > 0) { // 判断是否是模版下载
-    console.log(options.headers)
-    console.log(options.headers['content-disposition'])
-    // const fileName = options.headers['content-disposition'].split('filename=')[1]
-    // localStorage.setItem('fileName', fileName);
-  }
   options.headers.Locale = localStorage.getItem('umi_locale') || 'zh-CN';
   return (
     {
@@ -111,6 +105,13 @@ request.interceptors.response.use((response, options) => {
       return response
     }
   }
+  if (response.url.indexOf('/download') > 0) { // 判断是否是模版下载
+    console.log(response)
+    console.log(response.headers['content-disposition'])
+    const fileName = options.headers['content-disposition'].split('filename=')[1]
+    localStorage.setItem('fileName', fileName);
+  }
+
   // console.log('response++', response)
   return response
 });

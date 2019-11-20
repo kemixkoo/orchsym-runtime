@@ -23,39 +23,19 @@ class CreateOrEditApp extends React.Component {
   }
 
   handleCreateEditOk = (e) => {
-    const { editOrCope, appDetails, dispatch, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
+    const { editOrCope, appDetails, handleCreateEditCancel, form: { validateFields, resetFields } } = this.props;
     e.preventDefault();
     validateFields((err, values) => {
       if (!err) {
-        const queryData = {
-          name: values.name,
-          appId: '',
+        if (Object.keys(appDetails).length === 0) {
+          this.addFetch(values)
+        } else if (editOrCope === 'EDIT') {
+          this.editFetch(values)
+        } else {
+          this.copeFetch(values)
         }
-        if (Object.keys(appDetails).length > 0) {
-          queryData.appId = appDetails.id
-        }
-        dispatch({
-          type: 'application/fetchValidationCheckName',
-          payload: queryData,
-          cb: (res) => {
-            if (res.isValid) {
-              if (Object.keys(appDetails).length === 0) {
-                this.addFetch(values)
-              } else if (editOrCope === 'EDIT') {
-                this.editFetch(values)
-              } else {
-                this.copeFetch(values)
-              }
-              resetFields();
-              handleCreateEditCancel();
-            } else {
-              Modal.error({
-                title: formatMessage({ id: 'model.warning' }),
-                content: formatMessage({ id: 'validation.appName.duplicate' }),
-              });
-            }
-          },
-        });
+        resetFields();
+        handleCreateEditCancel();
       }
     });
   }
@@ -165,6 +145,32 @@ class CreateOrEditApp extends React.Component {
     //   }
     //   callback();
     // }
+    const checkReName = (rule, value, callback) => {
+      const { dispatch, appDetails } = this.props;
+      if (value) {
+        const queryData = {
+          name: value,
+          appId: '',
+        }
+        if (Object.keys(appDetails).length > 0) {
+          queryData.appId = appDetails.id
+        }
+        dispatch({
+          type: 'application/fetchValidationCheckName',
+          payload: queryData,
+          cb: (res) => {
+            console.log(res)
+            if (res.isValid) {
+              callback();
+            } else {
+              callback([new Error(formatMessage({ id: 'validation.appName.duplicate' }))]);
+            }
+          },
+        });
+      } else {
+        callback();
+      }
+    }
     const componentName = v => {
       const { editOrCope } = this.props;
       let str = ''
@@ -195,6 +201,7 @@ class CreateOrEditApp extends React.Component {
                   { required: true, message: formatMessage({ id: 'validation.appName.required' }) },
                   { max: 20, message: formatMessage({ id: 'validation.appName.placeholder' }) },
                   { whitespace: true, message: formatMessage({ id: 'validation.appName.required' }) },
+                  { validator: checkReName },
                 ],
                 initialValue: componentName(component),
               })(
