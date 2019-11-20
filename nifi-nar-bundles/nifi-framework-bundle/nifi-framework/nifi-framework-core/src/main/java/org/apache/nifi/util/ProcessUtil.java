@@ -160,70 +160,11 @@ public final class ProcessUtil {
     }
 
     /**
-     * update the value of key for additions
-     */
-    public static String updateGroupAdditions(ProcessGroup group, String name, Object value) {
-        name = checkAdditionName(name);
-
-        String oldValue = null;
-
-        Map<String, String> newAdditions = new HashMap<>();
-        final Map<String, String> additions = group.getAdditions();
-        if (null != additions) {
-            oldValue = additions.get(name);
-
-            newAdditions.putAll(additions);
-        }
-        newAdditions.put(name, Objects.isNull(value) ? "" : value.toString());
-
-        group.setAdditions(newAdditions);
-
-        return oldValue;
-    }
-
-    /**
-     * remove the key for additions
-     */
-    public static String removeGroupAdditions(ProcessGroup group, String name) {
-        name = checkAdditionName(name);
-
-        String oldValue = null;
-
-        Map<String, String> newAdditions = new HashMap<>();
-        final Map<String, String> additions = group.getAdditions();
-        if (null != additions) {
-            oldValue = additions.get(name);
-
-            newAdditions.putAll(additions);
-        }
-        newAdditions.remove(name);
-
-        group.setAdditions(newAdditions);
-
-        return oldValue;
-    }
-
-    /**
      * check the value of key for additions
      */
     public static boolean hasValueGroupAdditions(ProcessGroup group, String name) {
-        name = checkAdditionName(name);
-
-        return hasGroupAdditions(group, name) //
-                && StringUtils.isNotBlank(group.getAdditions().get(name));
-    }
-
-    /**
-     * check the key for additions
-     */
-    public static boolean hasGroupAdditions(ProcessGroup group, String name) {
-
-        final Map<String, String> additions = group.getAdditions();
-        if (null != additions && additions.containsKey(checkAdditionName(name))) {
-            return true;
-        }
-
-        return false;
+        return group.hasAddition(name) //
+                && StringUtils.isNotBlank(group.getAddition(name));
     }
 
     public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
@@ -231,7 +172,7 @@ public final class ProcessUtil {
     }
 
     public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name, Boolean defaultValue) {
-        final String valueStr = group.getAddition(checkAdditionName(name));
+        final String valueStr = group.getAddition(name);
         if (StringUtils.isNotBlank(valueStr)) {
             return Boolean.parseBoolean(valueStr);
         }
@@ -239,29 +180,11 @@ public final class ProcessUtil {
     }
 
     public static Boolean getAdditionBooleanValue(ProcessAdditions additionParam, String name, Boolean defaultValue) {
-        final String valueStr = additionParam.getAddition(checkAdditionName(name));
+        final String valueStr = additionParam.getAddition(name);
         if (StringUtils.isNotBlank(valueStr)) {
             return Boolean.parseBoolean(valueStr);
         }
         return defaultValue;
-    }
-
-    public static void fixDefaultValue(ProcessAdditions additionParam, String name, Object defaultValue) {
-        if (Objects.isNull(defaultValue)) {
-            return;
-        }
-        final String checkedName = checkAdditionName(name);
-        if (additionParam.hasAddition(checkedName)) {
-            return;
-        }
-        Map<String, String> additions = additionParam.getAdditions();
-        if (Objects.isNull(additions)) { // none
-            additions = new HashMap<>();
-        } else {
-            additions = new HashMap<>(additions);
-        }
-        additions.put(checkedName, defaultValue.toString());
-        additionParam.setAdditions(additions);
     }
 
     public static Long getGroupAdditionLongValue(ProcessGroup group, String name) {
@@ -269,7 +192,7 @@ public final class ProcessUtil {
     }
 
     public static Long getGroupAdditionLongValue(ProcessGroup group, String name, Long defaultValue) {
-        final String valueStr = group.getAddition(checkAdditionName(name));
+        final String valueStr = group.getAddition(name);
 
         if (StringUtils.isNotBlank(valueStr)) {
             return Long.parseLong(valueStr);
@@ -277,7 +200,4 @@ public final class ProcessUtil {
         return defaultValue;
     }
 
-    private static String checkAdditionName(String name) {
-        return name.toUpperCase();
-    }
 }

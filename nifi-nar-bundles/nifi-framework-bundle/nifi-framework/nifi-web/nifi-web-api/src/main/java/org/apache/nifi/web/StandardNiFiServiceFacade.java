@@ -131,7 +131,6 @@ import org.apache.nifi.util.NiFiProperties;
 import org.apache.nifi.web.api.dto.AccessPolicyDTO;
 import org.apache.nifi.web.api.dto.AccessPolicySummaryDTO;
 import org.apache.nifi.web.api.dto.AffectedComponentDTO;
-import org.apache.nifi.web.api.dto.AppCopyDTO;
 import org.apache.nifi.web.api.dto.BucketDTO;
 import org.apache.nifi.web.api.dto.BulletinBoardDTO;
 import org.apache.nifi.web.api.dto.BulletinDTO;
@@ -258,6 +257,7 @@ import org.apache.nifi.web.api.entity.VersionControlComponentMappingEntity;
 import org.apache.nifi.web.api.entity.VersionControlInformationEntity;
 import org.apache.nifi.web.api.entity.VersionedFlowEntity;
 import org.apache.nifi.web.api.entity.VersionedFlowSnapshotMetadataEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.controller.ControllerFacade;
 import org.apache.nifi.web.dao.AccessPolicyDAO;
 import org.apache.nifi.web.dao.ConnectionDAO;
@@ -1757,7 +1757,8 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 if (app.getParent().isRootGroup() && threadLocal != null && threadLocal.get() instanceof  Long){
                     Long createdTime = (Long) threadLocal.get();
                     threadLocal.remove();
-                    updateDirectGroupTimeField(StandardNiFiServiceFacade.createdTime, createdTime, app);
+                    app.setAddition(AdditionConstants.KEY_CREATED_TIMESTAMP, createdTime);
+                    app.setAddition(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
                 }
             }
             // save the flow
@@ -1779,9 +1780,6 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         UPDATE_COMPONENT
     }
      */
-
-    public static final String createdTime = "CREATED_TIMESTAMP";
-    public static final String modifiedTime = "MODIFIED_TIMESTAMP";
 
     /*
     private <C> void  updateAndCreateComponentCallBack(C c, OperateType operateType){
@@ -1821,15 +1819,6 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         updateDirectGroupTimeField(modifiedTime, time, group);
     }
      */
-
-    // 更新指定的group时间字段
-    private void updateDirectGroupTimeField(String fieldName, long time, ProcessGroup group){
-        Map<String, String> additions = group.getAdditions();
-        Map<String,String> putMap = new HashMap<>();
-        putMap.putAll(additions);
-        putMap.put(fieldName, Long.toString(time));
-        group.setAdditions(putMap);
-    }
 
     /*
     private  void updateAppGroup(ComponentAuthorizable component, long time){

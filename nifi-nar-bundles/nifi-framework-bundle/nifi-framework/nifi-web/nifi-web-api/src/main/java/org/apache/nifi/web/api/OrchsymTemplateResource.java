@@ -17,33 +17,42 @@
  */
 package org.apache.nifi.web.api;
 
-import io.swagger.annotations.*;
-import net.minidev.json.JSONObject;
-import org.apache.nifi.authorization.AuthorizableLookup;
-import org.apache.nifi.authorization.RequestAction;
-import org.apache.nifi.authorization.SnippetAuthorizable;
-import org.apache.nifi.authorization.resource.Authorizable;
-import org.apache.nifi.authorization.user.NiFiUser;
-import org.apache.nifi.authorization.user.NiFiUserUtils;
-import org.apache.nifi.connectable.Connectable;
-import org.apache.nifi.connectable.Connection;
-import org.apache.nifi.controller.ScheduledState;
-import org.apache.nifi.groups.ProcessGroup;
-import org.apache.nifi.templates.TemplateFiledName;
-import org.apache.nifi.templates.TemplateSourceType;
-import org.apache.nifi.web.api.dto.DropRequestDTO;
-import org.apache.nifi.web.api.dto.TemplateDTO;
-import org.apache.nifi.web.api.entity.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.*;
+
+import org.apache.nifi.authorization.AuthorizableLookup;
+import org.apache.nifi.authorization.RequestAction;
+import org.apache.nifi.authorization.SnippetAuthorizable;
+import org.apache.nifi.authorization.user.NiFiUser;
+import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.web.api.dto.TemplateDTO;
+import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
+import org.apache.nifi.web.api.entity.TemplateEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+import org.apache.nifi.web.api.orchsym.template.TemplateFiledName;
+import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
 
 /**
  * @author liuxun
@@ -152,19 +161,19 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     private Map<String, String> getContentsMapFromEntity(OrchsymCreateTemplateReqEntity entity){
         Map<String, String> contentMap = new HashMap<>(7);
         if (entity.getCreatedUser() != null){
-            contentMap.put(TemplateFiledName.CREATED_USER, entity.getCreatedUser());
+            contentMap.put(AdditionConstants.KEY_CREATED_USER, entity.getCreatedUser());
         }
 
         if (entity.getCreatedTime() != null){
-            contentMap.put(TemplateFiledName.CREATED_TIME, Long.toString(entity.getCreatedTime()));
+            contentMap.put(AdditionConstants.KEY_CREATED_TIMESTAMP, Long.toString(entity.getCreatedTime()));
         }
 
         if (entity.getModifiedTime() != null){
-            contentMap.put(TemplateFiledName.MODIFIED_TIME, Long.toString(entity.getModifiedTime()));
+            contentMap.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, Long.toString(entity.getModifiedTime()));
         }
 
         if (entity.getModifiedUser() != null){
-            contentMap.put(TemplateFiledName.MODIFIED_USER, entity.getModifiedUser());
+            contentMap.put(AdditionConstants.KEY_MODIFIED_USER, entity.getModifiedUser());
         }
 
         if (entity.getSourceType() != null){
@@ -176,7 +185,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         }
 
         if (entity.getUploadedTime() != null){
-            contentMap.put(TemplateFiledName.UPLOADED_TIME, Long.toString(entity.getUploadedTime()));
+            contentMap.put(TemplateFiledName.UPLOADED_TIMESTAMP, Long.toString(entity.getUploadedTime()));
         }
 
         return contentMap;

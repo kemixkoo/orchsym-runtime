@@ -17,7 +17,11 @@
  */
 package org.apache.nifi.groups;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
 
 public interface ProcessAdditions {
     String ADDITIONS_NAME = "additions";
@@ -30,24 +34,72 @@ public interface ProcessAdditions {
 
     void setAdditions(Map<String, String> additions);
 
+    default String checkAdditionName(String name) {
+        return name.toUpperCase();
+    }
+
     default boolean hasAddition(String name) {
-        final Map<String, String> additions = getAdditions();
-        if (null == additions || additions.isEmpty())
+        if (Objects.isNull(name)) {
             return false;
-        return additions.containsKey(name);
+        }
+        final Map<String, String> additions = getAdditions();
+        if (Objects.isNull(additions) || additions.isEmpty())
+            return false;
+        return additions.containsKey(checkAdditionName(name));
+    }
+
+    default boolean hasAdditionValue(String name) {
+        return hasAddition(name) //
+                && StringUtils.isNotBlank(getAddition(name));
+
     }
 
     default String getAddition(String name) {
-        final Map<String, String> additions = getAdditions();
-        if (null == additions || additions.isEmpty())
+        if (Objects.isNull(name)) {
             return null;
-        return additions.get(name);
+        }
+        final Map<String, String> additions = getAdditions();
+        if (Objects.isNull(additions) || additions.isEmpty())
+            return null;
+        return additions.get(checkAdditionName(name));
     }
 
-    String KEY_IS_DELETED = "IS_DELETED";
-    Boolean KEY_IS_DELETED_DEFAULT = Boolean.FALSE; // default is not deleted
+    default String setAddition(String name, Object value) {
+        if (Objects.isNull(name)) {
+            return null;
+        }
+        final String checkAdditionName = checkAdditionName(name);
 
-    String KEY_IS_ENABLED = "IS_ENABLED";
-    Boolean KEY_IS_ENABLED_DEFAULT = Boolean.TRUE; // default is enabled
+        final String oldValue = getAddition(checkAdditionName);
+
+        Map<String, String> newAdditions = new HashMap<>();
+        final Map<String, String> additions = getAdditions();
+        if (!Objects.isNull(additions)) {
+            newAdditions.putAll(additions);
+        }
+        newAdditions.put(checkAdditionName, Objects.isNull(value) ? "" : value.toString());
+        setAdditions(newAdditions);
+
+        return oldValue;
+    }
+
+    default String removeAddition(String name) {
+        if (Objects.isNull(name)) {
+            return null;
+        }
+        final String checkAdditionName = checkAdditionName(name);
+
+        final String oldValue = getAddition(checkAdditionName);
+
+        Map<String, String> newAdditions = new HashMap<>();
+        final Map<String, String> additions = getAdditions();
+        if (!Objects.isNull(additions)) {
+            newAdditions.putAll(additions);
+        }
+        newAdditions.remove(checkAdditionName);
+        setAdditions(newAdditions);
+
+        return oldValue;
+    }
 
 }

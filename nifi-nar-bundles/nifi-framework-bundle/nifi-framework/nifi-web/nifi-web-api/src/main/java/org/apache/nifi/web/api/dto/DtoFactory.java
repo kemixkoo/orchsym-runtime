@@ -154,7 +154,6 @@ import org.apache.nifi.reporting.ReportingTask;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.util.FlowDifferenceFilters;
 import org.apache.nifi.util.FormatUtils;
-import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.FlowModification;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.action.ActionDTO;
@@ -217,6 +216,7 @@ import org.apache.nifi.web.api.entity.RemoteProcessGroupEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupStatusSnapshotEntity;
 import org.apache.nifi.web.api.entity.TenantEntity;
 import org.apache.nifi.web.api.entity.VariableEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.controller.ControllerFacade;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.apache.nifi.util.VersionHelper;
@@ -239,6 +239,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -2256,8 +2257,8 @@ public final class DtoFactory {
         } else {
             additions = new HashMap<>();
         }
-        ProcessUtil.fixDefaultValue(group, ProcessAdditions.KEY_IS_DELETED, ProcessAdditions.KEY_IS_DELETED_DEFAULT);
-        ProcessUtil.fixDefaultValue(group, ProcessAdditions.KEY_IS_ENABLED, ProcessAdditions.KEY_IS_ENABLED_DEFAULT);
+        fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+        fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
         dto.setAdditions(additions);
 
         final ProcessGroup parentGroup = group.getParent();
@@ -2283,6 +2284,16 @@ public final class DtoFactory {
         return dto;
     }
 
+    private void fixDefaultValue(Map<String, String> additions, String name, Object defaultValue) {
+        if (Objects.isNull(defaultValue)) {
+            return;
+        }
+        if (additions.containsKey(name)) {
+            return;
+        }
+
+        additions.put(name, defaultValue.toString());
+    }
 
     public Set<ComponentDifferenceDTO> createComponentDifferenceDtos(final FlowComparison comparison) {
         final Map<ComponentDifferenceDTO, List<DifferenceDTO>> differencesByComponent = new HashMap<>();

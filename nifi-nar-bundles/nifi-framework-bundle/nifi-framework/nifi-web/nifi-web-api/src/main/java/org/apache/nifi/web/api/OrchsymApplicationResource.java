@@ -68,12 +68,10 @@ import org.apache.nifi.controller.Snippet;
 import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
-import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
-import org.apache.nifi.web.StandardNiFiServiceFacade;
 import org.apache.nifi.web.api.dto.PositionDTO;
 import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
@@ -84,6 +82,7 @@ import org.apache.nifi.web.api.entity.AppGroupEntity;
 import org.apache.nifi.web.api.entity.AppSearchEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -105,8 +104,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     /**
      * @apiNote group中相关的创建和修改时间
      */
-    private static final String KEY_CREATED_TIME = StandardNiFiServiceFacade.createdTime;
-    private static final String KEY_MODIFIED_TIME = StandardNiFiServiceFacade.modifiedTime;
     private static final String PARAM_MODIFIED_TIME = "modifiedTime";
     private static final String PARAM_CREATED_TIME = "createdTime";
 
@@ -234,7 +231,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
 
         if (null == searchEnity.getDeleted()) {
-            searchEnity.setDeleted(ProcessAdditions.KEY_IS_DELETED_DEFAULT); // 默认未删除应用
+            searchEnity.setDeleted(AdditionConstants.KEY_IS_DELETED_DEFAULT); // 默认未删除应用
         }
 
         // FIXME, 暂不支持modified_time，否应该删除统一到创建日期上
@@ -268,11 +265,11 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                         groupEntity.setName(group.getName());
                         groupEntity.setComments(group.getComments());
 
-                        groupEntity.setCreatedTime(ProcessUtil.getGroupAdditionLongValue(group, KEY_CREATED_TIME));
-                        groupEntity.setModifiedTime(ProcessUtil.getGroupAdditionLongValue(group, KEY_MODIFIED_TIME));
+                        groupEntity.setCreatedTime(ProcessUtil.getGroupAdditionLongValue(group, AdditionConstants.KEY_CREATED_TIMESTAMP));
+                        groupEntity.setModifiedTime(ProcessUtil.getGroupAdditionLongValue(group, AdditionConstants.KEY_MODIFIED_TIMESTAMP));
 
-                        groupEntity.setDeleted(ProcessUtil.getGroupAdditionBooleanValue(group, ProcessAdditions.KEY_IS_DELETED, ProcessAdditions.KEY_IS_DELETED_DEFAULT));
-                        groupEntity.setEnabled(ProcessUtil.getGroupAdditionBooleanValue(group, ProcessAdditions.KEY_IS_ENABLED, ProcessAdditions.KEY_IS_ENABLED_DEFAULT));
+                        groupEntity.setDeleted(ProcessUtil.getGroupAdditionBooleanValue(group, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT));
+                        groupEntity.setEnabled(ProcessUtil.getGroupAdditionBooleanValue(group, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT));
 
                         if (null != group.getTags()) {
                             groupEntity.setTags(new HashSet<>(group.getTags()));
@@ -483,11 +480,11 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // enabled/disabled
         // 为兼容老版本，不设置，默认为enabled
-        boolean isEnabled = ProcessUtil.getGroupAdditionBooleanValue(groupApp, ProcessAdditions.KEY_IS_ENABLED, ProcessAdditions.KEY_IS_ENABLED_DEFAULT);
+        boolean isEnabled = ProcessUtil.getGroupAdditionBooleanValue(groupApp, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
         resultMap.put("canEnable", !isEnabled);
         resultMap.put("canDisable", isEnabled);
 
-        boolean isDeleted = ProcessUtil.getGroupAdditionBooleanValue(groupApp, ProcessAdditions.KEY_IS_DELETED, ProcessAdditions.KEY_IS_DELETED_DEFAULT);
+        boolean isDeleted = ProcessUtil.getGroupAdditionBooleanValue(groupApp, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
         resultMap.put("canDelete", !isDeleted);
 
         return noCache(Response.ok(resultMap)).build();
@@ -554,7 +551,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             groupResource.safeCleanGroup(group, true, true, true, false);
         };
 
-        return updateAppStatus(appId, ProcessAdditions.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
+        return updateAppStatus(appId, AdditionConstants.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
     }
 
     @PUT
@@ -586,7 +583,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             groupResource.safeCleanGroup(group, true, true, true, false);
         };
 
-        return updateAppStatus(findFirst.get().getIdentifier(), ProcessAdditions.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
+        return updateAppStatus(findFirst.get().getIdentifier(), AdditionConstants.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
     }
 
     @PUT
@@ -605,7 +602,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return replicate(HttpMethod.PUT);
         }
 
-        return updateAppStatus(appId, ProcessAdditions.KEY_IS_DELETED, Boolean.FALSE, null);
+        return updateAppStatus(appId, AdditionConstants.KEY_IS_DELETED, Boolean.FALSE, null);
     }
 
     @PUT
@@ -624,7 +621,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return replicate(HttpMethod.PUT);
         }
 
-        return updateAppStatus(appId, ProcessAdditions.KEY_IS_ENABLED, Boolean.TRUE, null);
+        return updateAppStatus(appId, AdditionConstants.KEY_IS_ENABLED, Boolean.TRUE, null);
     }
 
     @PUT
@@ -647,7 +644,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             // 停组件和服务，保留队列和模板
             groupResource.safeCleanGroup(group, true, true, false, false);
         };
-        return updateAppStatus(appId, ProcessAdditions.KEY_IS_ENABLED, Boolean.FALSE, cleanAction);
+        return updateAppStatus(appId, AdditionConstants.KEY_IS_ENABLED, Boolean.FALSE, cleanAction);
     }
 
     private Response updateAppStatus(final String appId, final String additionKey, final Object value, final Consumer<String> cleanAction) {
@@ -678,7 +675,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     private void saveAppStatus(String appId, String key, Object value) {
         final ProcessGroup group = flowController.getGroup(appId);
 
-        ProcessUtil.updateGroupAdditions(group, key, value);
+        group.setAddition(key, value);
 
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
     }
@@ -887,7 +884,12 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         if (sourceAppId == null) {
             throw new IllegalArgumentException("Source application ID must be specified.");
         }
-
+        if (null == requestAppCopyEntity.getCreatedTime()) {
+            requestAppCopyEntity.setCreatedTime(System.currentTimeMillis());
+        }
+        if (null == requestAppCopyEntity.getCreatedUser()) {
+            requestAppCopyEntity.setCreatedUser(NiFiUserUtils.getNiFiUser().getIdentity());
+        }
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestAppCopyEntity);
         }
@@ -897,12 +899,13 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
 
         final String rootId = flowController.getRootGroupId();
+        final ProcessGroupEntity sourceApp = serviceFacade.getProcessGroup(sourceAppId);
 
         final SnippetDTO snippetDTO = new SnippetDTO();
         snippetDTO.setId(generateUuid());
         snippetDTO.setParentGroupId(rootId);
         final Map<String, RevisionDTO> app = new HashMap<>();
-        app.put(sourceAppId, serviceFacade.getProcessGroup(sourceAppId).getRevision());
+        app.put(sourceAppId, sourceApp.getRevision());
         snippetDTO.setProcessGroups(app);
 
         final ProcessGroupDTO processGroupDTO = new ProcessGroupDTO();
@@ -910,6 +913,27 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         processGroupDTO.setName(newName);
         processGroupDTO.setComments(requestAppCopyEntity.getComments());
         processGroupDTO.setTags(requestAppCopyEntity.getTags());
+
+        Map<String, String> additions = sourceApp.getComponent().getAdditions();
+        if (null == additions) {
+            additions = new HashMap<>();
+        } else {
+            additions = new HashMap<>(additions);
+        }
+        // 保留原始创建者，或者将原应用创建变为原始创建者
+        if (!additions.containsKey(AdditionConstants.KEY_ORIGINAL_CREATED_TIMESTAMP) && additions.containsKey(AdditionConstants.KEY_CREATED_TIMESTAMP)
+                && StringUtils.isNotBlank(additions.get(AdditionConstants.KEY_CREATED_TIMESTAMP))) {
+            additions.put(AdditionConstants.KEY_ORIGINAL_CREATED_TIMESTAMP, additions.get(AdditionConstants.KEY_CREATED_TIMESTAMP));
+        }
+        if (!additions.containsKey(AdditionConstants.KEY_ORIGINAL_CREATED_USER) && additions.containsKey(AdditionConstants.KEY_CREATED_USER)
+                && StringUtils.isNotBlank(additions.get(AdditionConstants.KEY_CREATED_USER))) {
+            additions.put(AdditionConstants.KEY_ORIGINAL_CREATED_USER, additions.get(AdditionConstants.KEY_CREATED_USER));
+        }
+        // 重新设置创建时间戳
+        additions.put(AdditionConstants.KEY_CREATED_TIMESTAMP, requestAppCopyEntity.getCreatedTime().toString());
+        additions.put(AdditionConstants.KEY_CREATED_USER, requestAppCopyEntity.getCreatedUser());
+        processGroupDTO.setAdditions(additions);
+
         final PositionDTO availablePosition = PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
         processGroupDTO.setPosition(availablePosition);
 

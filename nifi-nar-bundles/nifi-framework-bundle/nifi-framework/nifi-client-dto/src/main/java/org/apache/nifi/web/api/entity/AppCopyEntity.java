@@ -31,6 +31,9 @@ public class AppCopyEntity extends Entity {
     private String comments;
     private Set<String> tags;
 
+    private Long createdTime;
+    private String createdUser;
+
     public String getAppId() {
         return appId;
     }
@@ -61,6 +64,22 @@ public class AppCopyEntity extends Entity {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public Long getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Long createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getCreatedUser() {
+        return createdUser;
+    }
+
+    public void setCreatedUser(String createdUser) {
+        this.createdUser = createdUser;
     }
 
 }

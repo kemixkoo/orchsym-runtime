@@ -104,11 +104,7 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
 
         name = name.toUpperCase();
 
-        String content = null;
-        final Map<String, String> additions = group.getAdditions();
-        if (null != additions) {
-            content = additions.get(name);
-        }
+        String content = group.getAddition(name);
 
         JSONObject result = new JSONObject();
         result.put(KEY_ID, groupId);
@@ -218,9 +214,9 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
 
                     String oldValue = null;
                     if (isDelete) {
-                        oldValue = ProcessUtil.removeGroupAdditions(group, name);
+                        oldValue = group.removeAddition(name);
                     } else { // modify
-                        oldValue = ProcessUtil.updateGroupAdditions(group, name, value);
+                        oldValue = group.setAddition(name, value);
                     }
 
                     flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);

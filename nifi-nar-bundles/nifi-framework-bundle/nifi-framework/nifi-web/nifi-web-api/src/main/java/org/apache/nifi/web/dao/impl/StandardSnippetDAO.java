@@ -100,6 +100,9 @@ public class StandardSnippetDAO implements SnippetDAO {
             targetProcessGroupDTO.setName(processGroupDTO.getName());
             targetProcessGroupDTO.setComments(processGroupDTO.getComments());
             targetProcessGroupDTO.setTags(processGroupDTO.getTags());
+            if (processGroupDTO.getAdditions() != null) {
+                targetProcessGroupDTO.setAdditions(new HashMap<>(processGroupDTO.getAdditions()));
+            }
             targetProcessGroupDTO.setPosition(processGroupDTO.getPosition());
             snippetContents.getProcessGroups().add(targetProcessGroupDTO);
 
