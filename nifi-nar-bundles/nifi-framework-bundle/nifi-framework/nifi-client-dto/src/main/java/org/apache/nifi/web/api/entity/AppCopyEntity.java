@@ -17,8 +17,7 @@
  */
 package org.apache.nifi.web.api.entity;
 
-import io.swagger.annotations.ApiModelProperty;
-import org.apache.nifi.web.api.dto.AppCopyDTO;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -26,30 +25,42 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author weiwei.zhan
  */
 @XmlRootElement(name = "appCopyEntity")
-public class AppCopyEntity extends Entity{
-    private AppCopyDTO appCopy;
-    private Boolean disconnectedNodeAcknowledged;
+public class AppCopyEntity extends Entity {
+    private String appId;
+    private String name;
+    private String comments;
+    private Set<String> tags;
 
-    /**
-     * The AppCopyDTO that is being serialized
-     * @return  The AppCopyDTO object
-     */
-    public AppCopyDTO getAppCopy() {
-        return appCopy;
+    public String getAppId() {
+        return appId;
     }
 
-    public void setAppCopy(AppCopyDTO appCopy) {
-        this.appCopy = appCopy;
+    public void setAppId(String appId) {
+        this.appId = appId;
     }
 
-    @ApiModelProperty(
-            value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed."
-    )
-    public Boolean isDisconnectedNodeAcknowledged() {
-        return disconnectedNodeAcknowledged;
+    public String getName() {
+        return name;
     }
 
-    public void setDisconnectedNodeAcknowledged(Boolean disconnectedNodeAcknowledged) {
-        this.disconnectedNodeAcknowledged = disconnectedNodeAcknowledged;
+    public void setName(String name) {
+        this.name = name;
     }
+
+    public String getComments() {
+        return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+    }
+
 }

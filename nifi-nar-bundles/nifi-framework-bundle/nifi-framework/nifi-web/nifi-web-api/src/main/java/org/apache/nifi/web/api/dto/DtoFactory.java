@@ -110,6 +110,7 @@ import org.apache.nifi.diagnostics.SystemDiagnostics;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFilePrioritizer;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
+import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.groups.ProcessGroupCounts;
 import org.apache.nifi.groups.RemoteProcessGroup;
@@ -153,6 +154,7 @@ import org.apache.nifi.reporting.ReportingTask;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.util.FlowDifferenceFilters;
 import org.apache.nifi.util.FormatUtils;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.FlowModification;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.action.ActionDTO;
@@ -2251,7 +2253,11 @@ public final class DtoFactory {
         Map<String, String> additions = group.getAdditions();
         if (null != additions) {
             additions = new HashMap<>(additions);
+        } else {
+            additions = new HashMap<>();
         }
+        ProcessUtil.fixDefaultValue(group, ProcessAdditions.KEY_IS_DELETED, ProcessAdditions.KEY_IS_DELETED_DEFAULT);
+        ProcessUtil.fixDefaultValue(group, ProcessAdditions.KEY_IS_ENABLED, ProcessAdditions.KEY_IS_ENABLED_DEFAULT);
         dto.setAdditions(additions);
 
         final ProcessGroup parentGroup = group.getParent();

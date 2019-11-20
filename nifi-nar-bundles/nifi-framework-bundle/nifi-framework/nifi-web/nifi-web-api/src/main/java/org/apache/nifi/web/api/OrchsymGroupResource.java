@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
@@ -52,14 +53,21 @@ import org.apache.nifi.controller.Template;
 import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.groups.ProcessGroup;
+import org.apache.nifi.services.FlowService;
+import org.apache.nifi.templates.TemplateFiledName;
+import org.apache.nifi.templates.TemplateSourceType;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.DropRequestDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
+import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
+import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
+import org.apache.nifi.web.api.entity.SnippetEntity;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -82,6 +90,8 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
 
     @Autowired
     private RevisionManager revisionManager;
+    @Autowired
+    private FlowService flowService;
 
     Object getComponentById(String id) {
         // 首先查找Label
@@ -237,7 +247,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         }
         if (removeTemplates) { // 删除应用内所有模块下的模板
             for (Template template : group.getTemplates()) {
-                // TODO
+                serviceFacade.deleteTemplate(template.getIdentifier());
             }
         }
 
@@ -344,5 +354,64 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         infoMap.put("currentGroup", currentGroup);
         infoMap.put("name", name);
         return infoMap;
+    }
+
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/template/{groupId}/data")
+    @ApiOperation(value = "Get the template data of current app", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
+    })
+    public Response generateTemplateData(@PathParam("groupId") String groupId) {
+        final ProcessGroup groupApp = flowController.getGroup(groupId);
+        if (groupApp == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
+        }
+
+        if (isDisconnectedFromCluster()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
+        }
+
+        serviceFacade.authorizeAccess(lookup -> {
+            final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
+            processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+        });
+
+        // create snippet
+        final Revision revision = revisionManager.getRevision(groupId);
+        SnippetDTO snippetDTO = new SnippetDTO();
+        Map<String, RevisionDTO> revisionMap = new HashMap<>();
+        RevisionDTO revisionDTO = new RevisionDTO();
+        revisionDTO.setClientId(revision.getClientId());
+        revisionDTO.setVersion(revision.getVersion());
+        revisionMap.put(groupId, revisionDTO);
+        snippetDTO.setProcessGroups(revisionMap);
+        snippetDTO.setId(generateUuid());
+        snippetDTO.setParentGroupId(flowController.getRootGroupId());
+
+        final SnippetEntity snippetEntity = serviceFacade.createSnippet(snippetDTO);
+
+        // generate data of template
+        final String snippetId = snippetEntity.getSnippet().getId();
+        final String tmpTemplateName = UUID.randomUUID().toString(); // 随机生成名字，防止名字同名冲突而无法创建临时模板
+        TemplateDTO templateDTO = serviceFacade.createTemplate(tmpTemplateName, groupApp.getComments(), snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
+
+        // 取消直接持久化 改为直接复制
+        final Template template = new Template(templateDTO);
+        final TemplateDTO templateCopy = serviceFacade.exportTemplate(template.getIdentifier());
+        flowController.getRootGroup().removeTemplate(template);
+        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+        templateCopy.setId(null);
+
+        Map<String, String> additionsMap = new HashMap<>();
+        additionsMap.put(TemplateFiledName.CREATED_TIME, Long.toString(System.currentTimeMillis()));
+        additionsMap.put(TemplateFiledName.CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
+        additionsMap.put(TemplateFiledName.SOURCE_TYPE, Integer.toString(TemplateSourceType.SAVE_AS_TYPE.value()));
+        templateCopy.setAdditions(additionsMap);
+        templateCopy.setTags(groupApp.getTags());
+        return noCache(Response.ok(templateCopy)).build();
     }
 }

@@ -60,36 +60,30 @@ import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Port;
 import org.apache.nifi.controller.ControllerService;
+import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ReportingTaskNode;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.Snippet;
-import org.apache.nifi.controller.Template;
 import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
+import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
-import org.apache.nifi.templates.TemplateFiledName;
-import org.apache.nifi.templates.TemplateSourceType;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
-import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.StandardNiFiServiceFacade;
-import org.apache.nifi.web.api.dto.AppCopyDTO;
 import org.apache.nifi.web.api.dto.PositionDTO;
 import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.SnippetDTO;
-import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.AppCopyEntity;
 import org.apache.nifi.web.api.entity.AppGroupEntity;
 import org.apache.nifi.web.api.entity.AppSearchEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
-import org.apache.nifi.web.api.entity.SnippetEntity;
-import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -116,14 +110,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     private static final String PARAM_MODIFIED_TIME = "modifiedTime";
     private static final String PARAM_CREATED_TIME = "createdTime";
 
-    private static final String IS_DELETED = "IS_DELETED";
-    private static final String IS_ENABLED = "IS_ENABLED";
-
     @Autowired
     private FlowService flowService;
-
-    @Autowired
-    private RevisionManager revisionManager;
 
     @Autowired
     private OrchsymGroupResource groupResource;
@@ -134,6 +122,24 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
         }
         return null;
+    }
+
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/template/{appId}/data")
+    @ApiOperation(value = "Get the template data of current app", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
+    })
+    public Response getAppTemplateData(@PathParam("appId") String appId) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+
+        return groupResource.generateTemplateData(appId);
     }
 
     /**
@@ -227,6 +233,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             searchEnity.setNeedDetail(DEFAULT_NEED_DETAIL);
         }
 
+        if (null == searchEnity.getDeleted()) {
+            searchEnity.setDeleted(ProcessAdditions.KEY_IS_DELETED_DEFAULT); // 默认未删除应用
+        }
+
         // FIXME, 暂不支持modified_time，否应该删除统一到创建日期上
         if (PARAM_MODIFIED_TIME.equals(searchEnity.getSortedField())) {
             searchEnity.setSortedField(PARAM_CREATED_TIME);
@@ -261,8 +271,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                         groupEntity.setCreatedTime(ProcessUtil.getGroupAdditionLongValue(group, KEY_CREATED_TIME));
                         groupEntity.setModifiedTime(ProcessUtil.getGroupAdditionLongValue(group, KEY_MODIFIED_TIME));
 
-                        groupEntity.setDeleted(ProcessUtil.getGroupAdditionBooleanValue(group, IS_DELETED));
-                        groupEntity.setEnabled(ProcessUtil.getGroupAdditionBooleanValue(group, IS_ENABLED));
+                        groupEntity.setDeleted(ProcessUtil.getGroupAdditionBooleanValue(group, ProcessAdditions.KEY_IS_DELETED, ProcessAdditions.KEY_IS_DELETED_DEFAULT));
+                        groupEntity.setEnabled(ProcessUtil.getGroupAdditionBooleanValue(group, ProcessAdditions.KEY_IS_ENABLED, ProcessAdditions.KEY_IS_ENABLED_DEFAULT));
 
                         if (null != group.getTags()) {
                             groupEntity.setTags(new HashSet<>(group.getTags()));
@@ -419,25 +429,26 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("name") String name, //
             @QueryParam("appId") String appId//
     ) {
-        boolean isAppNameValid = true;
-        if (StringUtils.isBlank(name)) {
-            isAppNameValid = false;
-        } else {
-            isAppNameValid = !flowController.getRootGroup().getProcessGroups().stream() //
-                    .filter(g -> StringUtils.isBlank(appId) || !g.getIdentifier().equals(appId)) // exclude
-                    .filter(p -> p.getName().equals(name))// existed
-                    .findFirst() //
-                    .isPresent();//
-        }
-
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("name", name);
-        resultMap.put("isValid", isAppNameValid);
+        resultMap.put("isValid", validName(name, appId));
         return noCache(Response.ok(resultMap)).build();
     }
 
-    private static final boolean DEFAULT_FILTER_DELETED = false; // 未删除
-    private static final boolean DEFAULT_FILTER_ENABLED = true; // 可用
+    private boolean validName(final String newName, final String curAppId) {
+        boolean isAppNameValid = true;
+        if (StringUtils.isBlank(newName)) { // 不能为空
+            isAppNameValid = false;
+        } else {
+            isAppNameValid = !flowController.getRootGroup().getProcessGroups().stream() //
+                    .filter(g -> StringUtils.isBlank(curAppId) // 新建时为空
+                            || !g.getIdentifier().equals(curAppId)) // 改名时，排除当前应用
+                    .filter(p -> p.getName().equals(newName))// existed
+                    .findFirst() //
+                    .isPresent();//
+        }
+        return isAppNameValid;
+    }
 
     @GET
     @Consumes(MediaType.WILDCARD)
@@ -472,11 +483,11 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // enabled/disabled
         // 为兼容老版本，不设置，默认为enabled
-        boolean isEnabled = ProcessUtil.getGroupAdditionBooleanValue(groupApp, IS_ENABLED, DEFAULT_FILTER_ENABLED);
+        boolean isEnabled = ProcessUtil.getGroupAdditionBooleanValue(groupApp, ProcessAdditions.KEY_IS_ENABLED, ProcessAdditions.KEY_IS_ENABLED_DEFAULT);
         resultMap.put("canEnable", !isEnabled);
         resultMap.put("canDisable", isEnabled);
 
-        boolean isDeleted = ProcessUtil.getGroupAdditionBooleanValue(groupApp, IS_DELETED, DEFAULT_FILTER_DELETED);
+        boolean isDeleted = ProcessUtil.getGroupAdditionBooleanValue(groupApp, ProcessAdditions.KEY_IS_DELETED, ProcessAdditions.KEY_IS_DELETED_DEFAULT);
         resultMap.put("canDelete", !isDeleted);
 
         return noCache(Response.ok(resultMap)).build();
@@ -543,7 +554,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             groupResource.safeCleanGroup(group, true, true, true, false);
         };
 
-        return updateAppStatus(appId, IS_DELETED, Boolean.TRUE, cleanAction);
+        return updateAppStatus(appId, ProcessAdditions.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
     }
 
     @PUT
@@ -575,7 +586,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             groupResource.safeCleanGroup(group, true, true, true, false);
         };
 
-        return updateAppStatus(findFirst.get().getIdentifier(), IS_DELETED, Boolean.TRUE, cleanAction);
+        return updateAppStatus(findFirst.get().getIdentifier(), ProcessAdditions.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
     }
 
     @PUT
@@ -594,7 +605,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return replicate(HttpMethod.PUT);
         }
 
-        return updateAppStatus(appId, IS_DELETED, Boolean.FALSE, null);
+        return updateAppStatus(appId, ProcessAdditions.KEY_IS_DELETED, Boolean.FALSE, null);
     }
 
     @PUT
@@ -613,7 +624,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return replicate(HttpMethod.PUT);
         }
 
-        return updateAppStatus(appId, IS_ENABLED, Boolean.TRUE, null);
+        return updateAppStatus(appId, ProcessAdditions.KEY_IS_ENABLED, Boolean.TRUE, null);
     }
 
     @PUT
@@ -636,7 +647,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             // 停组件和服务，保留队列和模板
             groupResource.safeCleanGroup(group, true, true, false, false);
         };
-        return updateAppStatus(appId, IS_ENABLED, Boolean.FALSE, cleanAction);
+        return updateAppStatus(appId, ProcessAdditions.KEY_IS_ENABLED, Boolean.FALSE, cleanAction);
     }
 
     private Response updateAppStatus(final String appId, final String additionKey, final Object value, final Consumer<String> cleanAction) {
@@ -670,64 +681,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         ProcessUtil.updateGroupAdditions(group, key, value);
 
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
-    }
-
-    @GET
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{groupId}/template")
-    @ApiOperation(value = "Get the template data of current app", //
-            response = String.class)
-    @ApiResponses(value = { //
-            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
-    })
-    public Response getAppTemplateData(@PathParam("groupId") String groupId) {
-
-        if (isDisconnectedFromCluster()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
-        }
-
-        serviceFacade.authorizeAccess(lookup -> {
-            final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
-            processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
-        });
-
-        final ProcessGroup groupApp = flowController.getGroup(groupId);
-        if (groupApp == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
-        }
-
-        // create snipped
-        final Revision revision = revisionManager.getRevision(groupId);
-        SnippetDTO snippetDTO = new SnippetDTO();
-        Map<String, RevisionDTO> revisionMap = new HashMap<>();
-        RevisionDTO revisionDTO = new RevisionDTO();
-        revisionDTO.setClientId(revision.getClientId());
-        revisionDTO.setVersion(revision.getVersion());
-        revisionMap.put(groupId, revisionDTO);
-        snippetDTO.setProcessGroups(revisionMap);
-        snippetDTO.setId(generateUuid());
-        snippetDTO.setParentGroupId(flowController.getRootGroupId());
-        final SnippetEntity snippetEntity = serviceFacade.createSnippet(snippetDTO);
-
-        // generate data of template
-        final String snippetId = snippetEntity.getSnippet().getId();
-        TemplateDTO templateDTO = serviceFacade.createTemplate(groupApp.getName(), groupApp.getComments(), snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
-
-        final Template template = new Template(templateDTO);
-        final TemplateDTO templateCopy = serviceFacade.exportTemplate(template.getIdentifier());
-        flowController.getRootGroup().removeTemplate(template);
-        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
-        templateCopy.setId(null);
-
-        // 取消直接持久化 改为直接复制
-        Map<String, String> additionsMap = new HashMap<>();
-        additionsMap.put(TemplateFiledName.CREATED_TIME, Long.toString(System.currentTimeMillis()));
-        additionsMap.put(TemplateFiledName.CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
-        additionsMap.put(TemplateFiledName.SOURCE_TYPE, Integer.toString(TemplateSourceType.SAVE_AS_TYPE.value()));
-        templateCopy.setAdditions(additionsMap);
-        templateCopy.setTags(groupApp.getTags());
-        return noCache(Response.ok(templateCopy)).build();
     }
 
     @DELETE
@@ -851,88 +804,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return Response.ok().entity(resultMap).build();
     }
 
-    /**
-     * Copy the specified application.
-     *
-     * @param httpServletRequest
-     *            request
-     * @param requestAppCopyEntity
-     *            The copy snippet request
-     * @return A flowSnippetEntity.
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/copy")
-    @ApiOperation(value = "Copy a application.", response = ProcessGroupEntity.class, authorizations = { @Authorization(value = "Write - /process-groups/{uuid}"), //
-            @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"), //
-            @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components") }) //
-    public Response copyApp(//
-            @Context HttpServletRequest httpServletRequest, //
-            @ApiParam(value = "The application copy request.", required = true) AppCopyEntity requestAppCopyEntity//
-    ) {
-        if (requestAppCopyEntity == null || requestAppCopyEntity.getAppCopy() == null) {
-            throw new IllegalArgumentException("Application details must be specified.");
-        }
-
-        final AppCopyDTO requestAppCopyDTO = requestAppCopyEntity.getAppCopy();
-
-        if (requestAppCopyDTO.getAppId() == null) {
-            throw new IllegalArgumentException("Source application ID must be specified.");
-        }
-
-        final PositionDTO proposedPosition = requestAppCopyDTO.getPosition();
-        if (proposedPosition != null) {
-            if (proposedPosition.getX() == null || proposedPosition.getY() == null) {
-                throw new IllegalArgumentException("The x and y coordinate of the proposed position must be specified.");
-            }
-        } else { // if not set the position, find new one
-            final PositionDTO availablePosition = PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
-            requestAppCopyDTO.setPosition(availablePosition);
-        }
-
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.POST, requestAppCopyEntity);
-        } else if (isDisconnectedFromCluster()) {
-            verifyDisconnectedNodeModification(requestAppCopyEntity.isDisconnectedNodeAcknowledged());
-        }
-
-        final String rootId = flowController.getRootGroupId();
-
-        final SnippetDTO snippetDTO = new SnippetDTO();
-        snippetDTO.setId(generateUuid());
-        snippetDTO.setParentGroupId(rootId);
-        final Map<String, RevisionDTO> app = new HashMap<>();
-        app.put(requestAppCopyDTO.getAppId(), serviceFacade.getProcessGroup(requestAppCopyDTO.getAppId()).getRevision());
-        snippetDTO.setProcessGroups(app);
-
-        final ProcessGroupDTO processGroupDTO = new ProcessGroupDTO();
-        processGroupDTO.setId(requestAppCopyDTO.getAppId());
-        processGroupDTO.setName(requestAppCopyDTO.getName());
-        processGroupDTO.setComments(requestAppCopyDTO.getComments());
-        processGroupDTO.setTags(requestAppCopyDTO.getTags());
-        processGroupDTO.setPosition(requestAppCopyDTO.getPosition());
-
-        // get the revision from this snippet
-        return withWriteLock(//
-                serviceFacade, //
-                requestAppCopyEntity, //
-                lookup -> {
-                    // ensure write access to the root process group
-                    lookup.getProcessGroup("root").getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // ensure write permission to every component in the snippet including referenced services
-                    final SnippetAuthorizable snippet = lookup.getSnippet(snippetDTO);
-                    authorizeSnippet(snippet, authorizer, lookup, RequestAction.WRITE, true, false);
-                }, //
-                null, //
-                appCopyEntity -> {
-                    final ProcessGroupEntity entity = serviceFacade.copyProcessGroup(rootId, snippetDTO, processGroupDTO, getIdGenerationSeed().orElse(null));
-                    // generate the response
-                    return generateCreatedResponse(getAbsolutePath(), entity).build();
-                });
-    }
-
     private void collectGroupDetails(Boolean isBegin, ProcessGroup group, Set<String> runningComponents, Set<String> runningServices, Set<String> queueConnections, Set<String> holdingConnections) {
         for (ProcessorNode processorNode : group.getProcessors()) {
             if (processorNode.getScheduledState().equals(ScheduledState.RUNNING)) {
@@ -990,6 +861,77 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         for (ProcessGroup childGroup : group.getProcessGroups()) {
             collectGroupDetails(false, childGroup, runningComponents, runningServices, queueConnections, holdingConnections);
         }
+    }
+
+    /**
+     * Copy the specified application.
+     *
+     * @param httpServletRequest
+     *            request
+     * @param requestAppCopyEntity
+     *            The copy snippet request
+     * @return A flowSnippetEntity.
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/copy")
+    @ApiOperation(value = "Copy a application.", response = ProcessGroupEntity.class, authorizations = { @Authorization(value = "Write - /process-groups/{uuid}"), //
+            @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"), //
+            @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components") }) //
+    public Response copyApp(//
+            @Context HttpServletRequest httpServletRequest, //
+            @ApiParam(value = "The application copy request.", required = true) AppCopyEntity requestAppCopyEntity//
+    ) {
+        final String sourceAppId = requestAppCopyEntity.getAppId();
+        if (sourceAppId == null) {
+            throw new IllegalArgumentException("Source application ID must be specified.");
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.POST, requestAppCopyEntity);
+        }
+        final String newName = requestAppCopyEntity.getName();
+        if (!validName(newName, null)) {
+            return Response.status(Response.Status.CONFLICT).entity(newName).build();
+        }
+
+        final String rootId = flowController.getRootGroupId();
+
+        final SnippetDTO snippetDTO = new SnippetDTO();
+        snippetDTO.setId(generateUuid());
+        snippetDTO.setParentGroupId(rootId);
+        final Map<String, RevisionDTO> app = new HashMap<>();
+        app.put(sourceAppId, serviceFacade.getProcessGroup(sourceAppId).getRevision());
+        snippetDTO.setProcessGroups(app);
+
+        final ProcessGroupDTO processGroupDTO = new ProcessGroupDTO();
+        processGroupDTO.setId(sourceAppId);
+        processGroupDTO.setName(newName);
+        processGroupDTO.setComments(requestAppCopyEntity.getComments());
+        processGroupDTO.setTags(requestAppCopyEntity.getTags());
+        final PositionDTO availablePosition = PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
+        processGroupDTO.setPosition(availablePosition);
+
+        // get the revision from this snippet
+        return withWriteLock(//
+                serviceFacade, //
+                requestAppCopyEntity, //
+                lookup -> {
+                    // ensure write access to the root process group
+                    final Authorizable authorizable = lookup.getProcessGroup(FlowController.ROOT_GROUP_ID_ALIAS).getAuthorizable();
+                    authorizable.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // ensure write permission to every component in the snippet including referenced services
+                    final SnippetAuthorizable snippet = lookup.getSnippet(snippetDTO);
+                    authorizeSnippet(snippet, authorizer, lookup, RequestAction.WRITE, true, false);
+                }, //
+                null, //
+                appCopyEntity -> {
+                    final ProcessGroupEntity entity = serviceFacade.copyProcessGroup(rootId, snippetDTO, processGroupDTO, getIdGenerationSeed().orElse(null));
+                    // generate the response
+                    return generateCreatedResponse(getAbsolutePath(), entity).build();
+                });
     }
 
 }

@@ -44,4 +44,10 @@ public interface ProcessAdditions {
         return additions.get(name);
     }
 
+    String KEY_IS_DELETED = "IS_DELETED";
+    Boolean KEY_IS_DELETED_DEFAULT = Boolean.FALSE; // default is not deleted
+
+    String KEY_IS_ENABLED = "IS_ENABLED";
+    Boolean KEY_IS_ENABLED_DEFAULT = Boolean.TRUE; // default is enabled
+
 }

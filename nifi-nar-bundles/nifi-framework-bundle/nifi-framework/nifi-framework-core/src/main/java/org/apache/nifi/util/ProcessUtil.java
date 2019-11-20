@@ -238,6 +238,32 @@ public final class ProcessUtil {
         return defaultValue;
     }
 
+    public static Boolean getAdditionBooleanValue(ProcessAdditions additionParam, String name, Boolean defaultValue) {
+        final String valueStr = additionParam.getAddition(checkAdditionName(name));
+        if (StringUtils.isNotBlank(valueStr)) {
+            return Boolean.parseBoolean(valueStr);
+        }
+        return defaultValue;
+    }
+
+    public static void fixDefaultValue(ProcessAdditions additionParam, String name, Object defaultValue) {
+        if (Objects.isNull(defaultValue)) {
+            return;
+        }
+        final String checkedName = checkAdditionName(name);
+        if (additionParam.hasAddition(checkedName)) {
+            return;
+        }
+        Map<String, String> additions = additionParam.getAdditions();
+        if (Objects.isNull(additions)) { // none
+            additions = new HashMap<>();
+        } else {
+            additions = new HashMap<>(additions);
+        }
+        additions.put(checkedName, defaultValue.toString());
+        additionParam.setAdditions(additions);
+    }
+
     public static Long getGroupAdditionLongValue(ProcessGroup group, String name) {
         return getGroupAdditionLongValue(group, name, null);
     }
