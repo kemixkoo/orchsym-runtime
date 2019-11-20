@@ -221,11 +221,14 @@ class AppList extends PureComponent {
   }
 
   // 下载
-  downloadApp = (appId) => {
+  downloadApp = (appId, name) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'application/fetchDownloadApp',
-      payload: appId,
+      payload: {
+        id: appId,
+        name,
+      },
     });
   }
 
@@ -263,7 +266,7 @@ class AppList extends PureComponent {
           <IconFont type="OS-iconfuzhi" />
           {`${formatMessage({ id: 'page.application.content.cope' })}`}
         </Menu.Item>
-        <Menu.Item key="8" onClick={() => { this.downloadApp(item.id) }}>
+        <Menu.Item key="8" onClick={() => { this.downloadApp(item.id, item.component.name) }}>
           <IconFont type="OS-iconCell-Download" />
           {`${formatMessage({ id: 'page.application.content.download' })}`}
         </Menu.Item>
