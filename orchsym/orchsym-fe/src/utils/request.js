@@ -105,13 +105,6 @@ request.interceptors.response.use((response, options) => {
       return response
     }
   }
-  if (response.url.indexOf('/download') > 0) { // 判断是否是模版下载
-    console.log(response)
-    console.log(options)
-    const fileName = options.headers['Content-Disposition'].split('filename=')[1]
-    console.log(fileName)
-    localStorage.setItem('fileName', fileName);
-  }
 
   // console.log('response++', response)
   return response

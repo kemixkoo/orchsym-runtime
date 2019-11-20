@@ -150,9 +150,11 @@ export default {
       yield cb && cb(response)
     },
     * fetchDownloadApp({ payload, cb }, { call, put }) {
-      const response = yield call(downloadApplication, payload);
-      if (response) {
-        const blob = new Blob([response], { type: 'application/json' })
+      const res = yield call(downloadApplication, payload);
+      console.log(res)
+      if (res) {
+        const file = res.data
+        const blob = new Blob([file], { type: 'application/octet-stream' })
         const a = document.createElement('a')
         a.setAttribute('href', window.URL.createObjectURL(blob))
         const fileName = localStorage.getItem('fileName');
@@ -162,7 +164,7 @@ export default {
         document.body.removeChild(a)
       }
       localStorage.removeItem('fileName')
-      yield cb && cb(response)
+      yield cb && cb(res)
     },
     * fetchValidationRunApp({ payload }, { call, put }) {
       const response = yield call(validationRunApp, payload.snippetId);
