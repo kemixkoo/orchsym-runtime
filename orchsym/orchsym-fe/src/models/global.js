@@ -1,24 +1,33 @@
 // import { queryNotices } from '@/services/api';
-// import { validationDownApp } from '@/services/validation';
+import { validationDownApp } from '@/services/validation';
 
 export default {
-
+  namespace: 'global',
   state: {
-    canDownLoad: true,
+    canDownLoad: '',
     collapsed: false,
     notices: [],
   },
 
   effects: {
-    // *fetchGetClientId(_, { call, put }) {
-    //   const response = yield call(validationDownApp);
-    //   if (response) {
-    //     yield put({
-    //       type: 'addClientId',
-    //       payload: response,
-    //     });
-    //   }
-    // },
+    *fetchValidDownApp(_, { call, put }) {
+      const response = yield call(validationDownApp);
+      if (response) {
+        yield put({
+          type: 'appendValue',
+          payload: {
+            canDownLoad: true,
+          },
+        });
+      } else {
+        yield put({
+          type: 'appendValue',
+          payload: {
+            canDownLoad: false,
+          },
+        });
+      }
+    },
     // *fetchNotices(_, { call, put, select }) {
     //   const data = yield call(queryNotices);
     //   yield put({
@@ -78,6 +87,12 @@ export default {
   },
 
   reducers: {
+    appendValue(state, action) {
+      return {
+        ...state,
+        ...action.payload,
+      }
+    },
     changeLayoutCollapsed(state, { payload }) {
       return {
         ...state,

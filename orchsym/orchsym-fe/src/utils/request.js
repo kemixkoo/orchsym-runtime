@@ -92,7 +92,8 @@ request.interceptors.response.use((response, options) => {
       //   message: '未登录或登录已过期，请重新登录。',
       // });
       logout();
-    } else if (response.status === 403 || response.url.indexOf('/studio/nifi-api/access/oidc/exchange') > 0) { // 判断删除
+    } else if (response.status === 403 || response.url.indexOf('/studio/nifi-api/access/oidc/exchange') > 0
+    || response.url.indexOf('/orchsym-api/helper/state') > 0) { // 判断删除
       return response
     } else {
       response.text().then(data => {

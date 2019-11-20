@@ -15,7 +15,8 @@ import LogList from '@/components/LogList';
 import CreateOrEditApp from './CreateOrEditApp';
 
 const { confirm } = Modal;
-@connect(({ application, loading }) => ({
+@connect(({ global, application, loading }) => ({
+  canDownLoad: global.canDownLoad,
   applicationList: application.applicationList,
   Details: application.Details,
   snippet: application.snippet,
@@ -234,7 +235,8 @@ class AppList extends PureComponent {
 
   getCarList = (item, index) => {
     const { errorData } = this.state;
-    const menu = (
+    const { canDownLoad } = this.props;
+    const menu = item.component.additions && item.component.additions.IS_ENABLED ? (
       <Menu>
         <Menu.Item key="1" onClick={() => { this.goToApp(item) }}>
           <IconFont type="OS-iconi-jr" />
@@ -266,7 +268,7 @@ class AppList extends PureComponent {
           <IconFont type="OS-iconfuzhi" />
           {`${formatMessage({ id: 'page.application.content.cope' })}`}
         </Menu.Item>
-        <Menu.Item key="8" onClick={() => { this.downloadApp(item.id, item.component.name) }}>
+        <Menu.Item key="8" disabled={!canDownLoad} onClick={() => { this.downloadApp(item.id, item.component.name) }}>
           <IconFont type="OS-iconCell-Download" />
           {`${formatMessage({ id: 'page.application.content.download' })}`}
         </Menu.Item>
@@ -279,6 +281,18 @@ class AppList extends PureComponent {
           <IconFont type="OS-iconmoban" />
           {`${formatMessage({ id: 'page.application.content.saveTemp' })}`}
         </Menu.Item>
+      </Menu>
+    ) : (
+      <Menu>
+        <Menu.Item key="5" disabled={!item.canEnable} onClick={() => { this.updateStates(item, 'ENABLED') }}>
+          <IconFont type="OS-iconqiyong" />
+          {`${formatMessage({ id: 'page.application.content.enable' })}`}
+        </Menu.Item>
+        <Menu.Item key="9" onClick={() => { this.deleteAppHandel(item.id) }}>
+          <IconFont type="OS-iconshanchu" />
+          {`${formatMessage({ id: 'page.application.content.delete' })}`}
+        </Menu.Item>
+        <Menu.Divider />
       </Menu>
     );
 
@@ -395,9 +409,10 @@ class AppList extends PureComponent {
     };
     const tagContent = <div className={styles.tagContent}>{item.component.tags.map((i) => (<Tag color="blue">{i}</Tag>))}</div>
     const isError = item.bulletins.length > 0
-    const isErrorCarName = isError ? `${styles.applicationCart} ${styles.errorApp}` : styles.applicationCart;
+    const isErrorCarName = isError ? `${styles.errorApp}` : ''
+    const isDownApp = item.component.additions && item.component.additions.IS_ENABLED ? '' : `${styles.disableApp}`
     return (
-      <Card onDoubleClick={() => { this.doubleGoToApp(item) }} className={isErrorCarName} style={{ width: '100%', height: 165 }}>
+      <Card onDoubleClick={() => { this.doubleGoToApp(item) }} className={`${styles.applicationCart} ${isErrorCarName} ${isDownApp}`} style={{ width: '100%', height: 165 }}>
         <Card.Meta
           title={
             <div>

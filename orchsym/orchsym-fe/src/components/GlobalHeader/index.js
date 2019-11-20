@@ -8,9 +8,10 @@ import styles from './index.less';
 import RightContent from './RightContent';
 import AppPopover from './AppPopover';
 
-@connect(({ login, application }) => ({
+@connect(({ login, application, global }) => ({
   leftDays: login.leftDays,
   appDetails: application.appDetails,
+  global,
 }))
 class GlobalHeader extends PureComponent {
   componentWillMount() {
@@ -25,6 +26,9 @@ class GlobalHeader extends PureComponent {
     });
     dispatch({
       type: 'login/fetchGetClientId',
+    });
+    dispatch({
+      type: 'global/fetchValidDownApp',
     });
     if (match && processGroupId) {
       dispatch({
