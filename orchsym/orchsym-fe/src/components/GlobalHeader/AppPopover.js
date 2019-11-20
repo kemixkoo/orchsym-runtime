@@ -7,9 +7,9 @@ import IconFont from '@/components/IconFont';
 import Ellipsis from '@/components/Ellipsis';
 import styles from './index.less';
 
-@connect(({ canvas, loading }) => ({
+@connect(({ application, loading }) => ({
   loading:
-    loading.effects['canvas/fetchApplication'],
+    loading.effects['application/fetchApplication'],
 }))
 class AppPopover extends PureComponent {
   constructor() {
@@ -60,7 +60,7 @@ class AppPopover extends PureComponent {
   fetchApplication = (q, sortedField, isDesc, pageSize) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'canvas/fetchApplication',
+      type: 'application/fetchApplication',
       payload: {
         q,
         sortedField,

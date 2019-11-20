@@ -5,8 +5,11 @@ export async function validationRunApp(id) {
 }
 
 // 验证 是否可删除
+// export async function validationDeleteApp(id) {
+//   return request(`/studio/nifi-api/stats/delete/${id}`);
+// }
 export async function validationDeleteApp(id) {
-  return request(`/studio/nifi-api/stats/delete/${id}`);
+  return request(`/studio/nifi-api/application/${id}/verify_delete_status`);
 }
 
 // 验证 应用名称是否重名

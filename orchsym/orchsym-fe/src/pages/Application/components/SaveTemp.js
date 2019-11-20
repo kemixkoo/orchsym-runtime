@@ -8,7 +8,7 @@ const FormItem = Form.Item;
 // const { Option } = Select;
 
 @connect(({ application }) => ({
-  details: application.details,
+  appDetails: application.appDetails,
 }))
 class SaveTemp extends React.Component {
   state = {
@@ -75,7 +75,7 @@ class SaveTemp extends React.Component {
     return (
       <Modal
         visible={visible}
-        title="存为模板"
+        title="存为模版"
         onCancel={this.handleCancel}
         onOk={this.handleSaveTemp}
         okText="确定"
@@ -94,7 +94,7 @@ class SaveTemp extends React.Component {
             )}
           </FormItem>
           {(isCheck) ? (
-            <FormItem label="选择模板">
+            <FormItem label="选择模版">
               {getFieldDecorator('appTagSelect', {
                 // rules: [{
                 //   required: true, message: '请输入应用名称!',

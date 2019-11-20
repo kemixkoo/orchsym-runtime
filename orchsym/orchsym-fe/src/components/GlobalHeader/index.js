@@ -8,9 +8,9 @@ import styles from './index.less';
 import RightContent from './RightContent';
 import AppPopover from './AppPopover';
 
-@connect(({ login, canvas }) => ({
+@connect(({ login, application }) => ({
   leftDays: login.leftDays,
-  appDetails: canvas.appDetails,
+  appDetails: application.appDetails,
 }))
 class GlobalHeader extends PureComponent {
   componentWillMount() {
@@ -28,7 +28,7 @@ class GlobalHeader extends PureComponent {
     });
     if (match && processGroupId) {
       dispatch({
-        type: 'canvas/fetchDetailApplication',
+        type: 'application/fetchDetailApplication',
         payload: processGroupId,
       });
     }

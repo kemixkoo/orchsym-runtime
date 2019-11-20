@@ -204,3 +204,5 @@ export const importCDN = (url, name) =>
     };
     document.head.appendChild(dom);
   });
+
+export const EditableContext = React.createContext();

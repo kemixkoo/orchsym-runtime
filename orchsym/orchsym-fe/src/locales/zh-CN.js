@@ -15,7 +15,7 @@ import component from './zh-CN/component';
 import blank from './zh-CN/blank';
 // 应用页面
 import application from './zh-CN/application';
-// 模板页面
+// 模版页面
 import template from './zh-CN/template';
 // 编排页面
 import orchestrations from './zh-CN/orchestrations';
