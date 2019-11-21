@@ -1,7 +1,4 @@
 export default {
-  'form.cancel': '取消',
-  'form.submit': '确认',
-  'model.warning': '提示',
   // 创建应用
   'form.application.appName': '应用名称',
   'form.application.appDescription': '应用描述',

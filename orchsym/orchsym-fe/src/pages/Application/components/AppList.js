@@ -112,7 +112,7 @@ class AppList extends PureComponent {
         type: 'application/fetchUpdateEnable',
         payload: item.id,
         cb: () => {
-          message.success(formatMessage({ id: 'app.result.success' }));
+          message.success(formatMessage({ id: 'result.success' }));
           this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
         },
       });
@@ -121,7 +121,7 @@ class AppList extends PureComponent {
         type: 'application/fetchUpdateDisable',
         payload: item.id,
         cb: () => {
-          message.success(formatMessage({ id: 'app.result.success' }));
+          message.success(formatMessage({ id: 'result.success' }));
           this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
         },
       });
@@ -133,7 +133,7 @@ class AppList extends PureComponent {
           state,
         },
         cb: () => {
-          message.success(formatMessage({ id: 'app.result.success' }));
+          message.success(formatMessage({ id: 'result.success' }));
           this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
         },
       });
@@ -179,8 +179,8 @@ class AppList extends PureComponent {
         const that = this
         if (res.canDelete) {
           confirm({
-            title: formatMessage({ id: 'app.result.delete.title' }),
-            content: formatMessage({ id: 'app.result.delete.description' }),
+            title: formatMessage({ id: 'result.delete.title' }),
+            content: formatMessage({ id: 'result.delete.description' }),
             okText: 'Yes',
             okType: 'warning',
             cancelText: 'No',
@@ -193,8 +193,8 @@ class AppList extends PureComponent {
           });
         } else {
           confirm({
-            title: formatMessage({ id: 'app.result.delete.title' }),
-            content: formatMessage({ id: 'app.result.delete.description' }),
+            title: formatMessage({ id: 'result.delete.title' }),
+            content: formatMessage({ id: 'result.delete.description' }),
             okText: 'Yes',
             okType: 'warning',
             cancelText: 'No',
@@ -216,7 +216,7 @@ class AppList extends PureComponent {
       type: 'application/fetchDeleteApplication',
       payload: id,
       cb: () => {
-        message.success(formatMessage({ id: 'app.result.success' }));
+        message.success(formatMessage({ id: 'result.success' }));
         this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
       },
     })
@@ -271,11 +271,11 @@ class AppList extends PureComponent {
         </Menu.Item>
         <Menu.Item key="8" disabled={!canDownLoad} onClick={() => { this.downloadApp(item.id, item.component.name) }}>
           <IconFont type="OS-iconCell-Download" />
-          {`${formatMessage({ id: 'page.application.content.download' })}`}
+          {`${formatMessage({ id: 'button.download' })}`}
         </Menu.Item>
         <Menu.Item key="9" onClick={() => { this.deleteAppHandel(item.id) }}>
           <IconFont type="OS-iconshanchu" />
-          {`${formatMessage({ id: 'page.application.content.delete' })}`}
+          {`${formatMessage({ id: 'button.delete' })}`}
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>

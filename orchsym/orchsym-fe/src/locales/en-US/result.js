@@ -1,9 +1,4 @@
 export default {
-  'app.result.empty': 'No date',
-  'app.result.success': 'Success！',
-  'app.result.delete.title': 'Are you sure you want to put it in the recycle bin?',
-  'app.result.delete.description': 'The file stream in the application cannot be recovered after it is put into the recycle bin',
-  'app.result.error.title': 'Submission Failed',
   // 'app.result.error.description':
   //   'Please check and modify the following information before resubmitting.',
   // 'app.result.error.hint-title': 'The content you submitted has the following error:',

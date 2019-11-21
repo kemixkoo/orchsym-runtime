@@ -1,3 +1,4 @@
+import common from './zh-CN/common';
 import exception from './zh-CN/exception';
 import form from './zh-CN/form';
 import globalHeader from './zh-CN/globalHeader';
@@ -22,6 +23,7 @@ export default {
   'layout.user.link.privacy': '隐私',
   'layout.user.link.terms': '条款',
   'app.home.introduce': '介绍',
+  ...common,
   ...exception,
   ...globalHeader,
   ...login,

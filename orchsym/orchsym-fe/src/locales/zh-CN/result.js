@@ -1,9 +1,4 @@
 export default {
-  'app.result.empty': '暂无数据',
-  'app.result.success': '成功',
-  'app.result.delete.title': '确定放入回收站？',
-  'app.result.delete.description': '放入回收站后应用内的文件流不可恢复',
-  'app.result.error.title': '提交失败',
   // 'app.result.error.description': '请核对并修改以下信息后，再重新提交。',
   // 'app.result.error.hint-title': '您提交的内容有如下错误：',
   // 'app.result.error.hint-text1': '您的账户已被冻结',

@@ -50,7 +50,7 @@ class CreateOrEditApp extends React.Component {
         // parentId,
       },
       cb: () => {
-        message.success(formatMessage({ id: 'app.result.success' }));
+        message.success(formatMessage({ id: 'result.success' }));
         onSearchChange({
           pageNum: 1,
           searchVal: '',
@@ -69,7 +69,7 @@ class CreateOrEditApp extends React.Component {
         appDetails,
       },
       cb: () => {
-        message.success(formatMessage({ id: 'app.result.success' }));
+        message.success(formatMessage({ id: 'result.success' }));
         this.freshAppList(pageNum)
       },
     })
@@ -84,7 +84,7 @@ class CreateOrEditApp extends React.Component {
         appDetails,
       },
       cb: () => {
-        message.success(formatMessage({ id: 'app.result.success' }));
+        message.success(formatMessage({ id: 'result.success' }));
         this.freshAppList(pageNum)
       },
     })
@@ -191,8 +191,8 @@ class CreateOrEditApp extends React.Component {
           title={title}
           onCancel={this.handleCancel}
           onOk={this.handleCreateEditOk}
-          okText={formatMessage({ id: 'form.submit' })}
-          cancelText={formatMessage({ id: 'form.cancel' })}
+          okText={formatMessage({ id: 'button.submit' })}
+          cancelText={formatMessage({ id: 'button.cancel' })}
           destroyOnClose
         >
           <Form {...formItemLayout}>

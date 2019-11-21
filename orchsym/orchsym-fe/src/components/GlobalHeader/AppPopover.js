@@ -119,7 +119,7 @@ class AppPopover extends PureComponent {
                   : (null)}
               </Link>
             </Menu.Item>
-          ))) : (<div style={{ textAlign: 'center' }}>{`${formatMessage({ id: 'app.result.empty' })}`}</div>)}
+          ))) : (<div style={{ textAlign: 'center' }}>{`${formatMessage({ id: 'result.empty' })}`}</div>)}
         </Menu>
       </Spin>
     );

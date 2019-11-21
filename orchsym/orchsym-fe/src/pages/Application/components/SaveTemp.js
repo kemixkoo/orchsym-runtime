@@ -119,8 +119,8 @@ class SaveTemp extends React.Component {
         title={formatMessage({ id: 'template.title.saveTemp' })}
         onCancel={this.handleCancel}
         onOk={this.handleSaveTemp}
-        okText={formatMessage({ id: 'form.submit' })}
-        cancelText={formatMessage({ id: 'form.cancel' })}
+        okText={formatMessage({ id: 'button.submit' })}
+        cancelText={formatMessage({ id: 'button.cancel' })}
       >
         <Form {...formItemLayout}>
           <FormItem style={{ paddingLeft: '10px' }}>

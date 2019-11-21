@@ -1,3 +1,4 @@
+import common from './zh-CN/common';
 import exception from './en-US/exception';
 import globalHeader from './en-US/globalHeader';
 import login from './en-US/login';
@@ -21,6 +22,7 @@ export default {
   'layout.user.link.privacy': 'Privacy',
   'layout.user.link.terms': 'Terms',
   'app.home.introduce': 'introduce',
+  ...common,
   ...exception,
   ...globalHeader,
   ...login,

@@ -212,7 +212,7 @@ export default {
     //   }
     //   const response = yield call(deleteApplication, queryData);
     //   if (response) {
-    //     message.success(formatMessage({ id: 'app.result.success' }));
+    //     message.success(formatMessage({ id: 'result.success' }));
     //     yield put({
     //       type: 'fetchApplication',
     //     });
@@ -229,7 +229,7 @@ export default {
     //   }
     //   const response = yield call(copeApplication, queryDate);
     //   if (response) {
-    //     message.success(formatMessage({ id: 'app.result.success' }));
+    //     message.success(formatMessage({ id: 'result.success' }));
     //     yield put({
     //       type: 'fetchApplication',
     //     });
