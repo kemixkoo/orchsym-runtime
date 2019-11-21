@@ -1,5 +1,8 @@
 // import { queryNotices } from '@/services/api';
 import { validationDownApp } from '@/services/validation';
+import { queryClientId } from '@/services/Flow';
+import { setClientId } from '@/utils/authority';
+import { licenseWarn } from '@/services/studio';
 
 export default {
   namespace: 'global',
@@ -7,6 +10,8 @@ export default {
     canDownLoad: '',
     collapsed: false,
     notices: [],
+    clientId: '',
+    // leftDays: '',
   },
 
   effects: {
@@ -28,6 +33,27 @@ export default {
         });
       }
     },
+    *fetchLicenseWarn(_, { call, put }) {
+      const response = yield call(licenseWarn);
+      if (response) {
+        yield put({
+          type: 'appendValue',
+          payload: {
+            leftDays: response.licSummary.leftDays,
+          },
+        })
+      }
+    },
+    *fetchGetClientId(_, { call, put }) {
+      const response = yield call(queryClientId);
+      if (response) {
+        yield put({
+          type: 'addClientId',
+          payload: response,
+        });
+      }
+    },
+
     // *fetchNotices(_, { call, put, select }) {
     //   const data = yield call(queryNotices);
     //   yield put({
@@ -93,24 +119,31 @@ export default {
         ...action.payload,
       }
     },
+    addClientId(state, { payload }) {
+      setClientId(payload)
+      return {
+        ...state,
+        clientId: payload,
+      };
+    },
     changeLayoutCollapsed(state, { payload }) {
       return {
         ...state,
         collapsed: payload,
       };
     },
-    saveNotices(state, { payload }) {
-      return {
-        ...state,
-        notices: payload,
-      };
-    },
-    saveClearedNotices(state, { payload }) {
-      return {
-        ...state,
-        notices: state.notices.filter(item => item.type !== payload),
-      };
-    },
+    // saveNotices(state, { payload }) {
+    //   return {
+    //     ...state,
+    //     notices: payload,
+    //   };
+    // },
+    // saveClearedNotices(state, { payload }) {
+    //   return {
+    //     ...state,
+    //     notices: state.notices.filter(item => item.type !== payload),
+    //   };
+    // },
   },
 
   subscriptions: {

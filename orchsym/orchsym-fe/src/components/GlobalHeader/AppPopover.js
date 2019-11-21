@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import Link from 'umi/link';
 import { debounce } from 'lodash'
+import { formatMessage } from 'umi-plugin-react/locale';
 import { Popover, Icon, Input, Menu, Spin } from 'antd';
 import IconFont from '@/components/IconFont';
 import Ellipsis from '@/components/Ellipsis';
@@ -118,7 +119,7 @@ class AppPopover extends PureComponent {
                   : (null)}
               </Link>
             </Menu.Item>
-          ))) : (<div style={{ textAlign: 'center' }}>暂无数据</div>)}
+          ))) : (<div style={{ textAlign: 'center' }}>{`${formatMessage({ id: 'app.result.empty' })}`}</div>)}
         </Menu>
       </Spin>
     );

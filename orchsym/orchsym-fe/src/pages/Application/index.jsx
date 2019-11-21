@@ -131,7 +131,7 @@ class Application extends React.Component {
               </Button>
             </Col>
             <Col span={20}>
-              <Search placeholder="请输入" className={styles.Search} onChange={this.handleSearch} allowClear />
+              <Search placeholder={formatMessage({ id: 'page.application.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
               {/* <div className={styles.applicationRight}> */}
               {/* <div className={styles.search}> */}
               {/* <InputGroup compact>
@@ -166,7 +166,14 @@ class Application extends React.Component {
             </Col>
           </Row>
         </div>
-        <AppList onSearchChange={this.onSearchChange} pageNum={pageNum} pageSizeNum={pageSizeNum} searchVal={searchVal} sortedField={sortedField} isDesc={isDesc} />
+        <AppList
+          onSearchChange={this.onSearchChange}
+          pageNum={pageNum}
+          pageSizeNum={pageSizeNum}
+          searchVal={searchVal}
+          sortedField={sortedField}
+          isDesc={isDesc}
+        />
         <CreateOrEditApp
           onSearchChange={this.onSearchChange}
           visible={createAppVisible}

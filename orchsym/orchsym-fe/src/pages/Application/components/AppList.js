@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { PureComponent } from 'react';
 import {
   Popover, Card, Menu, Icon, Dropdown, Divider,
@@ -69,7 +70,7 @@ class AppList extends PureComponent {
   }
 
   doubleGoToApp = (item) => {
-    router.push(`/canvas/${item.id}`)
+    item.component.additions && item.component.additions.IS_ENABLED && router.push(`/canvas/${item.id}`)
   }
 
   showEditModal = (item, state) => {
@@ -155,18 +156,18 @@ class AppList extends PureComponent {
             },
           });
         }
-        // else if (state === 'COPE') { // 复制
-        //   dispatch({
-        //     type: 'application/fetchCopeApplication',
-        //     payload: {
-        //       id: item.id,
-        //       snippetId: res.id,
-        //     },
-        //   });
-        // }
       },
     });
   }
+  // else if (state === 'COPE') { // 复制
+  //   dispatch({
+  //     type: 'application/fetchCopeApplication',
+  //     payload: {
+  //       id: item.id,
+  //       snippetId: res.id,
+  //     },
+  //   });
+  // }
 
   // 删除
   deleteAppHandel = (id) => {
@@ -277,7 +278,7 @@ class AppList extends PureComponent {
           {`${formatMessage({ id: 'page.application.content.delete' })}`}
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="10" disabled onClick={() => { this.showSaveTemp(item) }}>
+        <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>
           <IconFont type="OS-iconmoban" />
           {`${formatMessage({ id: 'page.application.content.saveTemp' })}`}
         </Menu.Item>
@@ -407,7 +408,7 @@ class AppList extends PureComponent {
       // }
       return timeSpanStr;
     };
-    const tagContent = <div className={styles.tagContent}>{item.component.tags.map((i) => (<Tag color="blue">{i}</Tag>))}</div>
+    const tagContent = <div className={styles.tagContent}>{item.component.tags.map((i) => (<Tag color="blue" key={i}>{i}</Tag>))}</div>
     const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.errorApp}` : ''
     const isDownApp = item.component.additions && item.component.additions.IS_ENABLED ? '' : `${styles.disableApp}`
@@ -441,7 +442,7 @@ class AppList extends PureComponent {
         </div>
         <div style={{ marginBottom: '10px' }}>
           {(!item.component.tags.length) ? '该应用暂无标签' :
-            (<Popover placement="topLeft" content={tagContent}><div className={styles.lineEllipsis}>{(item.component.tags.map((i) => (<Tag color="blue">{i}</Tag>)))}</div></Popover>)
+            (<Popover placement="topLeft" content={tagContent}><div className={styles.lineEllipsis}>{(item.component.tags.map((i) => (<Tag color="blue" key={i}>{i}</Tag>)))}</div></Popover>)
           }
         </div>
         <Divider style={{ margin: 0 }} />

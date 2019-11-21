@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { connect } from 'dva';
 import { Modal, Input, Form, Select, message } from 'antd';
@@ -163,7 +164,7 @@ class CreateOrEditApp extends React.Component {
             if (res.isValid) {
               callback();
             } else {
-              callback([new Error(formatMessage({ id: 'validation.appName.duplicate' }))]);
+              callback([new Error(formatMessage({ id: 'validation.name.duplicate' }))]);
             }
           },
         });
@@ -198,19 +199,19 @@ class CreateOrEditApp extends React.Component {
             <FormItem label={formatMessage({ id: 'form.application.appName' })}>
               {getFieldDecorator('name', {
                 rules: [
-                  { required: true, message: formatMessage({ id: 'validation.appName.required' }) },
-                  { max: 20, message: formatMessage({ id: 'validation.appName.placeholder' }) },
-                  { whitespace: true, message: formatMessage({ id: 'validation.appName.required' }) },
+                  { required: true, message: formatMessage({ id: 'validation.name.required' }) },
+                  { max: 20, message: formatMessage({ id: 'validation.name.placeholder' }) },
+                  { whitespace: true, message: formatMessage({ id: 'validation.name.required' }) },
                   { validator: checkReName },
                 ],
                 initialValue: componentName(component),
               })(
-                <Input autocomplete="off" />
+                <Input autoComplete="off" />
               )}
             </FormItem>
             <FormItem label={formatMessage({ id: 'form.application.appDescription' })}>
               {getFieldDecorator('comments', {
-                rules: [{ required: false, max: 100, message: formatMessage({ id: 'validation.appDescription.placeholder' }) }],
+                rules: [{ required: false, max: 100, message: formatMessage({ id: 'validation.description.placeholder' }) }],
                 initialValue: component ? component.comments : '',
               })(
                 <TextArea rows={4} />

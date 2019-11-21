@@ -94,13 +94,6 @@ export default [
         path: '/recycleBin',
         component: './RecycleBin',
       },
-      // // 编排
-      // {
-      //   name: 'orchestrations',
-      //   path: '/orchestrations',
-      //   icon: 'share-alt',
-      //   component: './Orchestrations/Index',
-      // },
       // // 自带的结果页面
       // {
       //   name: 'result',

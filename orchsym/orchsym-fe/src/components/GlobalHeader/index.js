@@ -8,10 +8,9 @@ import styles from './index.less';
 import RightContent from './RightContent';
 import AppPopover from './AppPopover';
 
-@connect(({ login, application, global }) => ({
-  leftDays: login.leftDays,
+@connect(({ application, global }) => ({
+  leftDays: global.leftDays,
   appDetails: application.appDetails,
-  global,
 }))
 class GlobalHeader extends PureComponent {
   componentWillMount() {
@@ -22,10 +21,10 @@ class GlobalHeader extends PureComponent {
       type: 'user/fetchCurrent',
     });
     dispatch({
-      type: 'login/fetchLicenseWarn',
+      type: 'global/fetchLicenseWarn',
     });
     dispatch({
-      type: 'login/fetchGetClientId',
+      type: 'global/fetchGetClientId',
     });
     dispatch({
       type: 'global/fetchValidDownApp',

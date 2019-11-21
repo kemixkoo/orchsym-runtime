@@ -1,6 +1,8 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { Modal, Form, Input, Select, Checkbox } from 'antd';
 import { connect } from 'dva';
+import { formatMessage } from 'umi-plugin-react/locale';
 
 const { TextArea } = Input;
 
@@ -27,7 +29,6 @@ class SaveTemp extends React.Component {
     const { dispatch, appItem, handleSaveCancel, form: { validateFields, resetFields } } = this.props;
     validateFields((err, values) => {
       if (!err) {
-        console.log('!err')
         dispatch({
           type: 'application/fetchCreateSnippets',
           payload: appItem,
@@ -67,19 +68,59 @@ class SaveTemp extends React.Component {
         sm: { span: 18 },
       },
     };
-    const tags = [
-      // <Option value="数据同步" key="数据同步">数据同步</Option>,
-      // <Option value="格式转换" key="格式转换">格式转换</Option>,
-      // <Option value="全量同步" key="全量同步">全量同步</Option>,
-    ]
+    // const tags = [
+    // <Option value="数据同步" key="数据同步">数据同步</Option>,
+    // <Option value="格式转换" key="格式转换">格式转换</Option>,
+    // <Option value="全量同步" key="全量同步">全量同步</Option>,
+    // ]
+    const onChange = (value) => {
+      console.log(`selected ${value}`);
+    }
+
+    const onBlur = () => {
+      console.log('blur');
+    }
+
+    const onFocus = () => {
+      console.log('focus');
+    }
+
+    const onSearch = (val) => {
+      console.log('search:', val);
+    }
+    const checkReName = (rule, value, callback) => {
+      const { dispatch, appDetails } = this.props;
+      if (value) {
+        const queryData = {
+          name: value,
+          appId: '',
+        }
+        if (Object.keys(appDetails).length > 0) {
+          queryData.appId = appDetails.id
+        }
+        dispatch({
+          type: 'application/fetchValidationCheckName',
+          payload: queryData,
+          cb: (res) => {
+            if (res.isValid) {
+              callback();
+            } else {
+              callback([new Error(formatMessage({ id: 'validation.name.duplicate' }))]);
+            }
+          },
+        });
+      } else {
+        callback();
+      }
+    }
     return (
       <Modal
         visible={visible}
-        title="存为模版"
+        title={formatMessage({ id: 'template.title.saveTemp' })}
         onCancel={this.handleCancel}
         onOk={this.handleSaveTemp}
-        okText="确定"
-        cancelText="取消"
+        okText={formatMessage({ id: 'form.submit' })}
+        cancelText={formatMessage({ id: 'form.cancel' })}
       >
         <Form {...formItemLayout}>
           <FormItem style={{ paddingLeft: '10px' }}>
@@ -90,60 +131,73 @@ class SaveTemp extends React.Component {
                 validator: this.handleCheckBox,
               }],
             })(
-              <Checkbox>覆盖已有模版</Checkbox>
+              <Checkbox>{formatMessage({ id: 'form.template.tempOverwrite' })}</Checkbox>
             )}
           </FormItem>
           {(isCheck) ? (
-            <FormItem label="选择模版">
+            <FormItem label={formatMessage({ id: 'form.template.selectTemp' })}>
               {getFieldDecorator('appTagSelect', {
-                // rules: [{
-                //   required: true, message: '请输入应用名称!',
-                // }],
+                rules: [{
+                  required: true, message: formatMessage({ id: 'validation.name.required' }),
+                }],
               })(
                 <Select
-                  mode="multiple"
-                  style={{ width: '100%' }}
-                  onChange={this.handleSetTags}
+                  showSearch
+                  style={{ width: 200 }}
+                  placeholder="Select a person"
+                  optionFilterProp="children"
+                  onChange={onChange}
+                  onFocus={onFocus}
+                  onBlur={onBlur}
+                  onSearch={onSearch}
+                  filterOption={(input, option) =>
+                    option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }
                 >
-                  {tags}
-                </Select>
+                  {/* <Option value="jack">Jack</Option>
+                  <Option value="lucy">Lucy</Option>
+                  <Option value="tom">Tom</Option> */}
+                </Select>,
               )}
             </FormItem>
           ) : (
             <div>
-              <FormItem label="模版名称">
+              <FormItem label={formatMessage({ id: 'form.template.tempName' })}>
                 {getFieldDecorator('name', {
-                  rules: [{
-                    required: true, message: '应用名称不能为空!',
-                  }],
+                  rules: [
+                    { required: true, message: formatMessage({ id: 'validation.name.required' }) },
+                    { max: 20, message: formatMessage({ id: 'validation.name.placeholder' }) },
+                    { whitespace: true, message: formatMessage({ id: 'validation.name.required' }) },
+                    { validator: checkReName },
+                  ],
                 })(
-                  <Input autocomplete="off" />
+                  <Input autoComplete="off" />
                 )}
               </FormItem>
-              <FormItem label="模版描述">
+              <FormItem label={formatMessage({ id: 'form.template.tempDescription' })}>
                 {getFieldDecorator('description', {
-                  // rules: [{
-                  //   required: true, message: '请输入应用名称!',
-                  // }],
+                  rules: [{
+                    required: false, max: 100, message: formatMessage({ id: 'validation.description.placeholder' }),
+                  }],
                 })(
                   <TextArea rows={4} />
                 )}
               </FormItem>
-              <FormItem label="标签设置">
-                {getFieldDecorator('appTagSet', {
-                  // rules: [{
-                  //   required: true, message: '请输入应用名称!',
-                  // }],
-                })(
-                  <Select
-                    mode="multiple"
-                    style={{ width: '100%' }}
-                    onChange={this.handleSetTags}
-                  >
-                    {tags}
-                  </Select>
-                )}
-              </FormItem>
+              {/* <FormItem label="标签设置">
+        {getFieldDecorator('appTagSet', {
+          rules: [{
+            required: true, message: '请输入应用名称!',
+          }],
+        })(
+          <Select
+            mode="multiple"
+            style={{ width: '100%' }}
+            onChange={this.handleSetTags}
+          >
+            {tags}
+          </Select>
+        )}
+      </FormItem> */}
             </div>
           )}
         </Form>

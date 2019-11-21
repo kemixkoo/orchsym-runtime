@@ -1,16 +1,11 @@
-import { message } from 'antd';
 import { createSnippets } from '@/services/studio';
-import { formatMessage } from 'umi-plugin-react/locale';
 import {
   querySearchApplication, updateAppEnable, updateAppDisable,
   showAppStatus, deleteApplication, copeApplication,
-} from '@/services/application';
-import { updateAppState } from '@/services/Flow';
-import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
-import {
   detailApplication, editApplication, addApplication,
-  createApplicationTemp,
-} from '@/services/ProcessGroups';
+  createApplicationTemp, updateAppState,
+} from '@/services/application';
+import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
 import { downloadApplication } from '@/services/template';
 import { getClientId } from '@/utils/authority';
 // import { notification } from "antd/lib/index";
@@ -193,9 +188,6 @@ export default {
       const body = {
         appId: id,
         ...values,
-        // name,
-        // comments,
-        // tags,
       }
       yield call(copeApplication, body);
       yield cb && cb()
@@ -243,7 +235,15 @@ export default {
     //     });
     //   }
     // },
-    * fetchCreateAppTemp({ payload }, { call, put }) {
+
+    // 验证名字重复
+    * fetchValidationCheckName({ payload, cb }, { call, put }) {
+      const response = yield call(validationAppCheckName, payload);
+      yield cb && cb(response)
+    },
+
+    // 存为模版
+    * fetchCreateAppTemp({ payload, cb }, { call, put }) {
       const { snippetId, values, id } = payload;
       const params = {
         id,
@@ -257,17 +257,8 @@ export default {
         const { response = {} } = error;
         console.log('error--', response)
       };
-      const response = yield call(createApplicationTemp, params, errorHandler);
-      if (response) {
-        message.success(formatMessage({ id: 'app.result.success' }));
-        yield put({
-          type: 'fetchApplication',
-        });
-      }
-    },
-    * fetchValidationCheckName({ payload, cb }, { call, put }) {
-      const response = yield call(validationAppCheckName, payload);
-      yield cb && cb(response)
+      yield call(createApplicationTemp, params, errorHandler);
+      yield cb && cb()
     },
 
   },
