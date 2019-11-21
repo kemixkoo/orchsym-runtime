@@ -34,6 +34,7 @@ public class TemplateAdditions {
     private String modifiedUser;
     private Long modifiedTime;
     private Integer sourceType;
+    private boolean deleted;
 
     public TemplateAdditions() {
     }
@@ -63,6 +64,9 @@ public class TemplateAdditions {
             }
             if (map.containsKey(TemplateFiledName.SOURCE_TYPE)) {
                 this.setSourceType(Integer.parseInt(map.get(TemplateFiledName.SOURCE_TYPE)));
+            }
+            if (map.containsKey(AdditionConstants.KEY_IS_DELETED)) {
+                this.setDeleted(Boolean.parseBoolean(map.get(AdditionConstants.KEY_IS_DELETED)));
             }
         }
     }
@@ -122,4 +126,13 @@ public class TemplateAdditions {
     public void setSourceType(Integer sourceType) {
         this.sourceType = sourceType;
     }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+    
 }

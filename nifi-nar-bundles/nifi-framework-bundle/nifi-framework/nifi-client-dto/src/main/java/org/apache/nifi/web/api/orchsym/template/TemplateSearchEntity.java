@@ -42,7 +42,7 @@ public class TemplateSearchEntity {
     /**
      * 检索关键字(在名称和备注中检索 或的关系)
      */
-    private String q = "";
+    private String text = "";
     /**
      * 当前页 默认是第一页
      */
@@ -72,12 +72,14 @@ public class TemplateSearchEntity {
     private Long endTime;
     private List<String> tags;
 
-    public String getQ() {
-        return q;
+    private boolean deleted = false;
+
+    public String getText() {
+        return text;
     }
 
-    public void setQ(String q) {
-        this.q = q;
+    public void setText(String text) {
+        this.text = text;
     }
 
     public Integer getPage() {
@@ -96,12 +98,12 @@ public class TemplateSearchEntity {
         this.sortedField = sortedField;
     }
 
-    public Boolean getDesc() {
+    public Boolean getIsDesc() {
         return isDesc;
     }
 
-    public void setDesc(Boolean desc) {
-        isDesc = desc;
+    public void setIsDesc(Boolean isDesc) {
+        this.isDesc = isDesc;
     }
 
     public Integer getSourceType() {
@@ -176,16 +178,25 @@ public class TemplateSearchEntity {
         this.uploadedUserId = uploadedUserId;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
     /**
      * 根据自身对象的条件进行筛选
      *
-     * @param list 待筛选的数组
+     * @param list
+     *            待筛选的数组
      * @return
      */
     public DataPage<TemplateDTO> getTempsByFilter(List<TemplateDTO> list) {
         // 过滤筛选 + 排序
         final List<TemplateDTO> filterList = list.stream().filter(t -> {
-            final String q = this.getQ();
+            final String q = this.getText();
             if (!StringUtils.isBlank(q)) {
                 if (!(t.getName().contains(q) || t.getDescription().contains(q))) {
                     return false;
@@ -198,6 +209,10 @@ public class TemplateSearchEntity {
             }
 
             final TemplateAdditions additions = getAdditions(t);
+            if (additions.isDeleted() != this.isDeleted()) {
+                return false;
+            }
+
             final String createdUserId = this.getCreatedUserId();
             if (!StringUtils.isBlank(createdUserId)) {
                 if (!createdUserId.equals(additions.getCreatedUser())) {
@@ -224,17 +239,17 @@ public class TemplateSearchEntity {
             if (isTimeFilter) {
                 Long time = null;
                 switch (this.getFilterTimeField().toUpperCase()) {
-                    case CREATED_TIME_FIELD:
-                        time = additions.getCreatedTime();
-                        break;
-                    case MODIFIED_TIME_FIELD:
-                        time = additions.getModifiedTime();
-                        break;
-                    case UPLOADED_TIME_FIELD:
-                        time = additions.getUploadedTime();
-                        break;
-                    default:
-                        break;
+                case CREATED_TIME_FIELD:
+                    time = additions.getCreatedTime();
+                    break;
+                case MODIFIED_TIME_FIELD:
+                    time = additions.getModifiedTime();
+                    break;
+                case UPLOADED_TIME_FIELD:
+                    time = additions.getUploadedTime();
+                    break;
+                default:
+                    break;
                 }
                 if (time != null) {
                     if (this.beginTime != null && time < beginTime) {
@@ -250,24 +265,24 @@ public class TemplateSearchEntity {
         }).sorted((o1, o2) -> {
             Long time1 = null;
             Long time2 = null;
-            final Boolean isDesc = getDesc() == null ? true : getDesc();
+            final Boolean isDesc = getIsDesc() == null ? true : getIsDesc();
             switch (getSortedField().toUpperCase()) {
-                case CREATED_TIME_FIELD:
-                    time1 = getAdditions(o1).getCreatedTime();
-                    time2 = getAdditions(o2).getCreatedTime();
-                    break;
-                case MODIFIED_TIME_FIELD:
-                    time1 = getAdditions(o1).getModifiedTime();
-                    time2 = getAdditions(o2).getModifiedTime();
-                    break;
-                case UPLOADED_TIME_FIELD:
-                    time1 = getAdditions(o1).getUploadedTime();
-                    time2 = getAdditions(o2).getModifiedTime();
-                    break;
-                case NAME_FIELD:
-                    time1 = time2 = null;
-                default:
-                    break;
+            case CREATED_TIME_FIELD:
+                time1 = getAdditions(o1).getCreatedTime();
+                time2 = getAdditions(o2).getCreatedTime();
+                break;
+            case MODIFIED_TIME_FIELD:
+                time1 = getAdditions(o1).getModifiedTime();
+                time2 = getAdditions(o2).getModifiedTime();
+                break;
+            case UPLOADED_TIME_FIELD:
+                time1 = getAdditions(o1).getUploadedTime();
+                time2 = getAdditions(o2).getModifiedTime();
+                break;
+            case NAME_FIELD:
+                time1 = time2 = null;
+            default:
+                break;
             }
             if (time1 != null && time2 != null) {
                 return isDesc ? time2.compareTo(time1) : time1.compareTo(time2);
@@ -284,4 +299,3 @@ public class TemplateSearchEntity {
     }
 
 }
-
