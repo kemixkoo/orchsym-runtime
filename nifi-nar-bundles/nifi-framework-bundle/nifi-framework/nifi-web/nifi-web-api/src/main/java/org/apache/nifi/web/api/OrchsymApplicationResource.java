@@ -83,6 +83,8 @@ import org.apache.nifi.web.api.entity.AppSearchEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+import org.apache.nifi.web.util.AppTypeAssessor;
+import org.apache.nifi.web.util.AppTypeAssessor.AppType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -274,6 +276,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                         if (null != group.getTags()) {
                             groupEntity.setTags(new HashSet<>(group.getTags()));
                         }
+                        final AppType appType = AppTypeAssessor.judgeType(group);
+                        groupEntity.setType(appType.getName());
                     }
 
                     return groupEntity;
@@ -290,10 +294,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         final Long endTime = searchEnity.getEndTime();
 
         appGroupEntityList = appGroupEntityList.stream().filter(appGroupEntity -> {
-            if (null != deleted && !appGroupEntity.isDeleted().equals(deleted)) {
+            if (null != deleted && !appGroupEntity.getDeleted().equals(deleted)) {
                 return false;
             }
-            if (null != enabled && !appGroupEntity.isEnabled().equals(enabled)) {
+            if (null != enabled && !appGroupEntity.getEnabled().equals(enabled)) {
                 return false;
             }
             if (null != isRunning) {

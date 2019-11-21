@@ -219,6 +219,8 @@ import org.apache.nifi.web.api.entity.VariableEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.controller.ControllerFacade;
 import org.apache.nifi.web.revision.RevisionManager;
+import org.apache.nifi.web.util.AppTypeAssessor;
+import org.apache.nifi.web.util.AppTypeAssessor.AppType;
 import org.apache.nifi.util.VersionHelper;
 
 import javax.ws.rs.WebApplicationException;
@@ -2259,6 +2261,8 @@ public final class DtoFactory {
         }
         fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
         fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
+        final AppType appType = AppTypeAssessor.judgeType(group);
+        fixDefaultValue(additions, AdditionConstants.KEY_APP_TYPE, appType.getName());
         dto.setAdditions(additions);
 
         final ProcessGroup parentGroup = group.getParent();

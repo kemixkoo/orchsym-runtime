@@ -14,6 +14,7 @@ public class AppGroupEntity extends Entity {
     private Boolean deleted;
     private Boolean enabled;
     private Set<String> tags;
+    private String type;
 
     public AppGroupEntity() {
     }
@@ -58,7 +59,7 @@ public class AppGroupEntity extends Entity {
         this.modifiedTime = modifiedTime;
     }
 
-    public Boolean isDeleted() {
+    public Boolean getDeleted() {
         return deleted;
     }
 
@@ -66,7 +67,7 @@ public class AppGroupEntity extends Entity {
         this.deleted = deleted;
     }
 
-    public Boolean isEnabled() {
+    public Boolean getEnabled() {
         return enabled;
     }
 
@@ -80,6 +81,14 @@ public class AppGroupEntity extends Entity {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override

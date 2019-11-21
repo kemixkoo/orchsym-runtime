@@ -22,16 +22,27 @@ package org.apache.nifi.web.api.orchsym.addition;
  *
  */
 public interface AdditionConstants {
+
+    /*
+     * Status
+     */
     String KEY_IS_DELETED = "IS_DELETED";
     Boolean KEY_IS_DELETED_DEFAULT = Boolean.FALSE; // default is not deleted
-
     String KEY_IS_ENABLED = "IS_ENABLED";
     Boolean KEY_IS_ENABLED_DEFAULT = Boolean.TRUE; // default is enabled
 
+    /*
+     * User
+     */
     String KEY_CREATED_TIMESTAMP = "CREATED_TIMESTAMP";
     String KEY_CREATED_USER = "CREATED_USER";
-    String KEY_ORIGINAL_CREATED_TIMESTAMP="ORIGINAL_CREATED_TIMESTAMP";
+    String KEY_ORIGINAL_CREATED_TIMESTAMP = "ORIGINAL_CREATED_TIMESTAMP";
     String KEY_ORIGINAL_CREATED_USER = "ORIGINAL_CREATED_USER";
     String KEY_MODIFIED_TIMESTAMP = "MODIFIED_TIMESTAMP";
     String KEY_MODIFIED_USER = "MODIFIED_USER";
+
+    /*
+     * Type
+     */
+    String KEY_APP_TYPE = "APPLICATION_TYPE";
 }
