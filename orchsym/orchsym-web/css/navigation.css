@@ -411,12 +411,53 @@ span.breadcrumb-version-control-gray {
 }
 
 #data-flow-title-viewport {
-    overflow: hidden;
+    /*overflow: hidden;*/
     position: absolute;
     left: 5px;
     top: 0px;
     width: 75%;
     z-index: 4;
+}
+
+.button-alignment-menu[disabled] .alignment-menu{
+    display: none;
+}
+
+.button-alignment-menu[disabled]:hover .alignment-menu{
+    display: none;
+}
+
+.button-alignment-menu:hover .alignment-menu{
+    display: block;
+}
+
+.alignment-menu {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    font-size: 13px;
+    padding: 3px 0;
+    background-color: rgba(249,250,251,0.97);
+    border: 1px solid #666;
+    border-radius: 3px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    width: 215px;
+    max-height: inherit;
+    color: #555;
+    z-index: 10006;
+    overflow: hidden;
+}
+
+.alignment-menu div.context-menu-item {
+    cursor: pointer;
+    height: 20px;
+    padding-top: 4px;
+    padding-left: 4px;
+}
+
+.alignment-menu div.context-menu-item:hover {
+    background-color:#C7D2D7; /*tint base-color 60%*/
+    box-shadow:0 1px 1px rgba(0,0,0,0.15);
 }
 
 #data-flow-title-container {

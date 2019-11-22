@@ -589,7 +589,7 @@ div.context-menu-item {
     padding-left: 4px;
 }
 
-div.context-menu-item.hover {
+div.context-menu-item:hover {
     background-color:#C7D2D7; /*tint base-color 60%*/
     box-shadow:0 1px 1px rgba(0,0,0,0.15);
 }

@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="assets/angular-material/angular-material.min.css?1.7.0-SNAPSHOT" type="text/css" />
     <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css?1.7.0-SNAPSHOT" type="text/css" />
     <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="stylesheet" href="haida.css" type="text/css" />
     <script>URLSearchParams=void 0;</script>
     <script type="text/javascript" src="assets/url-search-params/build/url-search-params.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/codemirror/lib/codemirror-compressed.js?1.7.0-SNAPSHOT"></script>
@@ -462,6 +463,23 @@
                     <div class="svg-right">
                         <div class="line"></div>
                     </div>
+                    <button class="svg-right button-alignment-menu" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
+                        <span class="hicon-alignment"></span>
+                        <span class="acon-caret-down" style="font-size: 10px;margin-left: -8px;"></span>
+                        <div class="alignment-menu">
+                            <div class="context-menu-item" ng-click="appCtrl.nf.Actions['alignHorizontal'](appCtrl.nf.CanvasUtils.getSelection());">
+                                <div class="context-menu-item-img fa fa-align-center fa-rotate-90"></div>
+                                <div class="context-menu-item-text">水平对齐</div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="context-menu-item" ng-click="appCtrl.nf.Actions['alignVertical'](appCtrl.nf.CanvasUtils.getSelection());">
+                                <div class="context-menu-item-img fa fa-align-center"></div>
+                                <div class="context-menu-item-text">垂直对齐</div>
+                                <div class="clear"></div>
+                            </div>
+                        </div>
+                    </button>
                     <button class="svg-right" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-minus"></span>
@@ -1486,10 +1504,13 @@
 </div>
 <div class="component-panel-tools" id="component-panel-tools">
     <div class="acon" type="component-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('component-panel')">
-        <span class="acon-api"></span>
+        <span class="hicon-assembly"></span>
     </div>
     <div class="acon" type="system-tools-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('system-tools-panel')">
         <span class="acon-appstore"></span>
+    </div>
+    <div class="acon" type="system-tools-panel">
+        <span class="hicon-template"></span>
     </div>
 </div>
 <div class="component-panel component-panel-toggleClass" id="system-tools-panel">
