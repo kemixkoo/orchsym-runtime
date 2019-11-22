@@ -8,7 +8,8 @@ import {
 import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
 import { downloadApplication } from '@/services/template';
 import { getClientId } from '@/utils/authority';
-// import { notification } from "antd/lib/index";
+import { formatMessage } from 'umi-plugin-react/locale';
+import { message } from 'antd';
 
 export default {
   namespace: 'application',
@@ -242,7 +243,7 @@ export default {
       yield cb && cb(response)
     },
 
-    // 存为模版
+    // 存为模板
     * fetchCreateAppTemp({ payload, cb }, { call, put }) {
       const { snippetId, values, id } = payload;
       const params = {
@@ -257,7 +258,10 @@ export default {
         const { response = {} } = error;
         console.log('error--', response)
       };
-      yield call(createApplicationTemp, params, errorHandler);
+      const response = yield call(createApplicationTemp, params, errorHandler);
+      if (response) {
+        message.success(formatMessage({ id: 'result.success' }));
+      }
       yield cb && cb()
     },
 

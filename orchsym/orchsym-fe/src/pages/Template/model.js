@@ -1,21 +1,21 @@
 // import { message } from 'antd';
-import { queryTemplates } from '@/services/Flow';
+import { queryOfficialTemplates } from '@/services/template';
 
 export default {
   namespace: 'template',
 
   state: {
     collectList: [],
+    officialList: [],
   },
 
   effects: {
-    *fetchTemplates({ payload }, { call, put }) {
-      const response = yield call(queryTemplates);
-      console.log(response)
+    *fetchOfficialTemplates({ payload }, { call, put }) {
+      const response = yield call(queryOfficialTemplates, payload);
       yield put({
         type: 'appendValue',
         payload: {
-          collectList: response.templates,
+          officialList: response.templates,
         },
       });
     },

@@ -5,5 +5,5 @@
  * Time: 11:54
  */
 export default {
-  'template.title.saveTemp': '存为模版',
+  'template.title.saveTemp': '存为模板',
 }

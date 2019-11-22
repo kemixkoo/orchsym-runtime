@@ -70,8 +70,8 @@ export default [
       {
         name: 'template',
         icon: 'OS-iconmoban',
-        path: '/template/:Template',
-        component: './$Template',
+        path: '/temp/:tab',
+        component: './Template',
       },
       // 控制器服务
       {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Spin, Form, Input, Button, Upload, Icon, message, Select } from 'antd';
+import { Modal, Spin, Form, Input, message, Select } from 'antd';// Button, Upload, Icon,
 import { connect } from 'dva';
 // import { getToken } from '@/utils/authority';
 
@@ -7,8 +7,8 @@ const { TextArea } = Input;
 const { Option } = Select;
 class AddTemp extends React.Component {
   state = {
-    fileList: [],
-    loading: false,
+    // fileList: [],
+    // loading: false,
   };
 
   componentDidMount() {
@@ -43,7 +43,7 @@ class AddTemp extends React.Component {
                     descs: values.descs,
                     type: values.type,
                   },
-                  file: this.state.fileList,
+                  // file: this.state.fileList,
                 },
                 cb: () => {
                   dispatch({
@@ -72,14 +72,14 @@ class AddTemp extends React.Component {
   };
 
   handleUpload = info => {
-    if (info.file.status === 'uploading') {
-      this.setState({ loading: true });
-    }
-    if (info.file.status === 'done') {
-      this.setState({
-        loading: false,
-      });
-    }
+    // if (info.file.status === 'uploading') {
+    //   this.setState({ loading: true });
+    // }
+    // if (info.file.status === 'done') {
+    //   this.setState({
+    //     loading: false,
+    //   });
+    // }
   };
 
   handleFileName = (rule, value, callback) => {
@@ -107,7 +107,7 @@ class AddTemp extends React.Component {
       form: { getFieldDecorator },
       visible,
       title,
-      handleCancel,
+      // handleCancel,
       tempType,
       loading,
     } = this.props;
@@ -121,37 +121,37 @@ class AddTemp extends React.Component {
         sm: { span: 18 },
       },
     };
-    const props = {
-      name: 'file',
-      // action: '/api/template/upload?names=qqqq&descs=1111&type=1',
-      // headers: {
-      //   authorization: `Bearer ${getToken()}`,
-      // },
-      showUploadList: true,
-      onRemove: file => {
-        this.setState(state => {
-          const index = state.fileList.indexOf(file);
-          const newFileList = state.fileList.slice();
-          newFileList.splice(index, 1);
-          return {
-            fileList: newFileList,
-          };
-        });
-      },
-      beforeUpload: file => {
-        console.log(file);
-        this.setState({
-          fileList: [file],
-        });
-        const isAccept = file.name.endsWith('.xml') || file.name.endsWith('.json');
-        // const isCsv = file.type === 'text/csv';
-        if (!isAccept) {
-          message.error('目前仅支持.xml/.json格式文件');
-        }
-        return isAccept;
-      },
-      onChange: this.handleUpload,
-    };
+    // const props = {
+    //   name: 'file',
+    //   // action: '/api/template/upload?names=qqqq&descs=1111&type=1',
+    //   // headers: {
+    //   //   authorization: `Bearer ${getToken()}`,
+    //   // },
+    //   showUploadList: true,
+    //   onRemove: file => {
+    //     this.setState(state => {
+    //       const index = state.fileList.indexOf(file);
+    //       const newFileList = state.fileList.slice();
+    //       newFileList.splice(index, 1);
+    //       return {
+    //         fileList: newFileList,
+    //       };
+    //     });
+    //   },
+    //   beforeUpload: file => {
+    //     console.log(file);
+    //     this.setState({
+    //       fileList: [file],
+    //     });
+    //     const isAccept = file.name.endsWith('.xml') || file.name.endsWith('.json');
+    //     // const isCsv = file.type === 'text/csv';
+    //     if (!isAccept) {
+    //       message.error('目前仅支持.xml/.json格式文件');
+    //     }
+    //     return isAccept;
+    //   },
+    //   onChange: this.handleUpload,
+    // };
     return (
       <Modal
         visible={visible}
@@ -203,11 +203,11 @@ class AddTemp extends React.Component {
                 valuePropName: 'fileList',
                 getValueFromEvent: this.normFile,
               })(
-                <Upload {...props}>
-                  <Button loading={this.state.loading} disabled={this.state.fileList.length === 1}>
-                    <Icon type="upload" /> 上传文件
-                  </Button>
-                </Upload>,
+                // <Upload {...props}>
+                //   <Button loading={this.state.loading} disabled={this.state.fileList.length === 1}>
+                //     <Icon type="upload" /> 上传文件
+                //   </Button>
+                // </Upload>,
               )}
             </Form.Item>
           </Form>
