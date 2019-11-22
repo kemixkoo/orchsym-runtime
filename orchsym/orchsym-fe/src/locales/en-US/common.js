@@ -14,4 +14,12 @@ export default {
   'result.delete.title': 'Are you sure you want to put it in the recycle bin?',
   'result.delete.description': 'The file stream in the application cannot be recovered after it is put into the recycle bin',
   'result.error.title': 'Submission Failed',
+  'title.saveTemp': 'Save template',
+  'title.tag': 'Tag',
+  'title.name': 'Name',
+  'title.type': 'Type',
+  'title.description': 'Descriotion',
+  'title.create': 'Create',
+  'title.createTime': 'CreateTime',
+  'title.operate': 'Operation',
 };

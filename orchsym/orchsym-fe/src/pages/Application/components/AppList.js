@@ -280,7 +280,7 @@ class AppList extends PureComponent {
         <Menu.Divider />
         <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>
           <IconFont type="OS-iconmoban" />
-          {`${formatMessage({ id: 'page.application.content.saveTemp' })}`}
+          {`${formatMessage({ id: 'title.saveTemp' })}`}
         </Menu.Item>
       </Menu>
     ) : (

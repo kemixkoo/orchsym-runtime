@@ -95,10 +95,9 @@ class Template extends PureComponent {
                     </Button>
                   </Col>
                 )
-
               }
               <Col span={tabActiveKey === 'customize' ? 12 : 24}>
-                <Search placeholder={formatMessage({ id: 'page.application.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
+                <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
               </Col>
             </Row>
           </div>
@@ -111,8 +110,7 @@ class Template extends PureComponent {
               sortedField={sortedField}
               isDesc={isDesc}
             />
-          )
-          }
+          )}
           {tabActiveKey === 'official' && (
             <OfficialList
               onSearchChange={this.onSearchChange}
@@ -122,8 +120,7 @@ class Template extends PureComponent {
               sortedField={sortedField}
               isDesc={isDesc}
             />
-          )
-          }
+          )}
           {tabActiveKey === 'customize' && (
             <CustomizeList
               onSearchChange={this.onSearchChange}
@@ -133,8 +130,7 @@ class Template extends PureComponent {
               sortedField={sortedField}
               isDesc={isDesc}
             />
-          )
-          }
+          )}
         </div>
       </PageHeaderWrapper>
     );

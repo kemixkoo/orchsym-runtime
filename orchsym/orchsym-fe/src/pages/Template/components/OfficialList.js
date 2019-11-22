@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { Table, Icon, Dropdown, Menu } from 'antd';
 import { connect } from 'dva';
-import { formatMessage } from 'umi-plugin-react/locale';
+import { formatMessage, getLocale } from 'umi-plugin-react/locale';
 import Ellipsis from '@/components/Ellipsis';
 import moment from 'moment';
 import styles from '../index.less';
@@ -40,6 +40,9 @@ class OfficialList extends PureComponent {
         <Menu.Item key="edit">
           {`${formatMessage({ id: 'button.edit' })}`}
         </Menu.Item>
+        <Menu.Item key="collect">
+          {`${formatMessage({ id: 'button.collect' })}`}
+        </Menu.Item>
         <Menu.Item key="cancelCollect">
           {`${formatMessage({ id: 'button.cancelCollect' })}`}
         </Menu.Item>
@@ -63,17 +66,18 @@ class OfficialList extends PureComponent {
   }
 
   render() {
-    const { officialList } = this.props;
+    const { officialList: { results, totalSize },
+      onSearchChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
     const columns = [
       {
-        title: '名称',
-        dataIndex: 'template.name',
+        title: `${formatMessage({ id: 'title.name' })}`,
+        dataIndex: 'name',
         key: 'name',
         // render: text => <a>{text}</a>,
       },
       {
-        title: '描述',
-        dataIndex: 'template.description',
+        title: `${formatMessage({ id: 'title.description' })}`,
+        dataIndex: 'description',
         key: 'description',
         render: (text, record) => (
           <Ellipsis tooltip length={23}>
@@ -82,13 +86,8 @@ class OfficialList extends PureComponent {
         ),
       },
       {
-        title: '类型',
-        dataIndex: 'type',
-        key: 'type',
-      },
-      {
-        title: '创建/发布时间',
-        dataIndex: 'template.timestamp',
+        title: `${formatMessage({ id: 'title.createTime' })}`,
+        dataIndex: 'timestamp',
         key: 'time',
         render: (text, record) => {
           const time = moment(text).format('YYYY-MM-DD HH:mm:ss');
@@ -96,26 +95,48 @@ class OfficialList extends PureComponent {
         },
       },
       {
-        title: '操作',
+        title: `${formatMessage({ id: 'title.operate' })}`,
         key: 'operate',
         render: (text, record) => (this.operateMenu(record)),
       },
     ];
+
+    const showTotal = (total) => {
+      if (getLocale() === 'zh-CN') {
+        return `共 ${total} 个`;
+      } else {
+        return `Total ${total} items`;
+      }
+    }
     return (
       <div>
         <Table
           columns={columns}
-          dataSource={officialList}
+          dataSource={results}
           rowKey="id"
           pagination={{
             size: 'small',
-            defaultPageSize: 10,
-            total: 20,
-            showTotal: () => `共${20}个`,
-            current: 1,
-            onChange: this.changePage,
-            showQuickJumper: true,
+            onChange: (page, pageSize) => {
+              this.getAppList(page, pageSize, sortedField, isDesc, searchVal)
+              onSearchChange({
+                pageNum: page,
+                pageSizeNum: pageSize,
+              })
+            },
+            onShowSizeChange: (current, size) => {
+              this.getAppList(current, size, sortedField, isDesc, searchVal)
+              onSearchChange({
+                pageNum: current,
+                pageSizeNum: size,
+              })
+            },
+            current: pageNum,
+            pageSize: pageSizeNum,
+            total: totalSize,
+            showTotal,
+            pageSizeOptions: ['10', '20'],
             showSizeChanger: true,
+            showQuickJumper: true,
           }}
         // loading={loading}
         />

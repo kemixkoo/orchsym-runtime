@@ -1,12 +1,14 @@
 import React from 'react';
-import { Form, Table } from 'antd';
+import { Form, Table, Menu, Icon, Dropdown } from 'antd';
 import { connect } from 'dva';
+import { formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
+import Ellipsis from '@/components/Ellipsis';
 import { EditableContext } from '@/utils/utils'
-// import Ellipsis from '@/components/Ellipsis';
+import styles from '../index.less';
 
 @connect(({ template }) => ({
-  collectList: template.collectList,
+  customList: template.customList,
 }))
 
 class CustomizeList extends React.Component {
@@ -15,30 +17,33 @@ class CustomizeList extends React.Component {
     this.state = { editingKey: '' };
     this.columns = [
       {
-        title: '名称',
-        dataIndex: 'component.name',
-        editable: true,
+        title: `${formatMessage({ id: 'title.name' })}`,
+        dataIndex: 'name',
+        key: 'name',
+        // render: text => <a>{text}</a>,
       },
       {
-        title: '类型',
-        dataIndex: 'component.type',
+        title: `${formatMessage({ id: 'title.description' })}`,
+        dataIndex: 'description',
+        key: 'description',
+        render: (text, record) => (
+          <Ellipsis tooltip length={23}>
+            {text || '-'}
+          </Ellipsis>
+        ),
       },
       // {
-      //   title: '作用域',
+      //   title: '来源',
       //   dataIndex: 'type',
       // },
       // {
-      //   title: '引用组件',
-      //   dataIndex: 'time',
-      // },
-      // {
-      //   title: '服务状态',
+      //   title: '创建时间',
       //   dataIndex: 'time',
       // },
       {
-        title: '操作',
+        title: `${formatMessage({ id: 'title.operate' })}`,
         render: (text, record) => {
-          const { editingKey } = this.state;
+          // const { editingKey } = this.state;
           const editable = this.isEditing(record);
           return editable ? (
             <span>
@@ -56,18 +61,28 @@ class CustomizeList extends React.Component {
                 <a>Cancel</a>
               </Popconfirm> */}
             </span>
-          ) : (
-            <a disabled={editingKey !== ''} onClick={() => this.edit(record.id)}>Edit</a>
-          );
+          ) : (this.operateMenu(record));
         },
       },
     ];
   }
 
   componentDidMount() {
+    const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props
+    this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+  }
+
+  getList = (page, pageSize, sortedField, isDesc, text) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'controllerServices/fetchControllerServices',
+      type: 'template/fetchCustomTemplates',
+      payload: {
+        page,
+        pageSize,
+        text,
+        sortedField,
+        isDesc,
+      },
     });
   }
 
@@ -80,6 +95,39 @@ class CustomizeList extends React.Component {
     this.setState({ editingKey: '' });
   };
 
+  operateMenu = (item) => {
+    const { editingKey } = this.state;
+    console.log(item)
+    // <a disabled={editingKey !== ''} onClick={() => this.edit(record.id)}>Edit</a>
+    const menu = (
+      <Menu>
+        <Menu.Item key="edit" disabled={editingKey !== ''} onClick={() => this.edit(item.id)}>
+          {`${formatMessage({ id: 'button.edit' })}`}
+        </Menu.Item>
+        <Menu.Item key="collect">
+          {`${formatMessage({ id: 'button.collect' })}`}
+        </Menu.Item>
+        <Menu.Item key="cancelCollect">
+          {`${formatMessage({ id: 'button.cancelCollect' })}`}
+        </Menu.Item>
+        <Menu.Item key="download">
+          {`${formatMessage({ id: 'button.download' })}`}
+        </Menu.Item>
+        <Menu.Item key="delete">
+          {`${formatMessage({ id: 'button.delete' })}`}
+        </Menu.Item>
+      </Menu>
+    );
+    return (
+      <span className={styles.operateMenu}>
+        <Icon type="star" theme="filled" style={{ color: '#faad14' }} />
+        {/* <Icon type="star" theme="twoTone" /> */}
+        <Dropdown overlay={menu} trigger={['click']}>
+          <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
+        </Dropdown>
+      </span>
+    )
+  }
   // save(form, key) {
   //   form.validateFields((error, row) => {
   //     if (error) {
@@ -106,7 +154,8 @@ class CustomizeList extends React.Component {
   }
 
   render() {
-    const { form, collectList } = this.props;
+    const { form, customList: { results, totalSize },
+      onSearchChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
     const components = {
       body: {
         cell: EditableCell,
@@ -129,16 +178,44 @@ class CustomizeList extends React.Component {
       };
     });
 
+    const showTotal = (total) => {
+      if (getLocale() === 'zh-CN') {
+        return `共 ${total} 个`;
+      } else {
+        return `Total ${total} items`;
+      }
+    }
     return (
       <EditableContext.Provider value={form}>
         <Table
           components={components}
-          dataSource={collectList}
+          dataSource={results}
           columns={columns}
           rowKey="id"
           rowClassName="editable-row"
           pagination={{
-            onChange: this.cancel,
+            size: 'small',
+            onChange: (page, pageSize) => {
+              this.getAppList(page, pageSize, sortedField, isDesc, searchVal)
+              onSearchChange({
+                pageNum: page,
+                pageSizeNum: pageSize,
+              })
+            },
+            onShowSizeChange: (current, size) => {
+              this.getAppList(current, size, sortedField, isDesc, searchVal)
+              onSearchChange({
+                pageNum: current,
+                pageSizeNum: size,
+              })
+            },
+            current: pageNum,
+            pageSize: pageSizeNum,
+            total: totalSize,
+            showTotal,
+            pageSizeOptions: ['10', '20'],
+            showSizeChanger: true,
+            showQuickJumper: true,
           }}
         />
       </EditableContext.Provider>
