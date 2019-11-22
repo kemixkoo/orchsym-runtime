@@ -39,6 +39,7 @@ import org.apache.nifi.web.api.dto.ConnectionDTO;
 import org.apache.nifi.web.api.dto.ControllerConfigurationDTO;
 import org.apache.nifi.web.api.dto.ControllerDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.ControllerServiceSearchDTO;
 import org.apache.nifi.web.api.dto.CounterDTO;
 import org.apache.nifi.web.api.dto.CountersDTO;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
@@ -1763,6 +1764,28 @@ public interface NiFiServiceFacade {
      */
     Set<ControllerServiceEntity> getControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups);
 
+    /**
+     * Gets all controller services that belong to the given group and its parent/ancestor groups.
+     * The results will be sorted by controller service id.
+     *
+     * @param groupId the id of the process group of interest
+     * @param includeAncestorGroups if true, parent and ancestor groups' services will be returned as well
+     * @param includeDescendantGroups if true, child and descendant groups' services will be returned as well
+     * @return services
+     */
+    List<ControllerServiceDTO> getSortedControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups);
+
+
+    /**
+     * Gets all controller services that belong to the given group and its parent/ancestor groups.
+     * The results will be sorted by controller service id.
+     *
+     * @param groupId the id of the process group of interest
+     * @param includeAncestorGroups if true, parent and ancestor groups' services will be returned as well
+     * @param includeDescendantGroups if true, child and descendant groups' services will be returned as well
+     * @return services
+     */
+    List<ControllerServiceSearchDTO> searchControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups);
     /**
      * Gets the specified controller service.
      *

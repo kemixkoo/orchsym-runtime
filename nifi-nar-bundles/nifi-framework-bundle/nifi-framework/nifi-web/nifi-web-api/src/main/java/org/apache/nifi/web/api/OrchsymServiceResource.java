@@ -20,6 +20,7 @@ package org.apache.nifi.web.api;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -69,6 +70,7 @@ import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.ControllerServiceSearchDTO;
 import org.apache.nifi.web.api.dto.DbcpControllerServiceDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.VariableRegistryDTO;
@@ -81,6 +83,7 @@ import org.apache.nifi.web.api.entity.ControllerServicesBatchOperationEntity;
 import org.apache.nifi.web.api.entity.ControllerServicesEntity;
 import org.apache.nifi.web.api.entity.DbcpControllerServiceEntity;
 import org.apache.nifi.web.api.entity.DbcpControllerServicesEntity;
+import org.apache.nifi.web.api.entity.OrchsymServiceSearchCriteriaEntity;
 import org.apache.nifi.web.api.entity.VariableEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +98,8 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+
+import static org.apache.nifi.controller.FlowController.ROOT_GROUP_ID_ALIAS;
 
 /**
  * RESTful endpoint for managing a Controller Service.
@@ -811,6 +816,105 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         );
     }
 
+    /**
+     * Retrieve controller services.
+     * To make use of existing NiFi API, the Controller Services will be sorted in lexicographical order by controller-service-id first.
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("controller-services")
+    @ApiOperation(
+            value = "Gets a list of Controller Services",
+            notes = "Only search results from authorized components will be returned",
+            authorizations = {@Authorization(value = "Read - /flow")})
+    @ApiResponses(
+            value = {
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400),
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401),
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403),
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409)
+    })
+    public Response queryControllerServices(final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity) {
+        final Set<String> scopes = requestServiceSearchCriteriaEntity.getScopes();
+        List<ControllerServiceSearchDTO> services = new ArrayList<>();
+        // 1. get Controller Services by groupId (filter by scope)
+        if (scopes.isEmpty()) {
+            // global Controller Services
+            services.addAll(serviceFacade.searchControllerServices(null, true, true));
+            // Controller Services in Process Groups
+            services.addAll(serviceFacade.searchControllerServices(ROOT_GROUP_ID_ALIAS, true, true));
+        } else {
+            for (String scope: scopes) {
+                services.addAll(serviceFacade.searchControllerServices(scope, false, false));
+            }
+        }
+        final Set<OrchsymServiceSearchCriteriaEntity.OrchsymServiceState> states = requestServiceSearchCriteriaEntity.getStates();
+        if (states.isEmpty()) {
+            states.addAll(Arrays.asList(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.values()));
+        }
+        final String searchStr = requestServiceSearchCriteriaEntity.getQ();
+        final OrchsymServiceSearchCriteriaEntity.OrchsymServiceSortField sortField = requestServiceSearchCriteriaEntity.getSortField();
+        final boolean asc = requestServiceSearchCriteriaEntity.isAsc();
+        services = services.stream()
+                // 2. filter by controller service state
+                .filter(controllerServiceDTO ->
+                        states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState()))
+                                || states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus())))
+                // 3. filter by search string. Only try to match search string with controller service's name and type
+                .filter(controllerServiceDTO -> StringUtils.containsIgnoreCase(controllerServiceDTO.getName(), searchStr)
+                        || StringUtils.containsIgnoreCase(controllerServiceDTO.getType(), searchStr)
+                        || StringUtils.containsIgnoreCase(controllerServiceDTO.getComments(), searchStr))
+                .collect(Collectors.toList());
+        // 4. sorting
+        services.sort((o1, o2) -> {
+            switch (sortField) {
+                case NAME:
+                    return asc ? o1.getName().compareTo(o2.getName()) : o2.getName().compareTo(o1.getName());
+                case TYPE:
+                    return asc ? o1.getType().compareTo(o2.getType()) : o2.getType().compareTo(o1.getType());
+                case REFERENCING_COMPONENTS:
+                    int size1 = 0;
+                    for (Map.Entry<String, Set<String>> entry: o1.getReferencingComponents().entrySet()) {
+                        size1 += entry.getValue().size();
+                    }
+                    int size2 = 0;
+                    for (Map.Entry<String, Set<String>> entry: o2.getReferencingComponents().entrySet()) {
+                        size2 += entry.getValue().size();
+                    }
+                    final int diff = size1 - size2;
+                    return asc ? diff : -diff;
+                default:
+                    return 0;
+            }
+        });
+        // 5. paging
+        final int pageNumber = requestServiceSearchCriteriaEntity.getPageNumber();
+        final int pageSize = requestServiceSearchCriteriaEntity.getPageSize();
+        final int totalSize = services.size();
+        final int totalPage = (totalSize + pageSize - 1) / pageSize;
+        final int index = (pageNumber - 1) * pageSize;
+
+        List<ControllerServiceSearchDTO> controllerServiceList = new ArrayList<>(pageSize);
+        if (index < totalSize) {
+            int endIndex = Math.min(index + pageSize, totalSize);
+            controllerServiceList = services.subList(index, endIndex);
+        }
+
+        // 6. set uri
+        controllerServiceList.forEach(
+                controllerServiceSearchDTO -> controllerServiceSearchDTO.setUri(generateResourceUri("controller-services", controllerServiceSearchDTO.getId()))
+        );
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalSize", totalSize);
+        result.put("totalPage", totalPage);
+        result.put("pageNumber", pageNumber);
+        result.put("controllerServices", controllerServiceList);
+
+        return noCache(Response.ok(result)).build();
+    }
+
     private void authorizeProcessGroup(ControllerServiceDTO controllerService, AuthorizableLookup lookup, NiFiUser user, Authorizable processGroup) {
         processGroup.authorize(authorizer, RequestAction.WRITE, user);
 
@@ -831,6 +935,4 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             }
         }
     }
-
-
 }

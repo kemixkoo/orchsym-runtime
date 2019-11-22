@@ -1495,6 +1495,49 @@ public final class DtoFactory {
         return dto;
     }
 
+    public ControllerServiceSearchDTO createControllerServiceSearchDto(final ControllerServiceNode controllerServiceNode) {
+        final BundleCoordinate bundleCoordinate = controllerServiceNode.getBundleCoordinate();
+        final List<Bundle> compatibleBundles = ExtensionManager.getBundles(controllerServiceNode.getCanonicalClassName()).stream().filter(bundle -> {
+            final BundleCoordinate coordinate = bundle.getBundleDetails().getCoordinate();
+            return bundleCoordinate.getGroup().equals(coordinate.getGroup()) && bundleCoordinate.getId().equals(coordinate.getId());
+        }).collect(Collectors.toList());
+
+        final String className = controllerServiceNode.getCanonicalClassName();
+        final String simpleClassName = className.contains(".") ? StringUtils.substringAfterLast(className, ".") : className;
+        final String type = simpleClassName + " " + bundleCoordinate.getVersion();
+
+        final ControllerServiceSearchDTO dto = new ControllerServiceSearchDTO();
+        dto.setId(controllerServiceNode.getIdentifier());
+        dto.setParentGroupId(controllerServiceNode.getProcessGroup() == null ? null : controllerServiceNode.getProcessGroup().getIdentifier());
+        dto.setName(controllerServiceNode.getName());
+        dto.setType(type);
+        dto.setState(controllerServiceNode.getState().name());
+        dto.setAnnotationData(controllerServiceNode.getAnnotationData());
+        dto.setComments(controllerServiceNode.getComments());
+        dto.setPersistsState(controllerServiceNode.getControllerServiceImplementation().getClass().isAnnotationPresent(Stateful.class));
+        dto.setRestricted(controllerServiceNode.isRestricted());
+        dto.setDeprecated(controllerServiceNode.isDeprecated());
+        dto.setExtensionMissing(controllerServiceNode.isExtensionMissing());
+        dto.setMultipleVersionsAvailable(compatibleBundles.size() > 1);
+        dto.setVersionedComponentId(controllerServiceNode.getVersionedComponentId().orElse(null));
+
+
+        dto.setValidationStatus(controllerServiceNode.getValidationStatus(1, TimeUnit.MILLISECONDS).name());
+
+        // add the validation errors
+        final Collection<ValidationResult> validationErrors = controllerServiceNode.getValidationErrors();
+        if (validationErrors != null && !validationErrors.isEmpty()) {
+            final List<String> errors = new ArrayList<>();
+            for (final ValidationResult validationResult : validationErrors) {
+                errors.add(validationResult.toString());
+            }
+
+            dto.setValidationErrors(errors);
+        }
+
+        return dto;
+    }
+
     public ControllerServiceReferencingComponentDTO createControllerServiceReferencingComponentDTO(final ComponentNode component) {
         final ControllerServiceReferencingComponentDTO dto = new ControllerServiceReferencingComponentDTO();
         dto.setId(component.getIdentifier());

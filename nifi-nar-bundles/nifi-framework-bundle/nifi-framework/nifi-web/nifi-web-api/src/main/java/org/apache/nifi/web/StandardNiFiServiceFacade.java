@@ -147,6 +147,7 @@ import org.apache.nifi.web.api.dto.ControllerConfigurationDTO;
 import org.apache.nifi.web.api.dto.ControllerDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceReferencingComponentDTO;
+import org.apache.nifi.web.api.dto.ControllerServiceSearchDTO;
 import org.apache.nifi.web.api.dto.CounterDTO;
 import org.apache.nifi.web.api.dto.CountersDTO;
 import org.apache.nifi.web.api.dto.CountersSnapshotDTO;
@@ -228,6 +229,7 @@ import org.apache.nifi.web.api.entity.FlowConfigurationEntity;
 import org.apache.nifi.web.api.entity.FlowEntity;
 import org.apache.nifi.web.api.entity.FunnelEntity;
 import org.apache.nifi.web.api.entity.LabelEntity;
+import org.apache.nifi.web.api.entity.OrchsymServiceSearchCriteriaEntity;
 import org.apache.nifi.web.api.entity.PortEntity;
 import org.apache.nifi.web.api.entity.PortStatusEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
@@ -3823,6 +3825,38 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         return entityFactory.createControllerServiceEntity(dto, revision, permissions, bulletinEntities);
     }
 
+    private ControllerServiceDTO createControllerServiceDTO(final ControllerServiceNode serviceNode, final Set<String> serviceIds) {
+        final ControllerServiceDTO dto = dtoFactory.createControllerServiceDto(serviceNode);
+
+        final ControllerServiceReference ref = serviceNode.getReferences();
+        final ControllerServiceReferencingComponentsEntity referencingComponentsEntity = createControllerServiceReferencingComponentsEntity(ref, serviceIds);
+        dto.setReferencingComponents(referencingComponentsEntity.getControllerServiceReferencingComponents());
+        return dto;
+    }
+
+    private ControllerServiceSearchDTO createControllerServiceSearchDTO(final ControllerServiceNode serviceNode, final Set<String> serviceIds) {
+        final ControllerServiceSearchDTO dto = dtoFactory.createControllerServiceSearchDto(serviceNode);
+
+        final ControllerServiceReference ref = serviceNode.getReferences();
+        final ControllerServiceReferencingComponentsEntity referencingComponentsEntity = createControllerServiceReferencingComponentsEntity(ref, serviceIds);
+        final Set<ControllerServiceReferencingComponentEntity> controllerServiceReferencingComponentEntities = referencingComponentsEntity.getControllerServiceReferencingComponents();
+        final Map<String, Set<String>> referencingComponents = new HashMap<>();
+        for (OrchsymServiceSearchCriteriaEntity.OrchsymServiceState serviceState: OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.values()) {
+            referencingComponents.put(serviceState.name(), new HashSet<>());
+        }
+        for (ControllerServiceReferencingComponentEntity controllerServiceReferencingComponentEntity: controllerServiceReferencingComponentEntities) {
+            final ControllerServiceReferencingComponentDTO componentDTO = controllerServiceReferencingComponentEntity.getComponent();
+
+            final String state = componentDTO.getState();
+            final String id = componentDTO.getId();
+            if (referencingComponents.containsKey(state)) {
+                referencingComponents.get(state).add(id);
+            }
+        }
+        dto.setReferencingComponents(referencingComponents);
+        return dto;
+    }
+
     @Override
     public VariableRegistryEntity getVariableRegistry(final String groupId, final boolean includeAncestorGroups) {
         final ProcessGroup processGroup = processGroupDAO.getProcessGroup(groupId);
@@ -3877,6 +3911,30 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         return serviceNodes.stream()
             .map(serviceNode -> createControllerServiceEntity(serviceNode, serviceIds))
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<ControllerServiceDTO> getSortedControllerServices(final String groupId, final boolean includeAncestorGroups, final boolean includeDescendantGroups) {
+        final List<ControllerServiceNode> serviceNodes = controllerServiceDAO.getControllerServices(groupId, includeAncestorGroups, includeDescendantGroups)
+                .stream().sorted(Comparator.comparing(ComponentNode::getIdentifier)).collect(Collectors.toList());
+
+        final Set<String> serviceIds = serviceNodes.stream().map(ComponentNode::getIdentifier).collect(Collectors.toSet());
+
+        return serviceNodes.stream()
+                .map(serviceNode -> createControllerServiceDTO(serviceNode, serviceIds))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ControllerServiceSearchDTO> searchControllerServices(final String groupId, final boolean includeAncestorGroups, final boolean includeDescendantGroups) {
+        final List<ControllerServiceNode> serviceNodes = controllerServiceDAO.getControllerServices(groupId, includeAncestorGroups, includeDescendantGroups)
+                .stream().sorted(Comparator.comparing(ComponentNode::getIdentifier)).collect(Collectors.toList());
+        final Set<String> serviceIds = serviceNodes.stream().map(ComponentNode::getIdentifier).collect(Collectors.toSet());
+
+
+        return serviceNodes.stream()
+                .map(serviceNode -> createControllerServiceSearchDTO(serviceNode, serviceIds))
+                .collect(Collectors.toList());
     }
 
     @Override
