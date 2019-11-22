@@ -4,10 +4,10 @@ export default {
   'form.application.appDescription': '应用描述',
   'form.application.appTag': '标签设置',
 
-  // 存为模版、创建模版
-  'form.template.tempName': '模版名称',
-  'form.template.tempDescription': '模版描述',
-  'form.template.tempOverwrite': '覆盖已有模版',
-  'form.template.selectTemp': '选择模版',
+  // 存为模板、创建模板
+  'form.template.tempName': '模板名称',
+  'form.template.tempDescription': '模板描述',
+  'form.template.tempOverwrite': '覆盖已有模板',
+  'form.template.selectTemp': '选择模板',
 
 };

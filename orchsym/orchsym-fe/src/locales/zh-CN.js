@@ -14,7 +14,7 @@ import validation from './zh-CN/validation';
 import blank from './zh-CN/blank';
 // 应用页面
 import application from './zh-CN/application';
-// 模版页面
+// 模板页面
 import template from './zh-CN/template';
 
 export default {

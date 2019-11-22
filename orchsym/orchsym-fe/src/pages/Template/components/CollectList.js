@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
-import { Table } from 'antd';
+import { Table, Icon, Dropdown, Menu } from 'antd';
 import { connect } from 'dva';
+import { formatMessage } from 'umi-plugin-react/locale';
 import Ellipsis from '@/components/Ellipsis';
 import moment from 'moment';
-// import styles from './index.less';
+import styles from '../index.less';
 
 @connect(({ template }) => ({
   collectList: template.collectList,
@@ -14,10 +15,51 @@ class CollectList extends PureComponent {
 
 
   componentDidMount() {
+
+  }
+
+  getList = (page, pageSize, sortedField, isDesc, q) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'template/fetchTemplates',
+      payload: {
+        page,
+        pageSize,
+        isDetail: true,
+        q,
+        sortedField,
+        isDesc,
+      },
     });
+  }
+
+  operateMenu = (item) => {
+    console.log(item)
+    const menu = (
+      <Menu>
+        <Menu.Item key="edit">
+          {`${formatMessage({ id: 'button.edit' })}`}
+        </Menu.Item>
+        <Menu.Item key="cancelCollect">
+          {`${formatMessage({ id: 'button.cancelCollect' })}`}
+        </Menu.Item>
+        <Menu.Item key="download">
+          {`${formatMessage({ id: 'button.download' })}`}
+        </Menu.Item>
+        <Menu.Item key="delete">
+          {`${formatMessage({ id: 'button.delete' })}`}
+        </Menu.Item>
+      </Menu>
+    );
+    return (
+      <span className={styles.operateMenu}>
+        <Icon type="star" theme="filled" style={{ color: '#faad14' }} />
+        {/* <Icon type="star" theme="twoTone" /> */}
+        <Dropdown overlay={menu} trigger={['click']}>
+          <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
+        </Dropdown>
+      </span>
+    )
   }
 
   render() {
@@ -72,9 +114,7 @@ class CollectList extends PureComponent {
       {
         title: '操作',
         key: 'operate',
-        // render: (text, record) => {
-        //   return <Dropdown overlay={menu} trigger={['click']}><a className="ant-dropdown-link" href="#"><Icon type="ellipsis" key="ellipsis" /></a></Dropdown>;
-        // },
+        render: (text, record) => (this.operateMenu(record)),
       },
     ];
     return (

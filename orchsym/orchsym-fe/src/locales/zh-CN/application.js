@@ -17,7 +17,7 @@ export default {
   'page.application.content.enable': '启用',
   'page.application.content.disable': '禁用',
   'page.application.content.cope': '复制',
-  'page.application.content.saveTemp': '存为模版',
+  'page.application.content.saveTemp': '存为模板',
   'page.application.content.queued': '队列中',
   'page.application.content.readWrite': '读 / 写',
   // 排序

@@ -26,6 +26,7 @@ class Application extends React.Component {
     // selectValue: '名称',
     selectedKeys: 'modifyDesc',
     iconType: 'sort-ascending',
+    // 列表传参
     pageNum: 1,
     pageSizeNum: 12,
     searchVal: '',

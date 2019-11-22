@@ -7,7 +7,7 @@ export default {
   'menu.tag': 'Tag',
   // 回收站
   'menu.recycleBin': 'Recycle bin',
-  // 模版页面
+  // 模板页面
   'menu.template': 'template',
   'menu.template.local': 'local template',
   'menu.template.remote': 'remote template',
