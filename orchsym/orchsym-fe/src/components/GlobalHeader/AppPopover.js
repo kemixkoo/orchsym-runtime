@@ -2,14 +2,15 @@ import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import Link from 'umi/link';
 import { debounce } from 'lodash'
+import { formatMessage } from 'umi-plugin-react/locale';
 import { Popover, Icon, Input, Menu, Spin } from 'antd';
 import IconFont from '@/components/IconFont';
 import Ellipsis from '@/components/Ellipsis';
 import styles from './index.less';
 
-@connect(({ canvas, loading }) => ({
+@connect(({ application, loading }) => ({
   loading:
-    loading.effects['canvas/fetchApplication'],
+    loading.effects['application/fetchApplication'],
 }))
 class AppPopover extends PureComponent {
   constructor() {
@@ -60,7 +61,7 @@ class AppPopover extends PureComponent {
   fetchApplication = (q, sortedField, isDesc, pageSize) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'canvas/fetchApplication',
+      type: 'application/fetchApplication',
       payload: {
         q,
         sortedField,
@@ -118,7 +119,7 @@ class AppPopover extends PureComponent {
                   : (null)}
               </Link>
             </Menu.Item>
-          ))) : (<div style={{ textAlign: 'center' }}>暂无数据</div>)}
+          ))) : (<div style={{ textAlign: 'center' }}>{`${formatMessage({ id: 'result.empty' })}`}</div>)}
         </Menu>
       </Spin>
     );

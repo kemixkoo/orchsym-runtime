@@ -16,8 +16,6 @@ export default {
   'page.application.content.enable': 'Enable',
   'page.application.content.disable': 'Disable',
   'page.application.content.cope': 'Cope',
-  'page.application.content.download': 'Download',
-  'page.application.content.delete': 'Delete',
   'page.application.content.saveTemp': 'Save Template',
   'page.application.content.queued': 'Queued',
   'page.application.content.readWrite': 'Read / Written',

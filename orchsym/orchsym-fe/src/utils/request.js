@@ -88,11 +88,12 @@ request.interceptors.request.use((url, options) => {
 request.interceptors.response.use((response, options) => {
   if (!response.ok) {
     if (response.status === 401) {
-      notification.error({
-        message: '未登录或登录已过期，请重新登录。',
-      });
+      // notification.error({
+      //   message: '未登录或登录已过期，请重新登录。',
+      // });
       logout();
-    } else if (response.status === 403 || response.url.indexOf('/studio/nifi-api/access/oidc/exchange') > 0) { // 判断删除
+    } else if (response.status === 403 || response.url.indexOf('/studio/nifi-api/access/oidc/exchange') > 0
+    || response.url.indexOf('/orchsym-api/helper/state') > 0) { // 判断删除
       return response
     } else {
       response.text().then(data => {
@@ -105,6 +106,7 @@ request.interceptors.response.use((response, options) => {
       return response
     }
   }
+
   // console.log('response++', response)
   return response
 });

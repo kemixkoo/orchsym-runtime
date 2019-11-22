@@ -5,6 +5,5 @@
  * Time: 11:54
  */
 export default {
-  'page.template.local.content': 'local template content',
-  'page.template.remote.content': 'remote template content',
+  'template.title.saveTemp': '存为模版',
 }

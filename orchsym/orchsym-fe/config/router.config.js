@@ -66,12 +66,12 @@ export default [
         path: '/runtime',
         component: './Application',
       },
-      // 模板
+      // 模版
       {
         name: 'template',
         icon: 'OS-iconmoban',
-        path: '/template',
-        component: './Template',
+        path: '/template/:Template',
+        component: './$Template',
       },
       // 控制器服务
       {
@@ -94,13 +94,6 @@ export default [
         path: '/recycleBin',
         component: './RecycleBin',
       },
-      // // 编排
-      // {
-      //   name: 'orchestrations',
-      //   path: '/orchestrations',
-      //   icon: 'share-alt',
-      //   component: './Orchestrations/Index',
-      // },
       // // 自带的结果页面
       // {
       //   name: 'result',

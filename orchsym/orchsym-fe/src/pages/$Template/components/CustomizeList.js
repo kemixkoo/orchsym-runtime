@@ -1,22 +1,18 @@
 import React from 'react';
-import PageHeaderWrapper from '@/components/PageHeaderWrapper';
-import { Form, Table, Input } from 'antd';
+import { Form, Table } from 'antd';
 import { connect } from 'dva';
 import EditableCell from '@/components/EditableCell';
 import { EditableContext } from '@/utils/utils'
 // import Ellipsis from '@/components/Ellipsis';
-import styles from './index.less';
 
-const { Search } = Input;
-
-@connect(({ controllerServices }) => ({
-  controllerServicesList: controllerServices.controllerServicesList,
+@connect(({ template }) => ({
+  collectList: template.collectList,
 }))
 
-class ControllerServices extends React.Component {
+class CustomizeList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { editingKey: '', searchVal: '' };
+    this.state = { editingKey: '' };
     this.columns = [
       {
         title: '名称',
@@ -61,9 +57,7 @@ class ControllerServices extends React.Component {
               </Popconfirm> */}
             </span>
           ) : (
-            <a disabled={editingKey !== ''} onClick={() => this.edit(record.id)}>
-                Edit
-            </a>
+            <a disabled={editingKey !== ''} onClick={() => this.edit(record.id)}>Edit</a>
           );
         },
       },
@@ -112,8 +106,7 @@ class ControllerServices extends React.Component {
   }
 
   render() {
-    const { form, controllerServicesList } = this.props;
-    const { searchVal } = this.state
+    const { form, collectList } = this.props;
     const components = {
       body: {
         cell: EditableCell,
@@ -137,33 +130,19 @@ class ControllerServices extends React.Component {
     });
 
     return (
-      <PageHeaderWrapper>
-        <div className={styles.contentWrapper}>
-          <div className={styles.tableTopHeader}>
-            <Search
-              placeholder="请输入"
-              className={styles.Search}
-              onSearch={this.handleSearch}
-              onChange={this.handleSearchText}
-              value={searchVal}
-              allowClear
-            />
-          </div>
-          <EditableContext.Provider value={form}>
-            <Table
-              components={components}
-              dataSource={controllerServicesList}
-              columns={columns}
-              rowKey="id"
-              rowClassName="editable-row"
-              pagination={{
-                onChange: this.cancel,
-              }}
-            />
-          </EditableContext.Provider>
-        </div>
-      </PageHeaderWrapper>
+      <EditableContext.Provider value={form}>
+        <Table
+          components={components}
+          dataSource={collectList}
+          columns={columns}
+          rowKey="id"
+          rowClassName="editable-row"
+          pagination={{
+            onChange: this.cancel,
+          }}
+        />
+      </EditableContext.Provider>
     );
   }
 }
-export default (Form.create()(ControllerServices));
+export default (Form.create()(CustomizeList));
