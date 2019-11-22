@@ -22,13 +22,8 @@ public class OrchsymCreateTemplateReqEntity extends CreateTemplateRequestEntity 
     private Long uploadedTime;
     private String modifiedUser;
     private Long modifiedTime;
-    /**
-     * 来源类型：
-     * 0: 上传
-     * 1: 官方(内置模板)
-     * 2: 另存
-     */
-    private Integer sourceType;
+
+    private String sourceType;
     private Set<String> tags;
 
     /**
@@ -76,11 +71,11 @@ public class OrchsymCreateTemplateReqEntity extends CreateTemplateRequestEntity 
         this.modifiedTime = modifiedTime;
     }
 
-    public Integer getSourceType() {
+    public String getSourceType() {
         return sourceType;
     }
 
-    public void setSourceType(Integer sourceType) {
+    public void setSourceType(String sourceType) {
         this.sourceType = sourceType;
     }
 

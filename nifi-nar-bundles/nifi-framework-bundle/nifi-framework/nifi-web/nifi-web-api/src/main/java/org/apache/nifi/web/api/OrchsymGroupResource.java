@@ -414,11 +414,11 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         Map<String, String> additionsMap = new HashMap<>();
         additionsMap.put(AdditionConstants.KEY_CREATED_TIMESTAMP, Long.toString(System.currentTimeMillis()));
         additionsMap.put(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
-        additionsMap.put(TemplateFiledName.SOURCE_TYPE, Integer.toString(TemplateSourceType.SAVE_AS_TYPE.value()));
+        additionsMap.put(TemplateFiledName.SOURCE_TYPE, TemplateSourceType.SAVE_AS.name());
         if (groupApp.getParent() != null && groupApp.getParent().isRootGroup()) {
-            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, Integer.toString(TemplateType.APP_TYPE.value()));
+            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.APPLICATION.name());
         } else {
-            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, Integer.toString(TemplateType.NON_APP_TYPE.value()));
+            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.NORMAL.name());
         }
         templateCopy.setAdditions(additionsMap);
         templateCopy.setTags(groupApp.getTags());

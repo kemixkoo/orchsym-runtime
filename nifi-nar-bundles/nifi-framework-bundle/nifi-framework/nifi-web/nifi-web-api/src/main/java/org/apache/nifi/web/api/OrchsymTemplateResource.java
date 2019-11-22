@@ -18,19 +18,33 @@
 package org.apache.nifi.web.api;
 
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.list.TreeList;
 import org.apache.nifi.authorization.AuthorizableLookup;
 import org.apache.nifi.authorization.RequestAction;
@@ -47,10 +61,19 @@ import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
 import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
-import org.apache.nifi.web.api.orchsym.template.*;
+import org.apache.nifi.web.api.orchsym.template.TemplateFavority;
+import org.apache.nifi.web.api.orchsym.template.TemplateFiledName;
+import org.apache.nifi.web.api.orchsym.template.TemplateSearchEntity;
+import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
+import org.apache.nifi.web.api.orchsym.template.TemplateType;
 import org.apache.nifi.web.dao.TemplateDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -115,7 +138,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
 
         if (requestCreateTemplateRequestEntity.getSourceType() == null) {
             // 创建模板默认属于 另存类型
-            requestCreateTemplateRequestEntity.setSourceType(TemplateSourceType.SAVE_AS_TYPE.value());
+            requestCreateTemplateRequestEntity.setSourceType(TemplateSourceType.SAVE_AS.name());
         }
 
         if (isReplicateRequest()) {
@@ -129,28 +152,37 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                 requestCreateTemplateRequestEntity, //
                 lookup -> {
                     authorizeSnippetUsage(lookup, groupId, requestCreateTemplateRequestEntity.getSnippetId(), true);
-                }, () -> {
-                    if (!requestCreateTemplateRequestEntity.isOverwrite()) {
+                }, //
+                () -> {
+                    if (!requestCreateTemplateRequestEntity.isOverwrite()) { // 如果不是覆盖，则验证名字，否则忽略，并将稍后删除存在同名的
                         serviceFacade.verifyCanAddTemplate(groupId, requestCreateTemplateRequestEntity.getName());
                     }
-                }, createTemplateRequestEntity -> {
+                }, //
+                createTemplateRequestEntity -> {
+                    final String newName = createTemplateRequestEntity.getName();
                     // 如果设置了overwrite为true，先进行重名模板的清理
                     if (createTemplateRequestEntity.isOverwrite()) {
-                        deleteTemplatesByName(createTemplateRequestEntity.getName());
+                        serviceFacade.getTemplates().stream()//
+                                .map(TemplateEntity::getTemplate)//
+                                .filter(dto -> newName.equals(dto.getName()))//
+                                .collect(Collectors.toSet())//
+                                .forEach(dto -> {
+                                    serviceFacade.deleteTemplate(dto.getId());
+                                });
                     }
 
                     final Map<String, String> contentsMap = getContentsMapFromEntity(createTemplateRequestEntity);
                     final ProcessGroup group = flowController.getGroup(groupId);
                     if (group.getParent().isRootGroup()) {
-                        contentsMap.put(TemplateFiledName.TEMPLATE_TYPE, Long.toString(TemplateType.APP_TYPE.value()));
+                        contentsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.APPLICATION.name());
                     } else {
-                        contentsMap.put(TemplateFiledName.TEMPLATE_TYPE, Long.toString(TemplateType.NON_APP_TYPE.value()));
+                        contentsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.NORMAL.name());
                     }
 
                     final Set<String> tagsSet = createTemplateRequestEntity.getTags();
                     // create the template and generate the json
-                    final TemplateDTO template = serviceFacade.createTemplate(contentsMap, tagsSet, createTemplateRequestEntity.getName(), createTemplateRequestEntity.getDescription(),
-                            createTemplateRequestEntity.getSnippetId(), groupId, getIdGenerationSeed());
+                    final TemplateDTO template = serviceFacade.createTemplate(contentsMap, tagsSet, newName, createTemplateRequestEntity.getDescription(), createTemplateRequestEntity.getSnippetId(),
+                            groupId, getIdGenerationSeed());
                     templateResource.populateRemainingTemplateContent(template);
 
                     // build the response entity
@@ -284,6 +316,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         return Response.ok(resultMap).build();
     }
 
+    private static final Predicate<? super TemplateEntity> PRE_FILTER = t -> TemplateSourceType.OFFICIAL.not(t.getTemplate().getAdditions());
+
     /**
      * 对自定义类型的模板进行GET方式查询
      * 
@@ -306,9 +340,10 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
             // sort
             @QueryParam("sortedField") @DefaultValue("createdTime") String sortedField, //
             @QueryParam("isDesc") @DefaultValue("true") Boolean isDesc, //
+            @QueryParam("deleted") @DefaultValue("false") boolean deleted, //
 
-            @QueryParam("deleted") @DefaultValue("false") Boolean deleted, //
-            @QueryParam("templateType") Integer templateType, //
+            @QueryParam("templateType") String templateType, //
+            @QueryParam("sourceType") String sourceType, //
 
             // filter
             @QueryParam("filterTimeField") String filterTimeField, //
@@ -329,32 +364,36 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         searchEntity.setFilterTimeField(filterTimeField);
         searchEntity.setBeginTime(beginTime);
         searchEntity.setEndTime(endTime);
-        searchEntity.setTemplateType(templateType);
-        searchEntity.setDeleted(deleted);
-        if (!org.apache.commons.lang3.StringUtils.isBlank(tags)) {
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(tags)) {
             searchEntity.setTags(Arrays.asList(tags.split(",")));
         }
-        return getCustomTypeTemplates(searchEntity);
+
+        searchEntity.setDeleted(deleted); // 自定义应为false，或不提供，回收站中则设置为true
+        searchEntity.setSourceType(sourceType);
+        searchEntity.setTemplateType(templateType);
+
+        final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(filterTemplates(PRE_FILTER));
+        return Response.ok(page).build();
     }
 
     /**
-     * 对自定义类型的模板进行 POST方式查询
      * 
-     * @param entity
-     * @return
+     * 通用搜索
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/custom/search")
+    @Path("/search")
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
     })
-    public Response searchOfficeTempsByJsonEntity(TemplateSearchEntity entity) {
+    public Response searchAll(@RequestBody TemplateSearchEntity searchEntity) {
         if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
         }
-        return getCustomTypeTemplates(entity);
+        final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(filterTemplates(t -> true)); // 不做预过滤
+        return Response.ok(page).build();
+
     }
 
     /**
@@ -367,10 +406,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
     })
-    public Response forceDeleteTemplate(
-            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
-            @PathParam("templateId") final String templateId
-            ) {
+    public Response forceDeleteTemplate(@QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
+            @PathParam("templateId") final String templateId) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         } else if (isDisconnectedFromCluster()) {
@@ -380,35 +417,35 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         final TemplateEntity requestTemplateEntity = new TemplateEntity();
         requestTemplateEntity.setId(templateId);
 
-        return withWriteLock(
-                serviceFacade,
-                requestTemplateEntity,
+        return withWriteLock(//
+                serviceFacade, //
+                requestTemplateEntity, //
                 lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
                     final Authorizable template = lookup.getTemplate(templateId);
 
                     // ensure write permission to the template
-                    template.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                    template.authorize(authorizer, RequestAction.WRITE, user);
 
                     // ensure write permission to the parent process group
-                    template.getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                },
-                null,
+                    template.getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+                }, //
+                null, //
                 (templateEntity) -> {
                     // delete the specified template
                     serviceFacade.deleteTemplate(templateEntity.getId());
                     // delete the references which be added to a favorite
-                    deleteUserFavorityRefTemp(templateEntity.getId());
+                    deleteUserFavorityForTemplate(templateEntity.getId());
                     // build the response entity
                     final TemplateEntity entity = new TemplateEntity();
 
                     return generateOkResponse(entity).build();
-                }
-        );
+                });
     }
 
     /**
-     *  逻辑删除模板(仅仅添加标识)
-     *  即将模板放入 模板回收站
+     * 逻辑删除模板(仅仅添加标识)
+     * 即将模板放入 模板回收站
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
@@ -417,22 +454,20 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
     })
-    public Response logicalDeleteTemplate(
-            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
-            @PathParam("templateId") final String templateId
-            ) {
+    public Response logicalDeleteTemplate(@QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
+            @PathParam("templateId") final String templateId) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
 
-        return logicalDelOrRecoverTempById(templateId, LogicOperateTempType.OPERATE_LOGICAL_DELETE);
+        return setDeletedStateTempById(templateId, true);
     }
 
     /**
-     *  模板逻辑恢复 (仅仅修改标识)
-     *  即从模板回收站中找回
+     * 模板逻辑恢复 (仅仅修改标识)
+     * 即从模板回收站中找回
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -441,20 +476,16 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
     })
-    public Response logicalRecoverTemplate(
-            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
-            @PathParam("templateId") final String templateId
-            ) {
+    public Response logicalRecoverTemplate(@QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
+            @PathParam("templateId") final String templateId) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT);
         } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
 
-        return logicalDelOrRecoverTempById(templateId, LogicOperateTempType.OPERATE_LOGICAL_RECOVER);
+        return setDeletedStateTempById(templateId, false);
     }
-
-
 
     // ================= these methods are used by create orchsym template ======================
     private SnippetAuthorizable authorizeSnippetUsage(final AuthorizableLookup lookup, final String groupId, final String snippetId, final boolean authorizeTransitiveServices) {
@@ -486,129 +517,134 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         if (entity.getModifiedTime() != null) {
             contentMap.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, Long.toString(entity.getModifiedTime()));
         }
-
         if (entity.getModifiedUser() != null) {
             contentMap.put(AdditionConstants.KEY_MODIFIED_USER, entity.getModifiedUser());
-        }
-
-        if (entity.getSourceType() != null) {
-            contentMap.put(TemplateFiledName.SOURCE_TYPE, Integer.toString(entity.getSourceType()));
         }
 
         if (entity.getUploadedUser() != null) {
             contentMap.put(TemplateFiledName.UPLOADED_USER, entity.getUploadedUser());
         }
-
         if (entity.getUploadedTime() != null) {
             contentMap.put(TemplateFiledName.UPLOADED_TIMESTAMP, Long.toString(entity.getUploadedTime()));
         }
 
+        contentMap.put(TemplateFiledName.SOURCE_TYPE, TemplateSourceType.match(entity.getSourceType()).name());
+
         return contentMap;
     }
 
-    private Response getCustomTypeTemplates(TemplateSearchEntity searchEntity) {
-        if (searchEntity == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("param cant be null").build();
-        }
+    private List<TemplateDTO> filterTemplates(Predicate<? super TemplateEntity> preFilter) {
+        final List<TemplateDTO> notOfficalTemps = serviceFacade.getTemplates().stream()//
+                .filter(preFilter)//
+                .map(TemplateEntity::getTemplate)//
+                .collect(Collectors.toList());
 
-        final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(getNotOfficialTemplates());
-        return Response.ok(page).build();
-    }
-
-    private List<TemplateDTO> getNotOfficialTemplates() {
-        return serviceFacade.getTemplates().stream().filter(te -> {
-            final Map<String, String> additions = te.getTemplate().getAdditions();
-            if (additions != null && additions.containsKey(TemplateFiledName.SOURCE_TYPE)) {
-                return Integer.parseInt(additions.get(TemplateFiledName.SOURCE_TYPE)) != TemplateSourceType.OFFICIAL_TYPE.value();
+        final List<TemplateFavority> tempFavorites = getTempFavoriteByCurrentUser();
+        notOfficalTemps.forEach(t -> {
+            Map<String, String> additions = t.getAdditions();
+            if (Objects.isNull(additions)) {
+                additions = new HashMap<>();
+            } else {
+                additions = new HashMap<>(additions);
             }
-            return true;
-        }).map(TemplateEntity::getTemplate).collect(Collectors.toList());
+            final boolean existed = tempFavorites.contains(new TemplateFavority(t.getId(), 0L));
+            additions.put(TemplateFiledName.IS_FAVORITE, Boolean.valueOf(existed).toString());
+            t.setAdditions(additions);
+        });
+
+        return notOfficalTemps;
     }
 
     protected Boolean verifyTempNameValid(String newTempName, String templateId) {
-        Set<TemplateDTO> allDTOS = serviceFacade.getTemplates().stream().map(TemplateEntity::getTemplate).collect(Collectors.toSet());
-        for (TemplateDTO dto : allDTOS) {
-            if (templateId != null && !dto.getId().equals(templateId) && dto.getName().equals(newTempName)) {
-                return false;
-            }
-            if (templateId == null && dto.getName().equals(newTempName)) {
-                return false;
-            }
-        }
-        return true;
+        return !serviceFacade.getTemplates().stream()//
+                .map(TemplateEntity::getTemplate)//
+                .filter(dto -> {
+                    if (templateId != null && !dto.getId().equals(templateId) && dto.getName().equals(newTempName)) {
+                        return true;
+                    }
+                    if (templateId == null && dto.getName().equals(newTempName)) {
+                        return true;
+                    }
+                    return false;
+                })//
+                .findAny()//
+                .isPresent();
+
     }
 
-    protected void deleteTemplatesByName(String templateName) {
-        serviceFacade.getTemplates().stream().map(TemplateEntity::getTemplate).collect(Collectors.toSet()).forEach(dto -> {
-            if (dto.getName().equals(templateName)) {
-                serviceFacade.deleteTemplate(dto.getId());
-            }
+    private List<TemplateFavority> getTempFavoriteByCurrentUser() {
+        final Map<String, TreeList<TemplateFavority>> allUserFavorites = getFavoriteByCurrentUser();
+        if (Objects.isNull(allUserFavorites)) {
+            return Collections.emptyList();
+        }
+        TreeList<TemplateFavority> userFavList = allUserFavorites.get(NiFiUserUtils.getNiFiUserIdentity());
+        if (Objects.isNull(userFavList) || userFavList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return userFavList;
+
+    }
+
+    private Map<String, TreeList<TemplateFavority>> getFavoriteByCurrentUser() {
+        final String additionStr = flowController.getRootGroup().getAddition(TemplateFiledName.KEY_USER_TEMP_FAV);
+        if (additionStr == null) {
+            return null;
+        }
+
+        return JSON.parseObject(additionStr, new TypeReference<Map<String, TreeList<TemplateFavority>>>() {
         });
     }
 
     /**
      * 删除涉及指定模板的所有收藏
+     * 
      * @param templateId
      */
-    private void deleteUserFavorityRefTemp(String templateId) {
-        final String KEY_USER_TEMP_FAV = "USER_TEMPLATES_FAVORITES";
-        final String additionStr = flowController.getRootGroup().getAddition(KEY_USER_TEMP_FAV);
-        if (additionStr == null){
+    private void deleteUserFavorityForTemplate(String templateId) {
+        final Map<String, TreeList<TemplateFavority>> allUserFavorites = getFavoriteByCurrentUser();
+        if (Objects.isNull(allUserFavorites)) {
             return;
         }
+        TreeList<TemplateFavority> userFavList = allUserFavorites.get(NiFiUserUtils.getNiFiUserIdentity());
+        if (Objects.isNull(userFavList)) {
+            return;
+        }
+        userFavList.remove(new TemplateFavority(templateId, 0L));
 
-        final Map<String, TreeList<TemplateFavority>> allUserFavorites = JSON.parseObject(additionStr, new TypeReference<Map<String, TreeList<TemplateFavority>>>() {
-        });
-
-        final TemplateFavority favorite = new TemplateFavority();
-        favorite.setTemplateId(templateId);
-        favorite.setCreatedTime(0L);
-        allUserFavorites.forEach((userId, favourites) ->{
-            if (favourites.contains(favorite)){
-                favourites.remove(favorite);
-            }
-        });
-
-        flowController.getRootGroup().setAddition(KEY_USER_TEMP_FAV, JSONObject.toJSONString(allUserFavorites));
+        flowController.getRootGroup().setAddition(TemplateFiledName.KEY_USER_TEMP_FAV, JSONObject.toJSONString(allUserFavorites));
         // save
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0, true);
     }
 
-    private Response logicalDelOrRecoverTempById(String templateId, LogicOperateTempType type) {
+    private Response setDeletedStateTempById(String templateId, boolean deleted) {
         final TemplateEntity requestTemplateEntity = new TemplateEntity();
         requestTemplateEntity.setId(templateId);
 
-        return withWriteLock(
-                serviceFacade,
-                requestTemplateEntity,
+        return withWriteLock(//
+                serviceFacade, //
+                requestTemplateEntity, //
                 lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
                     final Authorizable template = lookup.getTemplate(templateId);
-                    template.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                    template.getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                },
-                null,
+                    template.authorize(authorizer, RequestAction.WRITE, user);
+                    template.getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+                }, //
+                null, //
                 (templateEntity) -> {
                     final Template template = templateDAO.getTemplate(templateId);
                     Map<String, String> additions = template.getDetails().getAdditions();
-                    if (additions == null){
+                    if (additions == null) {
                         additions = new HashMap<>();
+                    } else {
+                        additions = new HashMap<>(additions);
                     }
-                    String isDeleteStr = type.equals(LogicOperateTempType.OPERATE_LOGICAL_DELETE) ? "true" : "false";
-                    additions.put(AdditionConstants.KEY_IS_DELETED, isDeleteStr);
-                    template.getDetails().setAdditions(new HashMap<>(additions));
+                    additions.put(AdditionConstants.KEY_IS_DELETED, Boolean.valueOf(deleted).toString());
+                    template.getDetails().setAdditions(additions);
+
                     flowService.saveFlowChanges(TimeUnit.SECONDS, 0, true);
                     final TemplateDTO templateDTO = serviceFacade.getTemplate(templateId);
                     return generateOkResponse(templateDTO).build();
-                }
-        );
+                });
     }
 
-    private enum LogicOperateTempType{
-        /**
-         * 分别表示逻辑删除 和 逻辑恢复操作
-         */
-        OPERATE_LOGICAL_DELETE,
-        OPERATE_LOGICAL_RECOVER
-
-    }
 }

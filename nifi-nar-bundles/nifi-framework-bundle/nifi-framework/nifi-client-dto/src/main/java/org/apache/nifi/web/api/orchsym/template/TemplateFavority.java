@@ -4,11 +4,22 @@ import java.util.Objects;
 
 /**
  * 模板收藏实体类
+ * 
  * @author liuxun
  */
-public class TemplateFavority implements Comparable<TemplateFavority>{
+public class TemplateFavority implements Comparable<TemplateFavority> {
     private String templateId;
     private Long createdTime;
+
+    public TemplateFavority(String templateId, Long createdTime) {
+        this();
+        this.templateId = templateId;
+        this.createdTime = createdTime;
+    }
+
+    public TemplateFavority() {
+        super();
+    }
 
     public String getTemplateId() {
         return templateId;
@@ -42,7 +53,6 @@ public class TemplateFavority implements Comparable<TemplateFavority>{
     public int hashCode() {
         return Objects.hash(templateId);
     }
-
 
     @Override
     public int compareTo(TemplateFavority o) {

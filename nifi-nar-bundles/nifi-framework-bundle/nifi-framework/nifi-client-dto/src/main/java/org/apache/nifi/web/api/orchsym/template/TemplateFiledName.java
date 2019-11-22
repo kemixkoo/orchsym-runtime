@@ -17,31 +17,18 @@
  */
 package org.apache.nifi.web.api.orchsym.template;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
-
 /**
  * 负责封装Template 增强过程中持久化字段的名称
  *
  * @author liuxun
  */
-public class TemplateFiledName {
-    public static final String UPLOADED_USER = "UPLOADED_USER";
-    public static final String UPLOADED_TIMESTAMP = "UPLOADED_TIMESTAMP";
-    public static final String SOURCE_TYPE = "SOURCE_TYPE";
-    public static final String TEMPLATE_TYPE = "TEMPLATE_TYPE";
+public interface TemplateFiledName {
+    String UPLOADED_USER = "UPLOADED_USER";
+    String UPLOADED_TIMESTAMP = "UPLOADED_TIMESTAMP";
+    String SOURCE_TYPE = "SOURCE_TYPE";
+    String TEMPLATE_TYPE = "TEMPLATE_TYPE";
+    String IS_FAVORITE = "IS_FAVORITE";
 
-    private static Set<String> FIELDNAMES = new HashSet<>();
+    String KEY_USER_TEMP_FAV = "USER_TEMPLATES_FAVORITES";
 
-    static {
-        FIELDNAMES.addAll(Arrays.asList(AdditionConstants.KEY_CREATED_USER, AdditionConstants.KEY_CREATED_TIMESTAMP, UPLOADED_USER, UPLOADED_TIMESTAMP, AdditionConstants.KEY_MODIFIED_TIMESTAMP,
-                AdditionConstants.KEY_MODIFIED_USER, SOURCE_TYPE));
-    }
-
-    public Boolean containsFieldName(String fieldName) {
-        return FIELDNAMES.contains(fieldName);
-    }
 }

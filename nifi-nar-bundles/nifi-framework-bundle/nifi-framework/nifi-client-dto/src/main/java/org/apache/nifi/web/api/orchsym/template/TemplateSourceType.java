@@ -17,45 +17,56 @@
  */
 package org.apache.nifi.web.api.orchsym.template;
 
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * 模板来源
+ * 
  * @author liuxun
  */
 public enum TemplateSourceType {
     /**
      * 0: 来源类型是上传
      */
-    UPLOADED_TYPE(0),
+    UNKOWN,
+    /**
+     * 1: 来源类型是上传
+     */
+    UPLOADED,
     /**
      * 1: 来源类型是官方内置
      */
-    OFFICIAL_TYPE(1),
+    OFFICIAL,
     /**
      * 2: 来源类型是另存为(一键下载类型)
      */
-    SAVE_AS_TYPE(2)
-    ;
-    private int value = 0;
-    private TemplateSourceType(int value) {    //    必须是private的，否则编译错误
-        this.value = value;
-    }
-
-    public static TemplateSourceType valueOf(int value) {    //    手写的从int到enum的转换函数
-        switch (value) {
-            case 0:
-                return UPLOADED_TYPE;
-            case 1:
-                return OFFICIAL_TYPE;
-            case 2:
-                return SAVE_AS_TYPE;
-            default:
-                return null;
-        }
-    }
+    SAVE_AS;
 
     public int value() {
-        return this.value;
+        return this.ordinal();
     }
 
+    public boolean is(Map<String, String> additions) {
+        if (Objects.isNull(additions)) {
+            return false;
+        }
+        return this.equals(match(additions.get(TemplateFiledName.SOURCE_TYPE)));
+    }
+
+    public boolean not(Map<String, String> additions) {
+        return !is(additions);
+    }
+
+    public static TemplateSourceType match(String value) {
+        if (!Objects.isNull(value)) {
+            for (TemplateSourceType t : TemplateSourceType.values()) {
+                if (t.name().equalsIgnoreCase(value)) {
+                    return t;
+                }
+            }
+        }
+        return TemplateSourceType.UNKOWN;
+    }
 
 }

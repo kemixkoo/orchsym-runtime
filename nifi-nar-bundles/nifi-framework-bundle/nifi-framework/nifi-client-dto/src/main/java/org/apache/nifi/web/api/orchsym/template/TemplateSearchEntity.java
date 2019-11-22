@@ -53,7 +53,11 @@ public class TemplateSearchEntity {
     /**
      * 来源类型
      */
-    private Integer sourceType;
+    private String sourceType;
+    /**
+     * 模板类型
+     */
+    private String templateType;
     /**
      * 根据创建者用户ID筛选
      */
@@ -73,7 +77,6 @@ public class TemplateSearchEntity {
     private List<String> tags;
 
     private boolean deleted = false;
-    private Integer templateType;
 
     public String getText() {
         return text;
@@ -107,11 +110,11 @@ public class TemplateSearchEntity {
         this.isDesc = isDesc;
     }
 
-    public Integer getSourceType() {
+    public String getSourceType() {
         return sourceType;
     }
 
-    public void setSourceType(Integer sourceType) {
+    public void setSourceType(String sourceType) {
         this.sourceType = sourceType;
     }
 
@@ -187,33 +190,40 @@ public class TemplateSearchEntity {
         this.deleted = deleted;
     }
 
-    public Integer getTemplateType() {
+    public String getTemplateType() {
         return templateType;
     }
 
-    public void setTemplateType(Integer templateType) {
+    public void setTemplateType(String templateType) {
         this.templateType = templateType;
     }
 
     /**
-     * 根据自身对象的条件进行筛选
+     * 根据自身对象的条件进行筛选，如果相应参数未设置，则忽略过滤而保留
      *
-     * @param list 待筛选的数组
+     * @param list
+     *            待筛选的数组
      * @return
      */
     public DataPage<TemplateDTO> getTempsByFilter(List<TemplateDTO> list) {
         // 过滤筛选 + 排序
         final List<TemplateDTO> filterList = list.stream().filter(t -> {
-            final String q = this.getText();
-            if (!StringUtils.isBlank(q)) {
-                if (!(t.getName().contains(q) || t.getDescription().contains(q))) {
+            String q = this.getText();
+            if (StringUtils.isNotBlank(q)) {
+                q = q.toLowerCase();
+                if (!(t.getName().toLowerCase().contains(q) || t.getDescription() != null && t.getDescription().toLowerCase().contains(q))) {
                     return false;
                 }
             }
-            if (this.tags != null && !this.tags.isEmpty()) {
-                if (!t.getTags().containsAll(this.tags)) {
-                    return false;
-                }
+            if (this.getTags() != null && t.getTags() != null && !t.getTags().containsAll(this.getTags())) {
+                return false;
+            }
+
+            if (StringUtils.isNotBlank(this.getTemplateType()) && TemplateType.match(this.getTemplateType()).not(t.getAdditions())) {
+                return false;
+            }
+            if (StringUtils.isNotBlank(this.getSourceType()) && TemplateSourceType.match(this.getSourceType()).not(t.getAdditions())) {
+                return false;
             }
 
             final TemplateAdditions additions = getAdditions(t);
@@ -221,29 +231,16 @@ public class TemplateSearchEntity {
                 return false;
             }
 
-            if (additions.getTemplateType() != null && !additions.getTemplateType().equals(this.getTemplateType())) {
+            if (StringUtils.isNotBlank(this.getCreatedUserId()) && !this.getCreatedUserId().equals(additions.getCreatedUser())) {
                 return false;
             }
 
-            final String createdUserId = this.getCreatedUserId();
-            if (!StringUtils.isBlank(createdUserId)) {
-                if (!createdUserId.equals(additions.getCreatedUser())) {
-                    return false;
-                }
+            if (StringUtils.isNotBlank(this.getModifiedUserId()) && !this.getModifiedUserId().equals(additions.getModifiedUser())) {
+                return false;
             }
 
-            final String modifiedUserId = this.getModifiedUserId();
-            if (!StringUtils.isBlank(modifiedUserId)) {
-                if (!modifiedUserId.equals(additions.getModifiedUser())) {
-                    return false;
-                }
-            }
-
-            final String uploadedUserId = this.getUploadedUserId();
-            if (!StringUtils.isBlank(uploadedUserId)) {
-                if (!uploadedUserId.equals(additions.getUploadedUser())) {
-                    return false;
-                }
+            if (StringUtils.isNotBlank(this.getUploadedUserId()) && !this.getUploadedUserId().equals(additions.getUploadedUser())) {
+                return false;
             }
 
             // 按照时间筛选
@@ -251,17 +248,17 @@ public class TemplateSearchEntity {
             if (isTimeFilter) {
                 Long time = null;
                 switch (this.getFilterTimeField().toUpperCase()) {
-                    case CREATED_TIME_FIELD:
-                        time = additions.getCreatedTime();
-                        break;
-                    case MODIFIED_TIME_FIELD:
-                        time = additions.getModifiedTime();
-                        break;
-                    case UPLOADED_TIME_FIELD:
-                        time = additions.getUploadedTime();
-                        break;
-                    default:
-                        break;
+                case CREATED_TIME_FIELD:
+                    time = additions.getCreatedTime();
+                    break;
+                case MODIFIED_TIME_FIELD:
+                    time = additions.getModifiedTime();
+                    break;
+                case UPLOADED_TIME_FIELD:
+                    time = additions.getUploadedTime();
+                    break;
+                default:
+                    break;
                 }
                 if (time != null) {
                     if (this.beginTime != null && time < beginTime) {
@@ -279,22 +276,22 @@ public class TemplateSearchEntity {
             Long time2 = null;
             final Boolean isDesc = getIsDesc() == null ? true : getIsDesc();
             switch (getSortedField().toUpperCase()) {
-                case CREATED_TIME_FIELD:
-                    time1 = getAdditions(o1).getCreatedTime();
-                    time2 = getAdditions(o2).getCreatedTime();
-                    break;
-                case MODIFIED_TIME_FIELD:
-                    time1 = getAdditions(o1).getModifiedTime();
-                    time2 = getAdditions(o2).getModifiedTime();
-                    break;
-                case UPLOADED_TIME_FIELD:
-                    time1 = getAdditions(o1).getUploadedTime();
-                    time2 = getAdditions(o2).getModifiedTime();
-                    break;
-                case NAME_FIELD:
-                    time1 = time2 = null;
-                default:
-                    break;
+            case CREATED_TIME_FIELD:
+                time1 = getAdditions(o1).getCreatedTime();
+                time2 = getAdditions(o2).getCreatedTime();
+                break;
+            case MODIFIED_TIME_FIELD:
+                time1 = getAdditions(o1).getModifiedTime();
+                time2 = getAdditions(o2).getModifiedTime();
+                break;
+            case UPLOADED_TIME_FIELD:
+                time1 = getAdditions(o1).getUploadedTime();
+                time2 = getAdditions(o2).getModifiedTime();
+                break;
+            case NAME_FIELD:
+                time1 = time2 = null;
+            default:
+                break;
             }
             if (time1 != null && time2 != null) {
                 return isDesc ? time2.compareTo(time1) : time1.compareTo(time2);

@@ -33,9 +33,9 @@ public class TemplateAdditions {
     private Long uploadedTime;
     private String modifiedUser;
     private Long modifiedTime;
-    private Integer sourceType;
+    private TemplateSourceType sourceType;
+    private TemplateType templateType;
     private boolean deleted;
-    private Integer templateType;
 
     public TemplateAdditions() {
     }
@@ -63,16 +63,10 @@ public class TemplateAdditions {
             if (map.containsKey(TemplateFiledName.UPLOADED_TIMESTAMP)) {
                 this.setUploadedTime(Long.parseLong(map.get(TemplateFiledName.UPLOADED_TIMESTAMP)));
             }
-            if (map.containsKey(TemplateFiledName.SOURCE_TYPE)) {
-                this.setSourceType(Integer.parseInt(map.get(TemplateFiledName.SOURCE_TYPE)));
-            }
-            if (map.containsKey(AdditionConstants.KEY_IS_DELETED)) {
-                this.setDeleted(Boolean.parseBoolean(map.get(AdditionConstants.KEY_IS_DELETED)));
-            }
 
-            if (map.containsKey(TemplateFiledName.TEMPLATE_TYPE)){
-                this.setTemplateType(Integer.parseInt(map.get(TemplateFiledName.TEMPLATE_TYPE)));
-            }
+            this.setDeleted(Boolean.parseBoolean(map.getOrDefault(AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT.toString())));
+            this.setSourceType(TemplateSourceType.match(map.get(TemplateFiledName.SOURCE_TYPE)));
+            this.setTemplateType(TemplateType.match(map.get(TemplateFiledName.TEMPLATE_TYPE)));
         }
     }
 
@@ -124,14 +118,6 @@ public class TemplateAdditions {
         this.modifiedTime = modifiedTime;
     }
 
-    public Integer getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(Integer sourceType) {
-        this.sourceType = sourceType;
-    }
-
     public boolean isDeleted() {
         return deleted;
     }
@@ -140,11 +126,20 @@ public class TemplateAdditions {
         this.deleted = deleted;
     }
 
-    public Integer getTemplateType() {
+    public TemplateSourceType getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(TemplateSourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public TemplateType getTemplateType() {
         return templateType;
     }
 
-    public void setTemplateType(Integer templateType) {
+    public void setTemplateType(TemplateType templateType) {
         this.templateType = templateType;
     }
+
 }

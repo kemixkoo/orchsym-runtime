@@ -17,6 +17,9 @@
  */
 package org.apache.nifi.web.api.orchsym.template;
 
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * 模板类型 包括 应用类型和非应用类型
  *
@@ -24,31 +27,38 @@ package org.apache.nifi.web.api.orchsym.template;
  */
 public enum TemplateType {
     /**
-     * 0: 非应用类型
+     * 0: 普通类型
      */
-    NON_APP_TYPE(0),
+    NORMAL,
     /**
      * 1: 应用类型
      */
-    APP_TYPE(1);
-
-    private int value = 0;
-
-    private TemplateType(int value) { // 必须是private的，否则编译错误
-        this.value = value;
-    }
-
-    public static TemplateType valueOf(int value) { // 手写的从int到enum的转换函数
-        for (TemplateType t : TemplateType.values()) {
-            if (t.value == value) {
-                return t;
-            }
-        }
-        return NON_APP_TYPE;
-    }
+    APPLICATION;
 
     public int value() {
-        return this.value;
+        return this.ordinal();
+    }
+
+    public boolean is(Map<String, String> additions) {
+        if (Objects.isNull(additions)) {
+            return false;
+        }
+        return this.equals(match(additions.get(TemplateFiledName.TEMPLATE_TYPE)));
+    }
+
+    public boolean not(Map<String, String> additions) {
+        return !is(additions);
+    }
+
+    public static TemplateType match(String value) {
+        if (!Objects.isNull(value)) {
+            for (TemplateType t : TemplateType.values()) {
+                if (t.name().equalsIgnoreCase(value)) {
+                    return t;
+                }
+            }
+        }
+        return NORMAL;
     }
 
 }
