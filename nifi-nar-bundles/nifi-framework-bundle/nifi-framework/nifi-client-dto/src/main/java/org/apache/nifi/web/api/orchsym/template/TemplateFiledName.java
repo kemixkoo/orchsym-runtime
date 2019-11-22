@@ -32,6 +32,7 @@ public class TemplateFiledName {
     public static final String UPLOADED_USER = "UPLOADED_USER";
     public static final String UPLOADED_TIMESTAMP = "UPLOADED_TIMESTAMP";
     public static final String SOURCE_TYPE = "SOURCE_TYPE";
+    public static final String TEMPLATE_TYPE = "TEMPLATE_TYPE";
 
     private static Set<String> FIELDNAMES = new HashSet<>();
 

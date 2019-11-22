@@ -35,6 +35,7 @@ public class TemplateAdditions {
     private Long modifiedTime;
     private Integer sourceType;
     private boolean deleted;
+    private Integer templateType;
 
     public TemplateAdditions() {
     }
@@ -67,6 +68,10 @@ public class TemplateAdditions {
             }
             if (map.containsKey(AdditionConstants.KEY_IS_DELETED)) {
                 this.setDeleted(Boolean.parseBoolean(map.get(AdditionConstants.KEY_IS_DELETED)));
+            }
+
+            if (map.containsKey(TemplateFiledName.TEMPLATE_TYPE)){
+                this.setTemplateType(Integer.parseInt(map.get(TemplateFiledName.TEMPLATE_TYPE)));
             }
         }
     }
@@ -134,5 +139,12 @@ public class TemplateAdditions {
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
-    
+
+    public Integer getTemplateType() {
+        return templateType;
+    }
+
+    public void setTemplateType(Integer templateType) {
+        this.templateType = templateType;
+    }
 }

@@ -17,7 +17,6 @@
  */
 package org.apache.nifi.web.api;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;

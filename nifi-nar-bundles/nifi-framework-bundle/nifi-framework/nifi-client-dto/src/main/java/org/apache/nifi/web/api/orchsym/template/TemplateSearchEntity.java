@@ -2,13 +2,13 @@
  * Licensed to the Orchsym Runtime under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * this file to You under the Orchsym License, Version 1.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -73,6 +73,7 @@ public class TemplateSearchEntity {
     private List<String> tags;
 
     private boolean deleted = false;
+    private Integer templateType;
 
     public String getText() {
         return text;
@@ -186,11 +187,18 @@ public class TemplateSearchEntity {
         this.deleted = deleted;
     }
 
+    public Integer getTemplateType() {
+        return templateType;
+    }
+
+    public void setTemplateType(Integer templateType) {
+        this.templateType = templateType;
+    }
+
     /**
      * 根据自身对象的条件进行筛选
      *
-     * @param list
-     *            待筛选的数组
+     * @param list 待筛选的数组
      * @return
      */
     public DataPage<TemplateDTO> getTempsByFilter(List<TemplateDTO> list) {
@@ -210,6 +218,10 @@ public class TemplateSearchEntity {
 
             final TemplateAdditions additions = getAdditions(t);
             if (additions.isDeleted() != this.isDeleted()) {
+                return false;
+            }
+
+            if (additions.getTemplateType() != null && !additions.getTemplateType().equals(this.getTemplateType())) {
                 return false;
             }
 
@@ -239,17 +251,17 @@ public class TemplateSearchEntity {
             if (isTimeFilter) {
                 Long time = null;
                 switch (this.getFilterTimeField().toUpperCase()) {
-                case CREATED_TIME_FIELD:
-                    time = additions.getCreatedTime();
-                    break;
-                case MODIFIED_TIME_FIELD:
-                    time = additions.getModifiedTime();
-                    break;
-                case UPLOADED_TIME_FIELD:
-                    time = additions.getUploadedTime();
-                    break;
-                default:
-                    break;
+                    case CREATED_TIME_FIELD:
+                        time = additions.getCreatedTime();
+                        break;
+                    case MODIFIED_TIME_FIELD:
+                        time = additions.getModifiedTime();
+                        break;
+                    case UPLOADED_TIME_FIELD:
+                        time = additions.getUploadedTime();
+                        break;
+                    default:
+                        break;
                 }
                 if (time != null) {
                     if (this.beginTime != null && time < beginTime) {
@@ -267,22 +279,22 @@ public class TemplateSearchEntity {
             Long time2 = null;
             final Boolean isDesc = getIsDesc() == null ? true : getIsDesc();
             switch (getSortedField().toUpperCase()) {
-            case CREATED_TIME_FIELD:
-                time1 = getAdditions(o1).getCreatedTime();
-                time2 = getAdditions(o2).getCreatedTime();
-                break;
-            case MODIFIED_TIME_FIELD:
-                time1 = getAdditions(o1).getModifiedTime();
-                time2 = getAdditions(o2).getModifiedTime();
-                break;
-            case UPLOADED_TIME_FIELD:
-                time1 = getAdditions(o1).getUploadedTime();
-                time2 = getAdditions(o2).getModifiedTime();
-                break;
-            case NAME_FIELD:
-                time1 = time2 = null;
-            default:
-                break;
+                case CREATED_TIME_FIELD:
+                    time1 = getAdditions(o1).getCreatedTime();
+                    time2 = getAdditions(o2).getCreatedTime();
+                    break;
+                case MODIFIED_TIME_FIELD:
+                    time1 = getAdditions(o1).getModifiedTime();
+                    time2 = getAdditions(o2).getModifiedTime();
+                    break;
+                case UPLOADED_TIME_FIELD:
+                    time1 = getAdditions(o1).getUploadedTime();
+                    time2 = getAdditions(o2).getModifiedTime();
+                    break;
+                case NAME_FIELD:
+                    time1 = time2 = null;
+                default:
+                    break;
             }
             if (time1 != null && time2 != null) {
                 return isDesc ? time2.compareTo(time1) : time1.compareTo(time2);

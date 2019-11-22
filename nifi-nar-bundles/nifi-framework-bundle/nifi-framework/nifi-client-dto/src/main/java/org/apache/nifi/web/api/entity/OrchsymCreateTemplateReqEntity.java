@@ -5,10 +5,10 @@ import java.util.Set;
 
 /**
  * @author liuxun
- * 创建模板请求实体类(增强)
+ *         创建模板请求实体类(增强)
  */
 @XmlRootElement(name = "OrchsymCreateTemplateReqEntity")
-public class OrchsymCreateTemplateReqEntity extends CreateTemplateRequestEntity{
+public class OrchsymCreateTemplateReqEntity extends CreateTemplateRequestEntity {
     /**
      * 创建人 (即是谁保存生成的模板)
      * 创建人的identifier
@@ -18,9 +18,9 @@ public class OrchsymCreateTemplateReqEntity extends CreateTemplateRequestEntity{
      * 创建时间
      */
     private Long createdTime;
-    private String  uploadedUser;
+    private String uploadedUser;
     private Long uploadedTime;
-    private String  modifiedUser;
+    private String modifiedUser;
     private Long modifiedTime;
     /**
      * 来源类型：
@@ -30,6 +30,11 @@ public class OrchsymCreateTemplateReqEntity extends CreateTemplateRequestEntity{
      */
     private Integer sourceType;
     private Set<String> tags;
+
+    /**
+     * 表示创建增强模板时，如果有重名，是否删
+     */
+    private boolean overwrite;
 
     public String getCreatedUser() {
         return createdUser;
@@ -91,7 +96,16 @@ public class OrchsymCreateTemplateReqEntity extends CreateTemplateRequestEntity{
         return tags;
     }
 
-    public void setTagsSet(Set<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
+
+    public boolean isOverwrite() {
+        return overwrite;
+    }
+
+    public void setOverwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+    }
+
 }

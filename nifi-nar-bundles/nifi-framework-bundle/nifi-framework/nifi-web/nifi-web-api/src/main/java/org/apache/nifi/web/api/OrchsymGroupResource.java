@@ -69,6 +69,7 @@ import org.apache.nifi.web.api.entity.SnippetEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.template.TemplateFiledName;
 import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
+import org.apache.nifi.web.api.orchsym.template.TemplateType;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -372,7 +373,10 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
         }
 
-        if (isDisconnectedFromCluster()) {
+        if (isReplicateRequest()){
+            // GET请求集群转发 没有write-Lock 也不会报错
+            return replicate(HttpMethod.GET);
+        }else if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
         }
 
@@ -411,8 +415,16 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         additionsMap.put(AdditionConstants.KEY_CREATED_TIMESTAMP, Long.toString(System.currentTimeMillis()));
         additionsMap.put(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
         additionsMap.put(TemplateFiledName.SOURCE_TYPE, Integer.toString(TemplateSourceType.SAVE_AS_TYPE.value()));
+        if (groupApp.getParent() != null && groupApp.getParent().isRootGroup()) {
+            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, Integer.toString(TemplateType.APP_TYPE.value()));
+        } else {
+            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, Integer.toString(TemplateType.NON_APP_TYPE.value()));
+        }
         templateCopy.setAdditions(additionsMap);
         templateCopy.setTags(groupApp.getTags());
+        // rewrite app group name to data  template
+        templateCopy.setName(groupApp.getName());
         return noCache(Response.ok(templateCopy)).build();
     }
+
 }
