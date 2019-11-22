@@ -24,35 +24,31 @@ package org.apache.nifi.web.api.orchsym.template;
  */
 public enum TemplateType {
     /**
-     * 0: 应用类型
+     * 0: 非应用类型
      */
-    APP_TYPE(0),
-
+    NON_APP_TYPE(0),
     /**
-     * 1: 非应用类型
+     * 1: 应用类型
      */
-    NON_APP_TYPE(1);
+    APP_TYPE(1);
 
     private int value = 0;
 
-    private TemplateType(int value) {    //    必须是private的，否则编译错误
+    private TemplateType(int value) { // 必须是private的，否则编译错误
         this.value = value;
     }
 
-    public static TemplateType valueOf(int value) {    //    手写的从int到enum的转换函数
-        switch (value) {
-            case 0:
-                return APP_TYPE;
-            case 1:
-                return NON_APP_TYPE;
-            default:
-                return null;
+    public static TemplateType valueOf(int value) { // 手写的从int到enum的转换函数
+        for (TemplateType t : TemplateType.values()) {
+            if (t.value == value) {
+                return t;
+            }
         }
+        return NON_APP_TYPE;
     }
 
     public int value() {
         return this.value;
     }
-
 
 }
