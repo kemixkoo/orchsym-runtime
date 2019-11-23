@@ -1,11 +1,11 @@
 import React from 'react';
-import { Form, Table, Menu, Icon, Dropdown } from 'antd';
+import { Form, Table, message } from 'antd';
 import { connect } from 'dva';
 import { formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
 import Ellipsis from '@/components/Ellipsis';
 import { EditableContext } from '@/utils/utils'
-import styles from '../index.less';
+import OperateMenu from './OperateMenu';
 
 @connect(({ template }) => ({
   customList: template.customList,
@@ -14,13 +14,22 @@ import styles from '../index.less';
 class CustomizeList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { editingKey: '' };
+    this.state = {
+      editingKey: '',
+    };
     this.columns = [
       {
         title: `${formatMessage({ id: 'title.name' })}`,
+        width: 200,
         dataIndex: 'name',
         key: 'name',
-        // render: text => <a>{text}</a>,
+        editable: true,
+        rules: [
+          { required: true, message: formatMessage({ id: 'validation.name.required' }) },
+          { max: 20, message: formatMessage({ id: 'validation.name.placeholder' }) },
+          { whitespace: true, message: formatMessage({ id: 'validation.name.required' }) },
+          { validator: this.checkReName },
+        ],
       },
       {
         title: `${formatMessage({ id: 'title.description' })}`,
@@ -31,6 +40,10 @@ class CustomizeList extends React.Component {
             {text || '-'}
           </Ellipsis>
         ),
+        rules: [{
+          required: false, max: 100, message: formatMessage({ id: 'validation.description.placeholder' }),
+        }],
+        editable: true,
       },
       // {
       //   title: '来源',
@@ -42,26 +55,33 @@ class CustomizeList extends React.Component {
       // },
       {
         title: `${formatMessage({ id: 'title.operate' })}`,
+        width: 150,
         render: (text, record) => {
-          // const { editingKey } = this.state;
+          const { editingKey } = this.state;
           const editable = this.isEditing(record);
           return editable ? (
             <span>
               <EditableContext.Consumer>
                 {form => (
-                  <a
-                    onClick={() => this.save(form, record.key)}
-                    style={{ marginRight: 8 }}
-                  >
-                    Save
-                  </a>
+                  <span>
+                    <a
+                      type="link"
+                      onClick={() => this.save(form, record)}
+                      style={{ marginRight: 8 }}
+                    >
+                      {formatMessage({ id: 'button.save' })}
+                    </a>
+                    <a
+                      type="link"
+                      onClick={() => this.cancel()}
+                    >
+                      {formatMessage({ id: 'button.cancel' })}
+                    </a>
+                  </span>
                 )}
               </EditableContext.Consumer>
-              {/* <Popconfirm title="Sure to cancel?" onConfirm={() => this.cancel(record.key)}>
-                <a>Cancel</a>
-              </Popconfirm> */}
             </span>
-          ) : (this.operateMenu(record));
+          ) : (<OperateMenu data={record} editingKey={editingKey} edit={item => this.edit(item)} onFrechList={this.onFrechList} />);
         },
       },
     ];
@@ -70,6 +90,17 @@ class CustomizeList extends React.Component {
   componentDidMount() {
     const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props
     this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { onStateChange, pageSizeNum, searchVal, sortedField, isDesc } = this.props
+    // 如果数据发生变化，则更新图表
+    if ((prevProps.searchVal !== searchVal)) {
+      this.getList(1, pageSizeNum, sortedField, isDesc, searchVal)
+      onStateChange({
+        pageNum: 1,
+      })
+    }
   }
 
   getList = (page, pageSize, sortedField, isDesc, text) => {
@@ -86,6 +117,11 @@ class CustomizeList extends React.Component {
     });
   }
 
+  onFrechList = () => {
+    const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props
+    this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+  }
+
   isEditing = record => {
     const { editingKey } = this.state;
     return record.id === editingKey;
@@ -95,67 +131,82 @@ class CustomizeList extends React.Component {
     this.setState({ editingKey: '' });
   };
 
-  operateMenu = (item) => {
-    const { editingKey } = this.state;
-    console.log(item)
-    // <a disabled={editingKey !== ''} onClick={() => this.edit(record.id)}>Edit</a>
-    const menu = (
-      <Menu>
-        <Menu.Item key="edit" disabled={editingKey !== ''} onClick={() => this.edit(item.id)}>
-          {`${formatMessage({ id: 'button.edit' })}`}
-        </Menu.Item>
-        <Menu.Item key="collect">
-          {`${formatMessage({ id: 'button.collect' })}`}
-        </Menu.Item>
-        <Menu.Item key="cancelCollect">
-          {`${formatMessage({ id: 'button.cancelCollect' })}`}
-        </Menu.Item>
-        <Menu.Item key="download">
-          {`${formatMessage({ id: 'button.download' })}`}
-        </Menu.Item>
-        <Menu.Item key="delete">
-          {`${formatMessage({ id: 'button.delete' })}`}
-        </Menu.Item>
-      </Menu>
-    );
-    return (
-      <span className={styles.operateMenu}>
-        <Icon type="star" theme="filled" style={{ color: '#faad14' }} />
-        {/* <Icon type="star" theme="twoTone" /> */}
-        <Dropdown overlay={menu} trigger={['click']}>
-          <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
-        </Dropdown>
-      </span>
-    )
+  save = (form, record) => {
+    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    form.validateFields((error, row) => {
+      if (error) {
+        return;
+      }
+      dispatch({
+        type: 'template/fetchEditTemplate',
+        payload: {
+          id: record.id,
+          ...row,
+        },
+        cb: () => {
+          this.cancel()
+          message.success(formatMessage({ id: 'result.success' }));
+          this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        },
+      });
+      //   const newData = [...dataSource];
+      //   const index = newData.findIndex(item => key === item.key);
+      //   if (index > -1) {
+      //     const item = newData[index];
+      //     newData.splice(index, 1, {
+      //       ...item,
+      //       ...row,
+      //     });
+      //     this.setState({ data: newData, editingKey: '' });
+      //   } else {
+      //     newData.push(row);
+      //     this.setState({ data: newData, editingKey: '' });
+      //   }
+    });
   }
-  // save(form, key) {
-  //   form.validateFields((error, row) => {
-  //     if (error) {
-  //       return;
-  //     }
-  //     const newData = [...dataSource];
-  //     const index = newData.findIndex(item => key === item.key);
-  //     if (index > -1) {
-  //       const item = newData[index];
-  //       newData.splice(index, 1, {
-  //         ...item,
-  //         ...row,
-  //       });
-  //       this.setState({ data: newData, editingKey: '' });
-  //     } else {
-  //       newData.push(row);
-  //       this.setState({ data: newData, editingKey: '' });
-  //     }
-  //   });
-  // }
 
-  edit(key) {
+  edit = (key) => {
     this.setState({ editingKey: key });
   }
 
+  checkReName = (rule, value, callback) => {
+    const { editingKey } = this.state;
+    const { dispatch } = this.props;
+    if (value) {
+      const queryData = {
+        name: value,
+        templateId: editingKey,
+      }
+      dispatch({
+        type: 'application/fetchCheckTempName',
+        payload: queryData,
+        cb: (res) => {
+          if (res.isValid) {
+            callback();
+          } else {
+            callback([new Error(formatMessage({ id: 'validation.name.duplicate' }))]);
+          }
+        },
+      });
+    } else {
+      callback();
+    }
+  }
+
+  onSelectChange = selectedRowKeys => {
+    const { onStateChange } = this.props;
+    onStateChange({
+      selectedRowKeys,
+    })
+  };
+
   render() {
-    const { form, customList: { results, totalSize },
-      onSearchChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    const { form, customList: { results, totalSize }, selectedRowKeys,
+      onStateChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: this.onSelectChange,
+    };
     const components = {
       body: {
         cell: EditableCell,
@@ -169,10 +220,11 @@ class CustomizeList extends React.Component {
       return {
         ...col,
         onCell: record => ({
-          record: record.component,
+          record,
           // inputType: col.dataIndex === 'age' ? 'number' : 'text',
-          dataIndex: col.dataIndex.split('.')[1],
+          dataIndex: col.dataIndex,
           // title: col.title,
+          rules: col.rules,
           editing: this.isEditing(record),
         }),
       };
@@ -188,6 +240,7 @@ class CustomizeList extends React.Component {
     return (
       <EditableContext.Provider value={form}>
         <Table
+          rowSelection={rowSelection}
           components={components}
           dataSource={results}
           columns={columns}
@@ -196,15 +249,15 @@ class CustomizeList extends React.Component {
           pagination={{
             size: 'small',
             onChange: (page, pageSize) => {
-              this.getAppList(page, pageSize, sortedField, isDesc, searchVal)
-              onSearchChange({
+              this.getList(page, pageSize, sortedField, isDesc, searchVal)
+              onStateChange({
                 pageNum: page,
                 pageSizeNum: pageSize,
               })
             },
             onShowSizeChange: (current, size) => {
-              this.getAppList(current, size, sortedField, isDesc, searchVal)
-              onSearchChange({
+              this.getList(current, size, sortedField, isDesc, searchVal)
+              onStateChange({
                 pageNum: current,
                 pageSizeNum: size,
               })

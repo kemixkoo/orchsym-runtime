@@ -2,6 +2,8 @@
 import {
   queryOfficialTemplates, queryCollectTemplates, queryCustomTemplates,
   queryDownloadMTemplates, queryDownloadToken, queryDownloadTemplate,
+  editTemplate, uploadTemplate, collectTemplate, cancelCollectTemplate,
+  deletedMTemplates, deleteTemplate,
 } from '@/services/template';
 import { download } from '@/utils/utils';
 
@@ -42,6 +44,16 @@ export default {
         },
       });
     },
+    // 编辑
+    * fetchEditTemplate({ payload, cb }, { call, put }) {
+      yield call(editTemplate, payload);
+      yield cb && cb()
+    },
+    // 上传
+    *fetchUploadTemp({ payload, cb }, { call, put }) {
+      yield call(uploadTemplate, payload);
+      yield cb && cb();
+    },
     // 下载
     *fetchDownloadTemplates({ payload }, { call, put }) {
       if (payload.type === 'multiple') {
@@ -58,6 +70,24 @@ export default {
           }
         }
       }
+    },
+    // 删除
+    *fetchDeleteTemplates({ payload, cb }, { call, put }) {
+      if (payload.type === 'multiple') {
+        yield call(deletedMTemplates, payload);
+      } else {
+        yield call(deleteTemplate, payload);
+      }
+      yield cb && cb();
+    },
+    // 收藏
+    *fetchCollectTemp({ payload, cb }, { call, put }) {
+      if (payload.state) {
+        yield call(collectTemplate, payload.id);
+      } else {
+        yield call(cancelCollectTemplate, payload.id);
+      }
+      yield cb && cb();
     },
   },
 

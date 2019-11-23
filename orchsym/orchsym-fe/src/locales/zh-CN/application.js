@@ -21,4 +21,7 @@ export default {
   'page.application.nameDesc': '名称降序',
   'page.application.modifySort': '编辑时间升序',
   'page.application.modifyDesc': '编辑时间降序',
+
+  'application.delete.title': '确定放入回收站？',
+  'application.delete.description': '放入回收站后应用内的文件流不可恢复',
 }

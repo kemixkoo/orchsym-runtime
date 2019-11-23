@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react';
-import { Table, Icon, Dropdown, Menu } from 'antd';
+import { Table } from 'antd';
 import { connect } from 'dva';
 import { formatMessage, getLocale } from 'umi-plugin-react/locale';
 import Ellipsis from '@/components/Ellipsis';
 import moment from 'moment';
-import styles from '../index.less';
+import OperateMenu from './OperateMenu';
 
 @connect(({ template }) => ({
   officialList: template.officialList,
@@ -17,6 +17,17 @@ class OfficialList extends PureComponent {
   componentDidMount() {
     const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props
     this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { onStateChange, pageSizeNum, searchVal, sortedField, isDesc } = this.props
+    // 如果数据发生变化，则更新图表
+    if ((prevProps.searchVal !== searchVal)) {
+      this.getList(1, pageSizeNum, sortedField, isDesc, searchVal)
+      onStateChange({
+        pageNum: 1,
+      })
+    }
   }
 
   getList = (page, pageSize, sortedField, isDesc, text) => {
@@ -33,41 +44,14 @@ class OfficialList extends PureComponent {
     });
   }
 
-  operateMenu = (item) => {
-    console.log(item)
-    const menu = (
-      <Menu>
-        <Menu.Item key="edit">
-          {`${formatMessage({ id: 'button.edit' })}`}
-        </Menu.Item>
-        <Menu.Item key="collect">
-          {`${formatMessage({ id: 'button.collect' })}`}
-        </Menu.Item>
-        <Menu.Item key="cancelCollect">
-          {`${formatMessage({ id: 'button.cancelCollect' })}`}
-        </Menu.Item>
-        <Menu.Item key="download">
-          {`${formatMessage({ id: 'button.download' })}`}
-        </Menu.Item>
-        <Menu.Item key="delete">
-          {`${formatMessage({ id: 'button.delete' })}`}
-        </Menu.Item>
-      </Menu>
-    );
-    return (
-      <span className={styles.operateMenu}>
-        <Icon type="star" theme="filled" style={{ color: '#faad14' }} />
-        {/* <Icon type="star" theme="twoTone" /> */}
-        <Dropdown overlay={menu} trigger={['click']}>
-          <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
-        </Dropdown>
-      </span>
-    )
+  onFrechList = () => {
+    const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props
+    this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
   }
 
   render() {
-    const { officialList: { results, totalSize },
-      onSearchChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    const { officialList: { results, totalSize }, onFrechList,
+      onStateChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
     const columns = [
       {
         title: `${formatMessage({ id: 'title.name' })}`,
@@ -97,7 +81,7 @@ class OfficialList extends PureComponent {
       {
         title: `${formatMessage({ id: 'title.operate' })}`,
         key: 'operate',
-        render: (text, record) => (this.operateMenu(record)),
+        render: (text, record) => (<OperateMenu data={record} onFrechList={onFrechList} />),
       },
     ];
 
@@ -117,15 +101,15 @@ class OfficialList extends PureComponent {
           pagination={{
             size: 'small',
             onChange: (page, pageSize) => {
-              this.getAppList(page, pageSize, sortedField, isDesc, searchVal)
-              onSearchChange({
+              this.getList(page, pageSize, sortedField, isDesc, searchVal)
+              onStateChange({
                 pageNum: page,
                 pageSizeNum: pageSize,
               })
             },
             onShowSizeChange: (current, size) => {
-              this.getAppList(current, size, sortedField, isDesc, searchVal)
-              onSearchChange({
+              this.getList(current, size, sortedField, isDesc, searchVal)
+              onStateChange({
                 pageNum: current,
                 pageSizeNum: size,
               })

@@ -20,4 +20,6 @@ export default {
   'page.application.nameDesc': 'Name Descend',
   'page.application.modifySort': 'Modified Time Ascend',
   'page.application.modifyDesc': 'Modified Time Descend',
+  'application.delete.title': 'Are you sure you want to put it in the recycle bin?',
+  'application.delete.description': 'The file stream in the application cannot be recovered after it is put into the recycle bin',
 }

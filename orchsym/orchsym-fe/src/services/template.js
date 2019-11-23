@@ -79,3 +79,47 @@ export async function queryDownloadMTemplates(param) {
     },
   })
 }
+// 编辑
+export async function editTemplate(body) {
+  return request('/studio/nifi-api/orchsym-template/edit', {
+    method: 'PUT',
+    data: body,
+  });
+}
+// 上传
+export async function uploadTemplate(params) {
+  const { file } = params;
+  const formData = new FormData();
+  formData.append('template', file[0]);
+  return request('/studio/nifi-api/process-groups/root/templates/upload', {
+    method: 'POST',
+    data: formData,
+  });
+}
+// 收藏
+export async function collectTemplate(templateId) {
+  return request(`/studio/orchsym-pro-api/favorites/templates/${templateId}`, {
+    method: 'POST',
+  });
+}
+export async function cancelCollectTemplate(templateId) {
+  return request(`/studio/orchsym-pro-api/favorites/templates/${templateId}`, {
+    method: 'DELETE',
+  });
+}
+
+// 删除
+export async function deleteTemplate(param) {
+  return request(`/studio/nifi-api/orchsym-template/${param.templateId}/logic_delete`, {
+    method: 'DELETE',
+  })
+}
+// 批量下载
+export async function deletedMTemplates(param) {
+  return request('/studio/orchsym-pro-api/batch/templates/download', {
+    method: 'DELETE',
+    params: {
+      templateIds: param.templateIds,
+    },
+  })
+}

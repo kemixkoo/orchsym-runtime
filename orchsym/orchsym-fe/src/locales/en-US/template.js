@@ -5,5 +5,7 @@
  * Time: 11:54
  */
 export default {
-  // 'template.title.saveTemp': '存为模板',
+  'template.title.uploadTemp': 'Upload Template',
+  'template.delete.title': 'Delete template',
+  'template.delete.description': 'The deleted template will be put into the recycle bin. Are you sure to delete it ？',
 }

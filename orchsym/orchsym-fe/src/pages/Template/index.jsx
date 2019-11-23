@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Input, Row, Col, Button } from 'antd';
+import { Input, Row, Col, Button, Modal } from 'antd';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import router from 'umi/router'
 import { debounce } from 'lodash'
@@ -7,9 +7,11 @@ import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
 import CollectList from './components/CollectList';
 import CustomizeList from './components/CustomizeList';
 import OfficialList from './components/OfficialList';
+import AddTemp from './components/AddTemp';
 import styles from './index.less';
 
 const { Search } = Input;
+const { confirm } = Modal;
 class Template extends PureComponent {
   constructor() {
     super()
@@ -17,7 +19,9 @@ class Template extends PureComponent {
   }
 
   state = {
+    createTempVisible: null,
     tabActiveKey: '',
+    selectedRowKeys: [],
     // 列表传参
     pageNum: 1,
     pageSizeNum: 10,
@@ -42,6 +46,12 @@ class Template extends PureComponent {
     router.replace(`/temp/${key}`)
   }
 
+  onStateChange = (obj) => {
+    Object.keys(obj).forEach((key) => {
+      this.setState({ [key]: obj[key] })
+    })
+  }
+
   // 搜索
   handleSearch = e => {
     this.doSearchAjax(e.target.value)
@@ -53,14 +63,61 @@ class Template extends PureComponent {
     });
   }
 
-  onSearchChange = (obj) => {
-    Object.keys(obj).forEach((key) => {
-      this.setState({ [key]: obj[key] })
+  showUploadModal = () => {
+    this.setState({
+      createTempVisible: true,
     })
+  };
+
+  handleCreateEditCancel = () => {
+    this.setState({
+      createTempVisible: false,
+    })
+  };
+
+  deleteTemps = (id) => {
+    const { selectedRowKeys } = this.state;
+    const { dispatch, onFrechList } = this.props;
+    confirm({
+      title: formatMessage({ id: 'template.delete.title' }),
+      content: formatMessage({ id: 'template.delete.description' }),
+      okText: 'Yes',
+      okType: 'warning',
+      cancelText: 'No',
+      onOk() {
+        dispatch({
+          type: 'template/fetchDeleteTemplates',
+          payload: {
+            templateIds: selectedRowKeys,
+            type: 'multiple',
+          },
+          cb: () => {
+            onFrechList()
+          },
+        })
+      },
+      onCancel() {
+        console.log('Cancel');
+      },
+    });
+  }
+
+  // 下载
+  downloadTemps = () => {
+    const { selectedRowKeys } = this.state;
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'template/fetchDownloadTemplates',
+      payload: {
+        templateIds: selectedRowKeys,
+        type: 'multiple',
+      },
+    });
   }
 
   render() {
-    const { tabActiveKey, searchVal, sortedField, isDesc, pageSizeNum, pageNum } = this.state;
+    const { createTempVisible, tabActiveKey, searchVal, selectedRowKeys,
+      sortedField, isDesc, pageSizeNum, pageNum } = this.state;
     const tabList = [
       {
         tab: '收藏',
@@ -75,7 +132,7 @@ class Template extends PureComponent {
         key: 'customize',
       },
     ]
-
+    const hasSelected = selectedRowKeys.length > 0;
     return (
       <PageHeaderWrapper tabActiveKey={tabActiveKey} tabList={tabList} onTabChange={this.onTabChange}>
         <div className={styles.templateWrapper}>
@@ -84,13 +141,13 @@ class Template extends PureComponent {
               {tabActiveKey === 'customize' &&
                 (
                   <Col span={12}>
-                    <Button type="primary" style={{ marginRight: '10px' }} onClick={this.showCreateModal}>
+                    <Button type="primary" style={{ marginRight: '10px' }} onClick={this.showUploadModal}>
                       <FormattedMessage id="button.upload" />
                     </Button>
-                    <Button style={{ marginRight: '10px' }} onClick={this.showCreateModal}>
+                    <Button disabled={!hasSelected} style={{ marginRight: '10px' }} onClick={this.downloadTemps}>
                       <FormattedMessage id="button.download" />
                     </Button>
-                    <Button onClick={this.showCreateModal}>
+                    <Button disabled={!hasSelected} onClick={this.deleteTemps}>
                       <FormattedMessage id="button.delete" />
                     </Button>
                   </Col>
@@ -103,7 +160,7 @@ class Template extends PureComponent {
           </div>
           {tabActiveKey === 'collect' && (
             <CollectList
-              onSearchChange={this.onSearchChange}
+              onStateChange={this.onStateChange}
               pageNum={pageNum}
               pageSizeNum={pageSizeNum}
               searchVal={searchVal}
@@ -113,7 +170,7 @@ class Template extends PureComponent {
           )}
           {tabActiveKey === 'official' && (
             <OfficialList
-              onSearchChange={this.onSearchChange}
+              onStateChange={this.onStateChange}
               pageNum={pageNum}
               pageSizeNum={pageSizeNum}
               searchVal={searchVal}
@@ -123,7 +180,8 @@ class Template extends PureComponent {
           )}
           {tabActiveKey === 'customize' && (
             <CustomizeList
-              onSearchChange={this.onSearchChange}
+              selectedRowKeys={selectedRowKeys}
+              onStateChange={this.onStateChange}
               pageNum={pageNum}
               pageSizeNum={pageSizeNum}
               searchVal={searchVal}
@@ -132,6 +190,19 @@ class Template extends PureComponent {
             />
           )}
         </div>
+        {createTempVisible && (
+          <AddTemp
+            visible={createTempVisible}
+            handleCancel={this.handleCreateEditCancel}
+            onStateChange={this.onStateChange}
+            pageNum={pageNum}
+            pageSizeNum={pageSizeNum}
+            searchVal={searchVal}
+            sortedField={sortedField}
+            isDesc={isDesc}
+          />
+        )}
+
       </PageHeaderWrapper>
     );
   }

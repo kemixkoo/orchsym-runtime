@@ -9,5 +9,6 @@ export default {
   'form.template.tempDescription': '模板描述',
   'form.template.tempOverwrite': '覆盖已有模板',
   'form.template.selectTemp': '选择模板',
-
+  'form.template.uploadFile': '上传文件',
+  'form.template.selectFile': '选择文件',
 };

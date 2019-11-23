@@ -8,4 +8,6 @@ export default {
   'form.template.tempDescription': 'Description',
   'form.template.tempOverwrite': 'Overwrite existing template',
   'form.template.selectTemp': 'Select template',
+  'form.template.uploadFile': 'Upload File',
+  'form.template.selectFile': 'Select File',
 };

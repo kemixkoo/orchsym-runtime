@@ -5,6 +5,7 @@ export default {
   'button.download': '下载',
   'button.delete': '删除',
   'button.edit': '编辑',
+  'button.save': '保存',
   'button.collect': '收藏',
   'button.cancelCollect': '取消收藏',
   'button.search': '搜索',
@@ -12,8 +13,6 @@ export default {
   'result.empty': '暂无数据',
   'result.success': '成功',
   'result.error.title': '提交失败',
-  'result.delete.title': '确定放入回收站？',
-  'result.delete.description': '放入回收站后应用内的文件流不可恢复',
   'title.saveTemp': '存为模板',
   'title.tag': '标签',
   'title.name': '名称',
@@ -22,4 +21,5 @@ export default {
   'title.create': '创建',
   'title.createTime': '发布时间',
   'title.operate': '操作',
+  'text.extra.extension': '支持扩展名',
 };
