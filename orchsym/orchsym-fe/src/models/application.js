@@ -236,7 +236,7 @@ export default {
       const response = yield call(validationAppCheckName, payload);
       yield cb && cb(response)
     },
-    // 验证模版名字重复
+    // 验证模板名字重复
     * fetchCheckTempName({ payload, cb }, { call, put }) {
       const response = yield call(validationTempCheckName, payload);
       yield cb && cb(response)

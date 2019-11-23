@@ -26,7 +26,7 @@ export async function validationDownApp() {
   return request('/studio/orchsym-api/helper/state');
 }
 
-// 验证 模版名称是否重名
+// 验证 模板名称是否重名
 export async function validationTempCheckName(param) {
   return request('/studio/nifi-api/orchsym-template/name/valid', {
     params: {
