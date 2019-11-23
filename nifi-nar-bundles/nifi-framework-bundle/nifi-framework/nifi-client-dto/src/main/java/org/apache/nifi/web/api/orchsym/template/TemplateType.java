@@ -43,7 +43,7 @@ public enum TemplateType {
         if (Objects.isNull(additions)) {
             return false;
         }
-        return this.equals(match(additions.get(TemplateFiledName.TEMPLATE_TYPE)));
+        return this.equals(match(additions.get(TemplateFieldName.TEMPLATE_TYPE)));
     }
 
     public boolean not(Map<String, String> additions) {

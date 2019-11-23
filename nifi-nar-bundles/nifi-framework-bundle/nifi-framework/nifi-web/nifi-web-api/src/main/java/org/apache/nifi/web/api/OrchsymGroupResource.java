@@ -66,10 +66,7 @@ import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
 import org.apache.nifi.web.api.entity.SnippetEntity;
-import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
-import org.apache.nifi.web.api.orchsym.template.TemplateFiledName;
-import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
-import org.apache.nifi.web.api.orchsym.template.TemplateType;
+import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -358,6 +355,10 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         return infoMap;
     }
 
+    /**
+     * 
+     * 模块下载为模板的数据生成
+     */
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
@@ -373,10 +374,10 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();
         }
 
-        if (isReplicateRequest()){
+        if (isReplicateRequest()) {
             // GET请求集群转发 没有write-Lock 也不会报错
             return replicate(HttpMethod.GET);
-        }else if (isDisconnectedFromCluster()) {
+        } else if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
         }
 
@@ -411,18 +412,11 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
         templateCopy.setId(null);
 
-        Map<String, String> additionsMap = new HashMap<>();
-        additionsMap.put(AdditionConstants.KEY_CREATED_TIMESTAMP, Long.toString(System.currentTimeMillis()));
-        additionsMap.put(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
-        additionsMap.put(TemplateFiledName.SOURCE_TYPE, TemplateSourceType.SAVE_AS.name());
-        if (groupApp.getParent() != null && groupApp.getParent().isRootGroup()) {
-            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.APPLICATION.name());
-        } else {
-            additionsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.NORMAL.name());
-        }
+        // 构建默认设置
+        Map<String, String> additionsMap = TemplateFieldName.getCreatedAdditions(null, groupApp.getParent().isRootGroup(), NiFiUserUtils.getNiFiUserIdentity());
         templateCopy.setAdditions(additionsMap);
         templateCopy.setTags(groupApp.getTags());
-        // rewrite app group name to data  template
+        // rewrite app group name to data template
         templateCopy.setName(groupApp.getName());
         return noCache(Response.ok(templateCopy)).build();
     }

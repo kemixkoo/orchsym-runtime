@@ -86,7 +86,7 @@ import org.apache.nifi.web.api.entity.ConnectionsEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceEntity;
 import org.apache.nifi.web.api.entity.ControllerServicesEntity;
 import org.apache.nifi.web.api.entity.CopySnippetRequestEntity;
-import org.apache.nifi.web.api.entity.CreateTemplateRequestEntity;
+import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
 import org.apache.nifi.web.api.entity.Entity;
 import org.apache.nifi.web.api.entity.FlowComparisonEntity;
 import org.apache.nifi.web.api.entity.FlowEntity;
@@ -112,9 +112,11 @@ import org.apache.nifi.web.api.entity.TemplateConfigEntity;
 import org.apache.nifi.web.api.entity.TemplateConfigComponentEntity;
 import org.apache.nifi.web.api.entity.TemplateConfigSettingsEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
+import org.apache.nifi.web.api.entity.OrchsymTemplateEntity;
 import org.apache.nifi.web.api.entity.VariableEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryUpdateRequestEntity;
+import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
 import org.apache.nifi.web.security.token.NiFiAuthenticationToken;
@@ -3489,12 +3491,15 @@ public class ProcessGroupResource extends ApplicationResource {
             @ApiParam(
                     value = "The create template request.",
                     required = true
-            ) final CreateTemplateRequestEntity requestCreateTemplateRequestEntity) {
+            ) final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity) {
 
         if (requestCreateTemplateRequestEntity.getSnippetId() == null) {
             throw new IllegalArgumentException("The snippet identifier must be specified.");
         }
-
+        // Avoid the timestamp is different for cluster
+        if (requestCreateTemplateRequestEntity.getCreatedTime() == null) {
+            requestCreateTemplateRequestEntity.setCreatedTime(System.currentTimeMillis());
+        }
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestCreateTemplateRequestEntity);
         } else if (isDisconnectedFromCluster()) {
@@ -3510,7 +3515,10 @@ public class ProcessGroupResource extends ApplicationResource {
                 () -> serviceFacade.verifyCanAddTemplate(groupId, requestCreateTemplateRequestEntity.getName()),
                 createTemplateRequestEntity -> {
                     // create the template and generate the json
-                    final TemplateDTO template = serviceFacade.createTemplate(createTemplateRequestEntity.getName(), createTemplateRequestEntity.getDescription(),
+                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(requestCreateTemplateRequestEntity, false, NiFiUserUtils.getNiFiUserIdentity());
+
+                    final Set<String> tags = createTemplateRequestEntity.getTags();
+                    final TemplateDTO template = serviceFacade.createTemplate(additions, tags, createTemplateRequestEntity.getName(), createTemplateRequestEntity.getDescription(),
                             createTemplateRequestEntity.getSnippetId(), groupId, getIdGenerationSeed());
                     templateResource.populateRemainingTemplateContent(template);
 
@@ -3538,7 +3546,7 @@ public class ProcessGroupResource extends ApplicationResource {
     @Path("{id}/templates/upload")
     @ApiOperation(
             value = "Uploads a template",
-            response = TemplateEntity.class,
+            response = OrchsymTemplateEntity.class,
             authorizations = {
                     @Authorization(value = "Write - /process-groups/{uuid}")
             }
@@ -3604,7 +3612,7 @@ public class ProcessGroupResource extends ApplicationResource {
         }
 
         // build the response entity
-        TemplateEntity entity = new TemplateEntity();
+        OrchsymTemplateEntity entity = new OrchsymTemplateEntity();
         entity.setTemplate(template);
         entity.setDisconnectedNodeAcknowledged(disconnectedNodeAcknowledged);
 
@@ -3644,7 +3652,7 @@ public class ProcessGroupResource extends ApplicationResource {
     @Path("{id}/templates/import")
     @ApiOperation(
             value = "Imports a template",
-            response = TemplateEntity.class,
+            response = OrchsymTemplateEntity.class,
             authorizations = {
                     @Authorization(value = "Write - /process-groups/{uuid}")
             }
@@ -3664,7 +3672,7 @@ public class ProcessGroupResource extends ApplicationResource {
                     required = true
             )
             @PathParam("id") final String groupId,
-            final TemplateEntity requestTemplateEntity) {
+            final OrchsymTemplateEntity requestTemplateEntity) {
 
         // verify the template was specified
         if (requestTemplateEntity == null || requestTemplateEntity.getTemplate() == null || requestTemplateEntity.getTemplate().getSnippet() == null) {
@@ -3687,6 +3695,16 @@ public class ProcessGroupResource extends ApplicationResource {
                 () -> serviceFacade.verifyCanAddTemplate(groupId, requestTemplateEntity.getTemplate().getName()),
                 templateEntity -> {
                     try {
+                        Map<String, String> additions = templateEntity.getTemplate().getAdditions();
+                        if (null != additions) {
+                            additions = new HashMap<>();
+                        } else {
+                            additions = new HashMap<>(additions);
+                        }
+                        final Map<String, String> uploadedAdditions = TemplateFieldName.getUploadedAdditions(requestTemplateEntity, NiFiUserUtils.getNiFiUserIdentity());
+                        additions.putAll(uploadedAdditions);
+                        templateEntity.getTemplate().setAdditions(additions);
+
                         // import the template
                         final TemplateDTO template = serviceFacade.importTemplate(templateEntity.getTemplate(), groupId, getIdGenerationSeed());
                         templateResource.populateRemainingTemplateContent(template);

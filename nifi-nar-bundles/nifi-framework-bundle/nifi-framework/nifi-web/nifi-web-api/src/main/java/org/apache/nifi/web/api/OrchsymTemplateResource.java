@@ -62,10 +62,9 @@ import org.apache.nifi.web.api.entity.TemplateEntity;
 import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.template.TemplateFavority;
-import org.apache.nifi.web.api.orchsym.template.TemplateFiledName;
+import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateSearchEntity;
 import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
-import org.apache.nifi.web.api.orchsym.template.TemplateType;
 import org.apache.nifi.web.dao.TemplateDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -100,17 +99,12 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     private FlowService flowService;
 
     /**
-     * 新的创建模板的接口 (替换旧接口，兼容了老接口的参数)
-     * 
-     * @param groupId
-     *            模板所在group的ID
-     * @param requestCreateTemplateRequestEntity
-     * @return
+     * 模块保存为模板
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{groupId}")
+    @Path("/{groupId}/saveas")
     @ApiOperation(value = "Creates a template and discards the specified snippet.", response = TemplateEntity.class, authorizations = { @Authorization(value = "Write - /process-groups/{uuid}"),
             @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components") })
     @ApiResponses(value = { @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
@@ -128,17 +122,9 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
             throw new IllegalArgumentException("The template name must be specified.");
         }
 
+        // Avoid the timestamp is different for cluster
         if (requestCreateTemplateRequestEntity.getCreatedTime() == null) {
             requestCreateTemplateRequestEntity.setCreatedTime(System.currentTimeMillis());
-        }
-
-        if (requestCreateTemplateRequestEntity.getCreatedUser() == null) {
-            requestCreateTemplateRequestEntity.setCreatedUser(NiFiUserUtils.getNiFiUserIdentity());
-        }
-
-        if (requestCreateTemplateRequestEntity.getSourceType() == null) {
-            // 创建模板默认属于 另存类型
-            requestCreateTemplateRequestEntity.setSourceType(TemplateSourceType.SAVE_AS.name());
         }
 
         if (isReplicateRequest()) {
@@ -171,17 +157,13 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                                 });
                     }
 
-                    final Map<String, String> contentsMap = getContentsMapFromEntity(createTemplateRequestEntity);
                     final ProcessGroup group = flowController.getGroup(groupId);
-                    if (group.getParent().isRootGroup()) {
-                        contentsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.APPLICATION.name());
-                    } else {
-                        contentsMap.put(TemplateFiledName.TEMPLATE_TYPE, TemplateType.NORMAL.name());
-                    }
+                    // 构建默认设置
+                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, group.getParent().isRootGroup(), NiFiUserUtils.getNiFiUserIdentity());
 
-                    final Set<String> tagsSet = createTemplateRequestEntity.getTags();
+                    final Set<String> tags = createTemplateRequestEntity.getTags();
                     // create the template and generate the json
-                    final TemplateDTO template = serviceFacade.createTemplate(contentsMap, tagsSet, newName, createTemplateRequestEntity.getDescription(), createTemplateRequestEntity.getSnippetId(),
+                    final TemplateDTO template = serviceFacade.createTemplate(additions, tags, newName, createTemplateRequestEntity.getDescription(), createTemplateRequestEntity.getSnippetId(),
                             groupId, getIdGenerationSeed());
                     templateResource.populateRemainingTemplateContent(template);
 
@@ -500,39 +482,6 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         return snippet;
     }
 
-    private Map<String, String> getContentsMapFromEntity(OrchsymCreateTemplateReqEntity entity) {
-        Map<String, String> contentMap = new HashMap<>(7);
-        if (entity.getCreatedUser() != null) {
-            contentMap.put(AdditionConstants.KEY_CREATED_USER, entity.getCreatedUser());
-        } else {
-            contentMap.put(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
-        }
-
-        if (entity.getCreatedTime() != null) {
-            contentMap.put(AdditionConstants.KEY_CREATED_TIMESTAMP, Long.toString(entity.getCreatedTime()));
-        } else {
-            contentMap.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, Long.toString(System.currentTimeMillis()));
-        }
-
-        if (entity.getModifiedTime() != null) {
-            contentMap.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, Long.toString(entity.getModifiedTime()));
-        }
-        if (entity.getModifiedUser() != null) {
-            contentMap.put(AdditionConstants.KEY_MODIFIED_USER, entity.getModifiedUser());
-        }
-
-        if (entity.getUploadedUser() != null) {
-            contentMap.put(TemplateFiledName.UPLOADED_USER, entity.getUploadedUser());
-        }
-        if (entity.getUploadedTime() != null) {
-            contentMap.put(TemplateFiledName.UPLOADED_TIMESTAMP, Long.toString(entity.getUploadedTime()));
-        }
-
-        contentMap.put(TemplateFiledName.SOURCE_TYPE, TemplateSourceType.match(entity.getSourceType()).name());
-
-        return contentMap;
-    }
-
     private List<TemplateDTO> filterTemplates(Predicate<? super TemplateEntity> preFilter) {
         final List<TemplateDTO> notOfficalTemps = serviceFacade.getTemplates().stream()//
                 .filter(preFilter)//
@@ -548,7 +497,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                 additions = new HashMap<>(additions);
             }
             final boolean existed = tempFavorites.contains(new TemplateFavority(t.getId(), 0L));
-            additions.put(TemplateFiledName.IS_FAVORITE, Boolean.valueOf(existed).toString());
+            additions.put(TemplateFieldName.IS_FAVORITE, Boolean.valueOf(existed).toString());
             t.setAdditions(additions);
         });
 
@@ -586,7 +535,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     }
 
     private Map<String, TreeList<TemplateFavority>> getFavoriteByCurrentUser() {
-        final String additionStr = flowController.getRootGroup().getAddition(TemplateFiledName.KEY_USER_TEMP_FAV);
+        final String additionStr = flowController.getRootGroup().getAddition(TemplateFieldName.KEY_USER_TEMP_FAV);
         if (additionStr == null) {
             return null;
         }
@@ -611,7 +560,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         }
         userFavList.remove(new TemplateFavority(templateId, 0L));
 
-        flowController.getRootGroup().setAddition(TemplateFiledName.KEY_USER_TEMP_FAV, JSONObject.toJSONString(allUserFavorites));
+        flowController.getRootGroup().setAddition(TemplateFieldName.KEY_USER_TEMP_FAV, JSONObject.toJSONString(allUserFavorites));
         // save
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0, true);
     }

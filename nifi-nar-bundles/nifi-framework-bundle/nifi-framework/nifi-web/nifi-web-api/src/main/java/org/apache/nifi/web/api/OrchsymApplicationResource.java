@@ -80,13 +80,16 @@ import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.AppCopyEntity;
 import org.apache.nifi.web.api.entity.AppGroupEntity;
 import org.apache.nifi.web.api.entity.AppSearchEntity;
+import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+import org.apache.nifi.web.api.orchsym.application.ApplicationFieldName;
 import org.apache.nifi.web.util.AppTypeAssessor;
 import org.apache.nifi.web.util.AppTypeAssessor.AppType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -114,6 +117,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @Autowired
     private OrchsymGroupResource groupResource;
+    @Autowired
+    private OrchsymTemplateResource orchsymTemplateResource;
 
     private Response verifyApp(String appId) {
         boolean existed = flowController.getRootGroup().getProcessGroups().stream().filter(group -> group.getIdentifier().equals(appId)).findAny().isPresent();
@@ -123,6 +128,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return null;
     }
 
+    /**
+     * 
+     * 应用下载为模板的数据生成
+     */
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
@@ -139,6 +148,26 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
 
         return groupResource.generateTemplateData(appId);
+    }
+
+    /**
+     * 应用保存为模板
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/template/{appId}/saveas")
+    public Response createAppTemplate(//
+            @Context final HttpServletRequest httpServletRequest, //
+            @PathParam("appId") final String appId, //
+            @RequestBody final OrchsymCreateTemplateReqEntity requestEntity//
+    ) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+
+        return orchsymTemplateResource.createTemplate(httpServletRequest, appId, requestEntity);
     }
 
     /**
@@ -430,6 +459,11 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("name") String name, //
             @QueryParam("appId") String appId//
     ) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("name", name);
         resultMap.put("isValid", validName(name, appId));
@@ -546,6 +580,11 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
     public Response logicDeleteApp(@PathParam("appId") final String appId) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         }
@@ -602,6 +641,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     public Response recoverApp(@Context HttpServletRequest httpServletRequest, //
             @PathParam("appId") String appId//
     ) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT);
         }
@@ -621,6 +664,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     public Response enableApp(@Context HttpServletRequest httpServletRequest, //
             @PathParam("appId") String appId//
     ) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT);
         }
@@ -640,6 +687,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     public Response disableApp(@Context HttpServletRequest httpServletRequest, //
             @PathParam("appId") String appId//
     ) {
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT);
         }
@@ -694,12 +745,12 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
     public Response forceDeleteApp(@PathParam("appId") String appId) {
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.DELETE);
-        }
         final Response verifyApp = verifyApp(appId);
         if (null != verifyApp) {// has error
             return verifyApp;
+        }
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.DELETE);
         }
         final ProcessGroup groupApp = flowController.getGroup(appId);
         if (groupApp == null) {
@@ -888,11 +939,17 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         if (sourceAppId == null) {
             throw new IllegalArgumentException("Source application ID must be specified.");
         }
+        final Response verifyApp = verifyApp(sourceAppId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
+        }
+
         if (null == requestAppCopyEntity.getCreatedTime()) {
             requestAppCopyEntity.setCreatedTime(System.currentTimeMillis());
         }
+        final String user = NiFiUserUtils.getNiFiUserIdentity();
         if (null == requestAppCopyEntity.getCreatedUser()) {
-            requestAppCopyEntity.setCreatedUser(NiFiUserUtils.getNiFiUser().getIdentity());
+            requestAppCopyEntity.setCreatedUser(user);
         }
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestAppCopyEntity);
@@ -924,15 +981,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         } else {
             additions = new HashMap<>(additions);
         }
-        // 保留原始创建者，或者将原应用创建变为原始创建者
-        if (!additions.containsKey(AdditionConstants.KEY_ORIGINAL_CREATED_TIMESTAMP) && additions.containsKey(AdditionConstants.KEY_CREATED_TIMESTAMP)
-                && StringUtils.isNotBlank(additions.get(AdditionConstants.KEY_CREATED_TIMESTAMP))) {
-            additions.put(AdditionConstants.KEY_ORIGINAL_CREATED_TIMESTAMP, additions.get(AdditionConstants.KEY_CREATED_TIMESTAMP));
-        }
-        if (!additions.containsKey(AdditionConstants.KEY_ORIGINAL_CREATED_USER) && additions.containsKey(AdditionConstants.KEY_CREATED_USER)
-                && StringUtils.isNotBlank(additions.get(AdditionConstants.KEY_CREATED_USER))) {
-            additions.put(AdditionConstants.KEY_ORIGINAL_CREATED_USER, additions.get(AdditionConstants.KEY_CREATED_USER));
-        }
+        additions.putAll(ApplicationFieldName.getCreatingAdditions(additions, user));
         // 重新设置创建时间戳
         additions.put(AdditionConstants.KEY_CREATED_TIMESTAMP, requestAppCopyEntity.getCreatedTime().toString());
         additions.put(AdditionConstants.KEY_CREATED_USER, requestAppCopyEntity.getCreatedUser());

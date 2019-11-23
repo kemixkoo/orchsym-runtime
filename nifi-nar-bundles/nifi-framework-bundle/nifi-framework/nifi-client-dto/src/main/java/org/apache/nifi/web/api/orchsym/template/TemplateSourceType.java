@@ -51,7 +51,7 @@ public enum TemplateSourceType {
         if (Objects.isNull(additions)) {
             return false;
         }
-        return this.equals(match(additions.get(TemplateFiledName.SOURCE_TYPE)));
+        return this.equals(match(additions.get(TemplateFieldName.SOURCE_TYPE)));
     }
 
     public boolean not(Map<String, String> additions) {

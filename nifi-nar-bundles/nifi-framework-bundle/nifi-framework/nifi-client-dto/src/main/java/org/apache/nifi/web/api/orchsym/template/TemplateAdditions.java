@@ -57,16 +57,16 @@ public class TemplateAdditions {
             if (map.containsKey(AdditionConstants.KEY_MODIFIED_TIMESTAMP)) {
                 this.setModifiedTime(Long.parseLong(map.get(AdditionConstants.KEY_MODIFIED_TIMESTAMP)));
             }
-            if (map.containsKey(TemplateFiledName.UPLOADED_USER)) {
-                this.setUploadedUser(map.get(TemplateFiledName.UPLOADED_USER));
+            if (map.containsKey(TemplateFieldName.UPLOADED_USER)) {
+                this.setUploadedUser(map.get(TemplateFieldName.UPLOADED_USER));
             }
-            if (map.containsKey(TemplateFiledName.UPLOADED_TIMESTAMP)) {
-                this.setUploadedTime(Long.parseLong(map.get(TemplateFiledName.UPLOADED_TIMESTAMP)));
+            if (map.containsKey(TemplateFieldName.UPLOADED_TIMESTAMP)) {
+                this.setUploadedTime(Long.parseLong(map.get(TemplateFieldName.UPLOADED_TIMESTAMP)));
             }
 
             this.setDeleted(Boolean.parseBoolean(map.getOrDefault(AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT.toString())));
-            this.setSourceType(TemplateSourceType.match(map.get(TemplateFiledName.SOURCE_TYPE)));
-            this.setTemplateType(TemplateType.match(map.get(TemplateFiledName.TEMPLATE_TYPE)));
+            this.setSourceType(TemplateSourceType.match(map.get(TemplateFieldName.SOURCE_TYPE)));
+            this.setTemplateType(TemplateType.match(map.get(TemplateFieldName.TEMPLATE_TYPE)));
         }
     }
 
