@@ -17,7 +17,10 @@
  */
 package org.apache.nifi.web.api;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,11 +78,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
 
 /**
  * @author liuxun
@@ -368,6 +366,13 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     ) {
         if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
+        }
+        if (StringUtils.isEmpty(searchEntity.getText())) {
+            try {// 解决其他api调用时候中文乱码
+                searchEntity.setText(URLDecoder.decode(searchEntity.getText(), StandardCharsets.UTF_8.name()));
+            } catch (UnsupportedEncodingException e) {
+                // ignore
+            }
         }
         final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(filterTemplates(t -> true)); // 不做预过滤
         return Response.ok(page).build();
