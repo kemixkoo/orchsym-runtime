@@ -182,7 +182,9 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response forceDeleteGroup(@PathParam("groupId") String groupId) {
+    public Response forceDeleteGroup(//
+            @PathParam("groupId") String groupId//
+    ) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         }
@@ -268,7 +270,9 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
             @ApiResponse(code = 409, message = CODE_MESSAGE_409) //
     })
-    public Response getNavigatorInfo(@PathParam("id") String id) {
+    public Response getNavigatorInfo(//
+            @PathParam("id") String id//
+    ) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.GET);
         }
@@ -368,7 +372,9 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response generateTemplateData(@PathParam("groupId") String groupId) {
+    public Response generateTemplateData(//
+            @PathParam("groupId") String groupId//
+    ) {
         final ProcessGroup groupApp = flowController.getGroup(groupId);
         if (groupApp == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the group by the appId").build();

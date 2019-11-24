@@ -141,7 +141,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response getAppTemplateData(@PathParam("appId") String appId) {
+    public Response getAppTemplateData(//
+            @PathParam("appId") String appId//
+    ) {
         final Response verifyApp = verifyApp(appId);
         if (null != verifyApp) {// has error
             return verifyApp;
@@ -281,7 +283,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @Path("/search-results")
     @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
-    public Response searchApp(final AppSearchEntity searchEnity) throws InterruptedException {
+    public Response searchApp(//
+            @RequestBody final AppSearchEntity searchEnity//
+    ) {
         fixDefaultSearchEnity(searchEnity);
 
         // 搜索
@@ -494,7 +498,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response getAppStatus(@PathParam("appId") final String appId) {
+    public Response getAppStatus(//
+            @PathParam("appId") final String appId//
+    ) {
         final Response verifyApp = verifyApp(appId);
         if (null != verifyApp) {// has error
             return verifyApp;
@@ -579,7 +585,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response logicDeleteApp(@PathParam("appId") final String appId) {
+    public Response logicDeleteApp(//
+            @PathParam("appId") final String appId//
+    ) {
         final Response verifyApp = verifyApp(appId);
         if (null != verifyApp) {// has error
             return verifyApp;
@@ -607,7 +615,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response logicDeleteApp(final AppGroupEntity appGroupEntity) {
+    public Response logicDeleteApp(//
+            @RequestBody final AppGroupEntity appGroupEntity//
+    ) {
         if (appGroupEntity == null || appGroupEntity.getName() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("param cant be null and mast contains 'name'").build();
         }
@@ -638,7 +648,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response recoverApp(@Context HttpServletRequest httpServletRequest, //
+    public Response recoverApp(//
+            @Context HttpServletRequest httpServletRequest, //
             @PathParam("appId") String appId//
     ) {
         final Response verifyApp = verifyApp(appId);
@@ -661,7 +672,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response enableApp(@Context HttpServletRequest httpServletRequest, //
+    public Response enableApp(//
+            @Context HttpServletRequest httpServletRequest, //
             @PathParam("appId") String appId//
     ) {
         final Response verifyApp = verifyApp(appId);
@@ -684,7 +696,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response disableApp(@Context HttpServletRequest httpServletRequest, //
+    public Response disableApp(//
+            @Context HttpServletRequest httpServletRequest, //
             @PathParam("appId") String appId//
     ) {
         final Response verifyApp = verifyApp(appId);
@@ -744,7 +757,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404)//
     })
-    public Response forceDeleteApp(@PathParam("appId") String appId) {
+    public Response forceDeleteApp(//
+            @PathParam("appId") String appId//
+    ) {
         final Response verifyApp = verifyApp(appId);
         if (null != verifyApp) {// has error
             return verifyApp;
@@ -769,7 +784,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response forceDeleteAppByName(final AppGroupEntity appGroupEntity) {
+    public Response forceDeleteAppByName(//
+            @RequestBody final AppGroupEntity appGroupEntity //
+    ) {
         if (appGroupEntity == null || appGroupEntity.getName() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("param cant be null and mast contains 'name'").build();
         }
@@ -795,7 +812,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response getVeryDeleteStatus(@PathParam("id") String id) {
+    public Response getVeryDeleteStatus(//
+            @PathParam("id") String id //
+    ) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.GET);
         }

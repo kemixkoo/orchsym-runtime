@@ -105,14 +105,11 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{groupId}/saveas")
-    @ApiOperation(value = "Creates a template and discards the specified snippet.", response = TemplateEntity.class, authorizations = { @Authorization(value = "Write - /process-groups/{uuid}"),
-            @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components") })
-    @ApiResponses(value = { @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
-            @ApiResponse(code = 401, message = "Client could not be authenticated."), @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
-            @ApiResponse(code = 404, message = "The specified resource could not be found."),
-            @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.") })
-    public Response createTemplate(@Context final HttpServletRequest httpServletRequest, @ApiParam(value = "The process group id.", required = true) @PathParam("groupId") final String groupId,
-            @ApiParam(value = "The create template request.", required = true) final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity) {
+    public Response createTemplate(//
+            @Context final HttpServletRequest httpServletRequest, //
+            @PathParam("groupId") final String groupId, //
+            @RequestBody final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity//
+    ) {
 
         if (requestCreateTemplateRequestEntity.getSnippetId() == null) {
             throw new IllegalArgumentException("The snippet identifier must be specified.");
@@ -186,11 +183,9 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/edit")
-    @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = "client error"), //
-            @ApiResponse(code = 500, message = "server error") //
-    })
-    public Response editTemplate(final TemplateDTO tempParam) {
+    public Response editTemplate(//
+            @RequestBody final TemplateDTO tempParam//
+    ) {
 
         if (tempParam == null || tempParam.getId() == null) {
             throw new IllegalArgumentException("The template cant be null and the identifier must be specified.");
@@ -233,38 +228,43 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         final TemplateEntity requestTemplateEntity = new TemplateEntity();
         requestTemplateEntity.setId(tempParam.getId());
 
-        return withWriteLock(serviceFacade, requestTemplateEntity, lookup -> {
-            final Authorizable temp = lookup.getTemplate(tempParam.getId());
+        return withWriteLock( //
+                serviceFacade, //
+                requestTemplateEntity, //
+                lookup -> {
+                    final Authorizable temp = lookup.getTemplate(tempParam.getId());
 
-            // ensure write permission to the template
-            temp.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                    // ensure write permission to the template
+                    temp.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
 
-            // ensure write permission to the parent process group
-            temp.getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-        }, null, (templateEntity) -> {
-            final Map<String, String> additions = originTempDTO.getAdditions() == null ? new HashMap<>() : originTempDTO.getAdditions();
-            additions.put(AdditionConstants.KEY_MODIFIED_USER, tempParam.getAdditions().get(AdditionConstants.KEY_MODIFIED_USER));
-            additions.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, tempParam.getAdditions().get(AdditionConstants.KEY_MODIFIED_TIMESTAMP));
+                    // ensure write permission to the parent process group
+                    temp.getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                }, //
+                null, //
+                (templateEntity) -> {
+                    final Map<String, String> additions = originTempDTO.getAdditions() == null ? new HashMap<>() : originTempDTO.getAdditions();
+                    additions.put(AdditionConstants.KEY_MODIFIED_USER, tempParam.getAdditions().get(AdditionConstants.KEY_MODIFIED_USER));
+                    additions.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, tempParam.getAdditions().get(AdditionConstants.KEY_MODIFIED_TIMESTAMP));
 
-            originTempDTO.setAdditions(additions);
+                    originTempDTO.setAdditions(additions);
 
-            if (!StringUtils.isBlank(tempParam.getName())) {
-                originTempDTO.setName(tempParam.getName());
-            }
+                    if (!StringUtils.isBlank(tempParam.getName())) {
+                        originTempDTO.setName(tempParam.getName());
+                    }
 
-            if (!StringUtils.isBlank(tempParam.getDescription())) {
-                originTempDTO.setDescription(tempParam.getDescription());
-            }
+                    if (!StringUtils.isBlank(tempParam.getDescription())) {
+                        originTempDTO.setDescription(tempParam.getDescription());
+                    }
 
-            if (tempParam.getTags() != null && !tempParam.getTags().isEmpty()) {
-                originTempDTO.setTags(tempParam.getTags());
-            }
+                    if (tempParam.getTags() != null && !tempParam.getTags().isEmpty()) {
+                        originTempDTO.setTags(tempParam.getTags());
+                    }
 
-            // 保存持久化
-            flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+                    // 保存持久化
+                    flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
 
-            return generateOkResponse(originTempDTO).build();
-        });
+                    return generateOkResponse(originTempDTO).build();
+                });
     }
 
     /**
@@ -280,10 +280,10 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(MediaType.WILDCARD)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/name/valid")
-    @ApiResponses(value = { //
-            @ApiResponse(code = 500, message = "server error") //
-    })
-    public Response isTemplateNewNameValid(@QueryParam("name") String name, @QueryParam("templateId") String templateId) {
+    public Response isTemplateNewNameValid(//
+            @QueryParam("name") String name, //
+            @QueryParam("templateId") String templateId//
+    ) {
         if (StringUtils.isBlank(name)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("new name cant be empty").build();
         }
@@ -309,9 +309,6 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(MediaType.WILDCARD)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/custom/search")
-    @ApiResponses(value = { //
-            @ApiResponse(code = 500, message = "server error") //
-    })
     public Response searchCustomTempsByQueryParams(//
             @QueryParam("text") String text, //
 
@@ -366,10 +363,9 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/search")
-    @ApiResponses(value = { //
-            @ApiResponse(code = 500, message = "server error") //
-    })
-    public Response searchAll(@RequestBody TemplateSearchEntity searchEntity) {
+    public Response searchAll(//
+            @RequestBody final TemplateSearchEntity searchEntity//
+    ) {
         if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
         }
@@ -385,11 +381,10 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{templateId}/force_delete")
-    @ApiResponses(value = { //
-            @ApiResponse(code = 500, message = "server error") //
-    })
-    public Response forceDeleteTemplate(@QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
-            @PathParam("templateId") final String templateId) {
+    public Response forceDeleteTemplate(//
+            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged, //
+            @PathParam("templateId") final String templateId//
+    ) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         } else if (isDisconnectedFromCluster()) {
@@ -433,11 +428,10 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{templateId}/logic_delete")
-    @ApiResponses(value = { //
-            @ApiResponse(code = 500, message = "server error") //
-    })
-    public Response logicalDeleteTemplate(@QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
-            @PathParam("templateId") final String templateId) {
+    public Response logicalDeleteTemplate(//
+            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged, //
+            @PathParam("templateId") final String templateId//
+    ) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         } else if (isDisconnectedFromCluster()) {
@@ -455,11 +449,10 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{templateId}/recover")
-    @ApiResponses(value = { //
-            @ApiResponse(code = 500, message = "server error") //
-    })
-    public Response logicalRecoverTemplate(@QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged,
-            @PathParam("templateId") final String templateId) {
+    public Response logicalRecoverTemplate(//
+            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged, //
+            @PathParam("templateId") final String templateId//
+    ) {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT);
         } else if (isDisconnectedFromCluster()) {
