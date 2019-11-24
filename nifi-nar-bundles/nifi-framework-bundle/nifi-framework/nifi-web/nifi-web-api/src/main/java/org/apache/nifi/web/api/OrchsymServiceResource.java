@@ -131,8 +131,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      * @return A controllerServiceEntity.
      */
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}")
     @ApiOperation(value = "Creates a new controller service", response = ControllerServiceEntity.class, authorizations = { @Authorization(value = "Write - /services/{uuid}"),
             @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}") })
@@ -288,8 +288,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      * @return A controllerServicesEntity.
      */
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}/operation")
     @ApiOperation(value = "batch enable/disable/delete controller services in a process group", response = ControllerServicesEntity.class, authorizations = {
             @Authorization(value = "Write - /controller-services/{uuid}"), @Authorization(value = "Write - Parent Process Group if scoped by Process Group - /process-groups/{uuid}"),
@@ -469,7 +469,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/databases")
     @ApiOperation(value = "Gets DBCP services", response = ControllerServicesEntity.class)
     @ApiResponses(value = { //
@@ -518,7 +518,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/dbcp/{id}/metadata")
     @ApiOperation(value = "Gets metadata of DBCP services", response = ControllerServicesEntity.class)
     @ApiResponses(value = { //
@@ -620,8 +620,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      * @return A controllerServiceEntity.
      */
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}/move")
     @ApiOperation(
             value = "Move a controller service",
@@ -714,8 +714,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      * @return A controllerServiceEntity.
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}/copy")
     @ApiOperation(
             value = "Copy a existing Controller Service",
@@ -821,8 +821,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      * To make use of existing NiFi API, the Controller Services will be sorted in lexicographical order by controller-service-id first.
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("controller-services")
     @ApiOperation(
             value = "Gets a list of Controller Services",

@@ -194,7 +194,7 @@ public class OrchsymComponentMarksResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ApiOperation(//
             value = "Gets the components marks for the system is running on", //
             response = MarkEntity.class //
@@ -248,7 +248,7 @@ public class OrchsymComponentMarksResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/classification")
     @ApiOperation(//
             value = "Gets the components classification for the system is running on", //

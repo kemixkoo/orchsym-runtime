@@ -261,7 +261,7 @@ public class OrchsymStatsResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/vars")
     @ApiOperation(value = "Gets all vars", //
             response = StatsVarsEntity.class //
@@ -466,7 +466,7 @@ public class OrchsymStatsResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/delete/{id}")
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //

@@ -75,7 +75,7 @@ public class OrchsymUsageDataResource extends AbsOrchsymResource {
 
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ApiOperation(value = "Gets the summaries")
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
@@ -95,7 +95,7 @@ public class OrchsymUsageDataResource extends AbsOrchsymResource {
 
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/list")
     @ApiOperation(value = "Gets the list of udc files")
     @ApiResponses(value = { //

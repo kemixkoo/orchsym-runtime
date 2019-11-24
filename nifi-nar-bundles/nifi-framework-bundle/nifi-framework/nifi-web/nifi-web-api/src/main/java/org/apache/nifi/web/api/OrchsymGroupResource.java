@@ -153,7 +153,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
 
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{groupId}/search-results")
     @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
@@ -175,7 +175,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
 
     @DELETE
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{groupId}/force_delete")
     @ApiOperation(value = "delete the group physically", //
             response = String.class)
@@ -258,7 +258,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
 
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}/navigator")
     @ApiOperation(value = "Get the parents info of current app or component", //
             response = String.class)
@@ -361,7 +361,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/template/{groupId}/data")
     @ApiOperation(value = "Get the template data of current app", //
             response = String.class)

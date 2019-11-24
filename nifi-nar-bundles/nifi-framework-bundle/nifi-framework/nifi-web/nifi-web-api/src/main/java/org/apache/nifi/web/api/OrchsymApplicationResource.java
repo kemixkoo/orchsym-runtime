@@ -134,7 +134,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/template/{appId}/data")
     @ApiOperation(value = "Get the template data of current app", //
             response = String.class)
@@ -154,8 +154,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
      * 应用保存为模板
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/template/{appId}/saveas")
     public Response createAppTemplate(//
             @Context final HttpServletRequest httpServletRequest, //
@@ -182,7 +182,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/search-results")
     @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
@@ -277,7 +277,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @POST
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/search-results")
     @ApiOperation(value = "Performs a search against this runtime using the specified search term", notes = "Only search results from authorized components will be returned.", response = SearchResultsEntity.class, authorizations = {
             @Authorization(value = "Read - /flow") })
@@ -451,7 +451,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/check_name")
     @ApiOperation(value = "check the name of current app", //
             response = Map.class)
@@ -487,7 +487,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{appId}/status")
     @ApiOperation(value = "Get the status of current app", //
             response = Map.class)
@@ -572,7 +572,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @DELETE
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{appId}/logic_delete")
     @ApiOperation(value = "delete the app logically", //
             response = String.class)
@@ -599,7 +599,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @PUT
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/logic_delete_by_name")
     @ApiOperation(value = "delete the app via name logically", //
             response = String.class)
@@ -631,7 +631,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @PUT
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{appId}/recover")
     @ApiOperation(value = "recover the app", //
             response = String.class)
@@ -654,7 +654,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @PUT
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{appId}/enable")
     @ApiOperation(value = "enable the app logically", //
             response = String.class)
@@ -677,7 +677,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @PUT
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{appId}/disable")
     @ApiOperation(value = "disable the app logically", //
             response = String.class)
@@ -737,7 +737,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @DELETE
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{appId}/force_delete")
     @ApiOperation(value = "delete the app or group physically", //
             response = String.class)
@@ -761,7 +761,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @PUT
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/force_delete_by_name")
     @ApiOperation(value = "delete the app or group physically", //
             response = String.class)
@@ -788,7 +788,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}/verify_delete_status")
     @ApiOperation(value = "Get the status when delete", //
             response = String.class)
@@ -925,8 +925,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
      * @return A flowSnippetEntity.
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/copy")
     @ApiOperation(value = "Copy a application.", response = ProcessGroupEntity.class, authorizations = { @Authorization(value = "Write - /process-groups/{uuid}"), //
             @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"), //

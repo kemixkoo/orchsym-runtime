@@ -57,8 +57,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.alibaba.fastjson.JSONException;
-
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -158,7 +156,7 @@ public abstract class AbsOrchsymResource extends ApplicationResource implements 
         } else {
             headers = new HashSet<>(headers);
         }
-        headers.add(new HttpHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+        headers.add(new HttpHeader(HttpHeaders.CONTENT_TYPE, org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE));
 
         return doNifiApiRequest(method, path, payload, headers);
     }

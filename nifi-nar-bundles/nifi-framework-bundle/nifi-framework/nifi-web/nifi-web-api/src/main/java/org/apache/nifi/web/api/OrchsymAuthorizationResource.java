@@ -79,7 +79,7 @@ public class OrchsymAuthorizationResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{type}/{action}")
     @ApiOperation(value = "Gets the authorization")
     @ApiResponses(value = { //
@@ -135,7 +135,7 @@ public class OrchsymAuthorizationResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/connection/{id}/{action}")
     @ApiOperation(value = "Gets the authorization")
     @ApiResponses(value = { //
@@ -170,7 +170,7 @@ public class OrchsymAuthorizationResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/snippet/{id}/{action}")
     @ApiOperation(value = "Gets the authorization")
     @ApiResponses(value = { //
@@ -208,7 +208,7 @@ public class OrchsymAuthorizationResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/root-port/{type}/{id}")
     @ApiOperation(value = "Gets the authorization")
     @ApiResponses(value = { //
@@ -256,7 +256,7 @@ public class OrchsymAuthorizationResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/policy/{id}/{action}")
     @ApiOperation(value = "Gets the authorization")
     @ApiResponses(value = { //
@@ -291,8 +291,8 @@ public class OrchsymAuthorizationResource extends AbsOrchsymResource {
      *
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/token")
     @ApiOperation(value = "Gets the authorization")
     public Response getToken(@RequestBody AuthorizationEntity auth) {
@@ -318,8 +318,8 @@ public class OrchsymAuthorizationResource extends AbsOrchsymResource {
     }
 
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/external/token")
     @ApiOperation(value = "Generate access token for external app.", notes = NON_GUARANTEED_ENDPOINT)
     public Response getExtAccessToken(Map<String,Object> accessParam) {

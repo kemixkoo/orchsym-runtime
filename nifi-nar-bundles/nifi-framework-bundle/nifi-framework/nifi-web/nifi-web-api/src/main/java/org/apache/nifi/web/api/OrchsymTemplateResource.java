@@ -102,8 +102,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      * 模块保存为模板
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{groupId}/saveas")
     @ApiOperation(value = "Creates a template and discards the specified snippet.", response = TemplateEntity.class, authorizations = { @Authorization(value = "Write - /process-groups/{uuid}"),
             @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components") })
@@ -183,8 +183,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      * @return
      */
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/edit")
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = "client error"), //
@@ -244,7 +244,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         }, null, (templateEntity) -> {
             final Map<String, String> additions = originTempDTO.getAdditions() == null ? new HashMap<>() : originTempDTO.getAdditions();
             additions.put(AdditionConstants.KEY_MODIFIED_USER, tempParam.getAdditions().get(AdditionConstants.KEY_MODIFIED_USER));
-            additions.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, tempParam.getAdditions().get(AdditionConstants.KEY_MODIFIED_USER));
+            additions.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, tempParam.getAdditions().get(AdditionConstants.KEY_MODIFIED_TIMESTAMP));
 
             originTempDTO.setAdditions(additions);
 
@@ -278,7 +278,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/name/valid")
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
@@ -307,7 +307,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      */
     @GET
     @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/custom/search")
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
@@ -363,8 +363,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      * 通用搜索
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/search")
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
@@ -382,8 +382,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      * 物理 强制删除 模板(会级联删除所有用户的关于此模板的收藏)
      */
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{templateId}/force_delete")
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
@@ -430,8 +430,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      * 即将模板放入 模板回收站
      */
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{templateId}/logic_delete")
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
@@ -452,8 +452,8 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
      * 即从模板回收站中找回
      */
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{templateId}/recover")
     @ApiResponses(value = { //
             @ApiResponse(code = 500, message = "server error") //
