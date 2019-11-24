@@ -120,6 +120,7 @@ import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
 import org.apache.nifi.web.security.token.NiFiAuthenticationToken;
+import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 import org.apache.nifi.web.util.Pause;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -1138,7 +1139,8 @@ public class ProcessGroupResource extends ApplicationResource {
 
         boolean continuePolling = true;
         while (continuePolling) {
-            final Set<ControllerServiceEntity> serviceEntities = serviceFacade.getControllerServices(groupId, false, true);
+            final Set<ControllerServiceEntity> serviceEntities = serviceFacade.getControllerServices(groupId, false, true)
+                    .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
 
             // update the affected controller services
             updateAffectedControllerServices(serviceEntities, updateRequest);
@@ -4047,7 +4049,8 @@ public class ProcessGroupResource extends ApplicationResource {
                 // update controller services.
                 // The controller service to be updated must be a private controller service. In other words, the controller service can only locate in the application itself,
                 // any controller servece in ancestor groups won't be updated.
-                final Set<ControllerServiceEntity> controllerServiceEntitySet = serviceFacade.getControllerServices(applicationId, false, true);
+                final Set<ControllerServiceEntity> controllerServiceEntitySet = serviceFacade.getControllerServices(applicationId, false, true)
+                        .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
                 final Set<TemplateConfigComponentEntity> serviceSettings = settings.getServices();
                 if (serviceSettings != null) {
                     for (TemplateConfigComponentEntity service : serviceSettings) {
@@ -4080,7 +4083,8 @@ public class ProcessGroupResource extends ApplicationResource {
 
              // enable the controller services in the application
              if (requestTemplateConfigurationEntity.isEnableServices()) {
-                final Set<ControllerServiceEntity> servicesToEnable = serviceFacade.getControllerServices(applicationId, false, true);
+                final Set<ControllerServiceEntity> servicesToEnable = serviceFacade.getControllerServices(applicationId, false, true)
+                        .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
                  for (ControllerServiceEntity serviceEntity : servicesToEnable) {
                      final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
                      serviceDTO.setId(serviceEntity.getId());

@@ -283,7 +283,8 @@ public class LocalComponentLifecycle implements ComponentLifecycle {
 
         boolean continuePolling = true;
         while (continuePolling) {
-            final Set<ControllerServiceEntity> serviceEntities = serviceFacade.getControllerServices(groupId, false, true);
+            final Set<ControllerServiceEntity> serviceEntities = serviceFacade.getControllerServices(groupId, false, true)
+                    .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
 
             // update the affected controller services
             updateAffectedControllerServices(serviceEntities, affectedServices);

@@ -1771,21 +1771,10 @@ public interface NiFiServiceFacade {
      * @param groupId the id of the process group of interest
      * @param includeAncestorGroups if true, parent and ancestor groups' services will be returned as well
      * @param includeDescendantGroups if true, child and descendant groups' services will be returned as well
+     * @param isDeleted if true, only Controller Services that are logically deleted will be returned
      * @return services
      */
-    List<ControllerServiceDTO> getSortedControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups);
-
-
-    /**
-     * Gets all controller services that belong to the given group and its parent/ancestor groups.
-     * The results will be sorted by controller service id.
-     *
-     * @param groupId the id of the process group of interest
-     * @param includeAncestorGroups if true, parent and ancestor groups' services will be returned as well
-     * @param includeDescendantGroups if true, child and descendant groups' services will be returned as well
-     * @return services
-     */
-    List<ControllerServiceSearchDTO> searchControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups);
+    List<ControllerServiceSearchDTO> searchControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups, boolean isDeleted);
     /**
      * Gets the specified controller service.
      *

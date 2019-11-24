@@ -54,9 +54,7 @@ import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.encrypt.StringEncryptor;
 import org.apache.nifi.flowfile.FlowFilePrioritizer;
-import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
-import org.apache.nifi.groups.ProcessTags;
 import org.apache.nifi.groups.RemoteProcessGroup;
 import org.apache.nifi.persistence.TemplateSerializer;
 import org.apache.nifi.processor.Relationship;
@@ -272,7 +270,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
 
         ProcessUtil.addTags(element, group.getTags());
 
-        ProcessUtil.addAddtions(element, group.getAdditions());
+        ProcessUtil.addAddtions(element, group.getAdditions().values());
     }
 
     private static void addVariable(final Element parentElement, final String variableName, final String variableValue) {
@@ -584,6 +582,8 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         addTextElement(serviceElement, "enabled", String.valueOf(enabled));
 
         addConfiguration(serviceElement, serviceNode.getProperties(), serviceNode.getAnnotationData(), encryptor);
+
+        ProcessUtil.addAddtions(serviceElement, serviceNode.getAdditions().values());
 
         element.appendChild(serviceElement);
     }

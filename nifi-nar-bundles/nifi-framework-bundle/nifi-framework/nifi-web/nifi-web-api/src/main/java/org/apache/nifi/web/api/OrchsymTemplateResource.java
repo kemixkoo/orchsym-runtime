@@ -533,7 +533,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     }
 
     private Map<String, TreeList<TemplateFavority>> getFavoriteByCurrentUser() {
-        final String additionStr = flowController.getRootGroup().getAddition(TemplateFieldName.KEY_USER_TEMP_FAV);
+        final String additionStr = flowController.getRootGroup().getAdditions().getValue(TemplateFieldName.KEY_USER_TEMP_FAV);
         if (additionStr == null) {
             return null;
         }
@@ -558,7 +558,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         }
         userFavList.remove(new TemplateFavority(templateId, 0L));
 
-        flowController.getRootGroup().setAddition(TemplateFieldName.KEY_USER_TEMP_FAV, JSONObject.toJSONString(allUserFavorites));
+        flowController.getRootGroup().getAdditions().setValue(TemplateFieldName.KEY_USER_TEMP_FAV, JSONObject.toJSONString(allUserFavorites));
         // save
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0, true);
     }

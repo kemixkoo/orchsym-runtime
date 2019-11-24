@@ -110,7 +110,6 @@ import org.apache.nifi.diagnostics.SystemDiagnostics;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFilePrioritizer;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
-import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.groups.ProcessGroupCounts;
 import org.apache.nifi.groups.RemoteProcessGroup;
@@ -1491,6 +1490,7 @@ public final class DtoFactory {
 
             dto.setValidationErrors(errors);
         }
+        dto.setAdditions(controllerServiceNode.getAdditions().values());
 
         return dto;
     }
@@ -2296,12 +2296,7 @@ public final class DtoFactory {
         dto.setVariables(variables);
 
         dto.setTags(group.getTags());
-        Map<String, String> additions = group.getAdditions();
-        if (null != additions) {
-            additions = new HashMap<>(additions);
-        } else {
-            additions = new HashMap<>();
-        }
+        Map<String, String> additions = new HashMap<>(group.getAdditions().values());
         fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
         fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
         final AppType appType = AppTypeAssessor.judgeType(group);

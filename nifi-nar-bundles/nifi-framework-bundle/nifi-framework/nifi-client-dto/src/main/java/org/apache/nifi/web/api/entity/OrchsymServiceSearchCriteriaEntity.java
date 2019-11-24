@@ -32,6 +32,7 @@ public class OrchsymServiceSearchCriteriaEntity {
     private Set<String> scopes = new HashSet<>();
     private OrchsymServiceSortField sortField = OrchsymServiceSortField.NONE;
     private boolean asc;
+    private boolean deleted;
     private int pageNumber = 1;
     private int pageSize = 10;
 
@@ -78,6 +79,16 @@ public class OrchsymServiceSearchCriteriaEntity {
 
     public void setAsc(boolean asc) {
         this.asc = asc;
+    }
+
+    @ApiModelProperty(value = "If true, only Controller Services that are logically deleted will be returned. " +
+            "Otherwise, return Controller Services that are not logically deleted.")
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     @ApiModelProperty(value = "The page number, one-based, default 1")

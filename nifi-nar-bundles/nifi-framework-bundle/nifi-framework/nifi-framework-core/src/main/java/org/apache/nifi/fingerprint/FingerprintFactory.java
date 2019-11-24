@@ -660,6 +660,9 @@ public class FingerprintFactory {
         }
 
         addPropertiesFingerprint(builder, configurableComponent, dto.getProperties());
+
+        // add additions
+        dto.getAdditions().forEach((name, value) -> builder.append(name).append('=').append(value));
     }
 
     private void addPropertiesFingerprint(final StringBuilder builder, final ConfigurableComponent component, final Map<String, String> properties) {

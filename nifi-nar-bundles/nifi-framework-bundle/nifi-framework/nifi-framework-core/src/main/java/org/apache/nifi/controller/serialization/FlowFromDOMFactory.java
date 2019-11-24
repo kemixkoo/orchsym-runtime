@@ -25,14 +25,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.connectable.Size;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.encrypt.EncryptionException;
 import org.apache.nifi.encrypt.StringEncryptor;
-import org.apache.nifi.groups.ProcessAdditions;
-import org.apache.nifi.groups.ProcessTags;
 import org.apache.nifi.groups.RemoteProcessGroupPortDescriptor;
 import org.apache.nifi.remote.StandardRemoteProcessGroupPortDescriptor;
 import org.apache.nifi.scheduling.ExecutionNode;
@@ -120,6 +117,8 @@ public class FlowFromDOMFactory {
 
         dto.setProperties(getProperties(element, encryptor));
         dto.setAnnotationData(getString(element, "annotationData"));
+
+        dto.setAdditions(ProcessUtil.getAdditions(element));
 
         return dto;
     }

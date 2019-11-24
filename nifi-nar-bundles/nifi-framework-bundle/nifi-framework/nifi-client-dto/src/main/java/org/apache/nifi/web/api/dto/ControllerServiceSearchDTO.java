@@ -41,6 +41,7 @@ public class ControllerServiceSearchDTO extends ComponentDTO {
     private String type;
     private String uri;
     private String comments;
+    private String scope;
     private String state;
     private Boolean persistsState;
     private Boolean restricted;
@@ -108,6 +109,20 @@ public class ControllerServiceSearchDTO extends ComponentDTO {
 
     public void setComments(String comments) {
         this.comments = comments;
+    }
+
+    /**
+     * @return  the Controller Service scope
+     */
+    @ApiModelProperty(
+            value = "The scope of the Controller Service."
+    )
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 
     /**

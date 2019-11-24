@@ -32,19 +32,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.controller.FlowController;
-import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
-import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.api.entity.AdditionConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -77,7 +77,8 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
             @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response getAdditionsByGroupId(@Context final HttpServletRequest httpServletRequest, //
+    public Response getAdditionsByGroupId(//
+            @Context final HttpServletRequest httpServletRequest, //
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
             @ApiParam(value = "The key of addition") @PathParam("name") String name //
     ) {
@@ -100,15 +101,13 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).build(); // 401
         }
-
-        name = name.toUpperCase();
-
-        String content = group.getAddition(name);
-
         JSONObject result = new JSONObject();
         result.put(KEY_ID, groupId);
-        result.put(ProcessAdditions.ADDITION_KEY_NAME, name);
-        result.put(ProcessAdditions.ADDITION_VALUE_NAME, StringUtils.isBlank(content) ? "" : content);
+        result.put(TypeAdditions.ADDITION_KEY_NAME, group.getAdditions().unifyName(name));
+
+        String content = group.getAdditions().getValue(name);
+        result.put(TypeAdditions.ADDITION_VALUE_NAME, StringUtils.isBlank(content) ? "" : content);
+
         return noCache(Response.ok(result.toJSONString())).build();
     }
 
@@ -124,7 +123,8 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
 
-    public Response getAdditionsStatusByGroupId(@Context final HttpServletRequest httpServletRequest, //
+    public Response getAdditionsStatusByGroupId(//
+            @Context final HttpServletRequest httpServletRequest, //
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
             @ApiParam(value = "The key of addition") @PathParam("name") String name //
     ) {
@@ -147,7 +147,7 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
             return Response.status(Response.Status.UNAUTHORIZED).build(); // 401
         }
 
-        if (ProcessUtil.hasValueGroupAdditions(group, name)) {
+        if (!group.getAdditions().has(name)) {
             return Response.noContent().build(); // 204
         }
 
@@ -165,9 +165,11 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
             @ApiResponse(code = 409, message = CODE_MESSAGE_409), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response changeGroupAdditions(@Context final HttpServletRequest httpServletRequest, //
+    public Response changeGroupAdditions(//
+            @Context final HttpServletRequest httpServletRequest, //
             @ApiParam(value = "the group id which group to add additions") @PathParam("groupId") String groupId, //
-            AdditionConfEntity confEntity) {
+            @RequestBody final AdditionConfEntity confEntity//
+    ) {
         if (StringUtils.isBlank(confEntity.getId())) {
             confEntity.setId(groupId);
         } else if (!groupId.equals(confEntity.getId())) {
@@ -186,8 +188,10 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response modifyGroupAdditions(@Context final HttpServletRequest httpServletRequest, //
-            AdditionConfEntity confEntity) {
+    public Response modifyGroupAdditions( //
+            @Context final HttpServletRequest httpServletRequest, //
+            @RequestBody final AdditionConfEntity confEntity//
+    ) {
         final ProcessGroup group = (FlowController.ROOT_GROUP_ID_ALIAS.equals(confEntity.getId())) ? flowController.getRootGroup() : flowController.getGroup(confEntity.getId());
         if (null == group) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -211,20 +215,21 @@ public class OrchsymAdditionsResource extends AbsOrchsymResource {
                     final String value = entity.getValue();
                     final boolean isDelete = entity.isDelete();
 
+                    final TypeAdditions additions = group.getAdditions();
                     String oldValue = null;
                     if (isDelete) {
-                        oldValue = group.removeAddition(name);
+                        oldValue = additions.remove(name);
                     } else { // modify
-                        oldValue = group.setAddition(name, value);
+                        oldValue = additions.setValue(name, value);
                     }
 
                     flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
 
                     JSONObject result = new JSONObject();
                     result.put(KEY_ID, id);
-                    result.put(ProcessAdditions.ADDITION_KEY_NAME, name);
+                    result.put(TypeAdditions.ADDITION_KEY_NAME, name);
                     if (isDelete) {
-                        result.put(ProcessAdditions.ADDITION_VALUE_NAME, StringUtils.isBlank(oldValue) ? "" : oldValue);
+                        result.put(TypeAdditions.ADDITION_VALUE_NAME, StringUtils.isBlank(oldValue) ? "" : oldValue);
                     } else {
                         result.put("oldValue", StringUtils.isBlank(oldValue) ? "" : oldValue);
                         result.put("newValue", value);

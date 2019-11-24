@@ -37,6 +37,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.additions.StandardTypeAdditions;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.annotation.behavior.Restricted;
 import org.apache.nifi.annotation.documentation.DeprecationNotice;
 import org.apache.nifi.annotation.lifecycle.OnDisabled;
@@ -90,6 +92,9 @@ public class StandardControllerServiceNode extends AbstractComponentNode impleme
     private ProcessGroup processGroup;
 
     private final AtomicBoolean active;
+
+    private final AtomicReference<TypeAdditions> additions=new AtomicReference<>(new StandardTypeAdditions());
+
 
     public StandardControllerServiceNode(final LoggableComponent<ControllerService> implementation, final LoggableComponent<ControllerService> proxiedControllerService,
                                          final ControllerServiceInvocationHandler invocationHandler, final String id, final ValidationContextFactory validationContextFactory,
@@ -573,5 +578,10 @@ public class StandardControllerServiceNode extends AbstractComponentNode impleme
                 throw new IllegalStateException(this + " is already under version control");
             }
         }
+    }
+
+    @Override
+    public TypeAdditions getAdditions() {
+        return additions.get();
     }
 }

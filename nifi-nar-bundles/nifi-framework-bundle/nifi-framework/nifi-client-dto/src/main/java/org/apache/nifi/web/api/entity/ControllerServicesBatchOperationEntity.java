@@ -91,7 +91,9 @@ public class ControllerServicesBatchOperationEntity extends Entity {
     public enum ControllerServiceBatchOperation{
         ENABLE,
         DISABLE,
-        DELETE;
+        LOGICAL_DELETION,
+        RECOVERY,
+        PHYSICAL_DELETION;
 
         @Override
         public String toString() {

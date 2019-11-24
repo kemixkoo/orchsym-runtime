@@ -23,9 +23,8 @@ import org.apache.nifi.action.Component;
 import org.apache.nifi.action.FlowChangeAction;
 import org.apache.nifi.action.Operation;
 import org.apache.nifi.action.details.FlowChangePurgeDetails;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.admin.service.AuditService;
-import org.apache.nifi.authorization.resource.ComponentAuthorizable;
-import org.apache.nifi.curator.apps.AppStateNotifyService;
 import org.apache.nifi.authorization.AccessDeniedException;
 import org.apache.nifi.authorization.AccessPolicy;
 import org.apache.nifi.authorization.AuthorizableLookup;
@@ -82,6 +81,7 @@ import org.apache.nifi.controller.service.ControllerServiceReference;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.controller.status.ProcessGroupStatus;
 import org.apache.nifi.controller.status.ProcessorStatus;
+import org.apache.nifi.curator.apps.AppStateNotifyService;
 import org.apache.nifi.diagnostics.SystemDiagnostics;
 import org.apache.nifi.events.BulletinFactory;
 import org.apache.nifi.groups.ProcessGroup;
@@ -128,6 +128,7 @@ import org.apache.nifi.reporting.BulletinRepository;
 import org.apache.nifi.reporting.ComponentType;
 import org.apache.nifi.util.FlowDifferenceFilters;
 import org.apache.nifi.util.NiFiProperties;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.api.dto.AccessPolicyDTO;
 import org.apache.nifi.web.api.dto.AccessPolicySummaryDTO;
 import org.apache.nifi.web.api.dto.AffectedComponentDTO;
@@ -1759,8 +1760,9 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 if (app.getParent().isRootGroup() && threadLocal != null && threadLocal.get() instanceof  Long){
                     Long createdTime = (Long) threadLocal.get();
                     threadLocal.remove();
-                    app.setAddition(AdditionConstants.KEY_CREATED_TIMESTAMP, createdTime);
-                    app.setAddition(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
+                    final TypeAdditions additions = app.getAdditions();
+                    additions.setValue(AdditionConstants.KEY_CREATED_TIMESTAMP, createdTime);
+                    additions.setValue(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
                 }
             }
             // save the flow
@@ -3909,30 +3911,21 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         final Set<String> serviceIds = serviceNodes.stream().map(service -> service.getIdentifier()).collect(Collectors.toSet());
 
         return serviceNodes.stream()
-            .map(serviceNode -> createControllerServiceEntity(serviceNode, serviceIds))
-            .collect(Collectors.toSet());
+                .map(serviceNode -> createControllerServiceEntity(serviceNode, serviceIds))
+                .collect(Collectors.toSet());
     }
 
     @Override
-    public List<ControllerServiceDTO> getSortedControllerServices(final String groupId, final boolean includeAncestorGroups, final boolean includeDescendantGroups) {
-        final List<ControllerServiceNode> serviceNodes = controllerServiceDAO.getControllerServices(groupId, includeAncestorGroups, includeDescendantGroups)
-                .stream().sorted(Comparator.comparing(ComponentNode::getIdentifier)).collect(Collectors.toList());
-
-        final Set<String> serviceIds = serviceNodes.stream().map(ComponentNode::getIdentifier).collect(Collectors.toSet());
-
-        return serviceNodes.stream()
-                .map(serviceNode -> createControllerServiceDTO(serviceNode, serviceIds))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ControllerServiceSearchDTO> searchControllerServices(final String groupId, final boolean includeAncestorGroups, final boolean includeDescendantGroups) {
+    public List<ControllerServiceSearchDTO> searchControllerServices(final String groupId, final boolean includeAncestorGroups, final boolean includeDescendantGroups, boolean isDeleted) {
         final List<ControllerServiceNode> serviceNodes = controllerServiceDAO.getControllerServices(groupId, includeAncestorGroups, includeDescendantGroups)
                 .stream().sorted(Comparator.comparing(ComponentNode::getIdentifier)).collect(Collectors.toList());
         final Set<String> serviceIds = serviceNodes.stream().map(ComponentNode::getIdentifier).collect(Collectors.toSet());
 
 
         return serviceNodes.stream()
+                .filter(controllerServiceNode -> {
+                    return isDeleted == ProcessUtil.getAdditionBooleanValue(controllerServiceNode.getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+                })
                 .map(serviceNode -> createControllerServiceSearchDTO(serviceNode, serviceIds))
                 .collect(Collectors.toList());
     }

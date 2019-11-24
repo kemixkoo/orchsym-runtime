@@ -45,6 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.nifi.additions.StandardTypeAdditions;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.annotation.lifecycle.OnRemoved;
 import org.apache.nifi.annotation.lifecycle.OnShutdown;
 import org.apache.nifi.attribute.expression.language.Query;
@@ -139,7 +141,6 @@ import org.apache.nifi.scheduling.ExecutionNode;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.util.FlowDifferenceFilters;
 import org.apache.nifi.util.NiFiProperties;
-import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ReflectionUtils;
 import org.apache.nifi.util.SnippetUtils;
 import org.apache.nifi.web.Revision;
@@ -148,7 +149,7 @@ import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class StandardProcessGroup implements ProcessGroup, ProcessTags, ProcessAdditions {
+public final class StandardProcessGroup implements ProcessGroup, ProcessTags {
 
     private final String id;
     private final AtomicReference<ProcessGroup> parent;
@@ -157,6 +158,7 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
     private final AtomicReference<String> comments;
     private final AtomicReference<String> versionedComponentId = new AtomicReference<>();
     private final AtomicReference<StandardVersionControlInformation> versionControlInfo = new AtomicReference<>();
+    private final AtomicReference<TypeAdditions> additions=new AtomicReference<>(new StandardTypeAdditions());
     private static final SecureRandom randomGenerator = new SecureRandom();
 
     private final StandardProcessScheduler scheduler;
@@ -177,7 +179,6 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
     private final MutableVariableRegistry variableRegistry;
     private final VersionControlFields versionControlFields = new VersionControlFields();
     private final Set<String> tags=new HashSet<>();
-    private final Map<String,String> additions=new HashMap<>();
 
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock readLock = rwLock.readLock();
@@ -4842,17 +4843,8 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
     }
 
     @Override
-    public Map<String, String> getAdditions() {
-        return this.additions;
+    public TypeAdditions getAdditions() {
+        return this.additions.get();
     }
 
-    @Override
-    public void setAdditions(Map<String, String> additions) {
-        this.additions.clear();
-        if (null == additions || additions.isEmpty()) {
-            return;
-        }
-        this.additions.putAll(additions);
-
-    }
 }

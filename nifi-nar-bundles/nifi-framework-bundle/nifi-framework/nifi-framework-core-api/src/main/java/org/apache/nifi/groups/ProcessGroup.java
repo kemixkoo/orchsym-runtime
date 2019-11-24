@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.authorization.resource.ComponentAuthorizable;
 import org.apache.nifi.components.VersionedComponent;
 import org.apache.nifi.components.validation.ValidationStatus;
@@ -56,7 +57,7 @@ import org.apache.nifi.web.api.dto.PositionDTO;
  * <p>
  * MUST BE THREAD-SAFE</p>
  */
-public interface ProcessGroup extends ComponentAuthorizable, Positionable, VersionedComponent, ProcessAdditions, ProcessTags {
+public interface ProcessGroup extends ComponentAuthorizable, Positionable, VersionedComponent, ProcessTags {
 
     /**
      * Predicate for starting eligible Processors.
@@ -1050,4 +1051,10 @@ public interface ProcessGroup extends ComponentAuthorizable, Positionable, Versi
      * Called whenever a component within this group or the group itself is modified
      */
     void onComponentModified();
+
+    /**
+     * 
+     * Get the additions settings for group
+     */
+    TypeAdditions getAdditions();
 }

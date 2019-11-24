@@ -22,11 +22,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.nifi.groups.ProcessAdditions;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.groups.ProcessTags;
 import org.w3c.dom.Document;
@@ -98,15 +97,15 @@ public final class ProcessUtil {
      */
     public static Map<String, String> getAdditions(final Element parentElement) {
         final Map<String, String> additions = new HashMap<>();
-        final Element additionsElement = DomUtils.getChild(parentElement, ProcessAdditions.ADDITIONS_NAME);
+        final Element additionsElement = DomUtils.getChild(parentElement, TypeAdditions.ADDITIONS_NAME);
 
         if (null != additionsElement) {
             // FIXME maybe should do migration task for this
             additions.putAll(getOldAdditions(additionsElement));
 
-            final List<Element> additionElements = DomUtils.getChildElementsByTagName(additionsElement, ProcessAdditions.ADDITION_NAME);
+            final List<Element> additionElements = DomUtils.getChildElementsByTagName(additionsElement, TypeAdditions.ADDITION_NAME);
             for (Element additionElement : additionElements) {
-                final String name = additionElement.getAttribute(ProcessAdditions.ADDITION_KEY_NAME);
+                final String name = additionElement.getAttribute(TypeAdditions.ADDITION_KEY_NAME);
                 final String additionValue = additionElement.getTextContent();
 
                 additions.put(name, additionValue);
@@ -127,7 +126,7 @@ public final class ProcessUtil {
             final Element child = (Element) childNodes.item(i);
 
             final String additionName = child.getTagName();
-            if (additionName.equals(ProcessAdditions.ADDITION_NAME)) {
+            if (additionName.equals(TypeAdditions.ADDITION_NAME)) {
                 continue; // ignore new tag
             }
             final String additionValue = child.getTextContent();
@@ -146,41 +145,34 @@ public final class ProcessUtil {
     public static void addAddtions(final Element parentElement, final Map<String, String> additions) {
         if (null != additions && additions.size() > 0) {
             final Document ownerDocument = parentElement.getOwnerDocument();
-            final Element additionsElement = ownerDocument.createElement(ProcessAdditions.ADDITIONS_NAME);
+            final Element additionsElement = ownerDocument.createElement(TypeAdditions.ADDITIONS_NAME);
             parentElement.appendChild(additionsElement);
 
             for (Entry<String, String> entry : additions.entrySet()) {
-                final Element additionElement = ownerDocument.createElement(ProcessAdditions.ADDITION_NAME);
+                final Element additionElement = ownerDocument.createElement(TypeAdditions.ADDITION_NAME);
                 additionsElement.appendChild(additionElement);
 
-                additionElement.setAttribute(ProcessAdditions.ADDITION_KEY_NAME, entry.getKey());
+                additionElement.setAttribute(TypeAdditions.ADDITION_KEY_NAME, entry.getKey());
                 additionElement.setTextContent(entry.getValue());
             }
         }
     }
 
-    /**
-     * check the value of key for additions
-     */
-    public static boolean hasValueGroupAdditions(ProcessGroup group, String name) {
-        return group.hasAddition(name) //
-                && StringUtils.isNotBlank(group.getAddition(name));
-    }
 
     public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
         return getGroupAdditionBooleanValue(group, name, null);
     }
 
     public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name, Boolean defaultValue) {
-        final String valueStr = group.getAddition(name);
+        final String valueStr = group.getAdditions().getValue(name);
         if (StringUtils.isNotBlank(valueStr)) {
             return Boolean.parseBoolean(valueStr);
         }
         return defaultValue;
     }
 
-    public static Boolean getAdditionBooleanValue(ProcessAdditions additionParam, String name, Boolean defaultValue) {
-        final String valueStr = additionParam.getAddition(name);
+    public static Boolean getAdditionBooleanValue(TypeAdditions additionParam, String name, Boolean defaultValue) {
+        final String valueStr = additionParam.getValue(name);
         if (StringUtils.isNotBlank(valueStr)) {
             return Boolean.parseBoolean(valueStr);
         }
@@ -192,7 +184,7 @@ public final class ProcessUtil {
     }
 
     public static Long getGroupAdditionLongValue(ProcessGroup group, String name, Long defaultValue) {
-        final String valueStr = group.getAddition(name);
+        final String valueStr = group.getAdditions().getValue(name);
 
         if (StringUtils.isNotBlank(valueStr)) {
             return Long.parseLong(valueStr);

@@ -50,6 +50,7 @@ import org.apache.nifi.web.api.entity.PropertyDescriptorEntity;
 import org.apache.nifi.web.api.entity.UpdateControllerServiceReferenceRequestEntity;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
+import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -190,6 +191,7 @@ public class ControllerServiceResource extends ApplicationResource {
 
         // get the controller service
         final ControllerServiceEntity entity = serviceFacade.getControllerService(id);
+        ControllerServiceAdditionUtils.logicalDeletionCheck(entity);
         populateRemainingControllerServiceEntityContent(entity);
         
         //fix i18n
@@ -266,6 +268,7 @@ public class ControllerServiceResource extends ApplicationResource {
         final Locale requestLocale = this.getRequestLocale();
         if (requestLocale != null) {
             final ControllerServiceEntity controllerService = serviceFacade.getControllerService(id);
+            ControllerServiceAdditionUtils.logicalDeletionCheck(controllerService);
             if (controllerService != null) {
                 final String type = controllerService.getComponent().getType();
                 DtoI18nHelper.fix(requestLocale, type, descriptor);
@@ -330,6 +333,7 @@ public class ControllerServiceResource extends ApplicationResource {
         final Locale requestLocale = this.getRequestLocale();
         if (requestLocale != null) {
             final ControllerServiceEntity controllerService = serviceFacade.getControllerService(id);
+            ControllerServiceAdditionUtils.logicalDeletionCheck(controllerService);
             if (controllerService != null) {
                 final String type = controllerService.getComponent().getType();
                 final String statefulDesc = MessagesProvider.getStatefulDesc(requestLocale, type);

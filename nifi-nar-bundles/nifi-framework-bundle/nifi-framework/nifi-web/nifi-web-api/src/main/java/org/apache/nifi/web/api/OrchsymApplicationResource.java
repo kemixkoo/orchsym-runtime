@@ -743,7 +743,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     private void saveAppStatus(String appId, String key, Object value) {
         final ProcessGroup group = flowController.getGroup(appId);
 
-        group.setAddition(key, value);
+        group.getAdditions().setValue(key, value);
 
         flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
     }
