@@ -367,7 +367,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node has been disconnected from cluster").build();
         }
-        if (StringUtils.isEmpty(searchEntity.getText())) {
+        if (!StringUtils.isEmpty(searchEntity.getText())) {
             try {// 解决其他api调用时候中文乱码
                 searchEntity.setText(URLDecoder.decode(searchEntity.getText(), StandardCharsets.UTF_8.name()));
             } catch (UnsupportedEncodingException e) {
