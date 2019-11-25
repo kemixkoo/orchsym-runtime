@@ -1321,9 +1321,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
                     // 1. Disable it
                     disableControllerService(id);
                     // 2. delete it
-                    final ControllerServiceEntity deletedControllerService = deleteControllerServicePhysically(id);
+                    deleteControllerServicePhysically(id);
 
-                    return generateOkResponse(deletedControllerService).build();
+                    return generateOkResponse("success").build();
                 }
         );
     }
