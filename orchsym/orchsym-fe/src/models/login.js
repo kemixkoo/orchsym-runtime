@@ -1,9 +1,9 @@
 import { routerRedux } from 'dva/router';
 import pathToRegexp from 'path-to-regexp'
 // import { stringify } from 'qs';
-import { fakeAccountLogin, accessOidc } from '@/services/studio';
+import { fakeAccountLogin, accessOidc, refreshToken } from '@/services/studio';
 import { setToken, getToken } from '@/utils/authority';
-import { getPageQuery } from '@/utils/utils';
+import { getPageQuery, logout } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
 export default {
@@ -56,8 +56,19 @@ export default {
         window.location.href = '/user/login'
       }
     },
+    *fetchRefreshToken(payload, { call, put }) {
+      const response = yield call(refreshToken);
+      if (response) {
+        yield put({
+          type: 'changeLoginStatus',
+          payload: response,
+        });
+      } else {
+        logout();
+      }
+    },
     *checkSSOLoginStatus({ payload }, { select, put }) {
-      if (!getToken() || !window.document.cookie) {
+      if (!getToken()) { //  || !window.document.cookie
         yield put(routerRedux.push('/blank'))
       }
     },

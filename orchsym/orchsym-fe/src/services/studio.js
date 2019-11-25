@@ -17,6 +17,13 @@ export async function accessOidc() {
     method: 'POST',
   });
 }
+// 刷新token
+
+export async function refreshToken() {
+  return request('/studio/nifi-api/access/oidc/refreshToken', {
+    method: 'GET',
+  });
+}
 // license过期提醒
 export async function licenseWarn() {
   return request('/studio/orchsym-api/lic', {
