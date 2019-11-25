@@ -60,3 +60,4 @@ nb-configuration.xml
 /orchsym/orchsym-fe/.firebase
 
 /orchsym/orchsym-fe/src/pages/.umi
+/orchsym/orchsym-fe/src/pages/$Template

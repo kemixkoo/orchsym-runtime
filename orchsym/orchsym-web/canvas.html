@@ -542,9 +542,9 @@
 
 <div id="flow-status" flex layout="row" layout-align="space-between center" style="bottom: 0px;position: absolute;width: 100%;">
     <div id="flow-status-container" layout="row" layout-align="space-around center">
-        <div class="fa fa-cubes" ng-if="appCtrl.nf.ClusterSummary.isClustered()" title="Connected nodes / Total number of nodes in the cluster">
+        <!--<div class="fa fa-cubes" ng-if="appCtrl.nf.ClusterSummary.isClustered()" title="Connected nodes / Total number of nodes in the cluster">
             <span id="connected-nodes-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.connectedNodesCount}}</span>
-        </div>
+        </div>-->
         <div class="icon icon-threads" ng-class="appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.getExtraThreadStyles()"
              title="Active Threads{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.hasTerminatedThreads() ? ' (Terminated)' : ''}}">
             <span id="active-thread-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.threadCounts}}</span>
@@ -552,12 +552,12 @@
         <div class="fa fa-list" title="Total queued data">
             <span id="total-queued">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.totalQueued}}</span>
         </div>
-        <div class="icon icon-transmitting" title="Transmitting Remote Process Groups">
+        <!--<div class="icon icon-transmitting" title="Transmitting Remote Process Groups">
             <span id="controller-transmitting-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerTransmittingCount}}</span>
         </div>
         <div class="icon icon-transmit-false" title="Not Transmitting Remote Process Groups">
             <span id="controller-not-transmitting-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerNotTransmittingCount}}</span>
-        </div>
+        </div>-->
         <div class="fa fa-play" title="Running Components">
             <span id="controller-running-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerRunningCount}}</span>
         </div>
@@ -570,7 +570,7 @@
         <div class="icon icon-enable-false" title="Disabled Components">
             <span id="controller-disabled-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerDisabledCount}}</span>
         </div>
-        <div class="fa fa-check" title="Up to date Versioned Process Groups">
+        <!--<div class="fa fa-check" title="Up to date Versioned Process Groups">
             <span id="controller-up-to-date-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerUpToDateCount}}</span>
         </div>
         <div class="icon icon-version-modified" title="Locally modified Versioned Process Groups">
@@ -584,7 +584,7 @@
         </div>
         <div class="icon icon-version-sync-failed" title="Sync failure Versioned Process Groups">
             <span id="controller-sync-failure-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerSyncFailureCount}}</span>
-        </div>
+        </div>-->
         <div class="icon icon-refresh-time" title="Last refresh">
             <span id="stats-last-refreshed">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.statsLastRefreshed}}</span>
         </div>
@@ -1321,7 +1321,7 @@
              ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
             <!--<div class="graph-control-header-icon fa fa-compass">
             </div>-->
-            <div class="graph-control-header">{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Navigate'] }}</div>
+            <div class="graph-control-header" style="margin-left: 10px;">{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Navigate'] }}</div>
             <div class="graph-control-header-action">
                 <div class="graph-control-expansion fa fa-plus-square-o pointer"></div>
             </div>

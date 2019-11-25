@@ -56,7 +56,7 @@ text.unset {
 */
 
 g.component {
-    font-family: Roboto;
+    /*font-family: Roboto;*/
 }
 
 g.component rect.body {
@@ -68,7 +68,7 @@ g.component rect.body.unauthorized {
 }
 
 g.component rect.border {
-    stroke: #333;
+    /*stroke: #333;*/
     stroke-width: 1;
 }
 
@@ -97,6 +97,13 @@ text.stats-label {
     fill: #262626;
     font-size: 12px;
     font-family: Roboto Slab;
+}
+
+text.stats-5min {
+    fill: #262626;
+    font-size: 12px;
+    font-family: Roboto Slab;
+    writing-mode: tb-rl;
 }
 
 text.stats-value {
