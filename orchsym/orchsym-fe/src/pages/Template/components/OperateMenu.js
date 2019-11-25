@@ -73,7 +73,7 @@ class operateMenu extends React.Component {
             {`${formatMessage({ id: 'button.edit' })}`}
           </Menu.Item>
         )}
-        {data.additions.IS_FAVORITE ? (
+        {data.additions.IS_FAVORITE === 'true' ? (
           <Menu.Item key="collect" onClick={() => { this.collectTemp(data.id, true) }}>
             {`${formatMessage({ id: 'button.collect' })}`}
           </Menu.Item>
@@ -94,7 +94,7 @@ class operateMenu extends React.Component {
     );
     return (
       <span className={styles.operateMenu}>
-        {data.additions.IS_FAVORITE ? (
+        {data.additions.IS_FAVORITE === 'true' ? (
           <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, true) }} />
         ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, false) }} />
         )}
