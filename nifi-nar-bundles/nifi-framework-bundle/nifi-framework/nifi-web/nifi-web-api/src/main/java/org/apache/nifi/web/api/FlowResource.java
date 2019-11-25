@@ -367,8 +367,7 @@ public class FlowResource extends ApplicationResource {
         }
 
         // get all the controller services
-        final Set<ControllerServiceEntity> controllerServices = serviceFacade.getControllerServices(null, false, false)
-                .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
+        final Set<ControllerServiceEntity> controllerServices = serviceFacade.getControllerServices(null, false, false);
         controllerServiceResource.populateRemainingControllerServiceEntitiesContent(controllerServices);
 
         // create the response entity
@@ -407,8 +406,7 @@ public class FlowResource extends ApplicationResource {
         }
 
         // get all the controller services
-        final Set<ControllerServiceEntity> controllerServices = serviceFacade.getControllerServices(groupId, includeAncestorGroups, includeDescendantGroups)
-                .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
+        final Set<ControllerServiceEntity> controllerServices = serviceFacade.getControllerServices(groupId, includeAncestorGroups, includeDescendantGroups);
         controllerServiceResource.populateRemainingControllerServiceEntitiesContent(controllerServices);
 
         // create the response entity

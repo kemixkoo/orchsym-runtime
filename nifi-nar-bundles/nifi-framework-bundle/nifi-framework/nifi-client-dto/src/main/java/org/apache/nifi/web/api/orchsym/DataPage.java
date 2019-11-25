@@ -22,30 +22,32 @@ import java.util.List;
 
 /**
  * 分页类
+ * 
  * @author liuxun
- * @param <T> 结果列表的数据类型
+ * @param <T>
+ *            结果列表的数据类型
  */
-public class DataPage<T>{
+public class DataPage<T> {
     private Integer pageSize = 10;
     private Integer totalSize;
     private Integer totalPage;
     private Integer currentPage = 1;
-    private List<T> results ;
+    private List<T> results;
 
     public DataPage() {
     }
 
-    public DataPage(List<T> list, Integer pageSize, Integer currentPage){
+    public DataPage(List<T> list, Integer pageSize, Integer currentPage) {
         this.setPageSize(pageSize);
         this.setCurrentPage(currentPage);
         this.setTotalSize(list.size());
-        this.setTotalPage((this.totalSize + this.pageSize - 1) / pageSize);
+        this.setTotalPage((this.getTotalSize() + this.getPageSize() - 1) / pageSize);
         int index = (currentPage - 1) * pageSize;
         List<T> resultList = null;
-        if (index >= totalSize) {
+        if (index >= this.getTotalSize()) {
             resultList = new ArrayList<>();
         } else {
-            int endIndex = Math.min(index + this.pageSize, this.totalSize);
+            int endIndex = Math.min(index + this.getPageSize(), this.getTotalSize());
             resultList = list.subList(index, endIndex);
         }
         this.setResults(resultList);

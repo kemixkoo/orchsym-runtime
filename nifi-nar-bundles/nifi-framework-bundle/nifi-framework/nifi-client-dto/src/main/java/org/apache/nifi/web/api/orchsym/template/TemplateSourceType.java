@@ -29,7 +29,7 @@ public enum TemplateSourceType {
     /**
      * 0: 来源类型是上传
      */
-    UNKOWN,
+    UNKNOWN,
     /**
      * 1: 来源类型是上传
      */
@@ -66,7 +66,7 @@ public enum TemplateSourceType {
                 }
             }
         }
-        return TemplateSourceType.UNKOWN;
+        return TemplateSourceType.UNKNOWN;
     }
 
 }

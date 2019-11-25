@@ -27,22 +27,22 @@ import java.util.Set;
  * A serialized representation of this class represents a search criteria when performing a service search.
  */
 public class OrchsymServiceSearchCriteriaEntity {
-    private String q = "";
+    private String text = "";
     private Set<OrchsymServiceState> states = new HashSet<>();
     private Set<String> scopes = new HashSet<>();
-    private OrchsymServiceSortField sortField = OrchsymServiceSortField.NONE;
-    private boolean asc;
+    private String sortedField = OrchsymServiceSortField.NAME.name();
+    private boolean desc;
     private boolean deleted;
-    private int pageNumber = 1;
+    private int page = 1;
     private int pageSize = 10;
 
     @ApiModelProperty(value = "The search string")
-    public String getQ() {
-        return q;
+    public String getText() {
+        return text;
     }
 
-    public void setQ(String q) {
-        this.q = q;
+    public void setText(String text) {
+        this.text = text;
     }
 
     @ApiModelProperty(value = "The Controller Service state")
@@ -63,22 +63,21 @@ public class OrchsymServiceSearchCriteriaEntity {
         this.scopes = scopes;
     }
 
-    @ApiModelProperty(value = "The filed used to sort")
-    public OrchsymServiceSortField getSortField() {
-        return sortField;
+    public String getSortedField() {
+        return sortedField;
     }
 
-    public void setSortField(OrchsymServiceSortField sortField) {
-        this.sortField = sortField;
+    public void setSortedField(String sortedField) {
+        this.sortedField = sortedField;
     }
 
     @ApiModelProperty(value = "Whether sort in ascending order")
-    public boolean isAsc() {
-        return asc;
+    public boolean isDesc() {
+        return desc;
     }
 
-    public void setAsc(boolean asc) {
-        this.asc = asc;
+    public void setDesc(boolean desc) {
+        this.desc = desc;
     }
 
     @ApiModelProperty(value = "If true, only Controller Services that are logically deleted will be returned. " +
@@ -92,12 +91,12 @@ public class OrchsymServiceSearchCriteriaEntity {
     }
 
     @ApiModelProperty(value = "The page number, one-based, default 1")
-    public int getPageNumber() {
-        return pageNumber;
+    public int getPage() {
+        return page;
     }
 
-    public void setPageNumber(int pageNumber) {
-        this.pageNumber = pageNumber;
+    public void setPage(int page) {
+        this.page = page;
     }
 
     @ApiModelProperty(value = "The page size, default 10")

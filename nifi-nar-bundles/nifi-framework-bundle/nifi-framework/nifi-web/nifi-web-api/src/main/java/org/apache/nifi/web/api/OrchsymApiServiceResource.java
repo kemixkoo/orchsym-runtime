@@ -55,6 +55,8 @@ import org.apache.nifi.registry.api.PathSpec;
 import org.apache.nifi.registry.api.PropertySpec;
 import org.apache.nifi.registry.api.RespSpec;
 import org.apache.nifi.util.NiFiProperties;
+import org.apache.nifi.util.ProcessUtil;
+import org.apache.nifi.web.api.dto.ApplicationInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,34 +117,15 @@ public class OrchsymApiServiceResource extends AbsOrchsymResource {
                 .map(info -> {
                     final ApiInfo copy = info.copy();
 
-                    // set appId
-                    copy.applicationID = copy.groupID;
-
                     final ProcessGroup currentGroup = flowController.getGroup(copy.groupID);
-                    final String rootId = flowController.getGroup(FlowController.ROOT_GROUP_ID_ALIAS).getIdentifier();
-                    if (null != currentGroup && !currentGroup.getIdentifier().equals(rootId)) { // in root
-                        copy.groupName = currentGroup.getName();
-                        copy.applicationName = currentGroup.getName(); // default
-                        copy.route = copy.applicationName;// default
-                    }
-
-                    ProcessGroup parentGroup = currentGroup.getParent();
-                    if (null != parentGroup && null != currentGroup //
-                            && !rootId.equals(copy.groupID) // request component is not in root group directly
-                            && !rootId.equals(parentGroup.getIdentifier())) { // not in application level, should be children
-                        StringBuffer route = new StringBuffer();
-                        route.append(parentGroup.getName());
-
-                        ProcessGroup applicationGroup = parentGroup;
-                        while (null != (parentGroup = parentGroup.getParent()) && !rootId.equals(parentGroup.getIdentifier())) {
-                            route.insert(0, parentGroup.getName() + '/');
-                            applicationGroup = parentGroup;
-                        }
-                        copy.applicationID = applicationGroup.getIdentifier();
-                        copy.applicationName = applicationGroup.getName();
-                        copy.route = route.toString();
-
-                    } // the applicationID will be root or first level of application dirctly
+                    final String rootId = flowController.getRootGroupId();
+                    final ApplicationInfoDTO appInfo = ProcessUtil.calcApplicationInfo(currentGroup, rootId);
+                    // set appId
+                    copy.applicationID = appInfo.getApplicationId();
+                    copy.applicationName = appInfo.getApplicationName();
+                    copy.groupName = appInfo.getParentName();
+                    copy.groupID = appInfo.getParentId();
+                    copy.route = appInfo.getPath();
 
                     return copy;
                 }).collect(Collectors.toList());

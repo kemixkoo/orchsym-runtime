@@ -17,8 +17,10 @@
  */
 package org.apache.nifi.web.util;
 
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.api.entity.ControllerServiceEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -27,16 +29,16 @@ import java.util.function.Predicate;
  * @author weiwei.zhan
  */
 public class ControllerServiceAdditionUtils {
-    public static final String KEY_IS_CONTROLLER_SERVICE_DELETED = "KEY_IS_CONTROLLER_SERVICE_DELETED";
 
     public static void logicalDeletionCheck(final ControllerServiceEntity entity) {
         Objects.requireNonNull(entity);
-        if (entity.getComponent().getAdditions().get(KEY_IS_CONTROLLER_SERVICE_DELETED) != null) {
+        boolean deleted = ProcessUtil.getAdditionBooleanValue(entity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+        if (deleted) {
             throw new ResourceNotFoundException(String.format("Unable to find Controller Service '%s'", entity.getId()));
         }
     }
 
     // Return true if the Controller Service has already been deleted logically
-    public static Predicate<ControllerServiceEntity> CONTROLLER_SERVICE_NOT_DELETED = controllerServiceEntity ->
-            controllerServiceEntity.getComponent().getAdditions().get(KEY_IS_CONTROLLER_SERVICE_DELETED) == null;
+    public static Predicate<ControllerServiceEntity> CONTROLLER_SERVICE_NOT_DELETED = controllerServiceEntity -> false == ProcessUtil
+            .getAdditionBooleanValue(controllerServiceEntity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);;
 }

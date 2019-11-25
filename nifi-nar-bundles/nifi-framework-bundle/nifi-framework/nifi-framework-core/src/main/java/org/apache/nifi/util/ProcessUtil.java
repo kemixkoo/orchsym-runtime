@@ -22,12 +22,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.groups.ProcessTags;
+import org.apache.nifi.web.api.dto.ApplicationInfoDTO;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -158,13 +160,27 @@ public final class ProcessUtil {
         }
     }
 
+    public static void fixDefaultValue(Map<String, String> additions, String name, Object defaultValue) {
+        if (Objects.isNull(defaultValue)) {
+            return;
+        }
+        if (additions.containsKey(name)) {
+            return;
+        }
 
-    public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
-        return getGroupAdditionBooleanValue(group, name, null);
+        additions.put(name, defaultValue.toString());
     }
 
-    public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name, Boolean defaultValue) {
-        final String valueStr = group.getAdditions().getValue(name);
+    /**
+     * 
+     * 获取返回值
+     */
+    public static Boolean getAdditionBooleanValue(Map<String, String> additionParam, String name, Boolean defaultValue) {
+        if (Objects.isNull(additionParam) || additionParam.isEmpty()) {
+            return null;
+        }
+
+        final String valueStr = additionParam.get(name);
         if (StringUtils.isNotBlank(valueStr)) {
             return Boolean.parseBoolean(valueStr);
         }
@@ -172,11 +188,15 @@ public final class ProcessUtil {
     }
 
     public static Boolean getAdditionBooleanValue(TypeAdditions additionParam, String name, Boolean defaultValue) {
-        final String valueStr = additionParam.getValue(name);
-        if (StringUtils.isNotBlank(valueStr)) {
-            return Boolean.parseBoolean(valueStr);
-        }
-        return defaultValue;
+        return getAdditionBooleanValue(additionParam.values(), name, defaultValue);
+    }
+
+    public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
+        return getGroupAdditionBooleanValue(group, name, null);
+    }
+
+    public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name, Boolean defaultValue) {
+        return getAdditionBooleanValue(group.getAdditions(), name, defaultValue);
     }
 
     public static Long getGroupAdditionLongValue(ProcessGroup group, String name) {
@@ -192,4 +212,46 @@ public final class ProcessUtil {
         return defaultValue;
     }
 
+    public static ApplicationInfoDTO calcApplicationInfo(ProcessGroup group, String rootId) {
+        ApplicationInfoDTO appInfoDto = new ApplicationInfoDTO();
+        if (isRootGroup(group, rootId)) { // 可能已经在根
+            return appInfoDto;
+        }
+        final String curGroupId = group.getIdentifier();
+        final String curGroupName = group.getName();
+        appInfoDto.setParentId(curGroupId);
+        appInfoDto.setParentName(curGroupId);
+
+        // init appId
+        appInfoDto.setApplicationId(curGroupId);
+        appInfoDto.setApplicationName(curGroupName);
+        appInfoDto.setPath(curGroupName);
+
+        ProcessGroup parentGroup = group.getParent();
+        if (!(isRootGroup(parentGroup, rootId))) { // 不是应用级别，group还是多级子模块
+            StringBuffer route = new StringBuffer();
+            route.append(parentGroup.getName());
+
+            ProcessGroup applicationGroup = parentGroup;
+
+            parentGroup = parentGroup.getParent();
+            while (!isRootGroup(parentGroup, rootId)) {
+                route.insert(0, parentGroup.getName() + '/');
+                applicationGroup = parentGroup;
+                parentGroup = parentGroup.getParent();
+            }
+            appInfoDto.setApplicationId(applicationGroup.getIdentifier());
+            appInfoDto.setApplicationName(applicationGroup.getName());
+            appInfoDto.setPath(route.toString());
+
+        }
+        return appInfoDto;
+    }
+
+    private static boolean isRootGroup(ProcessGroup group, String rootId) {
+        if (Objects.isNull(group) || group.getIdentifier().equals(rootId)) { // 可能已经在根
+            return true;
+        }
+        return false;
+    }
 }

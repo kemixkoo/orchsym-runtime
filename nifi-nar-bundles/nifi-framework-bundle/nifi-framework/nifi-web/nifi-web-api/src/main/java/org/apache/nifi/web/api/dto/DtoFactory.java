@@ -153,6 +153,7 @@ import org.apache.nifi.reporting.ReportingTask;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.util.FlowDifferenceFilters;
 import org.apache.nifi.util.FormatUtils;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.FlowModification;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.action.ActionDTO;
@@ -1490,7 +1491,10 @@ public final class DtoFactory {
 
             dto.setValidationErrors(errors);
         }
-        dto.setAdditions(controllerServiceNode.getAdditions().values());
+
+        Map<String,String> additions=new HashMap<>(controllerServiceNode.getAdditions().values());
+        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+        dto.setAdditions(additions);
 
         return dto;
     }
@@ -1534,6 +1538,10 @@ public final class DtoFactory {
 
             dto.setValidationErrors(errors);
         }
+
+        Map<String,String> additions=new HashMap<>(controllerServiceNode.getAdditions().values());
+        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+        dto.setAdditions(additions);
 
         return dto;
     }
@@ -2297,10 +2305,10 @@ public final class DtoFactory {
 
         dto.setTags(group.getTags());
         Map<String, String> additions = new HashMap<>(group.getAdditions().values());
-        fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
-        fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
+        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
         final AppType appType = AppTypeAssessor.judgeType(group);
-        fixDefaultValue(additions, AdditionConstants.KEY_APP_TYPE, appType.getName());
+        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_APP_TYPE, appType.getName());
         dto.setAdditions(additions);
 
         final ProcessGroup parentGroup = group.getParent();
@@ -2324,17 +2332,6 @@ public final class DtoFactory {
         dto.setSyncFailureCount(counts.getSyncFailureCount());
 
         return dto;
-    }
-
-    private void fixDefaultValue(Map<String, String> additions, String name, Object defaultValue) {
-        if (Objects.isNull(defaultValue)) {
-            return;
-        }
-        if (additions.containsKey(name)) {
-            return;
-        }
-
-        additions.put(name, defaultValue.toString());
     }
 
     public Set<ComponentDifferenceDTO> createComponentDifferenceDtos(final FlowComparison comparison) {

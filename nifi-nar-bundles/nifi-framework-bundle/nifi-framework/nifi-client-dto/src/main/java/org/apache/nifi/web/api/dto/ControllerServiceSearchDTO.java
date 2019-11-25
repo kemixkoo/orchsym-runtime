@@ -52,6 +52,8 @@ public class ControllerServiceSearchDTO extends ComponentDTO {
     private Map<String, Set<String>> referencingComponents;
     private Collection<String> validationErrors;
     private String validationStatus;
+    private Map<String, String> additions;
+    private ApplicationInfoDTO info;
 
     /**
      * @return controller service name
@@ -263,6 +265,22 @@ public class ControllerServiceSearchDTO extends ComponentDTO {
 
     public void setValidationStatus(String validationStatus) {
         this.validationStatus = validationStatus;
+    }
+
+    public Map<String, String> getAdditions() {
+        return additions;
+    }
+
+    public void setAdditions(Map<String, String> additions) {
+        this.additions = additions;
+    }
+
+    public ApplicationInfoDTO getInfo() {
+        return info;
+    }
+
+    public void setInfo(ApplicationInfoDTO info) {
+        this.info = info;
     }
 
     @Override
