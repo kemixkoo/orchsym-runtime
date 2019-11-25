@@ -24,6 +24,7 @@ import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.io.DatumReader;
+import org.apache.http.entity.ContentType;
 import org.apache.nifi.web.ViewableContent.DisplayMode;
 import org.apache.nifi.stream.io.StreamUtils;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 
@@ -45,10 +47,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -85,22 +90,23 @@ public class StandardContentViewerController extends HttpServlet {
 
         // handle json/xml specifically, treat others as plain text
         String contentType = content.getContentType();
+        Charset charset = getCharset(content.getRawContentType());
         byte[] byteContent = getLimitContentBytes(content.getContentStream());
         if (supportedMimeTypes.contains(contentType)) {
             final String formatted;
             // leave the content alone if specified
             if (DisplayMode.Original.equals(content.getDisplayMode())) {
-                formatted = new String(byteContent);
+                formatted = new String(byteContent, charset);
             } else {
                 if ("application/json".equals(contentType)) {
                     // format json
-                    String contentStr = new String(byteContent);
+                    String contentStr = new String(byteContent, charset);
                     formatted = prettyPrintJSONAsString(contentStr);
                 } else if ("application/xml".equals(contentType) || "text/xml".equals(contentType)) {
                     // format xml
                     final StringWriter writer = new StringWriter();
                     if (byteContent.length < MAX_BUFFER_LENGTH) {
-                        String contentStr = new String(byteContent);
+                        String contentStr = new String(byteContent, charset);
                         try {
                             final StreamSource source = new StreamSource(new StringReader(contentStr));
                             final StreamResult result = new StreamResult(writer);
@@ -118,7 +124,7 @@ public class StandardContentViewerController extends HttpServlet {
                         formatted = writer.toString();
                     } else {
                         //ontentStr's length larger than expected, do not transform to xml
-                        formatted = new String(byteContent);
+                        formatted = new String(byteContent, charset);
                     }
                 } else if ("application/avro-binary".equals(contentType) || "avro/binary".equals(contentType) || "application/avro+binary".equals(contentType)) {
                     final StringBuilder sb = new StringBuilder();
@@ -160,12 +166,12 @@ public class StandardContentViewerController extends HttpServlet {
                         formatted = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(objectJson);
                     } else {
                         //contentStr's length larger than expected, do not transform to json
-                        formatted = new String(byteContent);;
+                        formatted = new String(byteContent, charset);
                     }
                     contentType = "application/json";
                 } else {
                     // leave plain text alone when formatting
-                    formatted = new String(byteContent);
+                    formatted = new String(byteContent, charset);
                 }
             }
 
@@ -176,6 +182,22 @@ public class StandardContentViewerController extends HttpServlet {
         } else {
             final PrintWriter out = response.getWriter();
         }
+    }
+
+    /**
+     * @param rawContentType
+     * @return charset from rawContentType,if not valid or empty, return UTF-8
+     * */
+    private Charset getCharset(String rawContentType) {
+        try {
+            Charset charset = ContentType.parse(rawContentType).getCharset();
+            if(charset != null && charset.isRegistered()){
+                return charset;
+            }
+        } catch (Exception e) {
+            logger.warn("Warning when get default charset from content!");
+        }
+        return StandardCharsets.UTF_8;
     }
 
     private byte[] getLimitContentBytes(InputStream inputStream) {
