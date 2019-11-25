@@ -9,7 +9,7 @@ import { EditableContext } from '@/utils/utils'
 import OperateMenu from './OperateMenu';
 
 @connect(({ template }) => ({
-  collectList: template.customList,
+  collectList: template.collectList,
 }))
 
 class CollectList extends React.Component {
@@ -48,8 +48,9 @@ class CollectList extends React.Component {
       },
       {
         title: `${formatMessage({ id: 'title.type' })}`,
-        dataIndex: 'type',
+        dataIndex: 'additions.SOURCE_TYPE',
         key: 'type',
+        render: (text, record) => (text === 'OFFICIAL' ? formatMessage({ id: 'template.tab.official' }) : formatMessage({ id: 'template.tab.customize' })),
       },
       {
         title: `${formatMessage({ id: 'title.create' })}/${formatMessage({ id: 'title.createTime' })}`,
@@ -64,6 +65,7 @@ class CollectList extends React.Component {
         title: `${formatMessage({ id: 'title.operate' })}`,
         width: 150,
         render: (text, record) => {
+          const { match } = this.props
           const { editingKey } = this.state;
           const editable = this.isEditing(record);
           return editable ? (
@@ -88,7 +90,7 @@ class CollectList extends React.Component {
                 )}
               </EditableContext.Consumer>
             </span>
-          ) : (<OperateMenu data={record} editingKey={editingKey} edit={item => this.edit(item)} onFrechList={this.onFrechList} />);
+          ) : (<OperateMenu match={match} data={record} editingKey={editingKey} edit={item => this.edit(item)} onFrechList={this.onFrechList} />);
         },
       },
     ];

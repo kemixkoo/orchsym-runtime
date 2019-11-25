@@ -5,6 +5,7 @@ export default {
   'button.download': 'Download',
   'button.delete': 'Delete',
   'button.Upload': 'Upload',
+  'button.search': 'Search',
   'button.edit': 'Edit',
   'button.save': 'Save',
   'button.collect': 'Collect',

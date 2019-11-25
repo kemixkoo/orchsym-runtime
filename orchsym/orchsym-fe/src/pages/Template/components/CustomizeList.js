@@ -5,6 +5,7 @@ import { formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
 import Ellipsis from '@/components/Ellipsis';
 import { EditableContext } from '@/utils/utils'
+import moment from 'moment';
 import OperateMenu from './OperateMenu';
 
 @connect(({ template }) => ({
@@ -19,7 +20,7 @@ class CustomizeList extends React.Component {
     };
     this.columns = [
       {
-        title: `${formatMessage({ id: 'title.name' })}`,
+        title: formatMessage({ id: 'title.name' }),
         width: 200,
         dataIndex: 'name',
         key: 'name',
@@ -32,7 +33,7 @@ class CustomizeList extends React.Component {
         ],
       },
       {
-        title: `${formatMessage({ id: 'title.description' })}`,
+        title: formatMessage({ id: 'title.description' }),
         dataIndex: 'description',
         key: 'description',
         render: (text, record) => (
@@ -45,18 +46,30 @@ class CustomizeList extends React.Component {
         }],
         editable: true,
       },
-      // {
-      //   title: '来源',
-      //   dataIndex: 'type',
-      // },
-      // {
-      //   title: '创建时间',
-      //   dataIndex: 'time',
-      // },
       {
-        title: `${formatMessage({ id: 'title.operate' })}`,
+        title: formatMessage({ id: 'template.table.title.source' }),
+        dataIndex: 'additions.SOURCE_TYPE',
+        key: 'type',
+      },
+      {
+        title: formatMessage({ id: 'template.table.title.operateUser' }),
+        dataIndex: 'additions.CREATED_USER',
+        key: 'user',
+      },
+      {
+        title: formatMessage({ id: 'template.table.title.createTime' }),
+        dataIndex: 'additions.CREATED_TIMESTAMP',
+        key: 'time',
+        render: (text, record) => (
+          moment(Number(text)).format('YYYY-MM-DD HH:mm:ss')
+        ),
+
+      },
+      {
+        title: formatMessage({ id: 'title.operate' }),
         width: 150,
         render: (text, record) => {
+          const { match } = this.props
           const { editingKey } = this.state;
           const editable = this.isEditing(record);
           return editable ? (
@@ -81,7 +94,7 @@ class CustomizeList extends React.Component {
                 )}
               </EditableContext.Consumer>
             </span>
-          ) : (<OperateMenu data={record} editingKey={editingKey} edit={item => this.edit(item)} onFrechList={this.onFrechList} />);
+          ) : (<OperateMenu match={match} data={record} editingKey={editingKey} edit={item => this.edit(item)} onFrechList={this.onFrechList} />);
         },
       },
     ];
@@ -149,19 +162,6 @@ class CustomizeList extends React.Component {
           this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
         },
       });
-      //   const newData = [...dataSource];
-      //   const index = newData.findIndex(item => key === item.key);
-      //   if (index > -1) {
-      //     const item = newData[index];
-      //     newData.splice(index, 1, {
-      //       ...item,
-      //       ...row,
-      //     });
-      //     this.setState({ data: newData, editingKey: '' });
-      //   } else {
-      //     newData.push(row);
-      //     this.setState({ data: newData, editingKey: '' });
-      //   }
     });
   }
 

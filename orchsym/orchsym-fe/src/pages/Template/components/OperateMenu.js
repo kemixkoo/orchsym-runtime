@@ -63,29 +63,41 @@ class operateMenu extends React.Component {
 
   render() {
     const { data, edit, editingKey } = this.props;
+    const { match } = this.props
+    const { tab } = match.params;
+    const tabKey = (!tab || tab === ':tab') ? 'collect' : tab;
     const menu = (
       <Menu>
-        <Menu.Item key="edit" disabled={editingKey !== ''} onClick={() => edit(data.id)}>
-          {`${formatMessage({ id: 'button.edit' })}`}
-        </Menu.Item>
-        <Menu.Item key="collect" onClick={() => { this.collectTemp(data.id, true) }}>
-          {`${formatMessage({ id: 'button.collect' })}`}
-        </Menu.Item>
-        <Menu.Item key="cancelCollect" onClick={() => { this.collectTemp(data.id, false) }}>
-          {`${formatMessage({ id: 'button.cancelCollect' })}`}
-        </Menu.Item>
+        {(data.additions.SOURCE_TYPE === 'OFFICIAL' || tabKey === 'official') ? (null) : (
+          <Menu.Item key="edit" disabled={editingKey !== ''} onClick={() => edit(data.id)}>
+            {`${formatMessage({ id: 'button.edit' })}`}
+          </Menu.Item>
+        )}
+        {data.additions.IS_FAVORITE ? (
+          <Menu.Item key="collect" onClick={() => { this.collectTemp(data.id, true) }}>
+            {`${formatMessage({ id: 'button.collect' })}`}
+          </Menu.Item>
+        ) : (
+          <Menu.Item key="cancelCollect" onClick={() => { this.collectTemp(data.id, false) }}>
+            {`${formatMessage({ id: 'button.cancelCollect' })}`}
+          </Menu.Item>
+        )}
         <Menu.Item key="download" onClick={() => { this.downloadTemp(data.id, data.name) }}>
           {`${formatMessage({ id: 'button.download' })}`}
         </Menu.Item>
-        <Menu.Item key="delete" onClick={() => { this.deleteTempHandel(data.id) }}>
-          {`${formatMessage({ id: 'button.delete' })}`}
-        </Menu.Item>
+        {(data.additions.SOURCE_TYPE === 'OFFICIAL' || tabKey === 'official') ? (null) : (
+          <Menu.Item key="delete" onClick={() => { this.deleteTempHandel(data.id) }}>
+            {`${formatMessage({ id: 'button.delete' })}`}
+          </Menu.Item>
+        )}
       </Menu>
     );
     return (
       <span className={styles.operateMenu}>
-        <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, true) }} />
-        {/* <Icon type="star" theme="twoTone"  onClick={() => { this.collectTemp(data.id, false) }}/> */}
+        {data.additions.IS_FAVORITE ? (
+          <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, true) }} />
+        ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, false) }} />
+        )}
         <Dropdown overlay={menu} trigger={['click']}>
           <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
         </Dropdown>

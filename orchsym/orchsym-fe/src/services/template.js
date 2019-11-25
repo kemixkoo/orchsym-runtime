@@ -88,6 +88,7 @@ export async function editTemplate(body) {
 }
 // 上传
 export async function uploadTemplate(params) {
+  console.log(params)
   const { file } = params;
   const formData = new FormData();
   formData.append('template', file[0]);

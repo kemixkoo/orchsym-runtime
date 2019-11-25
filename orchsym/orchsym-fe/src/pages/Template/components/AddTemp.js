@@ -8,6 +8,7 @@ import { formatMessage } from 'umi-plugin-react/locale';
 class AddTemp extends React.Component {
   state = {
     fileList: [],
+    uploadLoading: false,
   };
 
   componentDidMount() {
@@ -65,16 +66,16 @@ class AddTemp extends React.Component {
     return e && e.fileList;
   };
 
-  // handleUpload = info => {
-  //   if (info.file.status === 'uploading') {
-  //     this.setState({ loading: true });
-  //   }
-  //   if (info.file.status === 'done') {
-  //     this.setState({
-  //       loading: false,
-  //     });
-  //   }
-  // };
+  handleUpload = info => {
+    if (info.file.status === 'uploading') {
+      this.setState({ uploadLoading: true });
+    }
+    if (info.file.status === 'done') {
+      this.setState({
+        uploadLoading: false,
+      });
+    }
+  };
 
   handleFileName = (rule, value, callback) => {
     if (value) {
@@ -103,7 +104,7 @@ class AddTemp extends React.Component {
       visible,
       loading,
     } = this.props;
-    const { fileList } = this.state
+    const { fileList, uploadLoading } = this.state
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
@@ -137,7 +138,7 @@ class AddTemp extends React.Component {
         }
         return isAccept;
       },
-      // onChange: this.handleUpload,
+      onChange: this.handleUpload,
     };
     return (
       <Modal
@@ -179,7 +180,7 @@ class AddTemp extends React.Component {
                 getValueFromEvent: this.normFile,
               })(
                 <Upload {...props}>
-                  <Button loading={loading} disabled={fileList.length === 1}>
+                  <Button loading={uploadLoading} disabled={fileList.length === 1}>
                     <Icon type="upload" /> {formatMessage({ id: 'form.template.uploadFile' })}
                   </Button>
                 </Upload>,

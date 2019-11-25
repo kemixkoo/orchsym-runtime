@@ -1,4 +1,4 @@
-import common from './zh-CN/common';
+import common from './en-US/common';
 import exception from './en-US/exception';
 import globalHeader from './en-US/globalHeader';
 import login from './en-US/login';

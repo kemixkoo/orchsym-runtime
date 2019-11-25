@@ -116,19 +116,20 @@ class Template extends PureComponent {
   }
 
   render() {
+    const { match } = this.props
     const { createTempVisible, tabActiveKey, searchVal, selectedRowKeys,
       sortedField, isDesc, pageSizeNum, pageNum } = this.state;
     const tabList = [
       {
-        tab: '收藏',
+        tab: formatMessage({ id: 'button.collect' }),
         key: 'collect',
       },
       {
-        tab: '官方',
+        tab: formatMessage({ id: 'template.tab.official' }),
         key: 'official',
       },
       {
-        tab: '自定义',
+        tab: formatMessage({ id: 'template.tab.customize' }),
         key: 'customize',
       },
     ]
@@ -160,6 +161,7 @@ class Template extends PureComponent {
           </div>
           {tabActiveKey === 'collect' && (
             <CollectList
+              match={match}
               onStateChange={this.onStateChange}
               pageNum={pageNum}
               pageSizeNum={pageSizeNum}
@@ -170,6 +172,7 @@ class Template extends PureComponent {
           )}
           {tabActiveKey === 'official' && (
             <OfficialList
+              match={match}
               onStateChange={this.onStateChange}
               pageNum={pageNum}
               pageSizeNum={pageSizeNum}
@@ -180,6 +183,7 @@ class Template extends PureComponent {
           )}
           {tabActiveKey === 'customize' && (
             <CustomizeList
+              match={match}
               selectedRowKeys={selectedRowKeys}
               onStateChange={this.onStateChange}
               pageNum={pageNum}
