@@ -606,7 +606,12 @@ div.context-menu-item:hover {
     top: 2px;
     left: 2px;
 }
-
+.context-menu-item-img.acon{
+    font-size: 16px;
+    position: relative;
+    top: 1px;
+    left: 2px;
+}
 .context-menu-item-img.icon {
     position: relative;
     top: 1px;

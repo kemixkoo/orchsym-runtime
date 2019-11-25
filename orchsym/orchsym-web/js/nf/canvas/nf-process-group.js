@@ -164,7 +164,7 @@
                     return d.dimensions.width;
                 },
                 'height': 32,
-                'fill': '#506773'
+                'fill': 'rgb(57, 60, 82)'
             });
 
         // process group name
@@ -284,8 +284,8 @@
                                 return processGroupData.dimensions.width
                             },
                             'height': 24,
-                            'fill': '#e3e8eb',
-                            'alibaba': 'alibaba'
+                            'fill': '#ffffff',
+                            'baishan': 'baishan'
                         });
 
                     details.append('rect')
@@ -298,7 +298,7 @@
                                 return processGroupData.dimensions.width;
                             },
                             'height': 24,
-                            'fill': '#e3e8eb'
+                            'fill': '#ffffff'
                         });
 
                     // --------
@@ -529,27 +529,63 @@
                     // ----------------
                     // stats background
                     // ----------------
-
+                    details.append('rect')
+                        .attrs({
+                            'width': function () {
+                                return dimensions.width;
+                            },
+                            'height': 1,
+                            'x': 0,
+                            'y': 56,
+                            'fill': '#c7d2d7',
+                        });
+                    details.append('rect')
+                        .attrs({
+                            'width': function () {
+                                return dimensions.width;
+                            },
+                            'height': 1,
+                            'x': 0,
+                            'y': 149,
+                            'fill': '#c7d2d7',
+                        });
+                    details.append('rect')
+                        .attrs({
+                            'width': 1,
+                            'height': 93,
+                            'x': 39,
+                            'y': 56,
+                            'fill': '#c7d2d7',
+                        });
+                    details.append('text')
+                        .attrs({
+                            'width': 38,
+                            'height': 80,
+                            'x': 20,
+                            'y': 68,
+                            'class': 'stats-5min'
+                        })
+                        .text(nf._.msg('nf-processor.5min1'));
                     // queued
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 66,
-                            'fill': '#f4f6f7'
+                            'fill': '#ffffff'
                         });
 
                     // border
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 1,
-                            'x': 0,
+                            'x': 40,
                             'y': 84,
                             'fill': '#c7d2d7'
                         });
@@ -558,10 +594,10 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 85,
                             'fill': '#ffffff'
                         });
@@ -570,10 +606,10 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 1,
-                            'x': 0,
+                            'x': 40,
                             'y': 103,
                             'fill': '#c7d2d7'
                         });
@@ -582,22 +618,22 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 104,
-                            'fill': '#f4f6f7'
+                            'fill': '#ffffff'
                         });
 
                     // border
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 1,
-                            'x': 0,
+                            'x': 40,
                             'y': 122,
                             'fill': '#c7d2d7'
                         });
@@ -606,10 +642,10 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 123,
                             'fill': '#ffffff'
                         });
@@ -621,7 +657,7 @@
                     // stats label container
                     var processGroupStatsLabel = details.append('g')
                         .attrs({
-                            'transform': 'translate(6, 75)'
+                            'transform': 'translate(50, 75)'
                         });
 
                     // queued label
@@ -671,7 +707,7 @@
                     // stats value container
                     var processGroupStatsValue = details.append('g')
                         .attrs({
-                            'transform': 'translate(95, 75)'
+                            'transform': 'translate(155, 75)'
                         });
 
                     // queued value
@@ -763,43 +799,43 @@
                         });
 
                     // stats value container
-                    var processGroupStatsInfo = details.append('g')
-                        .attrs({
-                            'transform': 'translate(335, 75)'
-                        });
+                    // var processGroupStatsInfo = details.append('g')
+                    //     .attrs({
+                    //         'transform': 'translate(335, 75)'
+                    //     });
 
                     // in info
-                    processGroupStatsInfo.append('text')
-                        .attrs({
-                            'width': 25,
-                            'height': 10,
-                            'x': 4,
-                            'y': 24,
-                            'class': 'stats-info'
-                        })
-                        .text(nf._.msg('nf-process-group.5min'));
+                    // processGroupStatsInfo.append('text')
+                    //     .attrs({
+                    //         'width': 25,
+                    //         'height': 10,
+                    //         'x': 4,
+                    //         'y': 24,
+                    //         'class': 'stats-info'
+                    //     })
+                    //     .text(nf._.msg('nf-process-group.5min'));
 
                     // read/write info
-                    processGroupStatsInfo.append('text')
-                        .attrs({
-                            'width': 25,
-                            'height': 10,
-                            'x': 4,
-                            'y': 42,
-                            'class': 'stats-info'
-                        })
-                        .text(nf._.msg('nf-process-group.5min'));
-
-                    // out info
-                    processGroupStatsInfo.append('text')
-                        .attrs({
-                            'width': 25,
-                            'height': 10,
-                            'x': 4,
-                            'y': 60,
-                            'class': 'stats-info'
-                        })
-                        .text(nf._.msg('nf-process-group.5min'));
+                    // processGroupStatsInfo.append('text')
+                    //     .attrs({
+                    //         'width': 25,
+                    //         'height': 10,
+                    //         'x': 4,
+                    //         'y': 42,
+                    //         'class': 'stats-info'
+                    //     })
+                    //     .text(nf._.msg('nf-process-group.5min'));
+                    //
+                    // // out info
+                    // processGroupStatsInfo.append('text')
+                    //     .attrs({
+                    //         'width': 25,
+                    //         'height': 10,
+                    //         'x': 4,
+                    //         'y': 60,
+                    //         'class': 'stats-info'
+                    //     })
+                    //     .text(nf._.msg('nf-process-group.5min'));
 
                     // --------
                     // comments

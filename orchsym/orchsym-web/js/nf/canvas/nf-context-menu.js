@@ -765,7 +765,6 @@
      */
     var executeAction = function (action, selection, evt) {
         // execute the action
-        console.log("action", action, selection)
         nfActions[action](selection, evt);
 
         // close the context menu
@@ -777,9 +776,10 @@
         {id: 'reload-menu-item', condition: emptySelection, menuItem: {clazz: 'fa fa-refresh', text: nf._.msg('nf-context-menu.Refresh'), action: 'reload'}},
         {id: 'leave-group-menu-item', condition: isNotRootGroup, menuItem: {clazz: 'fa fa-level-up', text: nf._.msg('nf-context-menu.LeaveGroup'), action: 'leaveGroup'}},
         {separator: true},
+        {id: 'enter-group-menu-item', condition: isProcessGroup, menuItem: {clazz: 'fa fa-sign-in', text: nf._.msg('nf-context-menu.EnterGroup'), action: 'enterGroup'}},
         {id: 'show-configuration-menu-item', condition: isConfigurable, menuItem: {clazz: 'fa fa-gear', text: nf._.msg('nf-context-menu.Configure'), action: 'showConfiguration'}},
         {id: 'show-details-menu-item', condition: hasDetails, menuItem: {clazz: 'fa fa-gear', text: nf._.msg('nf-context-menu.ViewConfiguration'), action: 'showDetails'}},
-        {id: 'variable-registry-menu-item', condition: hasVariables, menuItem: {clazz: 'fa', text: nf._.msg('nf-context-menu.Variable'), action: 'openVariableRegistry'}},
+        {id: 'variable-registry-menu-item', condition: hasVariables, menuItem: {clazz: 'acon hicon-variable', text: nf._.msg('nf-context-menu.Variable'), action: 'openVariableRegistry'}},
         {separator: true},
         {id: 'version-menu-item', groupMenuItem: {clazz: 'fa', text: nf._.msg('nf-context-menu.Version')}, menuItems: [
             {id: 'start-version-control-menu-item', condition: supportsStartFlowVersioning, menuItem: {clazz: 'fa fa-upload', text: nf._.msg('nf-context-menu.StartVersionControl'), action: 'saveFlowVersion'}},
@@ -791,8 +791,8 @@
             {separator: true},
             {id: 'stop-version-control-menu-item', condition: supportsStopFlowVersioning, menuItem: {clazz: 'fa', text: nf._.msg('nf-context-menu.StopVersionControl'), action: 'stopVersionControl'}}
         ]},
-        {separator: true},
-        {id: 'enter-group-menu-item', condition: isProcessGroup, menuItem: {clazz: 'fa fa-sign-in', text: nf._.msg('nf-context-menu.EnterGroup'), action: 'enterGroup'}},
+        // {separator: true},
+        // {id: 'enter-group-menu-item', condition: isProcessGroup, menuItem: {clazz: 'fa fa-sign-in', text: nf._.msg('nf-context-menu.EnterGroup'), action: 'enterGroup'}},
         {separator: true},
         {id: 'start-menu-item', condition: isRunnable, menuItem: {clazz: 'fa fa-play', text: nf._.msg('nf-context-menu.Start'), action: 'start'}},
         {id: 'stop-menu-item', condition: isStoppable, menuItem: {clazz: 'fa fa-stop', text: nf._.msg('nf-context-menu.Stop'), action: 'stop'}},
@@ -814,12 +814,13 @@
         {id: 'refresh-remote-flow-menu-item', condition: isRemoteProcessGroup, menuItem: {clazz: 'fa fa-refresh', text: nf._.msg('nf-context-menu.Refresh'), action: 'refreshRemoteFlow'}},
         {separator: true},
         {id: 'remote-ports-menu-item', condition: isRemoteProcessGroup, menuItem: {clazz: 'fa fa-cloud', text: nf._.msg('nf-context-menu.RemotePorts'), action: 'remotePorts'}},
-        {id: 'manage-policies-menu-item', condition: canManagePolicies, menuItem: {clazz: 'fa fa-key', text: nf._.msg('nf-context-menu.canManagePolicies'), action: 'managePolicies'}},
+        //wanzhen 2019.11.25
+        // {id: 'manage-policies-menu-item', condition: canManagePolicies, menuItem: {clazz: 'fa fa-key', text: nf._.msg('nf-context-menu.canManagePolicies'), action: 'managePolicies'}},
         {id: 'change-version-menu-item', condition: canChangeProcessorVersion, menuItem: {clazz: 'fa fa-exchange', text: 'Change version', action: 'changeVersion'}},
         {separator: true},
         {id: 'show-source-menu-item', condition: isConnection, menuItem: {clazz: 'fa fa-long-arrow-left', text: nf._.msg('nf-context-menu.GoToSource'), action: 'showSource'}},
         {id: 'show-destination-menu-item', condition: isConnection, menuItem: {clazz: 'fa fa-long-arrow-right', text: nf._.msg('nf-context-menu.GoToDestination'), action: 'showDestination'}},
-        {separator: true},
+        // {separator: true},
         {id: 'align-menu-item', groupMenuItem: {clazz: 'fa', text: 'Align'}, menuItems: [
             {id: 'align-horizontal-menu-item', condition: canAlign, menuItem: { clazz: 'fa fa-align-center fa-rotate-90', text: nf._.msg('nf-context-menu.canAlign2'), action: 'alignHorizontal'}},
             {id: 'align-vertical-menu-item', condition: canAlign, menuItem: {clazz: 'fa fa-align-center', text: nf._.msg('nf-context-menu.canAlign1'), action: 'alignVertical'}}
@@ -833,7 +834,7 @@
         {id: 'group-menu-item', condition: canGroup, menuItem: {clazz: 'icon icon-group', text: nf._.msg('nf-context-menu.canGroup'), action: 'group'}},
         {separator: true},
         {id: 'upload-template-menu-item', condition: canUploadTemplate, menuItem: {clazz: 'icon icon-template-import', text: nf._.msg('nf-context-menu.canUploadTemplate'), action: 'uploadTemplate'}},
-        {id: 'template-menu-item', condition: canCreateTemplate, menuItem: {clazz: 'icon icon-template-save', text: nf._.msg('nf-context-menu.canCreateTemplate'), action: 'template'}},
+        {id: 'template-menu-item', condition: canCreateTemplate, menuItem: {clazz: 'acon acon-cloud-upload', text: nf._.msg('nf-context-menu.canCreateTemplate'), action: 'template'}},
         {separator: true},
         {id: 'copy-menu-item', condition: isCopyable, menuItem: {clazz: 'fa fa-copy', text: nf._.msg('nf-context-menu.Copy'), action: 'copy'}},
         {id: 'paste-menu-item', condition: isPastable, menuItem: {clazz: 'fa fa-paste', text: nf._.msg('nf-context-menu.Paste'), action: 'paste'}},

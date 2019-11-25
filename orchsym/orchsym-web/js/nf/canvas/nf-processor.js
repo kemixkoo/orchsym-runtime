@@ -260,7 +260,9 @@
                 'r': 30,
                 'cx': 50,
                 'cy': 44,
-                'fill': '#506773',
+                'fill': 'transparent',
+                'stroke': '#0066d5',
+                'stroke-width': '3'
             })
 
         // processor icon
@@ -460,20 +462,6 @@
                 });
 
             // draw the processor statistics table
-
-            // in
-            details.append('rect')
-                .attrs({
-                    'width': function () {
-                        return dimensions.width;
-                    },
-                    'height': 19,
-                    'x': 0,
-                    'y': 50,
-                    'fill': '#f4f6f7',
-                });
-
-            // border
             details.append('rect')
                 .attrs({
                     'width': function () {
@@ -481,6 +469,48 @@
                     },
                     'height': 1,
                     'x': 0,
+                    'y': 49,
+                    'fill': '#c7d2d7',
+                });
+
+            details.append('rect')
+                .attrs({
+                    'width': 1,
+                    'height': 81,
+                    'x': 39,
+                    'y': 49,
+                    'fill': '#c7d2d7',
+                });
+            details.append('text')
+                .attrs({
+                    'width': 38,
+                    'height': 80,
+                    'x': 20,
+                    'y': 56,
+                    'class': 'stats-5min'
+                })
+                .text(nf._.msg('nf-processor.5min1'));
+
+            // in
+            details.append('rect')
+                .attrs({
+                    'width': function () {
+                        return dimensions.width - 40;
+                    },
+                    'height': 19,
+                    'x': 40,
+                    'y': 50,
+                    'fill': '#ffffff',
+                });
+
+            // border
+            details.append('rect')
+                .attrs({
+                    'width': function () {
+                        return dimensions.width - 40;
+                    },
+                    'height': 1,
+                    'x': 40,
                     'y': 68,
                     'fill': '#c7d2d7',
                 });
@@ -489,10 +519,10 @@
             details.append('rect')
                 .attrs({
                     'width': function () {
-                        return dimensions.width;
+                        return dimensions.width - 40;
                     },
                     'height': 19,
-                    'x': 0,
+                    'x': 40,
                     'y': 69,
                     'fill': '#ffffff',
                 });
@@ -501,10 +531,10 @@
             details.append('rect')
                 .attrs({
                     'width': function () {
-                        return dimensions.width;
+                        return dimensions.width - 40;
                     },
                     'height': 1,
-                    'x': 0,
+                    'x': 40,
                     'y': 87,
                     'fill': '#c7d2d7',
                 });
@@ -513,22 +543,22 @@
             details.append('rect')
                 .attrs({
                     'width': function () {
-                        return dimensions.width;
+                        return dimensions.width - 40;
                     },
                     'height': 20,
-                    'x': 0,
+                    'x': 40,
                     'y': 88,
-                    'fill': '#f4f6f7',
+                    'fill': '#ffffff',
                 });
 
             // border
             details.append('rect')
                 .attrs({
                     'width': function () {
-                        return dimensions.width;
+                        return dimensions.width - 40;
                     },
                     'height': 1,
-                    'x': 0,
+                    'x': 40,
                     'y': 106,
                     'fill': '#c7d2d7',
                 });
@@ -537,10 +567,10 @@
             details.append('rect')
                 .attrs({
                     'width': function () {
-                        return dimensions.width;
+                        return dimensions.width - 40;
                     },
                     'height': 19,
-                    'x': 0,
+                    'x': 40,
                     'y': 107,
                     'fill': '#ffffff',
                 });
@@ -548,7 +578,7 @@
             // stats label container
             var processorStatsLabel = details.append('g')
                 .attrs({
-                    'transform': 'translate(10, 55)',
+                    'transform': 'translate(50, 55)',
                 });
 
             // in label
@@ -594,7 +624,7 @@
             // stats value container
             var processorStatsValue = details.append('g')
                 .attrs({
-                    'transform': 'translate(85, 55)',
+                    'transform': 'translate(155, 55)',
                 });
 
             // in value

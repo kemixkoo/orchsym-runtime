@@ -325,9 +325,9 @@ div.slick-cell div.overridden {
 
 #variable-message {
     position: absolute;
-    top: 550px;
     left: 20px;
     font-size: 13px;
+    bottom: 22px;
 }
 
 /*
