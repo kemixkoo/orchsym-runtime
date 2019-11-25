@@ -1,5 +1,6 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { Input, Row, Col, Button, Modal } from 'antd';
+import { connect } from 'dva';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import router from 'umi/router'
 import { debounce } from 'lodash'
@@ -12,7 +13,11 @@ import styles from './index.less';
 
 const { Search } = Input;
 const { confirm } = Modal;
-class Template extends PureComponent {
+
+@connect(({ template }) => ({
+  template,
+}))
+class Template extends React.Component {
   constructor() {
     super()
     this.doSearchAjax = debounce(this.doSearchAjax, 500)
@@ -104,12 +109,14 @@ class Template extends PureComponent {
 
   // 下载
   downloadTemps = () => {
+    console.log(this.props)
     const { selectedRowKeys } = this.state;
     const { dispatch } = this.props;
+    const templateIds = selectedRowKeys.join(',')
     dispatch({
       type: 'template/fetchDownloadTemplates',
       payload: {
-        templateIds: selectedRowKeys,
+        templateIds,
         type: 'multiple',
       },
     });

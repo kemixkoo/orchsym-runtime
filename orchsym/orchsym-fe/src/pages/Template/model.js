@@ -64,7 +64,7 @@ export default {
       } else {
         const token = yield call(queryDownloadToken);
         if (token) {
-          const response = yield call(queryDownloadTemplate, { downloadToken: token }, ...payload);
+          const response = yield call(queryDownloadTemplate, { ...payload, downloadToken: token });
           if (response) {
             download(response, `${payload.name}.xml`)
           }
