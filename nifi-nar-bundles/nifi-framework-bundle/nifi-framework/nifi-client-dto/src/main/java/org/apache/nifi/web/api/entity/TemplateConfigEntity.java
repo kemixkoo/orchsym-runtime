@@ -24,6 +24,8 @@ import org.apache.nifi.web.api.dto.RevisionDTO;
 
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.Set;
+
 @XmlRootElement(name = "templateConfigurationEntity")
 public class TemplateConfigEntity extends Entity {
 
@@ -38,6 +40,20 @@ public class TemplateConfigEntity extends Entity {
     private FlowSnippetDTO snippet;
     private Boolean disconnectedNodeAcknowledged;
     private TemplateConfigSettingsEntity settings;
+
+    // add strong info
+
+    /**
+     * 模板的ID  查找时的优先级最高
+     */
+    private String templateId;
+
+    private String createdUser;
+
+    private Long createdTime;
+
+    private Set<String> tags;
+
 
     @ApiModelProperty(value = "The name of the application.")
     public String getApplicationName() {
@@ -116,7 +132,41 @@ public class TemplateConfigEntity extends Entity {
         return settings;
     }
 
+    // strong setter and getters methods
+
     public void setSettings(TemplateConfigSettingsEntity settings) {
         this.settings = settings;
+    }
+
+    public String getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(String templateId) {
+        this.templateId = templateId;
+    }
+
+    public String getCreatedUser() {
+        return createdUser;
+    }
+
+    public void setCreatedUser(String createdUser) {
+        this.createdUser = createdUser;
+    }
+
+    public Long getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Long createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 }

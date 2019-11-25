@@ -26,6 +26,7 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.authorization.AuthorizableLookup;
 import org.apache.nifi.authorization.AuthorizeAccess;
 import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
@@ -47,6 +48,7 @@ import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.serialization.FlowEncodingVersion;
 import org.apache.nifi.controller.service.ControllerServiceState;
+import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.registry.bucket.Bucket;
 import org.apache.nifi.registry.client.NiFiRegistryException;
 import org.apache.nifi.registry.flow.FlowRegistryUtils;
@@ -57,6 +59,7 @@ import org.apache.nifi.registry.variable.VariableRegistryUpdateRequest;
 import org.apache.nifi.registry.variable.VariableRegistryUpdateStep;
 import org.apache.nifi.remote.util.SiteToSiteRestApiClient;
 import org.apache.nifi.security.xml.XmlUtils;
+import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.BundleUtils;
 import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.ResourceNotFoundException;
@@ -116,6 +119,7 @@ import org.apache.nifi.web.api.entity.OrchsymTemplateEntity;
 import org.apache.nifi.web.api.entity.VariableEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryUpdateRequestEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
@@ -186,6 +190,7 @@ public class ProcessGroupResource extends ApplicationResource {
 
     private NiFiServiceFacade serviceFacade;
     private Authorizer authorizer;
+    private FlowService flowService;
 
     private ProcessorResource processorResource;
     private InputPortResource inputPortResource;
@@ -3885,21 +3890,39 @@ public class ProcessGroupResource extends ApplicationResource {
         }
 
         // ensure the template id was provided
-        if (requestTemplateConfigurationEntity.getTemplateName() == null) {
-            throw new IllegalArgumentException("The template name must be specified.");
+        if (requestTemplateConfigurationEntity.getTemplateName() == null && requestTemplateConfigurationEntity.getTemplateId() == null) {
+            throw new IllegalArgumentException("The template name or id must be specified.");
         }
 
         final Set<TemplateEntity> templates = serviceFacade.getTemplates();
         if (templates == null || templates.size() == 0) {
             throw new RuntimeException("There is no template in Studio.");
         }
-        final Optional<TemplateEntity> templateEntityOptional = templates.stream()
-                .filter(templateEntity -> templateEntity.getTemplate().getName().equals(requestTemplateConfigurationEntity.getTemplateName())).findFirst();
-        if (!templateEntityOptional.isPresent()) {
-            throw new IllegalArgumentException("The template [" + requestTemplateConfigurationEntity.getTemplateName() + "] doesn't exist in Studio.");
+
+        String realTemplateId = null;
+        if (requestTemplateConfigurationEntity.getTemplateId() != null){
+            try {
+                final TemplateDTO templateById = serviceFacade.getTemplate(requestTemplateConfigurationEntity.getTemplateId());
+                if (templateById != null){
+                    realTemplateId = requestTemplateConfigurationEntity.getTemplateId();
+                }
+            }catch (ResourceNotFoundException e){
+                //
+            }
         }
-        final TemplateDTO template = templateEntityOptional.get().getTemplate();
-        final String templateId = template.getId();
+
+        if (realTemplateId == null){
+            final Optional<TemplateEntity> templateEntityOptional = templates.stream()
+                    .filter(templateEntity -> templateEntity.getTemplate().getName().equals(requestTemplateConfigurationEntity.getTemplateName())).findFirst();
+            if (!templateEntityOptional.isPresent()) {
+                throw new IllegalArgumentException("The template [" + requestTemplateConfigurationEntity.getTemplateName() + "] doesn't exist in Studio.");
+            }
+            final TemplateDTO template = templateEntityOptional.get().getTemplate();
+            realTemplateId = template.getId();
+        }
+
+        final String templateId = realTemplateId;
+        final TemplateDTO template = serviceFacade.getTemplate(realTemplateId);
 
         // ensure the template encoding version is valid
         if (requestTemplateConfigurationEntity.getEncodingVersion() != null) {
@@ -3939,6 +3962,15 @@ public class ProcessGroupResource extends ApplicationResource {
         } // else {// only allow the group, label and service
         if (snippet.getProcessGroups().size() != 1) {
             throw new IllegalArgumentException("Just allow only one process group for application");
+        }
+
+        // set additions info to entity
+        if (requestTemplateConfigurationEntity.getCreatedUser() == null){
+            requestTemplateConfigurationEntity.setCreatedUser(NiFiUserUtils.getNiFiUserIdentity());
+        }
+
+        if (requestTemplateConfigurationEntity.getCreatedTime() == null){
+            requestTemplateConfigurationEntity.setCreatedTime(System.currentTimeMillis());
         }
 
         if (isReplicateRequest()) {
@@ -4097,6 +4129,19 @@ public class ProcessGroupResource extends ApplicationResource {
                 }
              }
 
+            final ProcessGroup appGroup = flowController.getGroup(applicationDto.getId());
+            final TypeAdditions typeAdditions = appGroup.getAdditions();
+            typeAdditions.setValue(AdditionConstants.KEY_CREATED_USER, requestTemplateConfigurationEntity.getCreatedUser());
+            typeAdditions.setValue(AdditionConstants.KEY_CREATED_TIMESTAMP, Long.toString(requestTemplateConfigurationEntity.getCreatedTime()));
+
+            if (requestTemplateConfigurationEntity.getTags() != null && !requestTemplateConfigurationEntity.getTags().isEmpty()){
+                appGroup.setTags(requestTemplateConfigurationEntity.getTags());
+            }else if (template.getTags() != null && template.getTags().isEmpty()){
+                appGroup.setTags(template.getTags());
+            }
+
+            flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+
             TemplateApplicationEntity responseEntity = new TemplateApplicationEntity();
             responseEntity.setId(applicationDto.getId());
             responseEntity.setName(applicationDto.getName());
@@ -4217,5 +4262,13 @@ public class ProcessGroupResource extends ApplicationResource {
 
     public void setDtoFactory(DtoFactory dtoFactory) {
         this.dtoFactory = dtoFactory;
+    }
+
+    public FlowService getFlowService() {
+        return flowService;
+    }
+
+    public void setFlowService(FlowService flowService) {
+        this.flowService = flowService;
     }
 }
