@@ -78,15 +78,14 @@ class AddTemp extends React.Component {
   };
 
   handleFileName = (rule, value, callback) => {
-    if (value) {
-      if (!(value[0].name.endsWith('.xml'))) {
-        callback([new Error(formatMessage({ id: 'validation.file.format' }))]);
-      } else {
-        callback();
-      }
+    if (!value) {
+      callback([new Error('!')]);
+    } else if (!(value[0].name.endsWith('.xml'))) {
+      callback([new Error(formatMessage({ id: 'validation.file.format' }))]);
     } else {
       callback();
     }
+    callback();
   };
 
   handleCancel = () => {
@@ -128,16 +127,16 @@ class AddTemp extends React.Component {
           };
         });
       },
-      // beforeUpload: file => {
-      //   this.setState({
-      //     fileList: [file],
-      //   });
-      //   const isAccept = file.name.endsWith('.xml');
-      //   if (!isAccept) {
-      //     message.error(formatMessage({ id: 'validation.file.format' }));
-      //   }
-      //   return isAccept;
-      // },
+      beforeUpload: file => {
+        this.setState({
+          fileList: [file],
+        });
+        // const isAccept = file.name.endsWith('.xml');
+        // if (!isAccept) {
+        //   message.error(formatMessage({ id: 'validation.file.format' }));
+        // }
+        return false;
+      },
       onChange: this.handleUpload,
     };
     return (
