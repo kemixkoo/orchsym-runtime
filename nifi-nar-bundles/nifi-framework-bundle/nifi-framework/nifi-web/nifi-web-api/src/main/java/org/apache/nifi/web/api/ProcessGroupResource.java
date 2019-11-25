@@ -3700,7 +3700,7 @@ public class ProcessGroupResource extends ApplicationResource {
                 templateEntity -> {
                     try {
                         Map<String, String> additions = templateEntity.getTemplate().getAdditions();
-                        if (null != additions) {
+                        if (Objects.isNull(additions)) {
                             additions = new HashMap<>();
                         } else {
                             additions = new HashMap<>(additions);
