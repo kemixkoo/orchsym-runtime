@@ -179,8 +179,8 @@ class AppList extends PureComponent {
         const that = this
         if (res.canDelete) {
           confirm({
-            title: formatMessage({ id: 'result.delete.title' }),
-            content: formatMessage({ id: 'result.delete.description' }),
+            title: formatMessage({ id: 'application.delete.title' }),
+            content: formatMessage({ id: 'application.delete.description' }),
             okText: 'Yes',
             okType: 'warning',
             cancelText: 'No',
@@ -193,8 +193,8 @@ class AppList extends PureComponent {
           });
         } else {
           confirm({
-            title: formatMessage({ id: 'result.delete.title' }),
-            content: formatMessage({ id: 'result.delete.description' }),
+            title: formatMessage({ id: 'application.delete.title' }),
+            content: formatMessage({ id: 'application.delete.description' }),
             okText: 'Yes',
             okType: 'warning',
             cancelText: 'No',
@@ -280,7 +280,7 @@ class AppList extends PureComponent {
         <Menu.Divider />
         <Menu.Item key="10" onClick={() => { this.showSaveTemp(item) }}>
           <IconFont type="OS-iconmoban" />
-          {`${formatMessage({ id: 'page.application.content.saveTemp' })}`}
+          {`${formatMessage({ id: 'title.saveTemp' })}`}
         </Menu.Item>
       </Menu>
     ) : (

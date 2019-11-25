@@ -51,7 +51,7 @@
     - Result                   # 自带的结果页面，成功失败两种模板（components中的 Result）
     - User                     # 用户登录页面
     - Authorized.js            # 权限校验
-    - document.ejs             # html 模版，挂载 react 根实例
+    - document.ejs             # html 模板，挂载 react 根实例
   - services                   # 异步数据 API 接口定义
   - utils                      # fetch、权限、工具函数、正则定义
   - global.less                # 全局样式

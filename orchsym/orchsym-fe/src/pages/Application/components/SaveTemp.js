@@ -89,17 +89,14 @@ class SaveTemp extends React.Component {
       console.log('search:', val);
     }
     const checkReName = (rule, value, callback) => {
-      const { dispatch, appDetails } = this.props;
+      const { dispatch } = this.props;
       if (value) {
         const queryData = {
           name: value,
-          appId: '',
-        }
-        if (Object.keys(appDetails).length > 0) {
-          queryData.appId = appDetails.id
+          templateId: '',
         }
         dispatch({
-          type: 'application/fetchValidationCheckName',
+          type: 'application/fetchCheckTempName',
           payload: queryData,
           cb: (res) => {
             if (res.isValid) {
@@ -116,7 +113,7 @@ class SaveTemp extends React.Component {
     return (
       <Modal
         visible={visible}
-        title={formatMessage({ id: 'template.title.saveTemp' })}
+        title={formatMessage({ id: 'title.saveTemp' })}
         onCancel={this.handleCancel}
         onOk={this.handleSaveTemp}
         okText={formatMessage({ id: 'button.submit' })}

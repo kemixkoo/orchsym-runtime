@@ -24,7 +24,7 @@ export async function licenseWarn() {
   });
 }
 
-// 复制 运行 创建模版前所需接口
+// 复制 运行 创建模板前所需接口
 export async function createSnippets(params) {
   return request('/studio/nifi-api/snippets', {
     method: 'POST',

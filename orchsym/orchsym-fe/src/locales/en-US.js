@@ -1,4 +1,4 @@
-import common from './zh-CN/common';
+import common from './en-US/common';
 import exception from './en-US/exception';
 import globalHeader from './en-US/globalHeader';
 import login from './en-US/login';
@@ -13,7 +13,7 @@ import blank from './en-US/blank';
 
 // 应用页面
 import application from './en-US/application';
-// 模版页面
+// 模板页面
 import template from './en-US/template';
 
 export default {

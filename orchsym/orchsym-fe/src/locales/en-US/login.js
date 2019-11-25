@@ -42,7 +42,6 @@ export default {
   'form.get-captcha': 'Get Captcha',
   'form.captcha.second': 'sec',
   'form.optional': ' (optional) ',
-  'form.save': 'Save',
   'form.email.placeholder': 'Email',
   'form.password.placeholder': 'Password',
   'form.confirm-password.placeholder': 'Confirm password',

@@ -26,6 +26,7 @@ class Application extends React.Component {
     // selectValue: '名称',
     selectedKeys: 'modifyDesc',
     iconType: 'sort-ascending',
+    // 列表传参
     pageNum: 1,
     pageSizeNum: 12,
     searchVal: '',
@@ -131,13 +132,13 @@ class Application extends React.Component {
               </Button>
             </Col>
             <Col span={20}>
-              <Search placeholder={formatMessage({ id: 'page.application.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
+              <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
               {/* <div className={styles.applicationRight}> */}
               {/* <div className={styles.search}> */}
               {/* <InputGroup compact>
                       <Select style={{ width: '70px' }} defaultValue="名称" onChange={this.handlePreSelect}>
-                        <Option value="标签" key="标签">{formatMessage({ id: 'page.application.search.tag' })}</Option>
-                        <Option value="名称" key="名称">{formatMessage({ id: 'page.application.search.name' })}</Option>
+                        <Option value="标签" key="标签">{formatMessage({ id: 'title.tag' })}</Option>
+                        <Option value="名称" key="名称">{formatMessage({ id: 'title.name' })}</Option>
                       </Select>
                       {(selectValue === '标签') ? (
                         <span>

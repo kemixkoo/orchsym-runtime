@@ -5,10 +5,12 @@ import {
   detailApplication, editApplication, addApplication,
   createApplicationTemp, updateAppState,
 } from '@/services/application';
-import { validationRunApp, validationDeleteApp, validationAppCheckName } from '@/services/validation';
+import { validationRunApp, validationDeleteApp, validationAppCheckName, validationTempCheckName } from '@/services/validation';
 import { downloadApplication } from '@/services/template';
 import { getClientId } from '@/utils/authority';
-// import { notification } from "antd/lib/index";
+import { download } from '@/utils/utils';
+import { formatMessage } from 'umi-plugin-react/locale';
+import { message } from 'antd';
 
 export default {
   namespace: 'application',
@@ -147,14 +149,7 @@ export default {
     * fetchDownloadApp({ payload, cb }, { call, put }) {
       const res = yield call(downloadApplication, payload.id);
       if (res) {
-        const blob = new Blob([res], { type: 'application/octet-stream' })
-        const a = document.createElement('a')
-        a.setAttribute('href', window.URL.createObjectURL(blob))
-        const fileName = `${payload.name}.xml`;
-        a.setAttribute('download', fileName)
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
+        download(res, `${payload.name}.xml`)
       }
       yield cb && cb(res)
     },
@@ -241,8 +236,12 @@ export default {
       const response = yield call(validationAppCheckName, payload);
       yield cb && cb(response)
     },
-
-    // 存为模版
+    // 验证模板名字重复
+    * fetchCheckTempName({ payload, cb }, { call, put }) {
+      const response = yield call(validationTempCheckName, payload);
+      yield cb && cb(response)
+    },
+    // 存为模板
     * fetchCreateAppTemp({ payload, cb }, { call, put }) {
       const { snippetId, values, id } = payload;
       const params = {
@@ -257,7 +256,10 @@ export default {
         const { response = {} } = error;
         console.log('error--', response)
       };
-      yield call(createApplicationTemp, params, errorHandler);
+      const response = yield call(createApplicationTemp, params, errorHandler);
+      if (response) {
+        message.success(formatMessage({ id: 'result.success' }));
+      }
       yield cb && cb()
     },
 

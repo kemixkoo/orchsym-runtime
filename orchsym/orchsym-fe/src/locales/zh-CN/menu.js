@@ -1,8 +1,8 @@
 export default {
   // 应用页面
   'menu.application': '应用管理',
-  // 模版页面
-  'menu.template': '模版管理',
+  // 模板页面
+  'menu.template': '模板管理',
   // 控制器服务页面
   'menu.controllerServices': '控制器服务页面',
   // 标签管理

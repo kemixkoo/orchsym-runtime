@@ -11,8 +11,19 @@ import { parse, stringify } from 'qs';
  * @当前环境为本地开发环境(development)时，该值为在/config/config.local.js中配置好的后端地址
  */
 export function logout() {
-  localStorage.clear();
+  localStorage.removeItem('token');
   window.location.href = '/logout'
+}
+
+export function download(res, name) {
+  const blob = new Blob([res], { type: 'application/octet-stream' })
+  const a = document.createElement('a')
+  a.setAttribute('href', window.URL.createObjectURL(blob))
+  // const fileName = `${payload.name}.xml`;
+  a.setAttribute('download', name)
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
 }
 
 export function fixedZero(val) {
