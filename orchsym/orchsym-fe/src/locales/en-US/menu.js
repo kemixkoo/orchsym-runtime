@@ -8,9 +8,7 @@ export default {
   // 回收站
   'menu.recycleBin': 'Recycle bin',
   // 模板页面
-  'menu.template': 'template',
-  'menu.template.local': 'local template',
-  'menu.template.remote': 'remote template',
+  'menu.template': 'Template',
   // // 编排页面
   // 'menu.orchestrations': 'orchestrations',
   // 'menu.home': 'Home',

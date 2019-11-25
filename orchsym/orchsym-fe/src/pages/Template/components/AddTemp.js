@@ -128,16 +128,16 @@ class AddTemp extends React.Component {
           };
         });
       },
-      beforeUpload: file => {
-        this.setState({
-          fileList: [file],
-        });
-        const isAccept = file.name.endsWith('.xml');
-        if (!isAccept) {
-          message.error(formatMessage({ id: 'validation.file.format' }));
-        }
-        return isAccept;
-      },
+      // beforeUpload: file => {
+      //   this.setState({
+      //     fileList: [file],
+      //   });
+      //   const isAccept = file.name.endsWith('.xml');
+      //   if (!isAccept) {
+      //     message.error(formatMessage({ id: 'validation.file.format' }));
+      //   }
+      //   return isAccept;
+      // },
       onChange: this.handleUpload,
     };
     return (
