@@ -53,7 +53,7 @@ public class StandardTypeAdditions implements TypeAdditions {
 
     @Override
     public String setValue(String name, Object value) {
-        return setValue(name, value, true);
+        return setValue(name, value, false);
     }
 
     @Override

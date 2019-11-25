@@ -17,6 +17,7 @@
  */
 package org.apache.nifi.web.api;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -47,6 +48,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.collections4.list.TreeList;
 import org.apache.nifi.authorization.AuthorizableLookup;
@@ -57,10 +63,12 @@ import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.controller.Template;
 import org.apache.nifi.groups.ProcessGroup;
+import org.apache.nifi.security.xml.XmlUtils;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.StringUtils;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
+import org.apache.nifi.web.api.entity.OrchsymTemplateEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
 import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
@@ -69,6 +77,9 @@ import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateSearchEntity;
 import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
 import org.apache.nifi.web.dao.TemplateDAO;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -87,6 +98,8 @@ import io.swagger.annotations.Api;
 @Path("/orchsym-template")
 @Api(value = "/orchsym-template", description = "for Template")
 public class OrchsymTemplateResource extends AbsOrchsymResource {
+    private static final Logger logger = LoggerFactory.getLogger(OrchsymTemplateResource.class);
+
     @Autowired
     private TemplateResource templateResource;
 
@@ -466,6 +479,114 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
 
         return setDeletedStateTempById(templateId, false);
     }
+
+    /**
+     * 仅将上传的模板xml文件 解析为json 对象(TemplateDTO) 返给前端
+     */
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/xml_parse")
+    public Response parseTemplateXMLFile( @FormDataParam("template") final InputStream in) throws InterruptedException{
+        //  only parse  no need to replicate cluster nodes
+        if (isDisconnectedFromCluster()){
+            return Response.status(Response.Status.BAD_REQUEST).entity("current node is disconnected from cluster").build();
+        }
+
+        // unmarshal the template
+        final TemplateDTO template;
+        try {
+            JAXBContext context = JAXBContext.newInstance(TemplateDTO.class);
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+            XMLStreamReader xsr = XmlUtils.createSafeReader(in);
+            JAXBElement<TemplateDTO> templateElement = unmarshaller.unmarshal(xsr, TemplateDTO.class);
+            template = templateElement.getValue();
+        } catch (JAXBException jaxbe) {
+            logger.warn("An error occurred while parsing a template.", jaxbe);
+            return Response.status(Response.Status.BAD_REQUEST).entity("The specified template is not in a valid format.").build();
+        } catch (IllegalArgumentException iae) {
+            logger.warn("Unable to import template.", iae);
+            return Response.status(Response.Status.BAD_REQUEST).entity("invalid argument because of "+ iae.getMessage()).build();
+        } catch (Exception e) {
+            logger.warn("An error occurred while importing a template.", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return Response.ok(template).build();
+    }
+
+    /**
+     * 上传json 导入模板
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{groupId}/json_import")
+    public  Response importTemplateFromJson(
+            @PathParam("groupId")  String groupId,
+            final OrchsymTemplateEntity requestTemplateEntity
+            ){
+
+        // verify the template was specified
+        if (requestTemplateEntity == null || requestTemplateEntity.getTemplate() == null || requestTemplateEntity.getTemplate().getSnippet() == null) {
+            throw new IllegalArgumentException("Template details must be specified.");
+        }
+
+        if (Objects.isNull(requestTemplateEntity.getUploadedTime())) {
+            requestTemplateEntity.setUploadedTime(System.currentTimeMillis());
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.POST, requestTemplateEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestTemplateEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        final String  realGroupId = "root".equals(groupId)? flowController.getRootGroupId() : groupId;
+
+
+        return withWriteLock(
+                serviceFacade,
+                requestTemplateEntity,
+                lookup -> {
+                    final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                },
+                () -> serviceFacade.verifyCanAddTemplate(realGroupId, requestTemplateEntity.getTemplate().getName()),
+                templateEntity -> {
+                    try {
+                        Map<String, String> additions = templateEntity.getTemplate().getAdditions();
+                        if (null != additions) {
+                            additions = new HashMap<>();
+                        } else {
+                            additions = new HashMap<>(additions);
+                        }
+                        final Map<String, String> uploadedAdditions = TemplateFieldName.getUploadedAdditions(requestTemplateEntity, NiFiUserUtils.getNiFiUserIdentity());
+                        additions.putAll(uploadedAdditions);
+                        templateEntity.getTemplate().setAdditions(additions);
+
+                        // import the template
+                        final TemplateDTO template = serviceFacade.importTemplate(templateEntity.getTemplate(), groupId, getIdGenerationSeed());
+                        templateResource.populateRemainingTemplateContent(template);
+
+                        // build the response entity
+                        TemplateEntity entity = new TemplateEntity();
+                        entity.setTemplate(template);
+
+                        // build the response
+                        return generateCreatedResponse(URI.create(template.getUri()), entity).build();
+                    } catch (IllegalArgumentException | IllegalStateException e) {
+                        logger.warn("Unable to import template.", e);
+                        return Response.status(Response.Status.BAD_REQUEST).entity("invalid argument because of "+ e.getMessage()).build();
+                    } catch (Exception e) {
+                        logger.warn("An error occurred while importing a template.", e);
+                        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+                    }
+                }
+        );
+    }
+
+
 
     // ================= these methods are used by create orchsym template ======================
     private SnippetAuthorizable authorizeSnippetUsage(final AuthorizableLookup lookup, final String groupId, final String snippetId, final boolean authorizeTransitiveServices) {

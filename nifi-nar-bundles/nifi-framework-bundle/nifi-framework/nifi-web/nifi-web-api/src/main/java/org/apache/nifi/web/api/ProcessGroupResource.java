@@ -159,15 +159,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -3578,7 +3570,7 @@ public class ProcessGroupResource extends ApplicationResource {
                     value = "The process group id.",
                     required = true
             )
-            @PathParam("id") final String groupId,
+            @PathParam("id") String groupId,
             @ApiParam(
                     value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.",
                     required = false
@@ -3615,12 +3607,19 @@ public class ProcessGroupResource extends ApplicationResource {
 
         // build the response entity
         OrchsymTemplateEntity entity = new OrchsymTemplateEntity();
+        if (Objects.isNull(entity.getUploadedTime())) {
+           entity.setUploadedTime(System.currentTimeMillis());
+        }
+
         entity.setTemplate(template);
         entity.setDisconnectedNodeAcknowledged(disconnectedNodeAcknowledged);
 
         if (isReplicateRequest()) {
             // convert request accordingly
             final UriBuilder uriBuilder = uriInfo.getBaseUriBuilder();
+
+            groupId = "root".equals(groupId)? flowController.getRootGroupId() : groupId;
+
             uriBuilder.segment("process-groups", groupId, "templates", "import");
             final URI importUri = uriBuilder.build();
 
@@ -3679,6 +3678,10 @@ public class ProcessGroupResource extends ApplicationResource {
         // verify the template was specified
         if (requestTemplateEntity == null || requestTemplateEntity.getTemplate() == null || requestTemplateEntity.getTemplate().getSnippet() == null) {
             throw new IllegalArgumentException("Template details must be specified.");
+        }
+
+        if (Objects.isNull(requestTemplateEntity.getUploadedTime())) {
+           requestTemplateEntity.setUploadedTime(System.currentTimeMillis());
         }
 
         if (isReplicateRequest()) {
