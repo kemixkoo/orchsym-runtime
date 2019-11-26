@@ -95,8 +95,8 @@ class operateMenu extends React.Component {
     return (
       <span className={styles.operateMenu}>
         {data.additions.IS_FAVORITE === 'true' ? (
-          <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, true) }} />
-        ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, false) }} />
+          <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, false) }} />
+        ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, true) }} />
         )}
         <Dropdown overlay={menu} trigger={['click']}>
           <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
