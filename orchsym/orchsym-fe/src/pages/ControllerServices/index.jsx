@@ -62,7 +62,7 @@ class ControllerServices extends React.Component {
             </span>
           ) : (
             <a disabled={editingKey !== ''} onClick={() => this.edit(record.id)}>
-                Edit
+              Edit
             </a>
           );
         },
@@ -74,6 +74,10 @@ class ControllerServices extends React.Component {
     const { dispatch } = this.props;
     dispatch({
       type: 'controllerServices/fetchControllerServices',
+      payload: {
+        page: 1,
+        pageSize: 10,
+      },
     });
   }
 

@@ -7,8 +7,11 @@ import Debounce from 'lodash-decorators/debounce';
 import styles from './index.less';
 import RightContent from './RightContent';
 import AppPopover from './AppPopover';
+import { getToken } from '@/utils/authority';
+import { getExpiration } from '@/utils/utils';
 
-@connect(({ application, global }) => ({
+@connect(({ application, global, login }) => ({
+  login,
   leftDays: global.leftDays,
   appDetails: application.appDetails,
 }))
@@ -34,6 +37,27 @@ class GlobalHeader extends PureComponent {
         type: 'application/fetchDetailApplication',
         payload: processGroupId,
       });
+    }
+    // kc登录 刷新
+    if (getToken()) {
+      setInterval(() => {
+        const oldJwt = localStorage.getItem('jwt');
+        if (!oldJwt) {
+          if (window.document.cookie > -1) {
+            dispatch({
+              type: 'login/fetchRefreshToken',
+            });
+          }
+        }
+        const activeTime = getExpiration(oldJwt) - (new Date()).getTime();
+        const interval = 30;
+        const refreshLeftTime = interval * 1000 * 1.5;
+        if (activeTime <= refreshLeftTime) {
+          dispatch({
+            type: 'login/fetchRefreshToken',
+          });
+        }
+      }, 60000);
     }
   }
 

@@ -12,8 +12,3 @@ export async function queryClientId() {
 export async function queryCurrentUser() {
   return request('/studio/nifi-api/flow/current-user');
 }
-
-// 控制器服务
-export async function queryControllerServices() {
-  return request('/studio/nifi-api/flow/controller/controller-services');
-}

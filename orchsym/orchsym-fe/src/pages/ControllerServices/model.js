@@ -1,5 +1,5 @@
 // import { message } from 'antd';
-import { queryControllerServices } from '@/services/Flow';
+import { queryControllerServices } from '@/services/controllerServices';
 
 export default {
   namespace: 'controllerServices',
@@ -10,12 +10,12 @@ export default {
 
   effects: {
     *fetchControllerServices({ payload }, { call, put }) {
-      const response = yield call(queryControllerServices);
+      const response = yield call(queryControllerServices, payload);
       console.log(response)
       yield put({
         type: 'appendValue',
         payload: {
-          controllerServicesList: response.controllerServices,
+          controllerServicesList: response,
         },
       });
     },

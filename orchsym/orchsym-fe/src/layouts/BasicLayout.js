@@ -10,8 +10,6 @@ import Header from './Header';
 import Context from './MenuContext';
 import SiderMenu from '@/components/SiderMenu';
 import getPageTitle from '@/utils/getPageTitle';
-import { getToken } from '@/utils/authority';
-import { getExpiration } from '@/utils/utils';
 import styles from './BasicLayout.less';
 
 // lazy load SettingDrawer
@@ -34,28 +32,6 @@ class BasicLayout extends React.Component {
       type: 'menu/getMenuData',
       payload: { routes, path, authority },
     });
-
-    // kc登录 刷新
-    if (getToken()) {
-      setInterval(() => {
-        const oldJwt = localStorage.getItem('jwt');
-        if (!oldJwt) {
-          if (window.document.cookie > -1) {
-            dispatch({
-              type: 'login/fetchRefreshToken',
-            });
-          }
-        }
-        const activeTime = getExpiration(oldJwt) - (new Date()).getTime();
-        const interval = 30;
-        const refreshLeftTime = interval * 1000 * 1.5;
-        if (activeTime <= refreshLeftTime) {
-          dispatch({
-            type: 'login/fetchRefreshToken',
-          });
-        }
-      }, 60000);
-    }
   }
 
   getContext() {
