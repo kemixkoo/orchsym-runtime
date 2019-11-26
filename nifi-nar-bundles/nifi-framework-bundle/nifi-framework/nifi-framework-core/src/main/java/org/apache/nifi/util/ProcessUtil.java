@@ -176,13 +176,11 @@ public final class ProcessUtil {
      * 获取返回值
      */
     public static Boolean getAdditionBooleanValue(Map<String, String> additionParam, String name, Boolean defaultValue) {
-        if (Objects.isNull(additionParam) || additionParam.isEmpty()) {
-            return null;
-        }
-
-        final String valueStr = additionParam.get(name);
-        if (StringUtils.isNotBlank(valueStr)) {
-            return Boolean.parseBoolean(valueStr);
+        if (!Objects.isNull(additionParam) && !additionParam.isEmpty()) {
+            final String valueStr = additionParam.get(name);
+            if (StringUtils.isNotBlank(valueStr)) {
+                return Boolean.parseBoolean(valueStr);
+            }
         }
         return defaultValue;
     }
