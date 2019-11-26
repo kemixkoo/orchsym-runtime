@@ -964,15 +964,15 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/search")
     @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
-    @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) }//
+    @ApiResponses(value = {
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400),
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401),
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403),
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) }
     )
-    public Response queryControllerServices(//
-            @Context HttpServletRequest httpServletRequest, //
-            @RequestBody final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity//
+    public Response queryControllerServices(
+            @Context HttpServletRequest httpServletRequest,
+            @RequestBody final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity
     ) {
         if (requestServiceSearchCriteriaEntity == null) {
             throw new IllegalArgumentException("The Controller Service Search Criteria must be specified.");
@@ -1002,24 +1002,25 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             states.addAll(Arrays.asList(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.values()));
         }
         final String searchStr = requestServiceSearchCriteriaEntity.getText();
-        final boolean asc = requestServiceSearchCriteriaEntity.isDesc();
+        final boolean desc = requestServiceSearchCriteriaEntity.isDesc();
         services = services.stream()
                 // 2. filter by controller service state
                 .filter(controllerServiceDTO -> states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState()))
                         || states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus())))
-                // 3. filter by search string. Only try to match search string with controller service's name and type
-                .filter(controllerServiceDTO -> StringUtils.containsIgnoreCase(controllerServiceDTO.getName(), searchStr) || StringUtils.containsIgnoreCase(controllerServiceDTO.getType(), searchStr)
+                // 3. filter by search string. Only try to match search string with controller service's name, type and comments
+                .filter(controllerServiceDTO -> StringUtils.containsIgnoreCase(controllerServiceDTO.getName(), searchStr)
+                        || StringUtils.containsIgnoreCase(controllerServiceDTO.getType(), searchStr)
                         || StringUtils.containsIgnoreCase(controllerServiceDTO.getComments(), searchStr))
                 .collect(Collectors.toList());
         // 4. sorting
         final OrchsymServiceSortField sortField = Objects.isNull(requestServiceSearchCriteriaEntity.getSortedField()) ? OrchsymServiceSortField.NAME
                 : OrchsymServiceSortField.valueOf(requestServiceSearchCriteriaEntity.getSortedField().toUpperCase());
-        services.sort((o1, o2) -> {
+        services.sort((o2, o1) -> {
             switch (sortField) {
             case NAME:
-                return asc ? o1.getName().compareTo(o2.getName()) : o2.getName().compareTo(o1.getName());
+                return desc ? o1.getName().compareTo(o2.getName()) : o2.getName().compareTo(o1.getName());
             case TYPE:
-                return asc ? o1.getType().compareTo(o2.getType()) : o2.getType().compareTo(o1.getType());
+                return desc ? o1.getType().compareTo(o2.getType()) : o2.getType().compareTo(o1.getType());
             case REFERENCING_COMPONENTS:
                 int size1 = 0;
                 for (Map.Entry<String, Set<String>> entry : o1.getReferencingComponents().entrySet()) {
@@ -1030,7 +1031,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
                     size2 += entry.getValue().size();
                 }
                 final int diff = size1 - size2;
-                return asc ? diff : -diff;
+                return desc ? -diff : diff;
             default:
                 return 0;
             }
@@ -1042,7 +1043,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             controllerServiceSearchDTO.setUri(generateResourceUri("controller-services", controllerServiceSearchDTO.getId()));
 
             final String parentGroupId = controllerServiceSearchDTO.getParentGroupId();
-            String scope = null;
+            String scope;
             ApplicationInfoDTO appInfo = new ApplicationInfoDTO();
             if (Objects.isNull(parentGroupId)) {
                 scope = "CONTROLLER";
