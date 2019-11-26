@@ -1,14 +1,14 @@
 import React from 'react';
-import PageHeaderWrapper from '@/components/PageHeaderWrapper';
-import { Form, Table, Input } from 'antd';
+import { Row, Col, Button, Form, Table, message, Input } from 'antd';
 import { connect } from 'dva';
+import PageHeaderWrapper from '@/components/PageHeaderWrapper';
+import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
 import { EditableContext } from '@/utils/utils'
-// import Ellipsis from '@/components/Ellipsis';
+import IconFont from '@/components/IconFont';
 import styles from './index.less';
 
 const { Search } = Input;
-
 @connect(({ controllerServices }) => ({
   controllerServicesList: controllerServices.controllerServicesList,
 }))
@@ -16,67 +16,129 @@ const { Search } = Input;
 class ControllerServices extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { editingKey: '', searchVal: '' };
+    this.state = {
+      selectedRowKeys: [],
+      editingKey: '',
+      searchVal: '',
+      pageNum: 1,
+      pageSizeNum: 10,
+      sortedField: 'NAME', // NAME(按照服务名排序)/TYPE(根据服务类型排序)/REFERENCING_COMPONENTS(根据引用该服务的组件的数量排序)/NONE(不排序)
+      isDesc: true,
+    };
     this.columns = [
       {
-        title: '名称',
-        dataIndex: 'component.name',
+        title: formatMessage({ id: 'title.name' }),
+        width: 200,
+        dataIndex: 'name',
+        key: 'name',
         editable: true,
+        rules: [
+          { required: true, message: formatMessage({ id: 'validation.name.required' }) },
+          { max: 20, message: formatMessage({ id: 'validation.name.placeholder' }) },
+          { whitespace: true, message: formatMessage({ id: 'validation.name.required' }) },
+          { validator: this.checkReName },
+        ],
       },
       {
-        title: '类型',
-        dataIndex: 'component.type',
+        title: formatMessage({ id: 'title.type' }),
+        dataIndex: 'type',
+        key: 'type',
       },
-      // {
-      //   title: '作用域',
-      //   dataIndex: 'type',
-      // },
-      // {
-      //   title: '引用组件',
-      //   dataIndex: 'time',
-      // },
-      // {
-      //   title: '服务状态',
-      //   dataIndex: 'time',
-      // },
       {
-        title: '操作',
+        title: formatMessage({ id: 'service.title.scope' }),
+        dataIndex: 'scope',
+        key: 'scope',
+      },
+      {
+        title: formatMessage({ id: 'service.title.refComponent' }),
+        dataIndex: 'referencingComponents',
+        key: 'refComponent',
+        render: (text, record) => (
+          <div>
+            <span className={styles.badgeIcon}>
+              <IconFont type="OS-iconqidong" />
+              <span>{record.runningCount}</span>
+            </span>
+            <span className={styles.badgeIcon}>
+              <IconFont type="OS-icontingzhi" />
+              <span>{record.stoppedCount}</span>
+            </span>
+            <span className={styles.badgeIcon}>
+              <IconFont type="OS-iconicon" />
+              <span>{record.invalidCount}</span>
+            </span>
+            {/* <a className="ant-dropdown-link" href="#">
+            更多
+          </a> */}
+          </div>
+        ),
+      },
+      {
+        title: formatMessage({ id: 'service.title.serviceStatus' }),
+        dataIndex: 'additions.CREATED_TIMESTAMP',
+        key: 'serviceStatus',
+      },
+      {
+        title: formatMessage({ id: 'title.operate' }),
+        width: 150,
         render: (text, record) => {
-          const { editingKey } = this.state;
+          // const { match } = this.props
+          // const { editingKey } = this.state;
           const editable = this.isEditing(record);
           return editable ? (
             <span>
               <EditableContext.Consumer>
                 {form => (
-                  <a
-                    onClick={() => this.save(form, record.key)}
-                    style={{ marginRight: 8 }}
-                  >
-                    Save
-                  </a>
+                  <span>
+                    <a
+                      type="link"
+                      onClick={() => this.save(form, record)}
+                      style={{ marginRight: 8 }}
+                    >
+                      {formatMessage({ id: 'button.save' })}
+                    </a>
+                    <a
+                      type="link"
+                      onClick={() => this.cancel()}
+                    >
+                      {formatMessage({ id: 'button.cancel' })}
+                    </a>
+                  </span>
                 )}
               </EditableContext.Consumer>
-              {/* <Popconfirm title="Sure to cancel?" onConfirm={() => this.cancel(record.key)}>
-                <a>Cancel</a>
-              </Popconfirm> */}
             </span>
-          ) : (
-            <a disabled={editingKey !== ''} onClick={() => this.edit(record.id)}>
-              Edit
-            </a>
-          );
+          ) : (null)
+          // : (
+          //   <span className={styles.operateMenu}>
+          //     {/* {data.additions.IS_FAVORITE === 'true' ? (
+          //   <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, false) }} />
+          // ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, true) }} />
+          //   )} */}
+          //     <Dropdown overlay={menu} trigger={['click']}>
+          //       <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
+          //     </Dropdown>
+          //   </span>
+          // );
         },
       },
     ];
   }
 
   componentDidMount() {
+    const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.state
+    this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+  }
+
+  getList = (page, pageSize, sortedField, isDesc, text) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'controllerServices/fetchControllerServices',
       payload: {
-        page: 1,
-        pageSize: 10,
+        page,
+        pageSize,
+        text,
+        sortedField,
+        isDesc,
       },
     });
   }
@@ -90,34 +152,63 @@ class ControllerServices extends React.Component {
     this.setState({ editingKey: '' });
   };
 
-  // save(form, key) {
-  //   form.validateFields((error, row) => {
-  //     if (error) {
-  //       return;
-  //     }
-  //     const newData = [...dataSource];
-  //     const index = newData.findIndex(item => key === item.key);
-  //     if (index > -1) {
-  //       const item = newData[index];
-  //       newData.splice(index, 1, {
-  //         ...item,
-  //         ...row,
-  //       });
-  //       this.setState({ data: newData, editingKey: '' });
-  //     } else {
-  //       newData.push(row);
-  //       this.setState({ data: newData, editingKey: '' });
-  //     }
-  //   });
-  // }
+  save = (form, record) => {
+    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    form.validateFields((error, row) => {
+      if (error) {
+        return;
+      }
+      dispatch({
+        type: 'template/fetchEditTemplate',
+        payload: {
+          id: record.id,
+          ...row,
+        },
+        cb: () => {
+          this.cancel()
+          message.success(formatMessage({ id: 'result.success' }));
+          this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        },
+      });
+    });
+  }
 
-  edit(key) {
+  edit = (key) => {
     this.setState({ editingKey: key });
   }
 
+  checkReName = (rule, value, callback) => {
+    const { editingKey } = this.state;
+    const { dispatch } = this.props;
+    if (value) {
+      const queryData = {
+        name: value,
+        templateId: editingKey,
+      }
+      dispatch({
+        type: 'application/fetchCheckTempName',
+        payload: queryData,
+        cb: (res) => {
+          if (res.isValid) {
+            callback();
+          } else {
+            callback([new Error(formatMessage({ id: 'validation.name.duplicate' }))]);
+          }
+        },
+      });
+    } else {
+      callback();
+    }
+  }
+
+
   render() {
-    const { form, controllerServicesList } = this.props;
-    const { searchVal } = this.state
+    const { selectedRowKeys, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.state;
+    const { form, controllerServicesList: { results, totalSize } } = this.props;
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: this.onSelectChange,
+    };
     const components = {
       body: {
         cell: EditableCell,
@@ -131,36 +222,76 @@ class ControllerServices extends React.Component {
       return {
         ...col,
         onCell: record => ({
-          record: record.component,
+          record,
           // inputType: col.dataIndex === 'age' ? 'number' : 'text',
-          dataIndex: col.dataIndex.split('.')[1],
+          dataIndex: col.dataIndex,
           // title: col.title,
+          rules: col.rules,
           editing: this.isEditing(record),
         }),
       };
     });
+
+    const showTotal = (total) => {
+      if (getLocale() === 'zh-CN') {
+        return `共 ${total} 个`;
+      } else {
+        return `Total ${total} items`;
+      }
+    }
+    const hasSelected = selectedRowKeys.length > 0;
     return (
       <PageHeaderWrapper>
-        <div className={styles.contentWrapper}>
+        <div className={styles.templateWrapper}>
           <div className={styles.tableTopHeader}>
-            <Search
-              placeholder="请输入"
-              className={styles.Search}
-              onSearch={this.handleSearch}
-              onChange={this.handleSearchText}
-              value={searchVal}
-              allowClear
-            />
+            <Row gutter={16} className={styles.bottomSpace}>
+              <Col span={12}>
+                <Button type="primary" style={{ marginRight: '10px' }} onClick={this.showUploadModal}>
+                  <FormattedMessage id="button.upload" />
+                </Button>
+                <Button disabled={!hasSelected} style={{ marginRight: '10px' }} onClick={this.downloadTemps}>
+                  <FormattedMessage id="button.download" />
+                </Button>
+                <Button disabled={!hasSelected} onClick={this.deleteTemps}>
+                  <FormattedMessage id="button.delete" />
+                </Button>
+              </Col>
+              <Col>
+                <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
+              </Col>
+            </Row>
           </div>
           <EditableContext.Provider value={form}>
             <Table
+              rowSelection={rowSelection}
               components={components}
-              dataSource={controllerServicesList}
+              dataSource={results}
               columns={columns}
               rowKey="id"
               rowClassName="editable-row"
               pagination={{
-                onChange: this.cancel,
+                size: 'small',
+                onChange: (page, pageSize) => {
+                  this.getList(page, pageSize, sortedField, isDesc, searchVal)
+                  this.setState({
+                    pageNum: page,
+                    pageSizeNum: pageSize,
+                  })
+                },
+                onShowSizeChange: (current, size) => {
+                  this.getList(current, size, sortedField, isDesc, searchVal)
+                  this.setState({
+                    pageNum: current,
+                    pageSizeNum: size,
+                  })
+                },
+                current: pageNum,
+                pageSize: pageSizeNum,
+                total: totalSize,
+                showTotal,
+                pageSizeOptions: ['10', '20'],
+                showSizeChanger: true,
+                showQuickJumper: true,
               }}
             />
           </EditableContext.Provider>

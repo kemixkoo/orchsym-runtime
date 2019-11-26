@@ -50,7 +50,7 @@ class OfficialList extends PureComponent {
   }
 
   render() {
-    const { officialList: { results, totalSize }, onFrechList,
+    const { officialList: { results, totalSize },
       onStateChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc, match } = this.props;
     const columns = [
       {
@@ -81,7 +81,7 @@ class OfficialList extends PureComponent {
       {
         title: `${formatMessage({ id: 'title.operate' })}`,
         key: 'operate',
-        render: (text, record) => (<OperateMenu match={match} data={record} onFrechList={onFrechList} />),
+        render: (text, record) => (<OperateMenu match={match} data={record} onFrechList={this.onFrechList} />),
       },
     ];
 

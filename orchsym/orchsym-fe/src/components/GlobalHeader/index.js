@@ -40,24 +40,7 @@ class GlobalHeader extends PureComponent {
     }
     // kc登录 刷新
     if (getToken()) {
-      setInterval(() => {
-        const oldJwt = localStorage.getItem('jwt');
-        if (!oldJwt) {
-          if (window.document.cookie > -1) {
-            dispatch({
-              type: 'login/fetchRefreshToken',
-            });
-          }
-        }
-        const activeTime = getExpiration(oldJwt) - (new Date()).getTime();
-        const interval = 30;
-        const refreshLeftTime = interval * 1000 * 1.5;
-        if (activeTime <= refreshLeftTime) {
-          dispatch({
-            type: 'login/fetchRefreshToken',
-          });
-        }
-      }, 60000);
+      this.poll()
     }
   }
 
@@ -65,6 +48,28 @@ class GlobalHeader extends PureComponent {
     this.triggerResizeEvent.cancel();
   }
 
+  poll = () => {
+    const { dispatch } = this.props;
+    const oldJwt = localStorage.getItem('jwt');
+    if (!oldJwt) {
+      if (window.document.cookie > -1) {
+        dispatch({
+          type: 'login/fetchRefreshToken',
+        });
+      }
+    }
+    const activeTime = getExpiration(oldJwt) - (new Date()).getTime();
+    const interval = 30;
+    const refreshLeftTime = interval * 1000 * 1.5;
+    if (activeTime <= refreshLeftTime) {
+      dispatch({
+        type: 'login/fetchRefreshToken',
+      });
+    }
+    setTimeout(() => {
+      this.poll();
+    }, 30 * 1000);
+  }
 
   /* eslint-disable*/
   @Debounce(600)
