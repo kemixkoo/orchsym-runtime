@@ -493,6 +493,33 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         }
     }
 
+    /**
+     * @param name
+     *            编辑或创建时的应用新命名
+     * @param appId
+     *            编辑时，当前应用id
+     * @return
+     *         在创建时，一般为空；
+     *         在编辑时，为了验证重命名，需要排除自己，所以需要提供当前应用id
+     */
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path("/name/valid")
+    @ApiOperation(value = "check the name of current app", //
+            response = Map.class)
+    public Response isAppNewNameValid(//
+            @QueryParam("name") String name, //
+            @QueryParam("appId") String appId//
+    ) {
+        final boolean validName = validName(name, appId);
+
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("name", name);
+        resultMap.put("isValid", validName);
+        return noCache(Response.ok(resultMap)).build();
+    }
+
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -503,15 +530,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("name") String name, //
             @QueryParam("appId") String appId//
     ) {
-        final Response verifyApp = verifyApp(appId);
-        if (null != verifyApp) {// has error
-            return verifyApp;
-        }
-
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("name", name);
-        resultMap.put("isValid", validName(name, appId));
-        return noCache(Response.ok(resultMap)).build();
+        return isAppNewNameValid(name, appId);
     }
 
     private boolean validName(final String newName, final String curAppId) {

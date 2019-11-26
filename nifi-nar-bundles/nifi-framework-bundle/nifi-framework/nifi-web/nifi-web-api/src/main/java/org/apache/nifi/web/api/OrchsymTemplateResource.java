@@ -78,7 +78,6 @@ import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateSearchEntity;
 import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
 import org.apache.nifi.web.dao.TemplateDAO;
-import org.apache.nifi.web.revision.RevisionManager;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,13 +280,13 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     }
 
     /**
-     * 验证template的新名称是否合法(不重复 不为空)
-     *
      * @param name
-     *            不允许为空
+     *            编辑或创建模板时的新命名
      * @param templateId
-     *            如果为null 表示新建 ; 如果不为null 表示编辑修改
+     *            编辑时，当前模板id
      * @return
+     *         在创建时，一般为空；
+     *         在编辑时，为了验证重命名，需要排除自己，所以需要提供当前模板id
      */
     @GET
     @Consumes(MediaType.WILDCARD)
