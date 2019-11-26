@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Button, Form, Table, message, Input } from 'antd';
+import { Row, Col, Button, Form, Table, message, Input, Dropdown, Icon, Menu, Badge } from 'antd';
 import { connect } from 'dva';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/locale';
@@ -9,6 +9,8 @@ import IconFont from '@/components/IconFont';
 import styles from './index.less';
 
 const { Search } = Input;
+const ButtonGroup = Button.Group;
+
 @connect(({ controllerServices }) => ({
   controllerServicesList: controllerServices.controllerServicesList,
 }))
@@ -32,6 +34,7 @@ class ControllerServices extends React.Component {
         dataIndex: 'name',
         key: 'name',
         editable: true,
+        sorter: true,
         rules: [
           { required: true, message: formatMessage({ id: 'validation.name.required' }) },
           { max: 20, message: formatMessage({ id: 'validation.name.placeholder' }) },
@@ -43,40 +46,75 @@ class ControllerServices extends React.Component {
         title: formatMessage({ id: 'title.type' }),
         dataIndex: 'type',
         key: 'type',
+        sorter: true,
       },
       {
         title: formatMessage({ id: 'service.title.scope' }),
         dataIndex: 'scope',
         key: 'scope',
+        onFilter: true,
+        filters: this.scopeList,
       },
       {
         title: formatMessage({ id: 'service.title.refComponent' }),
         dataIndex: 'referencingComponents',
         key: 'refComponent',
+        sorter: true,
         render: (text, record) => (
           <div>
             <span className={styles.badgeIcon}>
               <IconFont type="OS-iconqidong" />
-              <span>{record.runningCount}</span>
+              <span>({text.RUNNING.length})</span>
             </span>
             <span className={styles.badgeIcon}>
               <IconFont type="OS-icontingzhi" />
-              <span>{record.stoppedCount}</span>
+              <span>({text.STOPPED.length})</span>
             </span>
             <span className={styles.badgeIcon}>
               <IconFont type="OS-iconicon" />
-              <span>{record.invalidCount}</span>
+              <span>({text.INVALID.length})</span>
             </span>
-            {/* <a className="ant-dropdown-link" href="#">
-            更多
-          </a> */}
           </div>
         ),
       },
       {
         title: formatMessage({ id: 'service.title.serviceStatus' }),
-        dataIndex: 'additions.CREATED_TIMESTAMP',
-        key: 'serviceStatus',
+        dataIndex: 'state',
+        key: 'state',
+        filters: [
+          {
+            text: formatMessage({ id: 'service.text.ENABLED' }),
+            value: 'ENABLED',
+          },
+          {
+            text: formatMessage({ id: 'service.text.DISABLED' }),
+            value: 'DISABLED',
+          },
+          {
+            text: formatMessage({ id: 'service.text.INVALID' }),
+            value: 'INVALID',
+          },
+          {
+            text: formatMessage({ id: 'service.text.ENABLING' }),
+            value: 'ENABLING',
+          },
+        ],
+        onFilter: true,
+        render: (text, record) => {
+          if (record.validationStatus === 'VALID') {
+            if (text === 'ENABLED') {
+              return <Badge status="success" text={formatMessage({ id: 'service.text.ENABLED' })} />
+            } else if (text === 'DISABLED') {
+              return <Badge status="error" text={formatMessage({ id: 'service.text.DISABLED' })} />
+            } else {
+              return <IconFont type="OS-iconLoading" />
+            }
+          } else if (record.validationStatus === 'INVALID') {
+            return <Badge status="warning" text={formatMessage({ id: 'service.text.INVALID' })} />
+          } else {
+            return <IconFont type="OS-iconLoading" />
+          }
+        },
       },
       {
         title: formatMessage({ id: 'title.operate' }),
@@ -107,22 +145,21 @@ class ControllerServices extends React.Component {
                 )}
               </EditableContext.Consumer>
             </span>
-          ) : (null)
-          // : (
-          //   <span className={styles.operateMenu}>
-          //     {/* {data.additions.IS_FAVORITE === 'true' ? (
-          //   <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, false) }} />
-          // ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, true) }} />
-          //   )} */}
-          //     <Dropdown overlay={menu} trigger={['click']}>
-          //       <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
-          //     </Dropdown>
-          //   </span>
-          // );
+          ) : (
+            <span className={styles.operateMenu}>
+              <a><Icon type="lock" /></a>
+              <a><Icon type="unlock" /></a>
+              <a><Icon type="setting" style={{ marginLeft: '8px' }} /></a>
+              <Dropdown overlay={this.menu(record)} trigger={['click']}>
+                <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '8px' }} />
+              </Dropdown>
+            </span>
+          );
         },
       },
     ];
   }
+
 
   componentDidMount() {
     const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.state
@@ -142,6 +179,34 @@ class ControllerServices extends React.Component {
       },
     });
   }
+
+  handleTableChange = (pagination, filters, sorter) => {
+    // const pager = { ...this.state.pagination };
+    // pager.current = pagination.current;
+    // this.setState({
+    //   pagination: pager,
+    // });
+    // this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+  };
+
+  menu = (item) => (
+    <Menu>
+      {item && (
+        <Menu.Item key="rename" onClick={() => { this.deleteTempHandel() }}>
+          {`${formatMessage({ id: 'service.button.rename' })}`}
+        </Menu.Item>
+      )}
+      <Menu.Item key="copeTo" onClick={() => { this.deleteTempHandel() }}>
+        {`${formatMessage({ id: 'service.button.copeTo' })}`}
+      </Menu.Item>
+      <Menu.Item key="moveTo" onClick={() => { this.deleteTempHandel() }}>
+        {`${formatMessage({ id: 'service.button.moveTo' })}`}
+      </Menu.Item>
+      <Menu.Item key="delete" onClick={() => { this.deleteTempHandel() }}>
+        {`${formatMessage({ id: 'button.delete' })}`}
+      </Menu.Item>
+    </Menu>
+  );
 
   isEditing = record => {
     const { editingKey } = this.state;
@@ -201,7 +266,6 @@ class ControllerServices extends React.Component {
     }
   }
 
-
   render() {
     const { selectedRowKeys, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.state;
     const { form, controllerServicesList: { results, totalSize } } = this.props;
@@ -239,24 +303,33 @@ class ControllerServices extends React.Component {
         return `Total ${total} items`;
       }
     }
-    const hasSelected = selectedRowKeys.length > 0;
+    // const hasSelected = selectedRowKeys.length > 0;
     return (
       <PageHeaderWrapper>
-        <div className={styles.templateWrapper}>
+        <div className={styles.contentWrapper}>
           <div className={styles.tableTopHeader}>
             <Row gutter={16} className={styles.bottomSpace}>
               <Col span={12}>
                 <Button type="primary" style={{ marginRight: '10px' }} onClick={this.showUploadModal}>
-                  <FormattedMessage id="button.upload" />
+                  <FormattedMessage id="button.create" />
                 </Button>
-                <Button disabled={!hasSelected} style={{ marginRight: '10px' }} onClick={this.downloadTemps}>
-                  <FormattedMessage id="button.download" />
-                </Button>
-                <Button disabled={!hasSelected} onClick={this.deleteTemps}>
-                  <FormattedMessage id="button.delete" />
-                </Button>
+                <ButtonGroup>
+                  <Button>{formatMessage({ id: 'button.search' })}</Button>
+                  <Button>{formatMessage({ id: 'button.enable' })}</Button>
+                  <Dropdown overlay={this.menu} trigger={['click']}>
+                    <Button>
+                      <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
+                    </Button>
+                  </Dropdown>
+                </ButtonGroup>
               </Col>
               <Col>
+                <Icon
+                  type="redo"
+                  rotate={180}
+                  style={{ marginRight: 10 }}
+                // onClick={this.handleRefreshEnv}
+                />
                 <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
               </Col>
             </Row>
@@ -269,6 +342,7 @@ class ControllerServices extends React.Component {
               columns={columns}
               rowKey="id"
               rowClassName="editable-row"
+              onChange={this.handleTableChange}
               pagination={{
                 size: 'small',
                 onChange: (page, pageSize) => {

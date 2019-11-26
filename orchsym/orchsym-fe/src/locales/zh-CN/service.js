@@ -8,4 +8,10 @@ export default {
   'service.title.scope': '作用域',
   'service.title.refComponent': '引用组件',
   'service.title.serviceStatus': '服务状态',
+  'service.button.rename': '重命名',
+  'service.button.copeTo': '复制到',
+  'service.button.moveTo': '移动到',
+  'service.text.ENABLED': '已启用',
+  'service.text.DISABLED': '已禁用',
+  'service.text.INVALID': '无效',
 }

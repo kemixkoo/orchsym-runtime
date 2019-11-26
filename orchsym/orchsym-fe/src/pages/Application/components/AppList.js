@@ -258,11 +258,11 @@ class AppList extends PureComponent {
         </Menu.Item>
         <Menu.Item key="5" disabled={!item.canEnable} onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <IconFont type="OS-iconqiyong" />
-          {`${formatMessage({ id: 'page.application.content.enable' })}`}
+          {`${formatMessage({ id: 'button.enable' })}`}
         </Menu.Item>
         <Menu.Item key="6" disabled={!item.canDisable} onClick={() => { this.updateStates(item, 'DISABLED') }}>
           <IconFont type="OS-iconjinyong" />
-          {`${formatMessage({ id: 'page.application.content.disable' })}`}
+          {`${formatMessage({ id: 'button.disable' })}`}
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="7" onClick={() => { this.showEditModal(item, 'COPE') }}>
@@ -287,11 +287,11 @@ class AppList extends PureComponent {
       <Menu>
         <Menu.Item key="5" disabled={!item.canEnable} onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <IconFont type="OS-iconqiyong" />
-          {`${formatMessage({ id: 'page.application.content.enable' })}`}
+          {`${formatMessage({ id: 'button.enable' })}`}
         </Menu.Item>
         <Menu.Item key="9" onClick={() => { this.deleteAppHandel(item.id) }}>
           <IconFont type="OS-iconshanchu" />
-          {`${formatMessage({ id: 'page.application.content.delete' })}`}
+          {`${formatMessage({ id: 'button.delete' })}`}
         </Menu.Item>
         <Menu.Divider />
       </Menu>

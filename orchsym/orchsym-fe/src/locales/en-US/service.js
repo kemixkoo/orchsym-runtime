@@ -8,4 +8,10 @@ export default {
   'service.title.scope': 'Scope',
   'service.title.serviceStatus': 'Service status',
   'service.title.refComponent': 'Reference component',
+  'service.button.rename': 'Rename',
+  'service.button.copeTo': 'Cope to',
+  'service.button.moveTo': 'Move to',
+  'service.text.ENABLED': 'Enable',
+  'service.text.DISABLED': 'Disable',
+  'service.text.INVALID': 'Invalid',
 }
