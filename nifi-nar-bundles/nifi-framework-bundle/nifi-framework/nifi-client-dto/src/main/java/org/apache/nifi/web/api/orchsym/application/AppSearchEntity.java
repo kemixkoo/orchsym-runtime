@@ -1,19 +1,36 @@
-package org.apache.nifi.web.api.entity;
+/*
+ * Licensed to the Orchsym Runtime under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * this file to You under the Orchsym License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.nifi.web.api.orchsym.application;
 
 import java.util.Set;
 
+import org.apache.nifi.web.api.orchsym.OrchsymSearchEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+
 /**
  */
-public class AppSearchEntity extends Entity {
-    private String text; // 搜索文本
-
+public class AppSearchEntity extends OrchsymSearchEntity {
+    private static final String NAME_FIELD = "NAME";
     // 排序
-    private String sortedField; // 目前支持: name, createdTime, modifiedTime
-    private Boolean isDesc; // 升降序排列
+    private String sortedField = NAME_FIELD; // 目前支持: name, createdTime, modifiedTime
 
     // 过滤
-    private Boolean deleted;
-    private Boolean enabled;
+    private boolean enabled = AdditionConstants.KEY_IS_ENABLED_DEFAULT;
     private Boolean isRunning;
     private Boolean hasDataQueue;
 
@@ -23,19 +40,7 @@ public class AppSearchEntity extends Entity {
 
     private Set<String> tags;
 
-    // 分页
-    private Integer currentPage;
-    private Integer pageSize;
-
-    private Boolean needDetail; // 详情
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
+    private boolean needDetail = false; // 详情
 
     public String getSortedField() {
         return sortedField;
@@ -45,27 +50,11 @@ public class AppSearchEntity extends Entity {
         this.sortedField = sortedField;
     }
 
-    public Boolean getIsDesc() {
-        return isDesc;
-    }
-
-    public void setIsDesc(Boolean isDesc) {
-        this.isDesc = isDesc;
-    }
-
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    public Boolean getEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled) {
+    public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -117,27 +106,11 @@ public class AppSearchEntity extends Entity {
         this.tags = tags;
     }
 
-    public Integer getCurrentPage() {
-        return currentPage;
-    }
-
-    public void setCurrentPage(Integer currentPage) {
-        this.currentPage = currentPage;
-    }
-
-    public Integer getPageSize() {
-        return pageSize;
-    }
-
-    public void setPageSize(Integer pageSize) {
-        this.pageSize = pageSize;
-    }
-
-    public Boolean getNeedDetail() {
+    public boolean isNeedDetail() {
         return needDetail;
     }
 
-    public void setNeedDetail(Boolean needDetail) {
+    public void setNeedDetail(boolean needDetail) {
         this.needDetail = needDetail;
     }
 

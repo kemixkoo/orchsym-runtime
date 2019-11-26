@@ -15,9 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.nifi.web.api.entity;
+package org.apache.nifi.web.api.orchsym.template;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.nifi.web.api.entity.TemplateEntity;
 
 @XmlRootElement(name = "orchsymTemplateEntity")
 public class OrchsymTemplateEntity extends TemplateEntity {

@@ -22,7 +22,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -48,9 +54,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLStreamReader;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import org.apache.commons.collections4.list.TreeList;
 import org.apache.nifi.authorization.AuthorizableLookup;
 import org.apache.nifi.authorization.RequestAction;
@@ -58,21 +61,18 @@ import org.apache.nifi.authorization.SnippetAuthorizable;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.Template;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.security.xml.XmlUtils;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.StringUtils;
-import org.apache.nifi.web.Revision;
-import org.apache.nifi.web.api.dto.RevisionDTO;
-import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
-import org.apache.nifi.web.api.entity.OrchsymTemplateEntity;
-import org.apache.nifi.web.api.entity.SnippetEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
 import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+import org.apache.nifi.web.api.orchsym.template.OrchsymTemplateEntity;
 import org.apache.nifi.web.api.orchsym.template.TemplateFavority;
 import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateSearchEntity;
@@ -111,9 +111,6 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Autowired
     private FlowService flowService;
 
-    @Autowired
-    private RevisionManager revisionManager;
-
     /**
      * 模块保存为模板
      */
@@ -122,9 +119,9 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{parentGroupId}/saveas")
     public Response createTemplate(//
-                                   @Context final HttpServletRequest httpServletRequest, //
-                                   @PathParam("parentGroupId") final String parentGroupId, //
-                                   @RequestBody final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity//
+            @Context final HttpServletRequest httpServletRequest, //
+            @PathParam("parentGroupId") final String parentGroupId, //
+            @RequestBody final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity//
     ) {
 
         if (requestCreateTemplateRequestEntity.getSnippetId() == null) {
@@ -319,7 +316,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     /**
      * 对自定义类型的模板进行GET方式查询
      * 
-     * @return
+     * 参数默认值，需同TemplateSearchEntity中设置
      */
     @GET
     @Consumes(MediaType.WILDCARD)
@@ -329,18 +326,18 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
             @QueryParam("text") String text, //
 
             // page
-            @QueryParam("page") @DefaultValue("1") Integer currentPage, //
-            @QueryParam("pageSize") @DefaultValue("10") Integer pageSize, //
+            @QueryParam("page") @DefaultValue("1") int currentPage, //
+            @QueryParam("pageSize") @DefaultValue("10") int pageSize, //
 
-            // sort
-            @QueryParam("sortedField") @DefaultValue("createdTime") String sortedField, //
-            @QueryParam("isDesc") @DefaultValue("true") Boolean isDesc, //
-            @QueryParam("deleted") @DefaultValue("false") boolean deleted, //
+            // sort, name createdTime modifiedTime uploadedTime
+            @QueryParam("sortedField") @DefaultValue("createdTime") String sortedField, // 创建时间
+            @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, // 降序
+            @QueryParam("deleted") @DefaultValue("false") boolean deleted, // 未删除
 
             @QueryParam("templateType") String templateType, //
             @QueryParam("sourceType") String sourceType, //
 
-            // filter
+            // filter， createdTime modifiedTime uploadedTime
             @QueryParam("filterTimeField") String filterTimeField, //
             @QueryParam("beginTime") Long beginTime, //
             @QueryParam("endTime") Long endTime, //
@@ -355,7 +352,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         searchEntity.setPage(currentPage);
         searchEntity.setPageSize(pageSize);
         searchEntity.setSortedField(sortedField);
-        searchEntity.setIsDesc(isDesc);
+        searchEntity.setDesc(isDesc);
         searchEntity.setFilterTimeField(filterTimeField);
         searchEntity.setBeginTime(beginTime);
         searchEntity.setEndTime(endTime);
@@ -492,9 +489,11 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/xml_parse")
-    public Response parseTemplateXMLFile( @FormDataParam("template") final InputStream in) throws InterruptedException{
-        //  only parse  no need to replicate cluster nodes
-        if (isDisconnectedFromCluster()){
+    public Response parseTemplateXMLFile(//
+            @FormDataParam("template") final InputStream in//
+    ) throws InterruptedException {
+        // only parse no need to replicate cluster nodes
+        if (isDisconnectedFromCluster()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("current node is disconnected from cluster").build();
         }
 
@@ -511,7 +510,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("The specified template is not in a valid format.").build();
         } catch (IllegalArgumentException iae) {
             logger.warn("Unable to import template.", iae);
-            return Response.status(Response.Status.BAD_REQUEST).entity("invalid argument because of "+ iae.getMessage()).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("invalid argument because of " + iae.getMessage()).build();
         } catch (Exception e) {
             logger.warn("An error occurred while importing a template.", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -527,10 +526,10 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{groupId}/json_import")
-    public  Response importTemplateFromJson(
-            @PathParam("groupId")  String groupId,
-            final OrchsymTemplateEntity requestTemplateEntity
-            ){
+    public Response importTemplateFromJson(//
+            @PathParam("groupId") String groupId, //
+            final OrchsymTemplateEntity requestTemplateEntity//
+    ) {
 
         // verify the template was specified
         if (requestTemplateEntity == null || requestTemplateEntity.getTemplate() == null || requestTemplateEntity.getTemplate().getSnippet() == null) {
@@ -547,17 +546,16 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(requestTemplateEntity.isDisconnectedNodeAcknowledged());
         }
 
-        final String  realGroupId = "root".equals(groupId)? flowController.getRootGroupId() : groupId;
+        final String realGroupId = FlowController.ROOT_GROUP_ID_ALIAS.equals(groupId) ? flowController.getRootGroupId() : groupId;
 
-
-        return withWriteLock(
-                serviceFacade,
-                requestTemplateEntity,
+        return withWriteLock(//
+                serviceFacade, //
+                requestTemplateEntity, //
                 lookup -> {
                     final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
                     processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                },
-                () -> serviceFacade.verifyCanAddTemplate(realGroupId, requestTemplateEntity.getTemplate().getName()),
+                }, //
+                () -> serviceFacade.verifyCanAddTemplate(realGroupId, requestTemplateEntity.getTemplate().getName()), //
                 templateEntity -> {
                     try {
                         Map<String, String> additions = templateEntity.getTemplate().getAdditions();
@@ -582,16 +580,13 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                         return generateCreatedResponse(URI.create(template.getUri()), entity).build();
                     } catch (IllegalArgumentException | IllegalStateException e) {
                         logger.warn("Unable to import template.", e);
-                        return Response.status(Response.Status.BAD_REQUEST).entity("invalid argument because of "+ e.getMessage()).build();
+                        return Response.status(Response.Status.BAD_REQUEST).entity("invalid argument because of " + e.getMessage()).build();
                     } catch (Exception e) {
                         logger.warn("An error occurred while importing a template.", e);
                         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
                     }
-                }
-        );
+                });
     }
-
-
 
     // ================= these methods are used by create orchsym template ======================
     private SnippetAuthorizable authorizeSnippetUsage(final AuthorizableLookup lookup, final String groupId, final String snippetId, final boolean authorizeTransitiveServices) {

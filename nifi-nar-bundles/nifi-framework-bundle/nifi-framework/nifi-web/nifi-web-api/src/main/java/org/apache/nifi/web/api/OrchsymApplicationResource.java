@@ -77,7 +77,13 @@ import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.*;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
 import org.apache.nifi.web.api.entity.*;
+import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
+import org.apache.nifi.web.api.entity.ProcessGroupEntity;
+import org.apache.nifi.web.api.entity.SearchResultsEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+import org.apache.nifi.web.api.orchsym.application.AppCopyEntity;
+import org.apache.nifi.web.api.orchsym.application.AppGroupEntity;
+import org.apache.nifi.web.api.orchsym.application.AppSearchEntity;
 import org.apache.nifi.web.api.orchsym.application.ApplicationFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.revision.RevisionManager;
@@ -164,19 +170,19 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @ApiResponses(value = { //
             @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
     })
-    public Response generateTemplateByApp(
-            @PathParam("appId") String appId,
-            final OrchsymCreateTemplateReqEntity templateReqEntity
+    public Response generateTemplateByApp(//
+            @PathParam("appId") String appId, //
+            final OrchsymCreateTemplateReqEntity templateReqEntity//
     ) {
-        ProcessGroup appGroup = flowController.getGroup(appId);
-        if (appGroup == null || appGroup.isRootGroup() || !appGroup.getParent().isRootGroup()){
-            throw new  IllegalArgumentException("invalid appId");
+        final Response verifyApp = verifyApp(appId);
+        if (null != verifyApp) {// has error
+            return verifyApp;
         }
 
-        if (templateReqEntity.getCreatedTime() == null){
+        if (templateReqEntity.getCreatedTime() == null) {
             templateReqEntity.setCreatedTime(System.currentTimeMillis());
         }
-        if (templateReqEntity.getCreatedUser() == null){
+        if (templateReqEntity.getCreatedUser() == null) {
             templateReqEntity.setCreatedUser(NiFiUserUtils.getNiFiUserIdentity());
         }
 
@@ -185,18 +191,18 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(templateReqEntity.isDisconnectedNodeAcknowledged());
         }
-
-        return withWriteLock(
-                serviceFacade,
-                templateReqEntity,
+        final ProcessGroup appGroup = flowController.getGroup(appId);
+        return withWriteLock(//
+                serviceFacade, //
+                templateReqEntity, //
                 lookup -> {
                     lookup.getProcessGroup(appId).getAuthorizable().authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
-                },
+                }, //
                 () -> {
                     if (!templateReqEntity.isOverwrite()) {
                         serviceFacade.verifyCanAddTemplate(appId, appGroup.getName());
                     }
-                },
+                }, //
                 createTemplateRequestEntity -> {
                     final String newName = appGroup.getName();
                     if (createTemplateRequestEntity.isOverwrite()) {
@@ -256,16 +262,16 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("q") @DefaultValue(StringUtils.EMPTY) String text, //
 
             //
-            @QueryParam("page") Integer currentPage, //
-            @QueryParam("pageSize") Integer pageSize, //
+            @QueryParam("page") @DefaultValue("1") int currentPage, //
+            @QueryParam("pageSize") @DefaultValue("10") int pageSize, //
 
             // sort
-            @QueryParam("sortedField") String sortedField, //
-            @QueryParam("isDesc") Boolean isDesc, //
+            @QueryParam("sortedField") @DefaultValue("name") String sortedField, //
+            @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, //
 
             // filter
-            @QueryParam("isDeleted") Boolean isDeleted, //
-            @QueryParam("isEnabled") Boolean isEnabled, //
+            @QueryParam("isDeleted") @DefaultValue("false") boolean isDeleted, //
+            @QueryParam("isEnabled") @DefaultValue("true") boolean isEnabled, //
             @QueryParam("isRunning") Boolean isRunning, //
             @QueryParam("hasDataQueue") Boolean hasDataQueue, //
             @QueryParam("timeField") String timeField, //
@@ -274,15 +280,15 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("tags") String tags, // 英文逗号分隔多个
 
             //
-            @QueryParam("isDetail") Boolean needDetail //
+            @QueryParam("isDetail") @DefaultValue("false") Boolean needDetail //
 
     ) throws InterruptedException {
         AppSearchEntity searchEnity = new AppSearchEntity();
         searchEnity.setText(text);
-        searchEnity.setCurrentPage(currentPage);
+        searchEnity.setPage(currentPage);
         searchEnity.setPageSize(pageSize);
         searchEnity.setSortedField(sortedField);
-        searchEnity.setIsDesc(isDesc);
+        searchEnity.setDesc(isDesc);
         searchEnity.setDeleted(isDeleted);
         searchEnity.setEnabled(isEnabled);
         searchEnity.setIsRunning(isRunning);
@@ -296,40 +302,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return searchApp(searchEnity);
     }
 
-    private static final String DEFAULT_SORT_FIELD = "name";
-    private static final boolean DEFAULT_SORT_DESC = true;
-
-    private static final int DEFAULT_PAGE = 1;
-    private static final int DEFAULT_PAGE_SIZE = 10;// 每页10
-
-    private static final boolean DEFAULT_NEED_DETAIL = false;// 无详情
-
     private static final Function<? super String, ? extends String> FUN_LOWERCASE = t -> t.toLowerCase();
 
     private void fixDefaultSearchEnity(final AppSearchEntity searchEnity) {
-        // 排序默认值
-        if (null == searchEnity.getSortedField()) {
-            searchEnity.setSortedField(DEFAULT_SORT_FIELD);
-        }
-        if (null == searchEnity.getIsDesc()) {
-            searchEnity.setIsDesc(DEFAULT_SORT_DESC);
-        }
-
-        // 分页默认值
-        if (null == searchEnity.getCurrentPage()) {
-            searchEnity.setCurrentPage(DEFAULT_PAGE);
-        }
-        if (null == searchEnity.getPageSize()) {
-            searchEnity.setPageSize(DEFAULT_PAGE_SIZE);
-        }
-
-        if (null == searchEnity.getNeedDetail()) {
-            searchEnity.setNeedDetail(DEFAULT_NEED_DETAIL);
-        }
-
-        if (null == searchEnity.getDeleted()) {
-            searchEnity.setDeleted(AdditionConstants.KEY_IS_DELETED_DEFAULT); // 默认未删除应用
-        }
 
         // FIXME, 暂不支持modified_time，否应该删除统一到创建日期上
         if (PARAM_MODIFIED_TIME.equals(searchEnity.getSortedField())) {
@@ -381,8 +356,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 }).collect(Collectors.toList());
 
         // 进行筛选
-        final Boolean deleted = searchEnity.getDeleted();
-        final Boolean enabled = searchEnity.getEnabled();
+        final boolean deleted = searchEnity.isDeleted();
+        final boolean enabled = searchEnity.isEnabled();
         final Boolean isRunning = searchEnity.getIsRunning();
         final Boolean hasDataQueue = searchEnity.getHasDataQueue();
         final Set<String> tags = searchEnity.getTags();
@@ -391,22 +366,23 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         final Long endTime = searchEnity.getEndTime();
 
         appGroupEntityList = appGroupEntityList.stream().filter(appGroupEntity -> {
-            if (null != deleted && !appGroupEntity.getDeleted().equals(deleted)) {
+            if (deleted != appGroupEntity.isDeleted()) {
                 return false;
             }
-            if (null != enabled && !appGroupEntity.getEnabled().equals(enabled)) {
+            if (enabled != appGroupEntity.isEnabled()) {
                 return false;
             }
-            if (null != isRunning) {
+            if (!Objects.isNull(isRunning)) {// 设置值
                 final ProcessGroupEntity groupEntity = serviceFacade.getProcessGroup(appGroupEntity.getId());
                 if (!isRunning.equals((groupEntity.getRunningCount() > 0))) {
                     return false;
                 }
             }
-            if (null != hasDataQueue && !isGroupHasDataQueue(appGroupEntity.getId()).equals(hasDataQueue)) {
+            if (!Objects.isNull(hasDataQueue) // 设置值
+                    && !hasDataQueue.equals(isGroupHasDataQueue(appGroupEntity.getId()))) {
                 return false;
             }
-            if (null != tags) {
+            if (!Objects.isNull(tags)) {
                 final Set<String> tagList = tags.stream()//
                         .filter(t -> StringUtils.isNotBlank(t))//
                         .map(FUN_LOWERCASE)//
@@ -445,7 +421,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // 进行排序
         final String sortField = searchEnity.getSortedField();
-        final Boolean isDesc = searchEnity.getIsDesc();
+        final boolean isDesc = searchEnity.isDesc();
         Collections.sort(appGroupEntityList, new Comparator<AppGroupEntity>() {
             @Override
             public int compare(AppGroupEntity o1, AppGroupEntity o2) {
@@ -461,8 +437,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // 处理分页
         // 总条数 与 总页数
-        final Integer pageSize = searchEnity.getPageSize();
-        final Integer currentPage = searchEnity.getCurrentPage();
+        final int pageSize = searchEnity.getPageSize();
+        final int currentPage = searchEnity.getPage();
         int totalSize = appGroupEntityList.size();
         int totalPage = (totalSize + pageSize - 1) / pageSize;
         int index = (currentPage - 1) * pageSize;
@@ -480,7 +456,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         resultMap.put("totalPage", totalPage);
         resultMap.put("currentPage", currentPage);
 
-        if (null != searchEnity.getNeedDetail() && searchEnity.getNeedDetail()) {
+        if (searchEnity.isNeedDetail()) {
             List<ProcessGroupEntity> entities = new ArrayList<>();
             for (AppGroupEntity app : resultList) {
                 entities.add(serviceFacade.getProcessGroup(app.getId()));
@@ -494,7 +470,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         return noCache(Response.ok(resultMap)).build();
     }
 
-    private Boolean isGroupHasDataQueue(String groupId) {
+    private boolean isGroupHasDataQueue(String groupId) {
         final ProcessGroup group = flowController.getGroup(groupId);
         AtomicReference<Boolean> hasDataQueue = new AtomicReference<>(false);
         verifyHasDataQueue(group, hasDataQueue);

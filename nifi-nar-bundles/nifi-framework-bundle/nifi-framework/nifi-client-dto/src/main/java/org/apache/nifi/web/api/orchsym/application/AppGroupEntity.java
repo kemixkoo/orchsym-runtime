@@ -1,6 +1,26 @@
-package org.apache.nifi.web.api.entity;
+/*
+ * Licensed to the Orchsym Runtime under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * this file to You under the Orchsym License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.nifi.web.api.orchsym.application;
 
 import java.util.Set;
+
+import org.apache.nifi.web.api.entity.Entity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
 /**
  * @apiNote 所有的一级group
@@ -11,8 +31,8 @@ public class AppGroupEntity extends Entity {
     private String comments;
     private Long createdTime;
     private Long modifiedTime;
-    private Boolean deleted;
-    private Boolean enabled;
+    private boolean deleted = AdditionConstants.KEY_IS_DELETED_DEFAULT;
+    private boolean enabled = AdditionConstants.KEY_IS_ENABLED_DEFAULT;
     private Set<String> tags;
     private String type;
 
@@ -59,19 +79,19 @@ public class AppGroupEntity extends Entity {
         this.modifiedTime = modifiedTime;
     }
 
-    public Boolean getDeleted() {
+    public boolean isDeleted() {
         return deleted;
     }
 
-    public void setDeleted(Boolean deleted) {
+    public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
 
-    public Boolean getEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled) {
+    public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 

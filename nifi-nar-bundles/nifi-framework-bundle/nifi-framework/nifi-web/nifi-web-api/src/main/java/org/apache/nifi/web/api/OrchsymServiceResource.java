@@ -91,15 +91,15 @@ import org.apache.nifi.web.api.entity.ControllerServiceEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceMoveEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceReferencingComponentEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceSimpleEntity;
-import org.apache.nifi.web.api.entity.ControllerServicesBatchOperationEntity;
 import org.apache.nifi.web.api.entity.ControllerServicesEntity;
 import org.apache.nifi.web.api.entity.DbcpControllerServiceEntity;
 import org.apache.nifi.web.api.entity.DbcpControllerServicesEntity;
-import org.apache.nifi.web.api.entity.OrchsymServiceSearchCriteriaEntity;
-import org.apache.nifi.web.api.entity.OrchsymServiceSearchCriteriaEntity.OrchsymServiceSortField;
 import org.apache.nifi.web.api.entity.VariableEntity;
 import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+import org.apache.nifi.web.api.orchsym.service.ControllerServicesBatchOperationEntity;
+import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity;
+import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity.OrchsymServiceSortField;
 import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -937,13 +937,14 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             @QueryParam("text") String text, //
 
             // page
-            @QueryParam("page") @DefaultValue("1") Integer currentPage, //
-            @QueryParam("pageSize") @DefaultValue("10") Integer pageSize, //
+            @QueryParam("page") @DefaultValue("1") int currentPage, //
+            @QueryParam("pageSize") @DefaultValue("10") int pageSize, //
 
             // sort
             @QueryParam("sortedField") @DefaultValue("name") String sortedField, //
             @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, //
-            @QueryParam("deleted") @DefaultValue("false") boolean deleted) {
+            @QueryParam("deleted") @DefaultValue("false") boolean deleted//
+    ) {
         final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity = new OrchsymServiceSearchCriteriaEntity();
         requestServiceSearchCriteriaEntity.setText(text);
         requestServiceSearchCriteriaEntity.setPage(currentPage);

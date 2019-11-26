@@ -17,19 +17,20 @@
  */
 package org.apache.nifi.web.api.orchsym.template;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.orchsym.DataPage;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.apache.nifi.web.api.orchsym.OrchsymSearchEntity;
 
 /**
  * 增强模板 查询实体
  *
  * @author liuxun
  */
-public class TemplateSearchEntity {
+public class TemplateSearchEntity extends OrchsymSearchEntity {
     /**
      * 排序或筛选 相关的时间字段 createdTime modifiedTime uploadedTime
      */
@@ -39,17 +40,7 @@ public class TemplateSearchEntity {
 
     private static final String NAME_FIELD = "NAME";
 
-    /**
-     * 检索关键字(在名称和备注中检索 或的关系)
-     */
-    private String text = "";
-    /**
-     * 当前页 默认是第一页
-     */
-    private Integer page = 1;
-    private Integer PageSize = 10;
-    private String sortedField = CREATED_TIME_FIELD;
-    private Boolean isDesc = true;
+    private String sortedField = CREATED_TIME_FIELD; // name, createdTime modifiedTime uploadedTime
     /**
      * 来源类型
      */
@@ -71,28 +62,13 @@ public class TemplateSearchEntity {
      */
     private String uploadedUserId;
 
-    private String filterTimeField;
+    private String filterTimeField; // createdTime modifiedTime uploadedTime
     private Long beginTime;
     private Long endTime;
+    /**
+     * 标签
+     */
     private List<String> tags;
-
-    private boolean deleted = false;
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public Integer getPage() {
-        return page;
-    }
-
-    public void setPage(Integer page) {
-        this.page = page;
-    }
 
     public String getSortedField() {
         return sortedField;
@@ -100,14 +76,6 @@ public class TemplateSearchEntity {
 
     public void setSortedField(String sortedField) {
         this.sortedField = sortedField;
-    }
-
-    public Boolean getIsDesc() {
-        return isDesc;
-    }
-
-    public void setIsDesc(Boolean isDesc) {
-        this.isDesc = isDesc;
     }
 
     public String getSourceType() {
@@ -166,28 +134,12 @@ public class TemplateSearchEntity {
         this.tags = tags;
     }
 
-    public Integer getPageSize() {
-        return PageSize;
-    }
-
-    public void setPageSize(Integer pageSize) {
-        PageSize = pageSize;
-    }
-
     public String getUploadedUserId() {
         return uploadedUserId;
     }
 
     public void setUploadedUserId(String uploadedUserId) {
         this.uploadedUserId = uploadedUserId;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
     }
 
     public String getTemplateType() {
@@ -274,7 +226,6 @@ public class TemplateSearchEntity {
         }).sorted((o1, o2) -> {
             Long time1 = null;
             Long time2 = null;
-            final Boolean isDesc = getIsDesc() == null ? true : getIsDesc();
             switch (getSortedField().toUpperCase()) {
             case CREATED_TIME_FIELD:
                 time1 = getAdditions(o1).getCreatedTime();
@@ -294,9 +245,9 @@ public class TemplateSearchEntity {
                 break;
             }
             if (time1 != null && time2 != null) {
-                return isDesc ? time2.compareTo(time1) : time1.compareTo(time2);
+                return isDesc() ? time2.compareTo(time1) : time1.compareTo(time2);
             } else {
-                return isDesc ? o2.getName().compareTo(o1.getName()) : o1.getName().compareTo(o2.getName());
+                return isDesc() ? o2.getName().compareTo(o1.getName()) : o1.getName().compareTo(o2.getName());
             }
         }).collect(Collectors.toList());
 

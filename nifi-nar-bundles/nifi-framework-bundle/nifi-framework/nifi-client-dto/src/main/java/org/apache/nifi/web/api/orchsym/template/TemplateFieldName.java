@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
-import org.apache.nifi.web.api.entity.OrchsymTemplateEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
 /**

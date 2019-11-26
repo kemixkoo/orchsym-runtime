@@ -15,11 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.nifi.web.api.entity;
+package org.apache.nifi.web.api.orchsym.service;
 
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.apache.nifi.web.api.entity.Entity;
 
 /**
  * @author weiwei.zhan
