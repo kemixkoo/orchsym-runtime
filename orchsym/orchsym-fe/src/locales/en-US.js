@@ -15,6 +15,7 @@ import blank from './en-US/blank';
 import application from './en-US/application';
 // 模板页面
 import template from './en-US/template';
+import service from './en-US/service';
 
 export default {
   'navBar.lang': 'Languages',
@@ -35,4 +36,5 @@ export default {
   ...blank,
   ...application,
   ...template,
+  ...service,
 };
