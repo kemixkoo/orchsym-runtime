@@ -59,8 +59,22 @@ public class OrchsymServiceSearchCriteriaEntity extends OrchsymSearchEntity {
         this.sortedField = sortedField;
     }
 
-    public enum OrchsymServiceState {
-        DISABLED, DISABLING, ENABLING, ENABLED, VALID, INVALID, VALIDATING
+    public enum  OrchsymServiceState {
+        DISABLED,
+        DISABLING,
+        ENABLING,
+        ENABLED,
+        VALID,
+        INVALID,
+        VALIDATING
+        ;
+    }
+
+    public enum OrchsymComponentState {
+        DISABLED,
+        STOPPED,
+        RUNNING,
+        INVALID,
     }
 
     public enum OrchsymServiceSortField {

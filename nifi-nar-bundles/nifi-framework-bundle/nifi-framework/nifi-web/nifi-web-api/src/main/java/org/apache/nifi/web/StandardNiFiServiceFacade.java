@@ -3843,13 +3843,13 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         final ControllerServiceReferencingComponentsEntity referencingComponentsEntity = createControllerServiceReferencingComponentsEntity(ref, serviceIds);
         final Set<ControllerServiceReferencingComponentEntity> controllerServiceReferencingComponentEntities = referencingComponentsEntity.getControllerServiceReferencingComponents();
         final Map<String, Set<String>> referencingComponents = new HashMap<>();
-        for (OrchsymServiceSearchCriteriaEntity.OrchsymServiceState serviceState: OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.values()) {
+        for (OrchsymServiceSearchCriteriaEntity.OrchsymComponentState serviceState: OrchsymServiceSearchCriteriaEntity.OrchsymComponentState.values()) {
             referencingComponents.put(serviceState.name(), new HashSet<>());
         }
         for (ControllerServiceReferencingComponentEntity controllerServiceReferencingComponentEntity: controllerServiceReferencingComponentEntities) {
             final ControllerServiceReferencingComponentDTO componentDTO = controllerServiceReferencingComponentEntity.getComponent();
 
-            final String state = componentDTO.getState();
+            final String state = componentDTO.getValidationErrors() == null ? componentDTO.getState() : "INVALID";
             final String id = componentDTO.getId();
             if (referencingComponents.containsKey(state)) {
                 referencingComponents.get(state).add(id);

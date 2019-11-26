@@ -21,13 +21,13 @@ import org.apache.nifi.web.api.entity.Entity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
 public class OrchsymSearchEntity extends Entity{
-    private String text = ""; // 搜索文本
-    
-    private int page = 1; // 默认当前页为第一页
-    private int pageSize = 10;// 默认每页10条
-    
-    private boolean isDesc = true; // 默认降序
-    private boolean deleted = AdditionConstants.KEY_IS_DELETED_DEFAULT; // 默认非删除
+    protected String text = ""; // 搜索文本
+
+    protected int page = 1; // 默认当前页为第一页
+    protected int pageSize = 10;// 默认每页10条
+
+    protected boolean isDesc = true; // 默认降序
+    protected boolean deleted = AdditionConstants.KEY_IS_DELETED_DEFAULT; // 默认非删除
 
     public String getText() {
         return text;
