@@ -921,14 +921,18 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         });
     }
 
-    @POST
-    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GET
+    @Consumes(MediaType.WILDCARD)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Path("/search")
+    @Path("/search-results")
     @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
-    @ApiResponses(value = { @ApiResponse(code = 400, message = CODE_MESSAGE_400), @ApiResponse(code = 401, message = CODE_MESSAGE_401), @ApiResponse(code = 403, message = CODE_MESSAGE_403),
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) })
-    public Response queryControllerServices(//
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) }//
+    )
+    public Response searchControllerServices(//
             @Context HttpServletRequest httpServletRequest, //
             @QueryParam("text") String text, //
 
@@ -960,8 +964,12 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/search")
     @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
-    @ApiResponses(value = { @ApiResponse(code = 400, message = CODE_MESSAGE_400), @ApiResponse(code = 401, message = CODE_MESSAGE_401), @ApiResponse(code = 403, message = CODE_MESSAGE_403),
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) })
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) }//
+    )
     public Response queryControllerServices(//
             @Context HttpServletRequest httpServletRequest, //
             @RequestBody final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity//
