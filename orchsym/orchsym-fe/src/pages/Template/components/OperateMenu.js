@@ -74,12 +74,12 @@ class operateMenu extends React.Component {
           </Menu.Item>
         )}
         {data.additions.IS_FAVORITE === 'true' ? (
-          <Menu.Item key="collect" onClick={() => { this.collectTemp(data.id, true) }}>
-            {`${formatMessage({ id: 'button.collect' })}`}
-          </Menu.Item>
-        ) : (
           <Menu.Item key="cancelCollect" onClick={() => { this.collectTemp(data.id, false) }}>
             {`${formatMessage({ id: 'button.cancelCollect' })}`}
+          </Menu.Item>
+        ) : (
+          <Menu.Item key="collect" onClick={() => { this.collectTemp(data.id, true) }}>
+            {`${formatMessage({ id: 'button.collect' })}`}
           </Menu.Item>
         )}
         <Menu.Item key="download" onClick={() => { this.downloadTemp(data.id, data.name) }}>
