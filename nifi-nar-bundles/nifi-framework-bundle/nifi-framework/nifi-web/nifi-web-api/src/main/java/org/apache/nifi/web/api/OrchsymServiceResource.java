@@ -1056,9 +1056,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
                     appInfo = ProcessUtil.calcApplicationInfo(group, flowController.getRootGroupId());
                     scope = appInfo.getApplicationName();
                 }
-                controllerServiceSearchDTO.setScope(scope);
-                controllerServiceSearchDTO.setInfo(appInfo);
             }
+            controllerServiceSearchDTO.setScope(scope);
+            controllerServiceSearchDTO.setInfo(appInfo);
         });
         return noCache(Response.ok(dataPage)).build();
     }
