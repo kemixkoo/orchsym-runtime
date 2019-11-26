@@ -72,7 +72,7 @@ public interface TypeAdditions {
      * 不存在相应名字，将返回null；如果存在则直接返回对应值
      */
     default String getValue(String name) {
-        if (Objects.isNull(name) || has(name)) {
+        if (Objects.isNull(name)) {
             return null;
         }
         return values().get(unifyName(name));

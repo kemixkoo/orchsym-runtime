@@ -17,6 +17,7 @@
  */
 package org.apache.nifi.web.api;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,19 +73,14 @@ import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
-import org.apache.nifi.web.api.dto.PositionDTO;
-import org.apache.nifi.web.api.dto.ProcessGroupDTO;
-import org.apache.nifi.web.api.dto.RevisionDTO;
-import org.apache.nifi.web.api.dto.SnippetDTO;
+import org.apache.nifi.web.Revision;
+import org.apache.nifi.web.api.dto.*;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
-import org.apache.nifi.web.api.entity.AppCopyEntity;
-import org.apache.nifi.web.api.entity.AppGroupEntity;
-import org.apache.nifi.web.api.entity.AppSearchEntity;
-import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
-import org.apache.nifi.web.api.entity.ProcessGroupEntity;
-import org.apache.nifi.web.api.entity.SearchResultsEntity;
+import org.apache.nifi.web.api.entity.*;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.application.ApplicationFieldName;
+import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
+import org.apache.nifi.web.revision.RevisionManager;
 import org.apache.nifi.web.util.AppTypeAssessor;
 import org.apache.nifi.web.util.AppTypeAssessor.AppType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,8 +113,12 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @Autowired
     private OrchsymGroupResource groupResource;
+
     @Autowired
-    private OrchsymTemplateResource orchsymTemplateResource;
+    private TemplateResource templateResource;
+
+    @Autowired
+    private RevisionManager revisionManager;
 
     private Response verifyApp(String appId) {
         boolean existed = flowController.getRootGroup().getProcessGroups().stream().filter(group -> group.getIdentifier().equals(appId)).findAny().isPresent();
@@ -153,23 +153,87 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     }
 
     /**
-     * 应用保存为模板
+     * 将应用保存为模板
      */
     @POST
-    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Consumes(MediaType.WILDCARD)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/template/{appId}/saveas")
-    public Response createAppTemplate(//
-            @Context final HttpServletRequest httpServletRequest, //
-            @PathParam("appId") final String appId, //
-            @RequestBody final OrchsymCreateTemplateReqEntity requestEntity//
+    @ApiOperation(value = "create template by app group", //
+            response = String.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
+    })
+    public Response generateTemplateByApp(
+            @PathParam("appId") String appId,
+            final OrchsymCreateTemplateReqEntity templateReqEntity
     ) {
-        final Response verifyApp = verifyApp(appId);
-        if (null != verifyApp) {// has error
-            return verifyApp;
+        ProcessGroup appGroup = flowController.getGroup(appId);
+        if (appGroup == null || appGroup.isRootGroup() || !appGroup.getParent().isRootGroup()){
+            throw new  IllegalArgumentException("invalid appId");
         }
 
-        return orchsymTemplateResource.createTemplate(httpServletRequest, appId, requestEntity);
+        if (templateReqEntity.getCreatedTime() == null){
+            templateReqEntity.setCreatedTime(System.currentTimeMillis());
+        }
+        if (templateReqEntity.getCreatedUser() == null){
+            templateReqEntity.setCreatedUser(NiFiUserUtils.getNiFiUserIdentity());
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.POST, templateReqEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(templateReqEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        return withWriteLock(
+                serviceFacade,
+                templateReqEntity,
+                lookup -> {
+                    lookup.getProcessGroup(appId).getAuthorizable().authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+                },
+                () -> {
+                    if (!templateReqEntity.isOverwrite()) {
+                        serviceFacade.verifyCanAddTemplate(appId, appGroup.getName());
+                    }
+                },
+                createTemplateRequestEntity -> {
+                    final String newName = appGroup.getName();
+                    if (createTemplateRequestEntity.isOverwrite()) {
+                        serviceFacade.getTemplates().stream()//
+                                .map(TemplateEntity::getTemplate)//
+                                .filter(dto -> newName.equals(dto.getName()))//
+                                .collect(Collectors.toSet())//
+                                .forEach(dto -> {
+                                    serviceFacade.deleteTemplate(dto.getId());
+                                });
+                    }
+
+                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, true, NiFiUserUtils.getNiFiUserIdentity());
+                    final Set<String> tags = createTemplateRequestEntity.getTags() == null ? appGroup.getTags() : createTemplateRequestEntity.getTags();
+
+                    Revision revision = revisionManager.getRevision(appId);
+                    SnippetDTO snippetDTO = new SnippetDTO();
+                    Map<String, RevisionDTO> revisionMap = new HashMap<>();
+                    RevisionDTO revisionDTO = new RevisionDTO();
+                    revisionDTO.setClientId(revision.getClientId());
+                    revisionDTO.setVersion(revision.getVersion());
+                    revisionMap.put(appId, revisionDTO);
+                    snippetDTO.setProcessGroups(revisionMap);
+                    snippetDTO.setId(generateUuid());
+                    snippetDTO.setParentGroupId(flowController.getRootGroupId());
+                    final SnippetEntity snippetEntity = serviceFacade.createSnippet(snippetDTO);
+                    final String snippetId = snippetEntity.getSnippet().getId();
+                    final String tmpTemplateName = appGroup.getName();
+
+                    TemplateDTO template = serviceFacade.createTemplate(additions, tags, tmpTemplateName, appGroup.getComments(), snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
+                    templateResource.populateRemainingTemplateContent(template);
+                    final TemplateEntity entity = new TemplateEntity();
+                    entity.setTemplate(template);
+
+                    // build the response
+                    return generateCreatedResponse(URI.create(template.getUri()), entity).build();
+                });
     }
 
     /**

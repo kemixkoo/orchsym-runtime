@@ -22,13 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -54,6 +48,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLStreamReader;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.commons.collections4.list.TreeList;
 import org.apache.nifi.authorization.AuthorizableLookup;
 import org.apache.nifi.authorization.RequestAction;
@@ -66,9 +63,13 @@ import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.security.xml.XmlUtils;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.StringUtils;
+import org.apache.nifi.web.Revision;
+import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
 import org.apache.nifi.web.api.entity.OrchsymTemplateEntity;
+import org.apache.nifi.web.api.entity.SnippetEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
 import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
@@ -77,6 +78,7 @@ import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateSearchEntity;
 import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
 import org.apache.nifi.web.dao.TemplateDAO;
+import org.apache.nifi.web.revision.RevisionManager;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,17 +111,20 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
     @Autowired
     private FlowService flowService;
 
+    @Autowired
+    private RevisionManager revisionManager;
+
     /**
      * 模块保存为模板
      */
     @POST
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Path("/{groupId}/saveas")
+    @Path("/{parentGroupId}/saveas")
     public Response createTemplate(//
-            @Context final HttpServletRequest httpServletRequest, //
-            @PathParam("groupId") final String groupId, //
-            @RequestBody final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity//
+                                   @Context final HttpServletRequest httpServletRequest, //
+                                   @PathParam("parentGroupId") final String parentGroupId, //
+                                   @RequestBody final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity//
     ) {
 
         if (requestCreateTemplateRequestEntity.getSnippetId() == null) {
@@ -145,11 +150,11 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                 serviceFacade, //
                 requestCreateTemplateRequestEntity, //
                 lookup -> {
-                    authorizeSnippetUsage(lookup, groupId, requestCreateTemplateRequestEntity.getSnippetId(), true);
+                    authorizeSnippetUsage(lookup, parentGroupId, requestCreateTemplateRequestEntity.getSnippetId(), true);
                 }, //
                 () -> {
                     if (!requestCreateTemplateRequestEntity.isOverwrite()) { // 如果不是覆盖，则验证名字，否则忽略，并将稍后删除存在同名的
-                        serviceFacade.verifyCanAddTemplate(groupId, requestCreateTemplateRequestEntity.getName());
+                        serviceFacade.verifyCanAddTemplate(parentGroupId, requestCreateTemplateRequestEntity.getName());
                     }
                 }, //
                 createTemplateRequestEntity -> {
@@ -165,14 +170,14 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                                 });
                     }
 
-                    final ProcessGroup group = flowController.getGroup(groupId);
+                    final ProcessGroup group = flowController.getGroup(parentGroupId);
                     // 构建默认设置
-                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, group.getParent().isRootGroup(), NiFiUserUtils.getNiFiUserIdentity());
+                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, group.isRootGroup(), NiFiUserUtils.getNiFiUserIdentity());
 
                     final Set<String> tags = createTemplateRequestEntity.getTags();
                     // create the template and generate the json
                     final TemplateDTO template = serviceFacade.createTemplate(additions, tags, newName, createTemplateRequestEntity.getDescription(), createTemplateRequestEntity.getSnippetId(),
-                            groupId, getIdGenerationSeed());
+                            parentGroupId, getIdGenerationSeed());
                     templateResource.populateRemainingTemplateContent(template);
 
                     // build the response entity
