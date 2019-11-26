@@ -474,6 +474,7 @@
 
                         var generalRestriction = nfCommon.getPolicyTypeListing('restricted-components');
                         serviceProvider.graphControlsCtrl.isComponentOpen = false
+                        serviceProvider.graphControlsCtrl.bigClassificationIcon = "search.svg";
                         serviceProvider.graphControlsCtrl.bigClassificationName = nf._.msg('nf-processor-component.AllProcessor')
                         serviceProvider.graphControlsCtrl.systemToolsName = nf._.msg('nf-processor-component.SystemTools')
                         // load the available processor types, this select is shown in the

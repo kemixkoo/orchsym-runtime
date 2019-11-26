@@ -200,11 +200,17 @@
             },
 
             toggleClassification: function (classification) {
-                this.bigClassificationName = classification.name
-                this.backupComponentList = JSON.parse(JSON.stringify(classification.classification))
-                var el = document.getElementById('component-list')
-                el.scrollTop = 0
-                this.filter()
+                this.bigClassificationName = classification.name;
+                this.bigClassificationIcon = classification.icon;
+                this.backupComponentList = JSON.parse(JSON.stringify(classification.classification));
+                var el = document.getElementById('component-list');
+                el.scrollTop = 0;
+                this.filter();
+                $("#classification-menu").fadeToggle();
+            },
+
+            showClassification: function(){
+                $("#classification-menu").fadeToggle();
             },
 
             inputFocus: function() {

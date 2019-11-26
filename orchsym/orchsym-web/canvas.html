@@ -1504,13 +1504,13 @@
 </div>
 <div class="component-panel-tools" id="component-panel-tools">
     <div class="acon" type="component-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('component-panel')">
-        <span class="hicon-assembly"></span>
+        <span class="right-icon hicon-assembly"></span>
     </div>
     <div class="acon" type="system-tools-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('system-tools-panel')">
-        <span class="acon-appstore"></span>
+        <span class="right-icon acon-appstore"></span>
     </div>
-    <div class="acon" type="system-tools-panel">
-        <span class="hicon-template"></span>
+    <div class="acon" type="system-tools-model">
+        <span class="right-icon hicon-template"></span>
     </div>
 </div>
 <div class="component-panel component-panel-toggleClass" id="system-tools-panel">
@@ -1592,7 +1592,6 @@
     </div>
 </div>
 <div class="component-panel component-panel-toggleClass" id="component-panel">
-
     <div class="graph-control right docked"
          ng-class="{true:'hidden',false:'hidden'}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]"
          style="position: absolute; width:32px; right:0; top:25px;display: none;">
@@ -1607,13 +1606,26 @@
 
     <div class="panel-main" ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
       <div class="panel-main-left">
-        <div class="main-left-header">
-          <div class="collapse">
-<!--            <img src="images/youshou.svg" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">-->
+          <div class="main-left-header" ng-click="appCtrl.serviceProvider.graphControlsCtrl.showClassification()">
+              <div class="collapse">
+<!--                              <img src="images/youshou.svg" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">-->
+                  <img src=" images/{{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationIcon}}">
+              </div>
+              <span>{{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName}}</span>
+              <span class="acon-caret-down" style="font-size: 12px;margin-left: 0px;"></span>
           </div>
-          {{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName}}
-        </div>
-        <div style="width:100%; height:52px; z-index:1;  position: relative;">
+          <div class="panel-main-right" id="classification-menu">
+              <ul class="classification">
+                  <li ng-repeat="classification in appCtrl.serviceProvider.graphControlsCtrl.componentDuanwuData"
+                      ng-click="appCtrl.serviceProvider.graphControlsCtrl.toggleClassification(classification)"
+                      ng-class="{true:'active',false:''}[appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName == classification.name]"
+                      title="{{classification.name}}">
+                      <img src=" images/{{classification.icon}}">
+                      <p>{{classification.name}}</p>
+                  </li>
+              </ul>
+          </div>
+        <div style="width:100%; height:52px; z-index:0;  position: relative;">
           <div class="search-kuang">
             <img src="images/search.svg">
             <input type="text"
@@ -1643,9 +1655,9 @@
                    ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()">
                 <div class="component-img">
                   <img src="images/{{component.icon}}">
-                </div>
-                <div class="component-name">
-                  {{component.name}}
+                    <div class="component-name">
+                        {{component.name}}
+                    </div>
                 </div>
                 <!-- <div class="component-info">
                   <div class="shang-caret"></div>
@@ -1661,16 +1673,6 @@
 
 
         </div>
-      </div>
-      <div class="panel-main-right">
-        <ul class="classification">
-          <li ng-repeat="classification in appCtrl.serviceProvider.graphControlsCtrl.componentDuanwuData"
-              ng-click="appCtrl.serviceProvider.graphControlsCtrl.toggleClassification(classification)"
-              ng-class="{true:'active',false:''}[appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName == classification.name]"
-              title="{{classification.name}}">
-            <img src=" images/{{classification.icon}}">
-          </li>
-        </ul>
       </div>
     </div>
 
