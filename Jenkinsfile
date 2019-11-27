@@ -130,19 +130,20 @@ pipeline {
     //   }
     // }
 
-    stage('Upload to Samba') {
-      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
-
-      steps {
-        uploadServiceFileToSamba("orchsym/orchsym-assembly/target/${env.PROJECT_NAME}-${env.VERSION_NAME}.tar.gz")
-      }
-    }
-
+	// upload S3 faster than Samba, so upload first
     stage('Upload to s3') {
       when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
 
       steps {
         uploadServiceFile("orchsym/orchsym-assembly/target/${env.PROJECT_NAME}-${env.VERSION_NAME}.tar.gz")
+      }
+    }
+
+    stage('Upload to Samba') {
+      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
+
+      steps {
+        uploadServiceFileToSamba("orchsym/orchsym-assembly/target/${env.PROJECT_NAME}-${env.VERSION_NAME}.tar.gz")
       }
     }
 
