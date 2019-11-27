@@ -1,67 +1,88 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Modal, Form, Input, Select, Checkbox } from 'antd';
+import { Modal, Form, Input, Select, Radio } from 'antd';
 import { connect } from 'dva';
 import { formatMessage } from 'umi-plugin-react/locale';
 
 const { TextArea } = Input;
 
 const FormItem = Form.Item;
-// const { Option } = Select;
+const { Option } = Select;
 
-@connect(({ application }) => ({
-  appDetails: application.appDetails,
+@connect(({ template }) => ({
+  customList: template.customList,
 }))
 class SaveTemp extends React.Component {
   state = {
-    isCheck: false,
+    isCheck: 1,
+    selTemplate: null,
   }
 
-  handleCheckBox = (rule, value, callback) => {
+  componentDidMount() {
+    const { dispatch } = this.props
+    dispatch({
+      type: 'template/fetchCustomTemplates',
+      payload: {
+        page: 1,
+        pageSize: 2000,
+      },
+    });
+  }
+
+  handleCheckBox = e => {
     this.setState({
-      isCheck: value,
+      isCheck: e.target.value,
     })
-    callback();
   }
 
   handleSaveTemp = (e) => {
     e.preventDefault();
+    const { isCheck, selTemplate } = this.state
     const { dispatch, appItem, handleSaveCancel, form: { validateFields, resetFields } } = this.props;
     validateFields((err, values) => {
       if (!err) {
-        dispatch({
-          type: 'application/fetchCreateSnippets',
-          payload: appItem,
-          cb: (res) => {
-            dispatch({
-              type: 'application/fetchCreateAppTemp',
-              payload: {
-                id: appItem.id,
-                snippetId: res.id,
-                values,
-              },
-            });
-          },
-        });
+        if (isCheck === 1) {
+          dispatch({
+            type: 'template/fetchSaveTemplate',
+            payload: {
+              appId: appItem.id,
+              overwrite: false,
+              ...values,
+            },
+          });
+        } else if (isCheck === 2) {
+          dispatch({
+            type: 'template/fetchSaveTemplate',
+            payload: {
+              appId: appItem.id,
+              overwrite: true,
+              ...selTemplate,
+            },
+          });
+        }
+        resetFields();
         handleSaveCancel();
       }
     });
-    resetFields();
   }
 
   handleCancel = () => {
     const { handleSaveCancel, form: { resetFields } } = this.props;
+    this.setState({
+      isCheck: 1,
+      selTemplate: null,
+    })
     resetFields();
     handleSaveCancel();
   }
 
   render() {
     const { isCheck } = this.state;
-    const { form: { getFieldDecorator }, visible } = this.props;
+    const { form: { getFieldDecorator }, visible, customList: { results } } = this.props;
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
-        sm: { span: 4 },
+        sm: { span: 6 },
       },
       wrapperCol: {
         xs: { span: 24 },
@@ -73,21 +94,12 @@ class SaveTemp extends React.Component {
     // <Option value="格式转换" key="格式转换">格式转换</Option>,
     // <Option value="全量同步" key="全量同步">全量同步</Option>,
     // ]
-    const onChange = (value) => {
-      console.log(`selected ${value}`);
+    const onTemplateChange = (value) => {
+      this.setState({
+        selTemplate: results[value],
+      })
     }
 
-    const onBlur = () => {
-      console.log('blur');
-    }
-
-    const onFocus = () => {
-      console.log('focus');
-    }
-
-    const onSearch = (val) => {
-      console.log('search:', val);
-    }
     const checkReName = (rule, value, callback) => {
       const { dispatch } = this.props;
       if (value) {
@@ -119,8 +131,14 @@ class SaveTemp extends React.Component {
         okText={formatMessage({ id: 'button.submit' })}
         cancelText={formatMessage({ id: 'button.cancel' })}
       >
+        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+          <Radio.Group onChange={this.handleCheckBox} value={isCheck}>
+            <Radio value={1}>{formatMessage({ id: 'form.template.tempNew' })}</Radio>
+            <Radio value={2}>{formatMessage({ id: 'form.template.tempOverwrite' })}</Radio>
+          </Radio.Group>
+        </div>
         <Form {...formItemLayout}>
-          <FormItem style={{ paddingLeft: '10px' }}>
+          {/* <FormItem style={{ paddingLeft: '10px' }}>
             {getFieldDecorator('checkbox', {
               valuePropName: 'checked',
               initialValue: false,
@@ -130,8 +148,8 @@ class SaveTemp extends React.Component {
             })(
               <Checkbox>{formatMessage({ id: 'form.template.tempOverwrite' })}</Checkbox>
             )}
-          </FormItem>
-          {(isCheck) ? (
+          </FormItem> */}
+          {(isCheck === 2) ? (
             <FormItem label={formatMessage({ id: 'form.template.selectTemp' })}>
               {getFieldDecorator('appTagSelect', {
                 rules: [{
@@ -141,19 +159,12 @@ class SaveTemp extends React.Component {
                 <Select
                   showSearch
                   style={{ width: 200 }}
-                  placeholder="Select a person"
-                  optionFilterProp="children"
-                  onChange={onChange}
-                  onFocus={onFocus}
-                  onBlur={onBlur}
-                  onSearch={onSearch}
+                  onChange={onTemplateChange}
                   filterOption={(input, option) =>
                     option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                   }
                 >
-                  {/* <Option value="jack">Jack</Option>
-                  <Option value="lucy">Lucy</Option>
-                  <Option value="tom">Tom</Option> */}
+                  {results.map((item, index) => (<Option key={item.id} value={index}>{item.name}</Option>))}
                 </Select>,
               )}
             </FormItem>
@@ -181,20 +192,20 @@ class SaveTemp extends React.Component {
                 )}
               </FormItem>
               {/* <FormItem label="标签设置">
-        {getFieldDecorator('appTagSet', {
-          rules: [{
-            required: true, message: '请输入应用名称!',
-          }],
-        })(
-          <Select
-            mode="multiple"
-            style={{ width: '100%' }}
-            onChange={this.handleSetTags}
-          >
-            {tags}
-          </Select>
-        )}
-      </FormItem> */}
+    {getFieldDecorator('appTagSet', {
+      rules: [{
+        required: true, message: '请输入应用名称!',
+      }],
+    })(
+      <Select
+        mode="multiple"
+        style={{ width: '100%' }}
+        onChange={this.handleSetTags}
+      >
+        {tags}
+      </Select>
+    )}
+  </FormItem> */}
             </div>
           )}
         </Form>

@@ -70,7 +70,7 @@ class AppList extends PureComponent {
   }
 
   doubleGoToApp = (item) => {
-    item.component.additions && item.component.additions.IS_ENABLED && router.push(`/canvas/${item.id}`)
+    item.component.additions && item.component.additions.IS_ENABLED === 'true' && router.push(`/canvas/${item.id}`)
   }
 
   showEditModal = (item, state) => {
@@ -237,7 +237,7 @@ class AppList extends PureComponent {
   getCarList = (item, index) => {
     const { errorData } = this.state;
     const { canDownLoad } = this.props;
-    const menu = item.component.additions && item.component.additions.IS_ENABLED ? (
+    const menu = item.component.additions && item.component.additions.IS_ENABLED === 'true' ? (
       <Menu>
         <Menu.Item key="1" onClick={() => { this.goToApp(item) }}>
           <IconFont type="OS-iconi-jr" />
@@ -293,7 +293,6 @@ class AppList extends PureComponent {
           <IconFont type="OS-iconshanchu" />
           {`${formatMessage({ id: 'button.delete' })}`}
         </Menu.Item>
-        <Menu.Divider />
       </Menu>
     );
 
@@ -411,7 +410,7 @@ class AppList extends PureComponent {
     const tagContent = <div className={styles.tagContent}>{item.component.tags.map((i) => (<Tag color="blue" key={i}>{i}</Tag>))}</div>
     const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.errorApp}` : ''
-    const isDownApp = item.component.additions && item.component.additions.IS_ENABLED ? '' : `${styles.disableApp}`
+    const isDownApp = item.component.additions && item.component.additions.IS_ENABLED === 'true' ? '' : `${styles.disableApp}`
     return (
       <Card onDoubleClick={() => { this.doubleGoToApp(item) }} className={`${styles.applicationCart} ${isErrorCarName} ${isDownApp}`} style={{ width: '100%', height: 165 }}>
         <Card.Meta

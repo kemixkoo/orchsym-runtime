@@ -3,9 +3,11 @@ import {
   queryOfficialTemplates, queryCollectTemplates, queryCustomTemplates,
   queryDownloadMTemplates, queryDownloadToken, queryDownloadTemplate,
   editTemplate, collectTemplate, cancelCollectTemplate,
-  deletedMTemplates, deleteTemplate,
+  deletedMTemplates, deleteTemplate, saveApplicationTemp,
 } from '@/services/template';
 import { download } from '@/utils/utils';
+import { formatMessage } from 'umi-plugin-react/locale';
+import { message } from 'antd';
 
 export default {
   namespace: 'template',
@@ -88,6 +90,14 @@ export default {
         yield call(cancelCollectTemplate, payload.id);
       }
       yield cb && cb();
+    },
+    // 存为模板
+    * fetchSaveTemplate({ payload, cb }, { call, put }) {
+      const response = yield call(saveApplicationTemp, payload);
+      if (response) {
+        message.success(formatMessage({ id: 'result.success' }));
+      }
+      yield cb && cb()
     },
   },
 

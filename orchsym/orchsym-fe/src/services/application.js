@@ -102,10 +102,10 @@ export async function editApplication(params) {
 // }
 
 // 存为模板
-export async function createApplicationTemp(params, errorHandler) {
-  return request(`/studio/nifi-api/process-groups/${params.id}/templates`, {
-    errorHandler,
-    method: 'POST',
-    data: params.body,
-  });
-}
+// export async function createApplicationTemp(params, errorHandler) {
+//   return request(`/studio/nifi-api/process-groups/${params.id}/templates`, {
+//     errorHandler,
+//     method: 'POST',
+//     data: params.body,
+//   });
+// }

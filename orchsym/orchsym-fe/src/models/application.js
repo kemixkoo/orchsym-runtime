@@ -3,14 +3,12 @@ import {
   querySearchApplication, updateAppEnable, updateAppDisable,
   showAppStatus, deleteApplication, copeApplication,
   detailApplication, editApplication, addApplication,
-  createApplicationTemp, updateAppState,
+  updateAppState,
 } from '@/services/application';
 import { validationRunApp, validationDeleteApp, validationAppCheckName, validationTempCheckName } from '@/services/validation';
 import { downloadApplication } from '@/services/template';
 import { getClientId } from '@/utils/authority';
 import { download } from '@/utils/utils';
-import { formatMessage } from 'umi-plugin-react/locale';
-import { message } from 'antd';
 
 export default {
   namespace: 'application',
@@ -241,27 +239,27 @@ export default {
       const response = yield call(validationTempCheckName, payload);
       yield cb && cb(response)
     },
-    // 存为模板
-    * fetchCreateAppTemp({ payload, cb }, { call, put }) {
-      const { snippetId, values, id } = payload;
-      const params = {
-        id,
-        body: {
-          snippetId,
-          description: values.description,
-          name: values.name,
-        },
-      }
-      const errorHandler = error => {
-        const { response = {} } = error;
-        console.log('error--', response)
-      };
-      const response = yield call(createApplicationTemp, params, errorHandler);
-      if (response) {
-        message.success(formatMessage({ id: 'result.success' }));
-      }
-      yield cb && cb()
-    },
+    // // 存为模板
+    // * fetchCreateAppTemp({ payload, cb }, { call, put }) {
+    //   const { snippetId, values, id } = payload;
+    //   const params = {
+    //     id,
+    //     body: {
+    //       snippetId,
+    //       description: values.description,
+    //       name: values.name,
+    //     },
+    //   }
+    //   const errorHandler = error => {
+    //     const { response = {} } = error;
+    //     console.log('error--', response)
+    //   };
+    //   const response = yield call(createApplicationTemp, params, errorHandler);
+    //   if (response) {
+    //     message.success(formatMessage({ id: 'result.success' }));
+    //   }
+    //   yield cb && cb()
+    // },
 
   },
 

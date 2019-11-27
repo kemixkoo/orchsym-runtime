@@ -6,6 +6,7 @@ export default {
   // 存为模板、创建模板
   'form.template.tempName': 'Name',
   'form.template.tempDescription': 'Description',
+  'form.template.tempNew': 'Save as new template',
   'form.template.tempOverwrite': 'Overwrite existing template',
   'form.template.selectTemp': 'Select template',
   'form.template.uploadFile': 'Upload File',
