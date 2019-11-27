@@ -20,7 +20,6 @@ package org.apache.nifi.web.api.orchsym.application;
 import java.util.Set;
 
 import org.apache.nifi.web.api.orchsym.OrchsymSearchEntity;
-import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
 /**
  */
@@ -30,7 +29,7 @@ public class AppSearchEntity extends OrchsymSearchEntity {
     private String sortedField = NAME_FIELD; // 目前支持: name, createdTime, modifiedTime
 
     // 过滤
-    private boolean enabled = AdditionConstants.KEY_IS_ENABLED_DEFAULT;
+    private Boolean enabled; //允许null，表示不过滤是否禁用，即忽略该状态
     private Boolean isRunning;
     private Boolean hasDataQueue;
 
@@ -50,11 +49,12 @@ public class AppSearchEntity extends OrchsymSearchEntity {
         this.sortedField = sortedField;
     }
 
-    public boolean isEnabled() {
+
+    public Boolean getEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
 

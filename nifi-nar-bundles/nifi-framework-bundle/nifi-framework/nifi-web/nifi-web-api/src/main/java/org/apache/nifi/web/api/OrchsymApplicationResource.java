@@ -266,14 +266,14 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("pageSize") @DefaultValue("10") int pageSize, //
 
             // sort
-            @QueryParam("sortedField") @DefaultValue("name") String sortedField, //
-            @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, //
+            @QueryParam("sortedField") @DefaultValue("name") String sortedField, // 默认以名字排序
+            @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, // 默认降序
 
             // filter
-            @QueryParam("isDeleted") @DefaultValue("false") boolean isDeleted, //
-            @QueryParam("isEnabled") @DefaultValue("true") boolean isEnabled, //
-            @QueryParam("isRunning") Boolean isRunning, //
-            @QueryParam("hasDataQueue") Boolean hasDataQueue, //
+            @QueryParam("isDeleted") @DefaultValue("false") boolean isDeleted, // 默认为非删除
+            @QueryParam("isEnabled") Boolean isEnabled, // 默认忽略该标记，所以允许null
+            @QueryParam("isRunning") Boolean isRunning, // 默认忽略该标记，所以允许null
+            @QueryParam("hasDataQueue") Boolean hasDataQueue, // 默认忽略该标记，所以允许null
             @QueryParam("timeField") String timeField, //
             @QueryParam("beginTime") Long beginTime, //
             @QueryParam("endTime") Long endTime, //
@@ -342,8 +342,16 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                         groupEntity.setCreatedTime(ProcessUtil.getGroupAdditionLongValue(group, AdditionConstants.KEY_CREATED_TIMESTAMP));
                         groupEntity.setModifiedTime(ProcessUtil.getGroupAdditionLongValue(group, AdditionConstants.KEY_MODIFIED_TIMESTAMP));
 
-                        groupEntity.setDeleted(ProcessUtil.getGroupAdditionBooleanValue(group, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT));
-                        groupEntity.setEnabled(ProcessUtil.getGroupAdditionBooleanValue(group, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT));
+                        Boolean deleted = ProcessUtil.getGroupAdditionBooleanValue(group, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+                        if (Objects.isNull(deleted)) {
+                            deleted = AdditionConstants.KEY_IS_DELETED_DEFAULT;
+                        }
+                        groupEntity.setDeleted(deleted);
+                        Boolean enabled = ProcessUtil.getGroupAdditionBooleanValue(group, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
+                        if (Objects.isNull(deleted)) {
+                            enabled = AdditionConstants.KEY_IS_ENABLED_DEFAULT;
+                        }
+                        groupEntity.setEnabled(enabled);
 
                         if (null != group.getTags()) {
                             groupEntity.setTags(new HashSet<>(group.getTags()));
@@ -357,7 +365,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // 进行筛选
         final boolean deleted = searchEnity.isDeleted();
-        final boolean enabled = searchEnity.isEnabled();
+        final Boolean enabled = searchEnity.getEnabled();
         final Boolean isRunning = searchEnity.getIsRunning();
         final Boolean hasDataQueue = searchEnity.getHasDataQueue();
         final Set<String> tags = searchEnity.getTags();
@@ -369,7 +377,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             if (deleted != appGroupEntity.isDeleted()) {
                 return false;
             }
-            if (enabled != appGroupEntity.isEnabled()) {
+            if (!Objects.isNull(enabled) // 设置值
+                    && enabled != appGroupEntity.isEnabled()) {
                 return false;
             }
             if (!Objects.isNull(isRunning)) {// 设置值
