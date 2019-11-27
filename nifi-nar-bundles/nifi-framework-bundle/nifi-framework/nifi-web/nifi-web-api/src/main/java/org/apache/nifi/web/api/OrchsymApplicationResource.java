@@ -192,6 +192,12 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(templateReqEntity.isDisconnectedNodeAcknowledged());
         }
         final ProcessGroup appGroup = flowController.getGroup(appId);
+
+        // 如果未提供，则直接重用应用相关信息
+        final String templateName = Objects.isNull(templateReqEntity.getName()) ? appGroup.getName() : templateReqEntity.getName();
+        final String templateDesc = Objects.isNull(templateReqEntity.getDescription()) ? appGroup.getComments() : templateReqEntity.getDescription();
+        final Set<String> templateTags = Objects.isNull(templateReqEntity.getTags()) ? appGroup.getTags() : templateReqEntity.getTags();
+
         return withWriteLock(//
                 serviceFacade, //
                 templateReqEntity, //
@@ -204,19 +210,15 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     }
                 }, //
                 createTemplateRequestEntity -> {
-                    final String newName = appGroup.getName();
                     if (createTemplateRequestEntity.isOverwrite()) {
                         serviceFacade.getTemplates().stream()//
                                 .map(TemplateEntity::getTemplate)//
-                                .filter(dto -> newName.equals(dto.getName()))//
+                                .filter(dto -> templateName.equals(dto.getName()))//
                                 .collect(Collectors.toSet())//
                                 .forEach(dto -> {
                                     serviceFacade.deleteTemplate(dto.getId());
                                 });
                     }
-
-                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, true, NiFiUserUtils.getNiFiUserIdentity());
-                    final Set<String> tags = createTemplateRequestEntity.getTags() == null ? appGroup.getTags() : createTemplateRequestEntity.getTags();
 
                     Revision revision = revisionManager.getRevision(appId);
                     SnippetDTO snippetDTO = new SnippetDTO();
@@ -230,9 +232,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     snippetDTO.setParentGroupId(flowController.getRootGroupId());
                     final SnippetEntity snippetEntity = serviceFacade.createSnippet(snippetDTO);
                     final String snippetId = snippetEntity.getSnippet().getId();
-                    final String tmpTemplateName = appGroup.getName();
 
-                    TemplateDTO template = serviceFacade.createTemplate(additions, tags, tmpTemplateName, appGroup.getComments(), snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
+                    final Map<String, String> templateAdditions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, true, NiFiUserUtils.getNiFiUserIdentity());
+
+                    TemplateDTO template = serviceFacade.createTemplate(templateAdditions, templateTags, templateName, templateDesc, snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
                     templateResource.populateRemainingTemplateContent(template);
                     final TemplateEntity entity = new TemplateEntity();
                     entity.setTemplate(template);
