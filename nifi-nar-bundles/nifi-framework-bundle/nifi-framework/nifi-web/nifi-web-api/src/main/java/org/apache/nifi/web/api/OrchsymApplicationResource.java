@@ -192,6 +192,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(templateReqEntity.isDisconnectedNodeAcknowledged());
         }
         final ProcessGroup appGroup = flowController.getGroup(appId);
+        final String rootGroupId = flowController.getRootGroupId();
 
         // 如果未提供，则直接重用应用相关信息
         final String templateName = Objects.isNull(templateReqEntity.getName()) ? appGroup.getName() : templateReqEntity.getName();
@@ -202,11 +203,12 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 serviceFacade, //
                 templateReqEntity, //
                 lookup -> {
-                    lookup.getProcessGroup(appId).getAuthorizable().authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+                    final Authorizable authorizable = lookup.getProcessGroup(appId).getAuthorizable();
+                    authorizable.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
                 }, //
                 () -> {
                     if (!templateReqEntity.isOverwrite()) {
-                        serviceFacade.verifyCanAddTemplate(appId, appGroup.getName());
+                        serviceFacade.verifyCanAddTemplate(rootGroupId, templateName);
                     }
                 }, //
                 createTemplateRequestEntity -> {
@@ -229,13 +231,13 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     revisionMap.put(appId, revisionDTO);
                     snippetDTO.setProcessGroups(revisionMap);
                     snippetDTO.setId(generateUuid());
-                    snippetDTO.setParentGroupId(flowController.getRootGroupId());
+                    snippetDTO.setParentGroupId(rootGroupId);
                     final SnippetEntity snippetEntity = serviceFacade.createSnippet(snippetDTO);
                     final String snippetId = snippetEntity.getSnippet().getId();
 
                     final Map<String, String> templateAdditions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, true, NiFiUserUtils.getNiFiUserIdentity());
 
-                    TemplateDTO template = serviceFacade.createTemplate(templateAdditions, templateTags, templateName, templateDesc, snippetId, flowController.getRootGroupId(), getIdGenerationSeed());
+                    TemplateDTO template = serviceFacade.createTemplate(templateAdditions, templateTags, templateName, templateDesc, snippetId, rootGroupId, getIdGenerationSeed());
                     templateResource.populateRemainingTemplateContent(template);
                     final TemplateEntity entity = new TemplateEntity();
                     entity.setTemplate(template);
@@ -449,9 +451,16 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         // 处理分页
         // 总条数 与 总页数
-        final int pageSize = searchEnity.getPageSize();
-        final int currentPage = searchEnity.getPage();
         int totalSize = appGroupEntityList.size();
+        int pageSize = searchEnity.getPageSize();
+        int currentPage = searchEnity.getPage();
+        if (pageSize < 0) {
+            pageSize = totalSize;
+        }
+        if (currentPage < 0) {
+            currentPage = 1;
+        }
+
         int totalPage = (totalSize + pageSize - 1) / pageSize;
         int index = (currentPage - 1) * pageSize;
 

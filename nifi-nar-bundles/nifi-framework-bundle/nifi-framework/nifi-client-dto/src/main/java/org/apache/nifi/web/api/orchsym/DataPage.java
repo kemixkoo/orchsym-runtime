@@ -28,52 +28,62 @@ import java.util.List;
  *            结果列表的数据类型
  */
 public class DataPage<T> {
-    private Integer pageSize = 10;
-    private Integer totalSize;
-    private Integer totalPage;
-    private Integer currentPage = 1;
+    private int pageSize = 10;
+    private int totalSize;
+    private int totalPage;
+    private int currentPage = 1;
     private List<T> results;
 
     public DataPage() {
     }
 
-    public DataPage(List<T> list, Integer pageSize, Integer currentPage) {
-        this.setPageSize(pageSize);
+    public DataPage(List<T> list, int pageSize, int currentPage) {
+        if (currentPage < 1) { // 当前页只能从1开始
+            currentPage = 1;
+        }
+        final int totalSize = list.size();
+        if (pageSize < 1) {// 页数最少为全部，即1页
+            pageSize = totalSize;
+        }
+        
         this.setCurrentPage(currentPage);
-        this.setTotalSize(list.size());
-        this.setTotalPage((this.getTotalSize() + this.getPageSize() - 1) / pageSize);
+        this.setTotalSize(totalSize);
+        this.setPageSize(pageSize);
+        
+        this.setTotalPage((totalSize + pageSize - 1) / pageSize);
+
         int index = (currentPage - 1) * pageSize;
         List<T> resultList = null;
-        if (index >= this.getTotalSize()) {
+        if (index >= totalSize) {
             resultList = new ArrayList<>();
         } else {
-            int endIndex = Math.min(index + this.getPageSize(), this.getTotalSize());
+            int endIndex = Math.min(index + pageSize, totalSize);
             resultList = list.subList(index, endIndex);
         }
         this.setResults(resultList);
     }
 
-    public Integer getTotalSize() {
+    public int getTotalSize() {
         return totalSize;
     }
 
-    public void setTotalSize(Integer totalSize) {
+    public void setTotalSize(int totalSize) {
         this.totalSize = totalSize;
     }
 
-    public Integer getTotalPage() {
+    public int getTotalPage() {
         return totalPage;
     }
 
-    public void setTotalPage(Integer totalPage) {
+    public void setTotalPage(int totalPage) {
         this.totalPage = totalPage;
     }
 
-    public Integer getCurrentPage() {
+    public int getCurrentPage() {
         return currentPage;
     }
 
-    public void setCurrentPage(Integer currentPage) {
+    public void setCurrentPage(int currentPage) {
         this.currentPage = currentPage;
     }
 
@@ -85,11 +95,11 @@ public class DataPage<T> {
         this.results = results;
     }
 
-    public Integer getPageSize() {
+    public int getPageSize() {
         return pageSize;
     }
 
-    public void setPageSize(Integer pageSize) {
+    public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
     }
 }
