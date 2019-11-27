@@ -9,15 +9,15 @@ export default {
   },
 
   effects: {
-    *fetchControllerServices({ payload }, { call, put }) {
+    *fetchControllerServices({ payload, cb }, { call, put }) {
       const response = yield call(queryControllerServices, payload);
-      console.log(response)
       yield put({
         type: 'appendValue',
         payload: {
           controllerServicesList: response,
         },
       });
+      yield cb && cb()
     },
 
   },

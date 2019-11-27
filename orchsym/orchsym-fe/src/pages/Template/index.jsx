@@ -5,8 +5,8 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import router from 'umi/router'
 import { debounce } from 'lodash'
 import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
-import CollectList from './components/CollectList';
-import CustomizeList from './components/CustomizeList';
+import FavoriteList from './components/FavoriteList';
+import CustomList from './components/CustomList';
 import OfficialList from './components/OfficialList';
 import AddTemp from './components/AddTemp';
 import styles from './index.less';
@@ -38,7 +38,7 @@ class Template extends React.Component {
   componentDidMount() {
     const { match } = this.props
     const { tab } = match.params;
-    const tabKey = (!tab || tab === ':tab') ? 'collect' : tab;
+    const tabKey = (!tab || tab === ':tab') ? 'favorite' : tab;
     this.onTabChange(tabKey)
   }
 
@@ -48,7 +48,7 @@ class Template extends React.Component {
         tabActiveKey: key,
       }
     )
-    router.replace(`/temp/${key}`)
+    router.replace(`/template/${key}`)
   }
 
   onStateChange = (obj) => {
@@ -128,8 +128,8 @@ class Template extends React.Component {
       sortedField, isDesc, pageSizeNum, pageNum } = this.state;
     const tabList = [
       {
-        tab: formatMessage({ id: 'button.collect' }),
-        key: 'collect',
+        tab: formatMessage({ id: 'template.tab.favorite' }),
+        key: 'favorite',
       },
       {
         tab: formatMessage({ id: 'template.tab.official' }),
@@ -137,7 +137,7 @@ class Template extends React.Component {
       },
       {
         tab: formatMessage({ id: 'template.tab.customize' }),
-        key: 'customize',
+        key: 'custom',
       },
     ]
     const hasSelected = selectedRowKeys.length > 0;
@@ -146,7 +146,7 @@ class Template extends React.Component {
         <div className={styles.templateWrapper}>
           <div className={styles.tableTopHeader}>
             <Row gutter={16} className={styles.bottomSpace}>
-              {tabActiveKey === 'customize' &&
+              {tabActiveKey === 'custom' &&
                 (
                   <Col span={12}>
                     <Button type="primary" style={{ marginRight: '10px' }} onClick={this.showUploadModal}>
@@ -161,13 +161,13 @@ class Template extends React.Component {
                   </Col>
                 )
               }
-              <Col span={tabActiveKey === 'customize' ? 12 : 24}>
+              <Col span={tabActiveKey === 'custom' ? 12 : 24}>
                 <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
               </Col>
             </Row>
           </div>
-          {tabActiveKey === 'collect' && (
-            <CollectList
+          {tabActiveKey === 'favorite' && (
+            <FavoriteList
               match={match}
               onStateChange={this.onStateChange}
               pageNum={pageNum}
@@ -188,8 +188,8 @@ class Template extends React.Component {
               isDesc={isDesc}
             />
           )}
-          {tabActiveKey === 'customize' && (
-            <CustomizeList
+          {tabActiveKey === 'custom' && (
+            <CustomList
               match={match}
               selectedRowKeys={selectedRowKeys}
               onStateChange={this.onStateChange}

@@ -14,4 +14,5 @@ export default {
   'service.text.ENABLED': '已启用',
   'service.text.DISABLED': '已禁用',
   'service.text.INVALID': '无效',
+  'service.text.ENABLING': '启动中',
 }

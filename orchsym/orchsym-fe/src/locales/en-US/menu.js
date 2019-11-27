@@ -2,13 +2,13 @@ export default {
   // 应用页面
   'menu.application': 'Applications',
   // 控制器服务页面
-  'menu.controllerServices': 'Controller services',
+  'menu.controllerServices': 'Services',
   // 标签管理
-  'menu.tag': 'Tag',
+  'menu.tag': 'Tags',
   // 回收站
   'menu.recycleBin': 'Recycle bin',
   // 模板页面
-  'menu.template': 'Template',
+  'menu.template': 'Templates',
   // // 编排页面
   // 'menu.orchestrations': 'orchestrations',
   // 'menu.home': 'Home',

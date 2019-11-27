@@ -12,7 +12,7 @@ import OperateMenu from './OperateMenu';
   customList: template.customList,
 }))
 
-class CustomizeList extends React.Component {
+class CustomList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -50,6 +50,15 @@ class CustomizeList extends React.Component {
         title: formatMessage({ id: 'template.table.title.source' }),
         dataIndex: 'additions.SOURCE_TYPE',
         key: 'type',
+        render: (text, record) => {
+          if (text === 'SAVE_AS') {
+            return formatMessage({ id: 'template.source.saved' })
+          } else if (text === 'Uploaded') {
+            return formatMessage({ id: 'template.source.uploaded' })
+          } else {
+            return formatMessage({ id: 'template.source.unknown' })
+          }
+        },
       },
       {
         title: formatMessage({ id: 'template.table.title.operateUser' }),
@@ -275,4 +284,4 @@ class CustomizeList extends React.Component {
     );
   }
 }
-export default (Form.create()(CustomizeList));
+export default (Form.create()(CustomList));

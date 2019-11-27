@@ -11,7 +11,7 @@ export default {
   namespace: 'template',
 
   state: {
-    collectList: [],
+    favoriteList: [],
     officialList: [],
     customList: [],
   },
@@ -31,7 +31,7 @@ export default {
       yield put({
         type: 'appendValue',
         payload: {
-          collectList: response,
+          favoriteList: response,
         },
       });
     },

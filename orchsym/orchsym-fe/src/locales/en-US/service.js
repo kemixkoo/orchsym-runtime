@@ -14,4 +14,5 @@ export default {
   'service.text.ENABLED': 'Enable',
   'service.text.DISABLED': 'Disable',
   'service.text.INVALID': 'Invalid',
+  'service.text.ENABLING': 'Enabling',
 }

@@ -70,14 +70,14 @@ export default [
       {
         name: 'template',
         icon: 'OS-iconmoban',
-        path: '/temp/:tab',
+        path: '/template/:tab',
         component: './Template',
       },
       // 控制器服务
       {
         name: 'controllerServices',
         icon: 'OS-iconkongzhiqi',
-        path: '/ControllerServices',
+        path: '/services',
         component: './ControllerServices',
       },
       // 标签管理

@@ -6,6 +6,7 @@ import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/loc
 import EditableCell from '@/components/EditableCell';
 import { EditableContext } from '@/utils/utils'
 import IconFont from '@/components/IconFont';
+import moment from 'moment';
 import styles from './index.less';
 
 const { Search } = Input;
@@ -19,13 +20,14 @@ class ControllerServices extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      refreshTime: '',
       selectedRowKeys: [],
       editingKey: '',
       searchVal: '',
       pageNum: 1,
       pageSizeNum: 10,
-      sortedField: 'NAME', // NAME(按照服务名排序)/TYPE(根据服务类型排序)/REFERENCING_COMPONENTS(根据引用该服务的组件的数量排序)/NONE(不排序)
-      isDesc: true,
+      // filteredInfo: null,
+      // sortedInfo: null,
     };
     this.columns = [
       {
@@ -52,7 +54,6 @@ class ControllerServices extends React.Component {
         title: formatMessage({ id: 'service.title.scope' }),
         dataIndex: 'scope',
         key: 'scope',
-        onFilter: true,
         filters: this.scopeList,
       },
       {
@@ -99,7 +100,6 @@ class ControllerServices extends React.Component {
             value: 'ENABLING',
           },
         ],
-        onFilter: true,
         render: (text, record) => {
           if (record.validationStatus === 'VALID') {
             if (text === 'ENABLED') {
@@ -147,8 +147,8 @@ class ControllerServices extends React.Component {
             </span>
           ) : (
             <span className={styles.operateMenu}>
-              <a><Icon type="lock" /></a>
-              <a><Icon type="unlock" /></a>
+              {record.state === 'DISABLED' && (<a><Icon type="lock" /></a>)}
+              {record.state === 'ENABLED' && (<a><Icon type="unlock" /></a>)}
               <a><Icon type="setting" style={{ marginLeft: '8px' }} /></a>
               <Dropdown overlay={this.menu(record)} trigger={['click']}>
                 <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '8px' }} />
@@ -176,6 +176,11 @@ class ControllerServices extends React.Component {
         text,
         sortedField,
         isDesc,
+      },
+      cb: () => {
+        this.setState({
+          refreshTime: moment(new Date()).format('HH:mm:ss'),
+        })
       },
     });
   }
@@ -267,7 +272,7 @@ class ControllerServices extends React.Component {
   }
 
   render() {
-    const { selectedRowKeys, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.state;
+    const { selectedRowKeys, pageNum, pageSizeNum, searchVal, sortedField, isDesc, refreshTime } = this.state;
     const { form, controllerServicesList: { results, totalSize } } = this.props;
     const rowSelection = {
       selectedRowKeys,
@@ -314,8 +319,8 @@ class ControllerServices extends React.Component {
                   <FormattedMessage id="button.create" />
                 </Button>
                 <ButtonGroup>
-                  <Button>{formatMessage({ id: 'button.search' })}</Button>
                   <Button>{formatMessage({ id: 'button.enable' })}</Button>
+                  <Button>{formatMessage({ id: 'button.disable' })}</Button>
                   <Dropdown overlay={this.menu} trigger={['click']}>
                     <Button>
                       <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
@@ -324,13 +329,18 @@ class ControllerServices extends React.Component {
                 </ButtonGroup>
               </Col>
               <Col>
-                <Icon
-                  type="redo"
-                  rotate={180}
-                  style={{ marginRight: 10 }}
-                // onClick={this.handleRefreshEnv}
-                />
-                <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
+                <div className={styles.headerRight}>
+                  <span style={{ marginRight: '8px' }}>
+                    <Icon
+                      type="redo"
+                      rotate={180}
+                      style={{ marginRight: 10 }}
+                    // onClick={this.handleRefreshEnv}
+                    />
+                    最后更新：{refreshTime}
+                  </span>
+                  <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
+                </div>
               </Col>
             </Row>
           </div>

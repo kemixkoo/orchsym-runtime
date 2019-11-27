@@ -6,7 +6,7 @@ export default {
   'button.delete': '删除',
   'button.edit': '编辑',
   'button.save': '保存',
-  'button.collect': '收藏',
+  'button.favorite': '收藏',
   'button.cancelCollect': '取消收藏',
   'button.search': '搜索',
   'button.enable': '启用',

@@ -65,7 +65,7 @@ class operateMenu extends React.Component {
     const { data, edit, editingKey } = this.props;
     const { match } = this.props
     const { tab } = match.params;
-    const tabKey = (!tab || tab === ':tab') ? 'collect' : tab;
+    const tabKey = (!tab || tab === ':tab') ? 'favorite' : tab;
     const menu = (
       <Menu>
         {(data.additions.SOURCE_TYPE === 'OFFICIAL' || tabKey === 'official') ? (null) : (
@@ -73,13 +73,13 @@ class operateMenu extends React.Component {
             {`${formatMessage({ id: 'button.edit' })}`}
           </Menu.Item>
         )}
-        {data.additions.IS_FAVORITE === 'true' ? (
+        {(data.additions.IS_FAVORITE === 'true' || tabKey === 'favorite') ? (
           <Menu.Item key="cancelCollect" onClick={() => { this.collectTemp(data.id, false) }}>
             {`${formatMessage({ id: 'button.cancelCollect' })}`}
           </Menu.Item>
         ) : (
-          <Menu.Item key="collect" onClick={() => { this.collectTemp(data.id, true) }}>
-            {`${formatMessage({ id: 'button.collect' })}`}
+          <Menu.Item key="favorite" onClick={() => { this.collectTemp(data.id, true) }}>
+            {`${formatMessage({ id: 'button.favorite' })}`}
           </Menu.Item>
         )}
         <Menu.Item key="download" onClick={() => { this.downloadTemp(data.id, data.name) }}>
@@ -94,7 +94,7 @@ class operateMenu extends React.Component {
     );
     return (
       <span className={styles.operateMenu}>
-        {data.additions.IS_FAVORITE === 'true' ? (
+        {(data.additions.IS_FAVORITE === 'true' || tabKey === 'favorite') ? (
           <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, false) }} />
         ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, true) }} />
         )}
