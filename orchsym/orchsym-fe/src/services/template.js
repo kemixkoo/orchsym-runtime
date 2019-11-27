@@ -115,9 +115,9 @@ export async function deleteTemplate(param) {
     method: 'DELETE',
   })
 }
-// 批量下载
+// 批量删除
 export async function deletedMTemplates(param) {
-  return request('/studio/orchsym-pro-api/batch/templates/download', {
+  return request('/studio/orchsym-pro-api/batch/templates/logic_delete', {
     method: 'DELETE',
     params: {
       templateIds: param.templateIds,
