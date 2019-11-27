@@ -81,12 +81,12 @@ export default [
         component: './ControllerServices',
       },
       // 标签管理
-      {
-        name: 'tag',
-        icon: 'OS-iconbiaoqian',
-        path: '/tag',
-        component: './Tag',
-      },
+      // {
+      //   name: 'tag',
+      //   icon: 'OS-iconbiaoqian',
+      //   path: '/tag',
+      //   component: './Tag',
+      // },
       // 回收站
       {
         name: 'recycleBin',

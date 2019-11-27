@@ -177,7 +177,7 @@ class CreateOrEditApp extends React.Component {
       let str = ''
       if (v) {
         if (editOrCope === 'COPE') {
-          str = `App copy ${v.name}`
+          str = `${v.name}_copy`
         } else {
           str = v.name
         }

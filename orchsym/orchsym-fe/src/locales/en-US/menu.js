@@ -1,7 +1,7 @@
 export default {
   // 应用页面
   'menu.application': 'Applications',
-  // 控制器服务页面
+  // 控制器服务
   'menu.controllerServices': 'Services',
   // 标签管理
   'menu.tag': 'Tags',

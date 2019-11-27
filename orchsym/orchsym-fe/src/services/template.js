@@ -87,16 +87,25 @@ export async function editTemplate(body) {
   });
 }
 // 上传
-export async function uploadTemplate(params) {
-  console.log(params)
-  const { file } = params;
-  const formData = new FormData();
-  formData.append('template', file[0]);
-  return request('/studio/nifi-api/process-groups/root/templates/upload', {
-    method: 'POST',
-    data: formData,
-  });
-}
+// export async function uploadTemplate(params) {
+//   const { file } = params;
+//   const formData = new FormData();
+//   formData.append('template', file[0]);
+//   return request('/studio/nifi-api/orchsym-template/xml_parse', {
+//     method: 'POST',
+//     data: formData,
+//   });
+// }
+// export async function uploadTemplate(params) {
+//   console.log(params)
+//   const { file } = params;
+//   const formData = new FormData();
+//   formData.append('template', file[0]);
+//   return request('/studio/nifi-api/process-groups/root/templates/upload', {
+//     method: 'POST',
+//     data: formData,
+//   });
+// }
 // 收藏
 export async function collectTemplate(templateId) {
   return request(`/studio/orchsym-pro-api/favorites/templates/${templateId}`, {

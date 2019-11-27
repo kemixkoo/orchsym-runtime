@@ -2,7 +2,7 @@
 import {
   queryOfficialTemplates, queryCollectTemplates, queryCustomTemplates,
   queryDownloadMTemplates, queryDownloadToken, queryDownloadTemplate,
-  editTemplate, uploadTemplate, collectTemplate, cancelCollectTemplate,
+  editTemplate, collectTemplate, cancelCollectTemplate,
   deletedMTemplates, deleteTemplate,
 } from '@/services/template';
 import { download } from '@/utils/utils';
@@ -49,11 +49,11 @@ export default {
       yield call(editTemplate, payload);
       yield cb && cb()
     },
-    // 上传
-    *fetchUploadTemp({ payload, cb }, { call, put }) {
-      yield call(uploadTemplate, payload);
-      yield cb && cb();
-    },
+    // // 上传
+    // *fetchUploadTemp({ payload, cb }, { call, put }) {
+    //   yield call(uploadTemplate, payload);
+    //   yield cb && cb();
+    // },
     // 下载
     *fetchDownloadTemplates({ payload }, { call, put }) {
       if (payload.type === 'multiple') {
