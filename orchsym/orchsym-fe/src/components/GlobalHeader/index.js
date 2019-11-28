@@ -14,6 +14,7 @@ import { getExpiration } from '@/utils/utils';
   login,
   leftDays: global.leftDays,
   appDetails: application.appDetails,
+  groupsBreadcrumb: global.groupsBreadcrumb,
 }))
 class GlobalHeader extends PureComponent {
   componentWillMount() {
@@ -41,6 +42,21 @@ class GlobalHeader extends PureComponent {
     // kc登录 刷新
     if (getToken()) {
       this.poll()
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { dispatch, match } = this.props;
+    const { params } = match
+    const { componentIds } = params
+    // 如果数据发生变化，则更新图表
+    if ((prevProps.componentIds !== componentIds)) {
+      if (match && componentIds !== 0) {
+        dispatch({
+          type: 'global/componentIds',
+          payload: componentIds,
+        });
+      }
     }
   }
 
@@ -90,14 +106,13 @@ class GlobalHeader extends PureComponent {
   };
 
   render() {
-    const { pstyle, match, collapsed, leftDays, appDetails: { component }, componentName } = this.props;
+    const { pstyle, match, collapsed, leftDays, appDetails: { component }, groupsBreadcrumb } = this.props;
     const { params } = match;
-    const { processGroupId } = params;
+    const { processGroupId, componentIds } = params;
     const onClose = e => {
       console.log(e, 'I was closed.');
     };
     const showDays = leftDays < 30
-    const url = `/canvas/${processGroupId}`
     return (
       <div className={styles.header} style={pstyle}>
 
@@ -112,13 +127,16 @@ class GlobalHeader extends PureComponent {
         {processGroupId && component ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
             <Breadcrumb.Item>
-              {(processGroupId === component.id) && !componentName ? component.name :
-                <Link to={url} target="_self">{component.name}</Link>
+              {(processGroupId === component.id) ? component.name :
+                <Link to={`/canvas/${processGroupId}/0`} target="_self">{component.name}</Link>
               }
             </Breadcrumb.Item>
-            {componentName ? (<Breadcrumb.Item>
-              {componentName}
-            </Breadcrumb.Item>) : (null)}
+            {groupsBreadcrumb ? (
+              groupsBreadcrumb.map(item => (<Breadcrumb.Item key={item.id}>
+                {(componentIds === item.id) ? item.name :
+                  <Link to={`/canvas/${processGroupId}/${item.id}`} target="_self">{item.name}</Link>
+                }
+              </Breadcrumb.Item>))) : (null)}
 
           </Breadcrumb>) : (null)
         }

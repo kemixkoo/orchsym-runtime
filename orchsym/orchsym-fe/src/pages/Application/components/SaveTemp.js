@@ -19,14 +19,6 @@ class SaveTemp extends React.Component {
   }
 
   componentDidMount() {
-    const { dispatch } = this.props
-    dispatch({
-      type: 'template/fetchCustomTemplates',
-      payload: {
-        page: 1,
-        pageSize: 2000,
-      },
-    });
   }
 
   handleCheckBox = e => {

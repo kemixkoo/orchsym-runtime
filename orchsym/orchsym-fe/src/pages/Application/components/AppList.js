@@ -16,7 +16,8 @@ import LogList from '@/components/LogList';
 import CreateOrEditApp from './CreateOrEditApp';
 
 const { confirm } = Modal;
-@connect(({ global, application, loading }) => ({
+@connect(({ global, application, loading, template }) => ({
+  template,
   canDownLoad: global.canDownLoad,
   applicationList: application.applicationList,
   Details: application.Details,
@@ -92,6 +93,14 @@ class AppList extends PureComponent {
   }
 
   showSaveTemp = (item) => {
+    const { dispatch } = this.props
+    dispatch({
+      type: 'template/fetchCustomTemplates',
+      payload: {
+        page: 1,
+        pageSize: -1,
+      },
+    });
     this.setState({
       saveTempVisible: true,
       appItem: item,

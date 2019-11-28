@@ -113,7 +113,7 @@ class HeaderView extends Component {
   };
 
   render() {
-    const { handleMenuCollapse, setting, componentName } = this.props;
+    const { handleMenuCollapse, setting } = this.props;
     const { navTheme, layout } = setting;
     const { visible } = this.state;
     /**
@@ -145,7 +145,7 @@ class HeaderView extends Component {
           />
         ) : (
           <GlobalHeader
-            componentName={componentName}
+            // componentName={componentName}
             onCollapse={handleMenuCollapse}
             onNoticeClear={this.handleNoticeClear}
             onMenuClick={this.handleMenuClick}
