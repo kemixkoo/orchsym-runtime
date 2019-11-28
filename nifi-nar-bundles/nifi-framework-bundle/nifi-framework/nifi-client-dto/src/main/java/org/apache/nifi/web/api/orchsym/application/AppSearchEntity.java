@@ -24,12 +24,15 @@ import org.apache.nifi.web.api.orchsym.OrchsymSearchEntity;
 /**
  */
 public class AppSearchEntity extends OrchsymSearchEntity {
-    private static final String NAME_FIELD = "NAME";
+    public static final String PARAM_MODIFIED_TIME = "modifiedtime";
+    public static final String PARAM_CREATED_TIME = "createdtime";
+    public static final String NAME_FIELD = "name";
+
     // 排序
     private String sortedField = NAME_FIELD; // 目前支持: name, createdTime, modifiedTime
 
     // 过滤
-    private Boolean enabled; //允许null，表示不过滤是否禁用，即忽略该状态
+    private Boolean enabled; // 允许null，表示不过滤是否禁用，即忽略该状态
     private Boolean isRunning;
     private Boolean hasDataQueue;
 
@@ -48,7 +51,6 @@ public class AppSearchEntity extends OrchsymSearchEntity {
     public void setSortedField(String sortedField) {
         this.sortedField = sortedField;
     }
-
 
     public Boolean getEnabled() {
         return enabled;

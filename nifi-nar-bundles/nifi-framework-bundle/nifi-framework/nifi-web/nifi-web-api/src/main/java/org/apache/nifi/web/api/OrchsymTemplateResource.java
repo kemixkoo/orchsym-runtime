@@ -78,6 +78,7 @@ import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateSearchEntity;
 import org.apache.nifi.web.api.orchsym.template.TemplateSourceType;
 import org.apache.nifi.web.dao.TemplateDAO;
+import org.apache.nifi.web.util.ChinesePinyinUtil;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -363,7 +364,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
         searchEntity.setSourceType(sourceType);
         searchEntity.setTemplateType(templateType);
 
-        final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(filterTemplates(PRE_FILTER));
+        final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(filterTemplates(PRE_FILTER), ChinesePinyinUtil.zhComparator);
         return Response.ok(page).build();
     }
 
@@ -388,7 +389,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                 // ignore
             }
         }
-        final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(filterTemplates(t -> true)); // 不做预过滤
+        final DataPage<TemplateDTO> page = searchEntity.getTempsByFilter(filterTemplates(t -> true), ChinesePinyinUtil.zhComparator); // 不做预过滤
         return Response.ok(page).build();
 
     }

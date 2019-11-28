@@ -17,6 +17,7 @@
  */
 package org.apache.nifi.web.api.orchsym.template;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -158,6 +159,16 @@ public class TemplateSearchEntity extends OrchsymSearchEntity {
      * @return
      */
     public DataPage<TemplateDTO> getTempsByFilter(List<TemplateDTO> list) {
+        return getTempsByFilter(list, new Comparator<String>() {
+
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareToIgnoreCase(o2);
+            }
+        });
+    }
+
+    public DataPage<TemplateDTO> getTempsByFilter(List<TemplateDTO> list, final Comparator<String> nameComparator) {
         // 过滤筛选 + 排序
         final List<TemplateDTO> filterList = list.stream().filter(t -> {
             String q = this.getText();
@@ -241,13 +252,20 @@ public class TemplateSearchEntity extends OrchsymSearchEntity {
                 break;
             case NAME_FIELD:
                 time1 = time2 = null;
+                break;
             default:
                 break;
             }
             if (time1 != null && time2 != null) {
-                return isDesc() ? time2.compareTo(time1) : time1.compareTo(time2);
+                final int compare = time2.compareTo(time1);
+                return isDesc() ? compare : -compare;
+            } else if (time1 != null) {
+                return isDesc() ? -1 : 1;
+            } else if (time2 != null) {
+                return isDesc() ? 1 : -1;
             } else {
-                return isDesc() ? o2.getName().compareTo(o1.getName()) : o1.getName().compareTo(o2.getName());
+                final int compare = nameComparator.compare(o2.getName(), o1.getName());
+                return isDesc() ? compare : -compare;
             }
         }).collect(Collectors.toList());
 

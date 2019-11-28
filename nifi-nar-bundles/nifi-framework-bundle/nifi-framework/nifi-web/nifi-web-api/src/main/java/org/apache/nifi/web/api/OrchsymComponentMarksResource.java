@@ -20,7 +20,6 @@ package org.apache.nifi.web.api;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -51,6 +50,7 @@ import org.apache.nifi.i18n.DtoI18nHelper;
 import org.apache.nifi.i18n.Messages;
 import org.apache.nifi.util.StringUtils;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
+import org.apache.nifi.web.util.ChinesePinyinUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -65,7 +65,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import net.sourceforge.pinyin4j.PinyinHelper;
 
 /**
  * RESTful endpoint for retrieving system diagnostics.
@@ -586,27 +585,7 @@ public class OrchsymComponentMarksResource extends AbsOrchsymResource {
     static Comparator<Item> itemZhComparator = new Comparator<Item>() {
         @Override
         public int compare(Item s1, Item s2) {
-            int first = compare(s1.name.charAt(0), s2.name.charAt(0));
-            if (first != 0) {
-                return first;
-            }
-
-            // check the second
-            if (s1.name.length() > 1 && s2.name.length() > 1) {
-                return compare(s1.name.charAt(1), s2.name.charAt(1));
-            }
-            return itemGeneraleComparator.compare(s1, s2);
-        }
-
-        int compare(char c1, char c2) {
-            final String[] c1Py = PinyinHelper.toHanyuPinyinStringArray(c1);
-            final String[] c2Py = PinyinHelper.toHanyuPinyinStringArray(c2);
-            if (c1Py != null && c2Py != null) {
-                final String c1PyStr = Arrays.stream(c1Py).collect(Collectors.joining(""));
-                final String c2PyStr = Arrays.stream(c2Py).collect(Collectors.joining(""));
-                return c1PyStr.compareToIgnoreCase(c2PyStr);
-            }
-            return String.valueOf(c1).compareToIgnoreCase(String.valueOf(c2));
+            return ChinesePinyinUtil.zhComparator.compare(s1.name, s2.name);
         }
     };
 

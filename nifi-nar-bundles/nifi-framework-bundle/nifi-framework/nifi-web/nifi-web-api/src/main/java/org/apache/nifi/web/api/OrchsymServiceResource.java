@@ -100,6 +100,7 @@ import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.service.ControllerServicesBatchOperationEntity;
 import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity;
 import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity.OrchsymServiceSortField;
+import org.apache.nifi.web.util.ChinesePinyinUtil;
 import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1019,7 +1020,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         services.sort((o2, o1) -> {
             switch (sortField) {
             case NAME:
-                return desc ? o1.getName().compareTo(o2.getName()) : o2.getName().compareTo(o1.getName());
+                final int compare = ChinesePinyinUtil.zhComparator.compare(o2.getName(), o1.getName());
+                return desc ? -compare : compare;
             case TYPE:
                 return desc ? o1.getType().compareTo(o2.getType()) : o2.getType().compareTo(o1.getType());
             case REFERENCING_COMPONENTS:

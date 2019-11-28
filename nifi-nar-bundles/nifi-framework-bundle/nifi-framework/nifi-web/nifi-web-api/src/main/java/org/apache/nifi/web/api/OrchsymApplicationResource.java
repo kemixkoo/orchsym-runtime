@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -93,6 +94,7 @@ import org.apache.nifi.web.api.orchsym.application.ApplicationFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.apache.nifi.web.util.AppTypeAssessor;
+import org.apache.nifi.web.util.ChinesePinyinUtil;
 import org.apache.nifi.web.util.AppTypeAssessor.AppType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -113,11 +115,6 @@ import io.swagger.annotations.Authorization;
 @Path("/application")
 @Api(value = "/application", description = "app API")
 public class OrchsymApplicationResource extends AbsOrchsymResource {
-    /**
-     * @apiNote group中相关的创建和修改时间
-     */
-    private static final String PARAM_MODIFIED_TIME = "modifiedTime";
-    private static final String PARAM_CREATED_TIME = "createdTime";
 
     @Autowired
     private FlowService flowService;
@@ -317,11 +314,11 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     private void fixDefaultSearchEnity(final AppSearchEntity searchEnity) {
 
         // FIXME, 暂不支持modified_time，否应该删除统一到创建日期上
-        if (PARAM_MODIFIED_TIME.equals(searchEnity.getSortedField())) {
-            searchEnity.setSortedField(PARAM_CREATED_TIME);
+        if (AppSearchEntity.PARAM_MODIFIED_TIME.equals(searchEnity.getSortedField())) {
+            searchEnity.setSortedField(AppSearchEntity.PARAM_CREATED_TIME);
         }
-        if (PARAM_MODIFIED_TIME.equals(searchEnity.getFilterTimeField())) {
-            searchEnity.setFilterTimeField(PARAM_CREATED_TIME);
+        if (AppSearchEntity.PARAM_MODIFIED_TIME.equals(searchEnity.getFilterTimeField())) {
+            searchEnity.setFilterTimeField(AppSearchEntity.PARAM_CREATED_TIME);
         }
 
     }
@@ -416,7 +413,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             }
 
             if (null != filterTimeField && (beginTime != null || endTime != null)) {
-                if (PARAM_CREATED_TIME.equals(filterTimeField)) {
+                if (AppSearchEntity.PARAM_CREATED_TIME.equals(filterTimeField)) {
                     final Long createdTime = appGroupEntity.getCreatedTime();
                     if (beginTime != null && createdTime < beginTime) {
                         return false;
@@ -424,7 +421,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     if (endTime != null && createdTime > endTime) {
                         return false;
                     }
-                } else if (PARAM_MODIFIED_TIME.equals(filterTimeField)) {
+                } else if (AppSearchEntity.PARAM_MODIFIED_TIME.equals(filterTimeField)) {
                     final Long modifiedTime = appGroupEntity.getModifiedTime();
                     if (beginTime != null && modifiedTime < beginTime) {
                         return false;
@@ -441,18 +438,52 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         // 进行排序
         final String sortField = searchEnity.getSortedField();
         final boolean isDesc = searchEnity.isDesc();
-        Collections.sort(appGroupEntityList, new Comparator<AppGroupEntity>() {
+        final Comparator<AppGroupEntity> nameComparator = new Comparator<AppGroupEntity>() {
             @Override
             public int compare(AppGroupEntity o1, AppGroupEntity o2) {
-                if (PARAM_CREATED_TIME.equalsIgnoreCase(sortField) && o1.getCreatedTime() != null && o2.getCreatedTime() != null) {
-                    return isDesc ? o2.getCreatedTime().compareTo(o1.getCreatedTime()) : o1.getCreatedTime().compareTo(o2.getCreatedTime());
-                } else if (PARAM_MODIFIED_TIME.equalsIgnoreCase(sortField) && o1.getModifiedTime() != null && o2.getModifiedTime() != null) {
-                    return isDesc ? o2.getModifiedTime().compareTo(o1.getModifiedTime()) : o1.getModifiedTime().compareTo(o2.getModifiedTime());
-                } else {
-                    return isDesc ? o2.getName().compareToIgnoreCase(o1.getName()) : o1.getName().compareToIgnoreCase(o2.getName());
-                }
+                final int compare = ChinesePinyinUtil.zhComparator.compare(o2.getName(), o1.getName());
+                return isDesc ? compare : -compare;
             }
-        });
+        };
+
+        Predicate<? super AppGroupEntity> timePredicate = null;
+        Comparator<AppGroupEntity> timeComparator = null;
+        if (!Objects.isNull(sortField)) {
+            if (AppSearchEntity.PARAM_CREATED_TIME.equalsIgnoreCase(sortField)) {
+                timePredicate = app -> !Objects.isNull(app.getCreatedTime());
+                timeComparator = new Comparator<AppGroupEntity>() {
+                    @Override
+                    public int compare(AppGroupEntity o1, AppGroupEntity o2) {
+                        final int compare = o2.getCreatedTime().compareTo(o1.getCreatedTime());
+                        return isDesc ? compare : -compare;
+                    }
+                };
+
+            } else if (AppSearchEntity.PARAM_MODIFIED_TIME.equalsIgnoreCase(sortField)) {
+                timePredicate = app -> !Objects.isNull(app.getModifiedTime());
+                timeComparator = new Comparator<AppGroupEntity>() {
+                    @Override
+                    public int compare(AppGroupEntity o1, AppGroupEntity o2) {
+                        final int compare = o2.getModifiedTime().compareTo(o1.getModifiedTime());
+                        return isDesc ? compare : -compare;
+                    }
+                };
+            } // 名字排序
+        }
+
+        if (!Objects.isNull(timePredicate) && !Objects.isNull(timeComparator)) {
+            // 需分桶处理不存在日期的情况
+            List<AppGroupEntity> holdTimeList = appGroupEntityList.stream().filter(timePredicate).sorted(timeComparator).collect(Collectors.toList());
+
+            // 没有名字的，按名字排序
+            List<AppGroupEntity> noTimeList = appGroupEntityList.stream().filter(timePredicate.negate()).sorted(nameComparator).collect(Collectors.toList());
+
+            appGroupEntityList.clear();
+            appGroupEntityList.addAll(holdTimeList);
+            appGroupEntityList.addAll(noTimeList);// 并放于最后
+        } else { // 名字排序
+            Collections.sort(appGroupEntityList, nameComparator);
+        }
 
         DataPage<AppGroupEntity> appsPage = new DataPage<AppGroupEntity>(appGroupEntityList, searchEnity.getPageSize(), searchEnity.getPage());
         if (searchEnity.isNeedDetail()) {
