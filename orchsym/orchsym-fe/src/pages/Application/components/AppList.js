@@ -202,7 +202,7 @@ class AppList extends PureComponent {
           });
         } else {
           confirm({
-            title: formatMessage({ id: 'application.delete.title' }),
+            title: formatMessage({ id: 'application.delete.title2' }),
             content: formatMessage({ id: 'application.delete.description' }),
             okText: 'Yes',
             okType: 'warning',

@@ -18,6 +18,7 @@ export default {
   'page.application.nameDesc': 'Name Descend',
   'page.application.modifySort': 'Modified Time Ascend',
   'page.application.modifyDesc': 'Modified Time Descend',
-  'application.delete.title': 'Are you sure you want to put it in the recycle bin?',
+  'application.delete.title': 'This app has been stopped. Are you sure to put it into the recycle bin?',
+  'application.delete.title2': 'The application is still running. Are you sure to force it to be put into the recycle bin?',
   'application.delete.description': 'The file stream in the application cannot be recovered after it is put into the recycle bin',
 }
