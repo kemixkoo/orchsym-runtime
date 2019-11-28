@@ -62,7 +62,7 @@
                 search: apiHost + "/nifi-api/flow/search-results",
                 status: apiHost + "/nifi-api/flow/status",
                 statusApp: function(){
-                    return apiHost + "/nifi-api/group/" + window.SYSTEMID.groupId + "/navigator";
+                    return apiHost + "/nifi-api/group/" + window.SYSTEMID.groupId + "/search-results";
                 }
             }
         };
@@ -244,7 +244,7 @@
                                     q: request.term
                                 },
                                 dataType: 'json',
-                                url: config.urls.search
+                                url: config.urls.statusApp()
                             }).done(function (searchResponse) {
                                 response(searchResponse.searchResultsDTO);
                             });
