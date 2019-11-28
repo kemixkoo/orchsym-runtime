@@ -300,15 +300,19 @@
             //Manually Boostrap Angular App
             nfNgBridge.injector = angular.bootstrap($('body'), ['ngCanvasApp'], {strictDi: true});
             //wanzhen 20191024
-            // function getQueryVariable(variable) {
-            //     var query = window.location.search.substring(1);
-            //     var vars = query.split("&");
-            //     for (var i=0;i<vars.length;i++) {
-            //         var pair = vars[i].split("=");
-            //         if(pair[0] == variable){return pair[1];}
-            //     }
-            //     return(false);
-            // }
+            function getQueryVariable(variable) {
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i=0;i<vars.length;i++) {
+                    var pair = vars[i].split("=");
+                    if(pair[0] == variable){return pair[1];}
+                }
+                return(false);
+            }
+            window.SYSTEMID = {
+                groupId: getQueryVariable("processGroupId"),
+                componentId: getQueryVariable("componentIds")
+            };
             // // initialize the NiFi
             // var token = getQueryVariable("token");
             // try{

@@ -25,12 +25,17 @@ body {
     left: 0px;
     right: 0px;
     bottom: 0px;
-    background: #03111F;
-    background: transparent url(../images/splash.jpg) no-repeat center center;
+    background: #fff;
+    /*background: transparent url(../images/splash.jpg) no-repeat center center;*/
     background-size:100%;
     z-index: 2000;
 }
-
+md-progress-linear.md-default-theme.md-hue-1.md-warn .md-bar, md-progress-linear.md-hue-1.md-warn .md-bar {
+    background-color: #1890ff;
+}
+md-progress-linear.md-default-theme.md-hue-1.md-warn .md-bar, md-progress-linear.md-hue-1.md-warn .md-bar {
+    background-color: #1890ff;
+}
 #splash-img {
     position: absolute;
     top: 0%;

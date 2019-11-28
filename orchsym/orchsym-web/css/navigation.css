@@ -898,18 +898,18 @@ button.svg-right:disabled {
     position: absolute;
     right: 5px;
     font-size: 18px;
-    top: 5px;
-    color: #666;
+    top: 7px;
+    color: #999;
 }
 #breadcrumbs-search input[type="text"]{
     border: 1px solid #ddd;
-    height: 25px;
+    height: 28px;
     background-color: #fff;
     margin-top: 1px;
 }
 #breadcrumbs-search input[type="text"]:focus {
     border: 1px solid #ddd;
-    height: 25px;
+    height: 28px;
     background-color: #fff;
     margin-top: 1px;
     box-shadow: 0 0 0 rgba(0, 0, 0, 0);

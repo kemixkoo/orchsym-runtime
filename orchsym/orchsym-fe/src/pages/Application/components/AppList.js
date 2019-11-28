@@ -66,11 +66,11 @@ class AppList extends PureComponent {
 
   goToApp = (item) => {
     // console.log('item', item)
-    router.push(`/canvas/${item.id}`)
+    router.push(`/canvas/${item.id}/0`)
   }
 
   doubleGoToApp = (item) => {
-    item.component.additions && item.component.additions.IS_ENABLED === 'true' && router.push(`/canvas/${item.id}`)
+    item.component.additions && item.component.additions.IS_ENABLED === 'true' && router.push(`/canvas/${item.id}/0`)
   }
 
   showEditModal = (item, state) => {

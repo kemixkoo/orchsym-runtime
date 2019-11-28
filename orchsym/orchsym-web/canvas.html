@@ -144,7 +144,10 @@
     <script type="text/javascript" src="js/jquery/nfeditor/jquery.nfeditor.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/jquery/propertytable/jquery.propertytable.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/jquery/tagcloud/jquery.tagcloud.js?1.7.0-SNAPSHOT"></script>
-</head><body ng-controller="ngCanvasAppCtrl" id="canvas-body"><div id="splash" layout="column" layout-align="center center"><div id="splash-logo" layout="column" layout-align="end center" style="width:50%;height:40%"><img src="images/logo.svg" style="width:50%"/><div id="splash-progress" layout="column" layout-align="end center" style="height:10%;width:85%"><md-progress-linear md-mode="indeterminate" class="md-warn md-hue-1"></md-progress-linear></div></div><div id="splash-copyright" layout="row" layout-align="center end" style="height:40%"><p style="font-size:20px; color:white">&copy; 2018 Baishan Cloud Incorporated. All rights reserved.</p></div></div><div id="message-pane" class="message-pane hidden">
+</head><body ng-controller="ngCanvasAppCtrl" id="canvas-body"><div id="splash" layout="column" layout-align="center center">
+    <div id="splash-logo" layout="column" layout-align="end center" style="width:50%;height:30%">
+<!--        <img src="images/logo.svg" style="width:50%"/>-->
+        <div id="splash-progress" layout="column" layout-align="end center" style="height:10%;width:85%"><md-progress-linear md-mode="indeterminate" class="md-warn md-hue-1"></md-progress-linear></div></div><div id="splash-copyright" layout="row" layout-align="center end" style="height:40%"><p style="font-size:20px; color:white">&copy; 2018 Baishan Cloud Incorporated. All rights reserved.</p></div></div><div id="message-pane" class="message-pane hidden">
     <div class="message-pane-message-box">
         <div id="message-title" class="message-pane-title"></div>
         <div id="user-links-container">
@@ -428,7 +431,7 @@
             get-version-control-tooltip="appCtrl.serviceProvider.breadcrumbsCtrl.getVersionControlTooltip">
         </nf-breadcrumbs>-->
         <div id="breadcrumbs-search">
-            <input type="text">
+            <input type="text" id="search-field">
             <span class="acon-search"></span>
         </div>
         <div id="data-flow-title-viewport">
