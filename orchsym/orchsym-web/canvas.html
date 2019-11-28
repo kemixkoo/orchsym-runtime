@@ -163,7 +163,7 @@
 
 <div id="banner-header" class="main-banner-header"></div>
 <!--wanzhen 2019-11-20-->
-<md-menu md-position-mode="target-right target" md-offset="-1 44" id="global-menu-button-box">
+<!--<md-menu md-position-mode="target-right target" md-offset="-1 44" id="global-menu-button-box">
     <button md-menu-origin id="global-menu-button" ng-click="$mdOpenMenu()">
         <div class="icon icon-menu" style="margin-right: -30px;"></div>
     </button>
@@ -247,7 +247,7 @@
             </a>
         </md-menu-item>
     </md-menu-content>
-</md-menu>
+</md-menu>-->
 <!--
 <div id="banner-footer" class="main-banner-footer"></div><md-toolbar id="header" layout-align="space-between center" layout="row" class="md-small md-accent md-hue-1">
     <img id="nifi-logo" src="images/logo.svg">
@@ -418,7 +418,7 @@
 
 <div id="flow-status-top" flex layout="row" layout-align="space-between center">
     <div id="breadcrumbs" layout="row" layout-align="space-around center">
-        <nf-breadcrumbs style="width: 100%;"
+        <!--<nf-breadcrumbs style="width: 100%;"
             breadcrumbs="appCtrl.serviceProvider.breadcrumbsCtrl.getBreadcrumbs();"
             click-func="appCtrl.nf.CanvasUtils.getComponentByType('ProcessGroup').enterGroup"
             highlight-crumb-id="appCtrl.nf.CanvasUtils.getGroupId();"
@@ -426,11 +426,11 @@
             is-tracking="appCtrl.serviceProvider.breadcrumbsCtrl.isTracking"
             get-version-control-class="appCtrl.serviceProvider.breadcrumbsCtrl.getVersionControlClass"
             get-version-control-tooltip="appCtrl.serviceProvider.breadcrumbsCtrl.getVersionControlTooltip">
-        </nf-breadcrumbs>
-        <!--<div id="breadcrumbs-search">
+        </nf-breadcrumbs>-->
+        <div id="breadcrumbs-search">
             <input type="text">
             <span class="acon-search"></span>
-        </div>-->
+        </div>
         <div id="data-flow-title-viewport">
             <div id="data-flow-title-container">
                 <div class="action-button-right">

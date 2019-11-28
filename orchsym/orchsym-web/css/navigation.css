@@ -472,13 +472,13 @@ span.breadcrumb-version-control-gray {
 .component-panel {
     position: absolute;
     top: 50px;
-    right: 40px;
+    right: 50px;
     bottom: 34px;
     z-index: 5;
     border-left: 1px solid #ddd;
 }
 .component-panel-tools {
-    width: 40px;
+    width: 50px;
     position: absolute;
     top: 50px;
     right: 0;
@@ -503,23 +503,25 @@ span.breadcrumb-version-control-gray {
 
 .component-panel-tools .right-icon{
     background-color: rgba(0, 0, 0, 0);
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     display: inline-block;
-    line-height: 30px;
+    line-height: 36px;
+    font-size: 24px;
     text-align: center;
-    margin-left: -4px;
+    margin-left: -2px;
     border-radius: 50%;
 }
 
 .blue .right-icon{
     background-color: #e5e5e5;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     display: inline-block;
-    line-height: 30px;
+    font-size: 24px;
+    line-height: 36px;
     text-align: center;
-    margin-left: -4px;
+    margin-left: -2px;
     border-radius: 50%;
 }
 
