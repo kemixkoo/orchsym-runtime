@@ -28,28 +28,29 @@ import java.util.List;
  *            结果列表的数据类型
  */
 public class DataPage<T> {
-    private int pageSize = 10;
-    private int totalSize;
-    private int totalPage;
-    private int currentPage = 1;
-    private List<T> results;
+    private int currentPage = 1; // 当前页码
+    private int totalSize; // 全部数量
+    private int pageSize = 10; // 每页大小
+    private int totalPage; // 分页页数
+
+    private List<T> results; // 当前页结果集
 
     public DataPage() {
     }
 
     public DataPage(List<T> list, int pageSize, int currentPage) {
-        if (currentPage < 1) { // 当前页只能从1开始
+        if (currentPage < 1) { // 必须从1开始，否则强制第1页
             currentPage = 1;
         }
         final int totalSize = list.size();
-        if (pageSize < 1) {// 页数最少为全部，即1页
+        if (pageSize < 1) {// 当每页大小为-1，表示不分页，即只有1页
             pageSize = totalSize;
         }
-        
+
         this.setCurrentPage(currentPage);
         this.setTotalSize(totalSize);
         this.setPageSize(pageSize);
-        
+
         this.setTotalPage((totalSize + pageSize - 1) / pageSize);
 
         int index = (currentPage - 1) * pageSize;
@@ -63,12 +64,28 @@ public class DataPage<T> {
         this.setResults(resultList);
     }
 
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
     public int getTotalSize() {
         return totalSize;
     }
 
     public void setTotalSize(int totalSize) {
         this.totalSize = totalSize;
+    }
+
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
     }
 
     public int getTotalPage() {
@@ -79,14 +96,6 @@ public class DataPage<T> {
         this.totalPage = totalPage;
     }
 
-    public int getCurrentPage() {
-        return currentPage;
-    }
-
-    public void setCurrentPage(int currentPage) {
-        this.currentPage = currentPage;
-    }
-
     public List<T> getResults() {
         return results;
     }
@@ -95,11 +104,4 @@ public class DataPage<T> {
         this.results = results;
     }
 
-    public int getPageSize() {
-        return pageSize;
-    }
-
-    public void setPageSize(int pageSize) {
-        this.pageSize = pageSize;
-    }
 }

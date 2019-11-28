@@ -18,7 +18,6 @@
 package org.apache.nifi.web.api;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -74,12 +73,18 @@ import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
-import org.apache.nifi.web.api.dto.*;
+import org.apache.nifi.web.api.dto.PositionDTO;
+import org.apache.nifi.web.api.dto.ProcessGroupDTO;
+import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
+import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
-import org.apache.nifi.web.api.entity.*;
 import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
+import org.apache.nifi.web.api.entity.SnippetEntity;
+import org.apache.nifi.web.api.entity.TemplateEntity;
+import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.application.AppCopyEntity;
 import org.apache.nifi.web.api.orchsym.application.AppGroupEntity;
@@ -449,46 +454,14 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             }
         });
 
-        // 处理分页
-        // 总条数 与 总页数
-        int totalSize = appGroupEntityList.size();
-        int pageSize = searchEnity.getPageSize();
-        int currentPage = searchEnity.getPage();
-        if (pageSize < 0) {
-            pageSize = totalSize;
-        }
-        if (currentPage < 0) {
-            currentPage = 1;
-        }
-
-        int totalPage = (totalSize + pageSize - 1) / pageSize;
-        int index = (currentPage - 1) * pageSize;
-
-        List<AppGroupEntity> resultList = null;
-        if (index >= totalSize) {
-            resultList = new ArrayList<>();
-        } else {
-            int endIndex = Math.min(index + pageSize, totalSize);
-            resultList = appGroupEntityList.subList(index, endIndex);
-        }
-
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("totalSize", totalSize);
-        resultMap.put("totalPage", totalPage);
-        resultMap.put("currentPage", currentPage);
-
+        DataPage<AppGroupEntity> appsPage = new DataPage<AppGroupEntity>(appGroupEntityList, searchEnity.getPageSize(), searchEnity.getPage());
         if (searchEnity.isNeedDetail()) {
-            List<ProcessGroupEntity> entities = new ArrayList<>();
-            for (AppGroupEntity app : resultList) {
-                entities.add(serviceFacade.getProcessGroup(app.getId()));
-            }
-            resultMap.put("results", entities);
+            List<ProcessGroupEntity> detailsList = appsPage.getResults().stream().map(app -> serviceFacade.getProcessGroup(app.getId())).collect(Collectors.toList());
+            DataPage<ProcessGroupEntity> detailsPage = new DataPage<ProcessGroupEntity>(detailsList, searchEnity.getPageSize(), searchEnity.getPage());
+            return noCache(Response.ok(detailsPage)).build();
         } else {
-            resultMap.put("results", resultList);
+            return noCache(Response.ok(appsPage)).build();
         }
-
-        // generate the response
-        return noCache(Response.ok(resultMap)).build();
     }
 
     private boolean isGroupHasDataQueue(String groupId) {
