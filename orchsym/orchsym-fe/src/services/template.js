@@ -136,7 +136,7 @@ export async function deletedMTemplates(param) {
 
 // 存为模板
 export async function saveApplicationTemp(params) {
-  return request(`/studio/application/template/${params.appId}/saveas`, {
+  return request(`/studio/nifi-api/application/template/${params.appId}/saveas`, {
     method: 'POST',
     data: {
       name: params.name,
