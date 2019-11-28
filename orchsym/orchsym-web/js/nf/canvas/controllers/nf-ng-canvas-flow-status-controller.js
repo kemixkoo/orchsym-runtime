@@ -244,7 +244,7 @@
                                     q: request.term
                                 },
                                 dataType: 'json',
-                                url: config.urls.statusApp()
+                                url: config.urls.search
                             }).done(function (searchResponse) {
                                 response(searchResponse.searchResultsDTO);
                             });

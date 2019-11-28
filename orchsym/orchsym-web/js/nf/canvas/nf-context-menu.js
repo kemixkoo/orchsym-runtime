@@ -802,7 +802,7 @@
         {id: 'enable-transmission-menu-item', condition: canStartTransmission, menuItem: {clazz: 'fa fa-bullseye', text: nf._.msg('nf-context-menu.EnableTransmission'), action: 'enableTransmission'}},
         {id: 'disable-transmission-menu-item', condition: canStopTransmission, menuItem: { clazz: 'icon icon-transmit-false', text: nf._.msg('nf-context-menu.DisableTransmission'), action: 'disableTransmission'}},
         {separator: true},
-        {id: 'data-provenance-menu-item', condition: canAccessProvenance, menuItem: {clazz: 'icon icon-provenance', imgStyle: 'context-menu-provenance', text: nf._.msg('nf-context-menu.DataProvenance'), action: 'openProvenance'}},
+        {id: 'data-provenance-menu-item', condition: canAccessProvenance, menuItem: {clazz: 'acon hicon-data-traceability', imgStyle: 'context-menu-provenance', text: nf._.msg('nf-context-menu.DataProvenance'), action: 'openProvenance'}},
         {id: 'show-stats-menu-item', condition: supportsStats, menuItem: {clazz: 'fa fa-area-chart', text: nf._.msg('nf-context-menu.StatsHistory'), action: 'showStats'}},
         {id: 'view-state-menu-item', condition: isStatefulProcessor, menuItem: {clazz: 'fa fa-tasks', text: nf._.msg('nf-context-menu.ViewState'), action: 'viewState'}},
         {id: 'list-queue-menu-item', condition: canListQueue, menuItem: {clazz: 'fa fa-list', text: nf._.msg('nf-context-menu.QueueList'), action: 'listQueue'}},
