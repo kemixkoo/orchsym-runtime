@@ -582,7 +582,7 @@ span.breadcrumb-version-control-gray {
     top: 100px;
 }
 .system-tools-list .button-box{
-    padding-left: 15px;
+    padding-left: 13px;
     width: 100%;
     margin-bottom: 10px;
 }
@@ -756,7 +756,15 @@ span.breadcrumb-version-control-gray {
     top: 0;
     cursor: pointer;
 }
-
+.collapse span.icon{
+    width: 20px;
+    height: 20px;
+    margin-top: 13px;
+    margin-left: 8px;
+    display: inline-block;
+    outline: none;
+    font-size: 24px;
+}
 .collapse img{
     width: 20px;
     height: 20px;
