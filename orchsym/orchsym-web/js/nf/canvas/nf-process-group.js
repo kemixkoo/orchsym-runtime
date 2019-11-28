@@ -58,8 +58,8 @@
     var PREVIEW_NAME_LENGTH = 30;
 
     var dimensions = {
-        width: 380,
-        height: 172
+        width: 320,
+        height: 150
     };
 
     // ----------------------------
@@ -288,7 +288,7 @@
                             'baishan': 'baishan'
                         });
 
-                    details.append('rect')
+                    /*details.append('rect')
                         .attrs({
                             'x': 0,
                             'y': function () {
@@ -298,15 +298,16 @@
                                 return processGroupData.dimensions.width;
                             },
                             'height': 24,
-                            'fill': '#ffffff'
-                        });
+                            'fill': '#ffffff',
+                            'w-name': 'food'
+                        });*/
 
                     // --------
                     // contents
                     // --------
 
                     // transmitting icon
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'x': 10,
                             'y': 49,
@@ -315,18 +316,18 @@
                         })
                         .text('\uf140')
                         .append("title")
-                        .text("Transmitting Remote Process Groups");
+                        .text("Transmitting Remote Process Groups");*/
 
 
                     // transmitting count
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'y': 49,
                             'class': 'process-group-transmitting-count process-group-contents-count'
-                        });
+                        });*/
 
                     // not transmitting icon
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'y': 49,
                             'class': 'process-group-not-transmitting process-group-contents-icon',
@@ -334,18 +335,19 @@
                         })
                         .text('\ue831')
                         .append("title")
-                        .text("Not Transmitting Remote Process Groups");
+                        .text("Not Transmitting Remote Process Groups");*/
 
                     // not transmitting count
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'y': 49,
                             'class': 'process-group-not-transmitting-count process-group-contents-count'
-                        });
+                        });*/
 
                     // running icon
                     details.append('text')
                         .attrs({
+                            'x': 10,
                             'y': 49,
                             'class': 'process-group-running process-group-contents-icon',
                             'font-family': 'FontAwesome'
@@ -415,7 +417,7 @@
                             'class': 'process-group-disabled-count process-group-contents-count'
                         });
 
-                    // up to date icon
+                    /*// up to date icon
                     details.append('text')
                         .attrs({
                             'x': 10,
@@ -524,7 +526,7 @@
                                 return processGroupData.dimensions.height - 7;
                             },
                             'class': 'process-group-sync-failure-count process-group-contents-count'
-                        });
+                        });*/
 
                     // ----------------
                     // stats background
@@ -539,7 +541,7 @@
                             'y': 56,
                             'fill': '#c7d2d7',
                         });
-                    details.append('rect')
+                    /*details.append('rect')
                         .attrs({
                             'width': function () {
                                 return dimensions.width;
@@ -548,7 +550,7 @@
                             'x': 0,
                             'y': 149,
                             'fill': '#c7d2d7',
-                        });
+                        });*/
                     details.append('rect')
                         .attrs({
                             'width': 1,
@@ -707,7 +709,7 @@
                     // stats value container
                     var processGroupStatsValue = details.append('g')
                         .attrs({
-                            'transform': 'translate(155, 75)'
+                            'transform': 'translate(125, 75)'
                         });
 
                     // queued value
@@ -896,7 +898,7 @@
                 }
 
                 // update transmitting
-                var transmitting = details.select('text.process-group-transmitting')
+                /*var transmitting = details.select('text.process-group-transmitting')
                     .classed('transmitting', function (d) {
                         return d.permissions.canRead && d.activeRemotePortCount > 0;
                     })
@@ -911,10 +913,11 @@
                     .text(function (d) {
                         return d.activeRemotePortCount;
                     });
-                transmittingCount.append("title").text("Transmitting Remote Process Groups");
+                transmittingCount.append("title").text("Transmitting Remote Process Groups");*/
 
                 // update not transmitting
-                var notTransmitting = details.select('text.process-group-not-transmitting')
+                //wanzhen
+                /*var notTransmitting = details.select('text.process-group-not-transmitting')
                     .classed('not-transmitting', function (d) {
                         return d.permissions.canRead && d.inactiveRemotePortCount > 0;
                     })
@@ -932,8 +935,8 @@
                     })
                     .text(function (d) {
                         return d.inactiveRemotePortCount;
-                    });
-                notTransmittingCount.append("title").text("Not transmitting Remote Process Groups")
+                    });*/
+                // notTransmittingCount.append("title").text("Not transmitting Remote Process Groups")
 
                 // update running
                 var running = details.select('text.process-group-running')
@@ -943,10 +946,12 @@
                     .classed('zero', function (d) {
                         return d.permissions.canRead && d.component.runningCount === 0;
                     })
-                    .attr('x', function () {
-                        var notTransmittingX = parseInt(notTransmittingCount.attr('x'), 10);
-                        return notTransmittingX + Math.round(notTransmittingCount.node().getComputedTextLength()) + CONTENTS_SPACER;
-                    });
+                    /*.attr('x', function () {
+                        var transmittingCountX = parseInt(running.attr('x'), 10);
+                        return transmittingCountX + Math.round(running.node().getComputedTextLength()) + CONTENTS_VALUE_SPACER;
+                        // var notTransmittingX = parseInt(notTransmittingCount.attr('x'), 10);
+                        // return notTransmittingX + Math.round(notTransmittingCount.node().getComputedTextLength()) + CONTENTS_SPACER;
+                    })*/;
                 var runningCount = details.select('text.process-group-running-count')
                     .attr('x', function () {
                         var runningCountX = parseInt(running.attr('x'), 10);
