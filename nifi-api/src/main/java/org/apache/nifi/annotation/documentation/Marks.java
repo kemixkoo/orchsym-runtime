@@ -38,11 +38,18 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface Marks {
-    static final String ORCHSYM = "Orchsym";
+    String ORCHSYM = "Orchsym";
 
     String vendor() default ORCHSYM; // eg: "Orchsym", "BaishanCloud"
     String[] categories() default ""; //eg:  {"数据处理/数据抓取", "网络/网络通信"}
     String createdDate() default ""; //eg: "2018-9-20"
     String note() default ""; //备注，扩展字段
     String since() default ""; //备注，版本等信息
+
+    /**
+     *  Component icon name. eg: "icon.svg", "invoke_http.svg"
+     *  FIXME: the xxx folder
+     *  To use your own icon, you must ensure that the specified icon is in the xxx folder, otherwise a default icon will be used.
+     */
+    String iconName() default "";
  }

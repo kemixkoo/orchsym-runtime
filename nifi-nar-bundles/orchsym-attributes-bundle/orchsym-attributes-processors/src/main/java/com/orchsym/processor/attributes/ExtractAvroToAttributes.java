@@ -57,7 +57,7 @@ import org.apache.nifi.serialization.record.RecordSchema;
  *
  */
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
-@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2018-12-10")
+@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2018-12-10", iconName = "04.svg")
 @Tags({ "Extract", "Attribute", "Record", "Avro" })
 @CapabilityDescription("Provide the abblity of extracting the attributes by Record Path for Avro Record contents from the incoming flowfile. If don't set the dynamic property to set with Record path expression, will use the name 'ALL' with Record Path expression '/' for all by default")
 @DynamicProperty(name = "Record Path property", //

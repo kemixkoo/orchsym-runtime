@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  *
  */
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
-@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2019-1-17")
+@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2019-1-17", iconName = "04.svg")
 @Tags({ "Convert", "JSON", "XML", "JSON TO XML" })
 @CapabilityDescription("Provide the ability of Convert JSON format contents to XML format contents from the incoming flowfile")
 

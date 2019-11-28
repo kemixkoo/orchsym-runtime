@@ -49,6 +49,7 @@ import javax.ws.rs.core.Response;
 import org.apache.nifi.components.ComponentsContext;
 import org.apache.nifi.i18n.DtoI18nHelper;
 import org.apache.nifi.i18n.Messages;
+import org.apache.nifi.util.StringUtils;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -331,6 +332,97 @@ public class OrchsymComponentMarksResource extends AbsOrchsymResource {
         return Response.ok(resultStr).build();
     }
 
+    /**
+     * Get icon infos of a Processor.
+     */
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path("/icons")
+    @ApiOperation(
+            value = "Gets the components classification for the system is running on",
+            response = Map.class
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400),
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401),
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403),
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409)
+    })
+    public Response getComponentsIcons() {
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
+        }
+
+        final Map<String, IconDetails> processorIconsFromFile = loadProcessorIconsFromFile();
+        final Map<String, IconDetails> processorIconsFromMarks = getProcessorIconsFromMarks();
+
+        // If we can determine the icon from marks, we'll use if.
+        // Else, try to find a suitable icon from "processor_icons.json"
+        // Finally, use the default icon.
+        final String defaultIcon = "001.svg";   // todo: determine the default icon
+        final Map<String, IconDetails> processorIcons = new HashMap<>(processorIconsFromFile);
+
+        for (Map.Entry<String, IconDetails> entry: processorIconsFromMarks.entrySet()) {
+            // Use marks first
+            if (processorIcons.containsKey(entry.getKey())) {
+                if (!StringUtils.isBlank(entry.getValue().getIconName())) {
+                    processorIcons.put(entry.getKey(), entry.getValue());
+                }
+            } else {
+                if (!StringUtils.isBlank(entry.getValue().getIconName())) {
+                    processorIcons.put(entry.getKey(), entry.getValue());
+                } else {
+                    IconDetails iconDetails = new IconDetails();
+                    iconDetails.setIconName(defaultIcon);
+                    processorIcons.put(entry.getKey(), iconDetails);
+                }
+            }
+        }
+
+        return generateOkResponse(processorIcons).build();
+    }
+
+    /**
+     * try to get Processor icon infos from <code>@Mark</code>
+     */
+    private Map<String, IconDetails> getProcessorIconsFromMarks() {
+        Map<String, IconDetails> processorIcons = new HashMap<>();
+        final Set<DocumentedTypeDTO> processorTypes = serviceFacade.getProcessorTypes(null, null, null);
+
+       for (DocumentedTypeDTO documentedTypeDTO: processorTypes) {
+           IconDetails iconDetails = new IconDetails();
+           iconDetails.setIconName(documentedTypeDTO.getIconName());
+           processorIcons.put(documentedTypeDTO.getType(), iconDetails);
+       }
+
+        return processorIcons;
+    }
+
+
+    /**
+     * Load Processor icon from "processor_icons.json"
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, IconDetails> loadProcessorIconsFromFile() {
+        Map<String, IconDetails> processorIcons = new HashMap<>();
+        try {
+            final ObjectMapper mapper = new ObjectMapper();
+            final InputStream stream = OrchsymComponentMarksResource.class.getResourceAsStream("/json/processor_icons.json");
+            JsonFactory factory = new JsonFactory();
+            JsonParser parser = factory.createParser(stream);
+            parser.nextToken();
+            Map<String, IconDetails> processorIconsMap = mapper.readValue(parser, Map.class);
+            for (Map.Entry<String, IconDetails> entry: processorIconsMap.entrySet()) {
+                processorIcons.put(entry.getKey(), mapper.convertValue(entry.getValue(), IconDetails.class));
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return processorIcons;
+    }
+
     private Collection<CategoryItem> createCategoryItems(final Locale requestLocale, Set<DocumentedTypeDTO> processorTypes) {
         Map<String, CategoryItem> categoryItems = new HashMap<String, CategoryItem>();
         for (DocumentedTypeDTO dto : processorTypes) {
@@ -532,3 +624,17 @@ public class OrchsymComponentMarksResource extends AbsOrchsymResource {
         public List<String> components = new ArrayList<>();;
     }
 }
+
+
+class IconDetails {
+    private String iconName;
+
+    public String getIconName() {
+        return iconName;
+    }
+
+    public void setIconName(String iconName) {
+        this.iconName = iconName;
+    }
+}
+

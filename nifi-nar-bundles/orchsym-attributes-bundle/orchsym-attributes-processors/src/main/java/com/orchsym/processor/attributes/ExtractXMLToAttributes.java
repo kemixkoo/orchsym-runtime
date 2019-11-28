@@ -82,7 +82,7 @@ import net.sf.saxon.s9api.XdmValue;
  *
  */
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
-@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2018-12-14")
+@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2018-12-14", iconName = "04.svg")
 @Tags({ "Extract", "Attribute", "Record", "XML" })
 @CapabilityDescription("Provide the abblity of extracting the attributes by XPath or XQuery for XML format contents from the incoming flowfile. if XPath, the root '/*' will be default.")
 @DynamicProperty(name = "XML property", //

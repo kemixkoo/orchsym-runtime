@@ -53,7 +53,7 @@ import java.util.*;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_ALLOWED)
 @Tags({"config", "ini", "property"})
-@Marks(categories = { "Data Process/Fetch" }, createdDate = "2019-08-26", since = "2.0_09000")
+@Marks(categories = { "Data Process/Fetch" }, createdDate = "2019-08-26", since = "2.0_09000", iconName = "01.svg")
 @CapabilityDescription("Extract text or flowfiles or attributes in the format " +
         "of ini, properties, yml to the global configuration")
 public class LoadConfig extends AbstractProcessor {

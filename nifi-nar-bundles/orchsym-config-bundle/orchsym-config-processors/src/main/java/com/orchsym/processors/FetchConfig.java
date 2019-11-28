@@ -48,7 +48,7 @@ import java.util.*;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_ALLOWED)
 @Tags({"config", "ini", "property", "fetch"})
-@Marks(categories = { "Data Process/Fetch" }, createdDate = "2019-08-26", since = "2.0_09000")
+@Marks(categories = { "Data Process/Fetch" }, createdDate = "2019-08-26", since = "2.0_09000", iconName = "09.svg")
 @CapabilityDescription("fetch  entry (K/V) type from distribute ")
 public class FetchConfig extends AbstractProcessor {
 

@@ -2734,17 +2734,15 @@ public final class DtoFactory {
     */
     @SuppressWarnings("unchecked")
     private void setMarks(Class cls, DocumentedTypeDTO dto) {
-        final Set<String> categories = new HashSet<>();
         Annotation annotation = cls.getAnnotation(Marks.class);
         Marks marks = (Marks)annotation;
         if (marks != null) {
-            for (final String category : marks.categories()) {
-                categories.add(category);
-            }
+            final Set<String> categories = new HashSet<>(Arrays.asList(marks.categories()));
             dto.setVendor(marks.vendor());
             dto.setCategories(categories);
             dto.setCreatedDate(marks.createdDate());
             dto.setNote(marks.note());
+            dto.setIconName(marks.iconName());
         }
     }
 

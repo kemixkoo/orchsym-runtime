@@ -65,7 +65,7 @@ import com.jayway.jsonpath.spi.json.JsonProvider;
  *
  */
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
-@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2018-12-12")
+@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2018-12-12", iconName = "04.svg")
 @Tags({ "Extract", "Attribute", "Record", "JSON" })
 @CapabilityDescription("Provide the abblity of extracting the attributes by JSON Path for JSON format contents from the incoming flowfile. If don't set the dynamic property to set with JSON path expression, will use the name 'ALL' with JSON Path expression '$' for all by default")
 @DynamicProperty(name = "JSON Path property", //

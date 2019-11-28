@@ -43,6 +43,7 @@ public class DocumentedTypeDTO {
     private Set<String> categories;
     private String createdDate;
     private String note;
+    private String iconName = "";
 
     private boolean preview;
 
@@ -220,6 +221,17 @@ public class DocumentedTypeDTO {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    @ApiModelProperty(
+            value = "The icon name (eg: icon1.svg)"
+    )
+    public String getIconName() {
+        return iconName;
+    }
+
+    public void setIconName(String iconName) {
+        this.iconName = iconName;
     }
 
     @ApiModelProperty(

@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2019-07-17")
+@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2019-07-17", iconName = "04.svg")
 @Tags({"JSON", "Filter Field", "Avro"})
 @CapabilityDescription("Filter the specified fields in JSON or Avro.")
 @WritesAttributes({
