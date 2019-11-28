@@ -11,16 +11,16 @@ let routes = [
   {
     "path": "/canvas",
     "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "layouts__CanvasLayout" */'../../layouts/CanvasLayout'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
     "Routes": [require('../Authorized').default],
     "routes": [
       {
-        "path": "/canvas/:processGroupId/:componentIds",
+        "path": "/canvas/:processGroupId",
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__Canvas" */'../Canvas'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -29,7 +29,7 @@ let routes = [
       },
       {
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__404" */'../404'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -43,7 +43,7 @@ let routes = [
   {
     "path": "/user",
     "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "layouts__UserLayout" */'../../layouts/UserLayout'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -94,7 +94,7 @@ models: () => [
       },
       {
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__404" */'../404'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -108,7 +108,7 @@ models: () => [
   {
     "path": "/blank",
     "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "layouts__BlankLayout" */'../../layouts/BlankLayout'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -117,7 +117,7 @@ models: () => [
         "path": "/blank",
         "name": "index",
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__Blank__Index" */'../Blank/Index'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -131,7 +131,7 @@ models: () => [
   {
     "path": "/",
     "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../../layouts/BasicLayout'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -147,7 +147,7 @@ models: () => [
         "icon": "OS-iconyingyongguanli",
         "path": "/runtime",
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__Application" */'../Application'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -158,7 +158,7 @@ models: () => [
         "icon": "OS-iconmoban",
         "path": "/template/:tab",
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__Template" */'../Template'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -183,7 +183,7 @@ models: () => [
         "icon": "OS-iconhuishouzhan",
         "path": "/recycleBin",
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__RecycleBin" */'../RecycleBin'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
@@ -255,7 +255,7 @@ models: () => [
       },
       {
         "component": _dvaDynamic({
-
+  
   component: () => import(/* webpackChunkName: "p__404" */'../404'),
   LoadingComponent: require('E:/bitbucket/nifi/orchsym/orchsym-fe/src/components/PageLoading/index').default,
 }),
