@@ -719,6 +719,15 @@ span.breadcrumb-version-control-gray {
     margin-left: 5px;
 }
 
+.template-name{
+    float: left;
+    width: 138px;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    margin-left: 20px;
+}
+
 .search-kuang img{
     width: 20px;
     height: 20px;
@@ -749,6 +758,18 @@ span.breadcrumb-version-control-gray {
     font-size: 12px;
 }
 
+#search-template-input{
+    width: 150px;
+    height: 20px;
+    border: none;
+    outline: none;
+    position: absolute;
+    top: 5px;
+    left: 25px;
+    background-color: #FFF;
+    box-shadow: none;
+    font-size: 12px;
+}
 
 .collapse {
     position: absolute;

@@ -190,7 +190,6 @@
              */
             expand: function ($event) {
                 var icon = $($event.target);
-                console.log("icon", icon)
                 $("#graph-controls").toggle();
                 // if (icon.find('.fa-plus-square-o').length > 0 || icon.hasClass('fa-plus-square-o') || icon.parent().children().find('.fa-plus-square-o').length > 0) {
                 //     openGraphControl(icon.closest('div.graph-control'));
@@ -295,6 +294,7 @@
                 $("#component-panel-tools > .acon.blue").removeClass("blue");
                 if(type==='component-panel'){
                     $("#system-tools-panel").addClass("component-panel-toggleClass");
+                    $("#template-panel").addClass("component-panel-toggleClass");
                     $("#component-panel").toggleClass("component-panel-toggleClass");
                     if($("#component-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
                         $("#component-panel-tools > .acon[type=component-panel]").removeClass("blue");
@@ -303,7 +303,17 @@
                     }
                 } else if(type==='system-tools-panel') {
                     $("#component-panel").addClass("component-panel-toggleClass");
+                    $("#template-panel").addClass("component-panel-toggleClass");
                     $("#system-tools-panel").toggleClass("component-panel-toggleClass");
+                    if($("#system-tools-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
+                        $("#component-panel-tools > .acon[type=system-tools-panel]").removeClass("blue");
+                    } else {
+                        $("#component-panel-tools > .acon[type=system-tools-panel]").addClass("blue");
+                    }
+                } else if(type==='template-panel') {
+                    $("#component-panel").addClass("component-panel-toggleClass");
+                    $("#system-tools-panel").addClass("component-panel-toggleClass");
+                    $("#template-panel").toggleClass("component-panel-toggleClass");
                     if($("#system-tools-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
                         $("#component-panel-tools > .acon[type=system-tools-panel]").removeClass("blue");
                     } else {

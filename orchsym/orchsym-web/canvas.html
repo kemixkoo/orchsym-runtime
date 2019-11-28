@@ -125,6 +125,7 @@
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-flow-status-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-global-menu-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-graph-controls-controller.js?1.7.0-SNAPSHOT"></script>
+    <script type="text/javascript" src="js/nf/canvas/controllers/nf-templates-controls-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-navigate-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-operate-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/header/components/nf-ng-processor-component.js?1.7.0-SNAPSHOT"></script>
@@ -1526,7 +1527,7 @@
     <div class="acon" type="system-tools-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('system-tools-panel')">
         <span class="right-icon acon-appstore"></span>
     </div>
-    <div class="acon" type="system-tools-model">
+    <div class="acon" type="system-tools-model" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('template-panel')">
         <span class="right-icon hicon-template"></span>
     </div>
 </div>
@@ -1625,7 +1626,6 @@
       <div class="panel-main-left">
           <div class="main-left-header" ng-click="appCtrl.serviceProvider.graphControlsCtrl.showClassification()">
               <div class="collapse">
-<!--                              <img src="images/youshou.svg" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">-->
                   <img src=" images/{{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationIcon}}">
               </div>
               <span>{{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName}}</span>
@@ -1692,9 +1692,96 @@
         </div>
       </div>
     </div>
+</div>
+<div class="component-panel component-panel-toggleClass" id="template-panel">
+    <div class="panel-main" ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
+        <div class="panel-main-left">
+            <div class="main-left-header">
+                <div class="collapse">
+                    <span class="icon right-icon hicon-template"></span>
+                </div>
+                <span>{{appCtrl.serviceProvider.graphControlsCtrl.AllTemplates}}</span>
+<!--                <span class="acon-caret-down" style="font-size: 12px;margin-left: 0px;"></span>-->
+            </div>
+            <div style="width:100%; height:52px; z-index:0;  position: relative;">
+                <div class="search-kuang">
+                    <img src="images/search.svg">
+                    <input type="text"
+                           id="search-template-input"
+                           placeholder="{{appCtrl.serviceProvider.graphControlsCtrl.AllTemplates}}"
+                           ng-model="appCtrl.serviceProvider.graphControlsCtrl.filterText"
+                           ng-focus="appCtrl.serviceProvider.graphControlsCtrl.inputFocus()"
+                           ng-change="appCtrl.serviceProvider.graphControlsCtrl.filter($event)">
+                </div>
+            </div>
+            <div class="component-list" id="template-list">
+                <div>
+                    <div class="classification-title">
+                        <span class="shouzhan-outer">
+                         <i class="shouzhan fa"
+                           ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.favorites]"
+                           ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('favorites')"></i>
+                        </span>
+                        {{appCtrl.serviceProvider.templatesControlsCtrl.favoritesName}}
+                    </div>
 
+                    <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.favorites]"
+                         class="component-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesFavoritesList">
+                        <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
+                        <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
+                        <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
+                        <div class="template-name">
+                            {{templates.name}}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="classification-title">
+                        <span class="shouzhan-outer">
+                         <i class="shouzhan fa"
+                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.official]"
+                            ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('official')"></i>
+                        </span>
+                        {{appCtrl.serviceProvider.templatesControlsCtrl.officialName}}
+                    </div>
 
+                    <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.official]"
+                         class="component-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesOfficialList">
+                        <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
+                        <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
+                        <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
+                        <div class="template-name">
+                            {{templates.name}}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="classification-title">
+                        <span class="shouzhan-outer">
+                         <i class="shouzhan fa fa-caret-down"
+                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.custom]"
+                            ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('custom')"></i>
+                        </span>
+                        {{appCtrl.serviceProvider.templatesControlsCtrl.customName}}
+                    </div>
+
+                    <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.custom]"
+                         class="component-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesCustomList">
+                        <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
+                        <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
+                        <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
+                        <div class="template-name">
+                            {{templates.name}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 <div id="settings" class="hidden">
     <div id="settings-header-text" class="settings-header-text">{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.settings-header-text"] }}</div>
     <div class="settings-container">
