@@ -567,7 +567,8 @@ span.breadcrumb-version-control-gray {
 
 .component-list{
     width: 100%;
-    position: absolute;
+    height: calc(100% - 101px);
+    /*position: absolute;*/
     left: 0;
     bottom: 0;
     top: 100px;
@@ -631,6 +632,18 @@ span.breadcrumb-version-control-gray {
     /*border-left: 2px solid #F7F9FB;*/
 }
 
+
+.templates-item {
+    width: 193px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 12px;
+    margin-top: 0px;
+    cursor: pointer;
+    padding-left: 43px;
+    position: relative;
+    /*border-left: 2px solid #F7F9FB;*/
+}
 
 .component-info {
     width: 144px;
@@ -720,14 +733,12 @@ span.breadcrumb-version-control-gray {
 }
 
 .template-name{
-    float: left;
     width: 138px;
-    overflow: hidden;
-    text-overflow:ellipsis;
-    white-space: nowrap;
-    margin-left: 20px;
 }
-
+.drag-item{
+    position: absolute;
+    z-index: 10001;
+}
 .search-kuang img{
     width: 20px;
     height: 20px;

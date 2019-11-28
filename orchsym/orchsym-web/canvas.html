@@ -1589,14 +1589,14 @@
                         <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.funnel}}</span>
                     </button>
                 </div>
-                <div class="button-box">
+                <!--<div class="button-box">
                     <button id="template-component"
                             class="component-button icon icon-template"
                             ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
                             nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.templateComponent);">
                         <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.template}}</span>
                     </button>
-                </div>
+                </div>-->
                 <div class="button-box">
                     <button id="label-component"
                             class="component-button icon icon-label"
@@ -1642,7 +1642,7 @@
                   </li>
               </ul>
           </div>
-        <div style="width:100%; height:52px; z-index:0;  position: relative;">
+        <div style="width:100%; height:40px; z-index:0;  position: relative;">
           <div class="search-kuang">
             <img src="images/search.svg">
             <input type="text"
@@ -1655,11 +1655,10 @@
         </div>
         <div class="component-list" id="component-list">
           <div ng-repeat="item in appCtrl.serviceProvider.graphControlsCtrl.componentList">
-              <div class="classification-title">
+              <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.changeDomStatus(item)">
                 <span class="shouzhan-outer">
                     <i class="shouzhan fa"
-                       ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[item.open]"
-                       ng-click="appCtrl.serviceProvider.graphControlsCtrl.changeDomStatus(item)"></i>
+                       ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[item.open]"></i>
                  </span>
                 {{item.name}}
               </div>
@@ -1703,7 +1702,7 @@
                 <span>{{appCtrl.serviceProvider.graphControlsCtrl.AllTemplates}}</span>
 <!--                <span class="acon-caret-down" style="font-size: 12px;margin-left: 0px;"></span>-->
             </div>
-            <div style="width:100%; height:52px; z-index:0;  position: relative;">
+            <div style="width:100%; height:40px; z-index:0;  position: relative;">
                 <div class="search-kuang">
                     <img src="images/search.svg">
                     <input type="text"
@@ -1711,24 +1710,24 @@
                            placeholder="{{appCtrl.serviceProvider.graphControlsCtrl.AllTemplates}}"
                            ng-model="appCtrl.serviceProvider.graphControlsCtrl.filterText"
                            ng-focus="appCtrl.serviceProvider.graphControlsCtrl.inputFocus()"
-                           ng-change="appCtrl.serviceProvider.graphControlsCtrl.filter($event)">
+                           ng-change="appCtrl.serviceProvider.templatesControlsCtrl.search($event)">
                 </div>
             </div>
             <div class="component-list" id="template-list">
                 <div>
-                    <div class="classification-title">
+                    <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('favorites')">
                         <span class="shouzhan-outer">
-                         <i class="shouzhan fa"
-                           ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.favorites]"
-                           ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('favorites')"></i>
+                         <i class="shouzhan fa" ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.favorites]"></i>
                         </span>
                         {{appCtrl.serviceProvider.templatesControlsCtrl.favoritesName}}
                     </div>
 
                     <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.favorites]"
-                         class="component-item"
-                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesFavoritesList">
-                        <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
+                         class="templates-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesFavoritesList"
+                         nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);"
+                    >
+<!--                                                 nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);"-->
                         <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
                         <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
                         <div class="template-name">
@@ -1737,18 +1736,18 @@
                     </div>
                 </div>
                 <div>
-                    <div class="classification-title">
+                    <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('official')">
                         <span class="shouzhan-outer">
                          <i class="shouzhan fa"
-                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.official]"
-                            ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('official')"></i>
+                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.official]"></i>
                         </span>
                         {{appCtrl.serviceProvider.templatesControlsCtrl.officialName}}
                     </div>
 
                     <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.official]"
-                         class="component-item"
-                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesOfficialList">
+                         class="templates-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesOfficialList"
+                         nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);">
                         <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
                         <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
                         <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
@@ -1758,18 +1757,18 @@
                     </div>
                 </div>
                 <div>
-                    <div class="classification-title">
+                    <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('custom')">
                         <span class="shouzhan-outer">
                          <i class="shouzhan fa fa-caret-down"
-                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.custom]"
-                            ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('custom')"></i>
+                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.custom]"></i>
                         </span>
                         {{appCtrl.serviceProvider.templatesControlsCtrl.customName}}
                     </div>
 
                     <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.custom]"
-                         class="component-item"
-                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesCustomList">
+                         class="templates-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesCustomList"
+                         nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);">
                         <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
                         <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
                         <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
