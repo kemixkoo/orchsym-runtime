@@ -60,7 +60,10 @@
             search: 'Search',
             urls: {
                 search: apiHost + "/nifi-api/flow/search-results",
-                status: apiHost + "/nifi-api/flow/status"
+                status: apiHost + "/nifi-api/flow/status",
+                statusApp: function(){
+                    return apiHost + "/nifi-api/group/" + window.SYSTEMID.groupId + "/navigator";
+                }
             }
         };
 
@@ -225,7 +228,6 @@
                             return $('<li></li>').data('ui-autocomplete-item', match).append(itemContent).appendTo(ul);
                         }
                     });
-
                     // configure the new searchAutocomplete jQuery UI widget
                     this.getInputElement().searchAutocomplete({
                         appendTo: '#search-flow-results',
@@ -289,7 +291,7 @@
                     nfContextMenu.hide();
 
                     var isVisible = searchCtrl.getInputElement().is(':visible');
-                    var display = 'none';
+                    var display = 'inline-block';
                     var class1 = 'search-container-opened';
                     var class2 = 'search-container-closed';
                     if (!isVisible) {
@@ -388,7 +390,6 @@
              */
             reloadFlowStatus: function () {
                 var flowStatusCtrl = this;
-
                 return $.ajax({
                     type: 'GET',
                     url: config.urls.status,

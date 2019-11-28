@@ -60,7 +60,7 @@
 
     // default dimensions for each type of component
     var dimensions = {
-        width: 330,
+        width: 320,
         height: 130
     };
 
@@ -225,7 +225,7 @@
     };
 
     var paintSmallProcessor = function (processor, processorData) {
-        console.log("processorData", processorData)
+        // console.log("processorData", processorData)
         // processor border
         processor.append('rect')
             .attrs({
@@ -807,7 +807,7 @@
             processor.append('text')
                 .attrs({
                     'class': 'processor-collapse',
-                    'x': 300,
+                    'x': 295,
                     'y': 30,
                     'style': 'font-size:34px;'
                 })

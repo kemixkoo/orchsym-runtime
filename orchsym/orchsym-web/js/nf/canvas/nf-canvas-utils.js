@@ -344,6 +344,13 @@
          */
         showComponent: function (groupId, componentId) {
             // ensure the group id is specified
+            // wanzhen 2019.11.28
+            // console.log("showComponent", groupId, componentId)
+            window.SYSTEMID = {
+                groupId: groupId,
+                componentId: componentId
+            };
+            window.parent.gotoComponent(groupId, componentId);
             if (nfCommon.isDefinedAndNotNull(groupId)) {
                 // initiate a graph refresh
                 var refreshGraph = $.Deferred(function (deferred) {

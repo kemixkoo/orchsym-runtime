@@ -149,10 +149,10 @@ div.search-result-icon {
 
 #search-field {
     height: 31px;
-    width: 190px;
+    /*width: 190px;*/
     background: #FFFFFF;
     border: 0px;
-    padding: 0px;
+    padding: 0 10px 0 10px;
     box-shadow: none;
 }
 
