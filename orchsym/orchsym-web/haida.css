@@ -34,11 +34,9 @@
 }
 .hicon-clearing-queue:before {
   content: "\e902";
-  color: #505152;
 }
 .hicon-data-traceability:before {
   content: "\e903";
-  color: #505152;
 }
 .hicon-entrymodule:before {
   content: "\e904";
@@ -74,7 +72,6 @@
 }
 .hicon-service:before {
   content: "\e90c";
-  color: #505152;
 }
 .hicon-shear:before {
   content: "\e90d";

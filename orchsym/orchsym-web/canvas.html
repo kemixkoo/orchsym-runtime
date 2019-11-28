@@ -438,7 +438,7 @@
                             ng-disabled="!(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
                         <span class="acon-setting"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['managePolicies'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <!--<button class="svg-right" ng-click="appCtrl.nf.Actions['managePolicies'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!(appCtrl.nf.CanvasUtils.canManagePolicies())">
                         <span class="fa fa-key"></span>
                     </button>
@@ -450,12 +450,26 @@
                             ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() &amp;&amp; (appCtrl.nf.CanvasUtils.getSelection().empty() || appCtrl.nf.CanvasUtils.canRead(appCtrl.nf.CanvasUtils.getSelection())));">
                         <span class="icon-template-save"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['uploadTemplate']();" ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() &amp;&amp; appCtrl.nf.CanvasUtils.getSelection().empty());">
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['uploadTemplate']();" ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty());">
                         <span class="icon-template-import"></span>
+                    </button>-->
+                    <button class="svg-right">
+                        <span class="hicon-service"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['group'](appCtrl.nf.CanvasUtils.getSelection());"
-                            ng-disabled="!(appCtrl.nf.CanvasUtils.getComponentByType('Connection').isDisconnected(appCtrl.nf.CanvasUtils.getSelection()) && appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection()));">
-                        <span class="acon-plus-square"></span>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['template'](appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-cloud-upload"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['emptyQueue'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty())">
+                        <span class="hicon-clearing-queue"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['listQueue'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty())">
+                        <span class="acon-unordered-list"></span>
+                    </button>
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['openProvenance'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="hicon-data-traceability"></span>
                     </button>
                     <button class="svg-right" ng-click="appCtrl.nf.Actions['showStats'](appCtrl.nf.CanvasUtils.getSelection());" ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-area-chart"></span>

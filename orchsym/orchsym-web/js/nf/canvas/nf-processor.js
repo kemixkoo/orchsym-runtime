@@ -60,7 +60,7 @@
 
     // default dimensions for each type of component
     var dimensions = {
-        width: 350,
+        width: 330,
         height: 130
     };
 
@@ -807,7 +807,7 @@
             processor.append('text')
                 .attrs({
                     'class': 'processor-collapse',
-                    'x': 319,
+                    'x': 300,
                     'y': 30,
                     'style': 'font-size:34px;'
                 })
