@@ -21,7 +21,7 @@ const { confirm } = Modal;
 class Template extends React.Component {
   constructor() {
     super()
-    this.doSearchAjax = debounce(this.doSearchAjax, 500)
+    this.doSearchAjax = debounce(this.doSearchAjax, 800)
   }
 
   state = {
