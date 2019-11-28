@@ -4,6 +4,6 @@ import React from 'react';
 export default () =>
   (
     <div>
-      模板
+      回收站
     </div>
   )

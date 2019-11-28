@@ -25,6 +25,7 @@ class Template extends React.Component {
   }
 
   state = {
+    isFresh: false,
     uploadLoading: false,
     // createTempVisible: null,
     tabActiveKey: '',
@@ -67,6 +68,8 @@ class Template extends React.Component {
   doSearchAjax = value => {
     this.setState({
       searchVal: value,
+      pageNum: 1,
+      isFresh: true,
     });
   }
 
@@ -84,7 +87,7 @@ class Template extends React.Component {
 
   deleteTemps = (id) => {
     const { selectedRowKeys } = this.state;
-    const { dispatch, onFrechList } = this.props;
+    const { dispatch } = this.props;
     confirm({
       title: formatMessage({ id: 'template.delete.title' }),
       content: formatMessage({ id: 'template.delete.description' }),
@@ -99,7 +102,9 @@ class Template extends React.Component {
             type: 'multiple',
           },
           cb: () => {
-            onFrechList()
+            this.setState({
+              isFresh: true,
+            })
           },
         })
       },
@@ -124,8 +129,8 @@ class Template extends React.Component {
   }
 
   render() {
-    const { match, onFrechList } = this.props
-    const { uploadLoading, tabActiveKey, searchVal, selectedRowKeys,
+    const { match } = this.props
+    const { isFresh, uploadLoading, tabActiveKey, searchVal, selectedRowKeys,
       sortedField, isDesc, pageSizeNum, pageNum } = this.state;
     const tabList = [
       {
@@ -157,12 +162,14 @@ class Template extends React.Component {
         return isAccept;
       },
       onChange: (info) => {
+        console.log(this.props)
         if (info.file.status === 'uploading') {
           this.setState({ uploadLoading: true });
         }
         if (info.file.status === 'done') {
-          onFrechList()
           this.setState({
+            pageNum: 1,
+            isFresh: true,
             uploadLoading: false,
           });
         }
@@ -225,6 +232,7 @@ class Template extends React.Component {
           )}
           {tabActiveKey === 'custom' && (
             <CustomList
+              isFresh={isFresh}
               match={match}
               selectedRowKeys={selectedRowKeys}
               onStateChange={this.onStateChange}
