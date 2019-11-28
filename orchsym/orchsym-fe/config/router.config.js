@@ -13,7 +13,7 @@ export default [
     Routes: ['src/pages/Authorized'],
     routes: [
       {
-        path: '/canvas/:processGroupId',
+        path: '/canvas/:processGroupId/:componentIds',
         component: './Canvas',
         name: '画布',
       },
