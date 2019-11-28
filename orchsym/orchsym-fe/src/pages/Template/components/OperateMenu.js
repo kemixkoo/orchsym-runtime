@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Icon, Dropdown, Modal } from 'antd';
+import { Menu, Icon, Dropdown, Modal, message } from 'antd';
 import { connect } from 'dva';
 import { formatMessage } from 'umi-plugin-react/locale';
 import styles from '../index.less';
@@ -18,6 +18,7 @@ class operateMenu extends React.Component {
         state,
       },
       cb: () => {
+        message.success(formatMessage({ id: 'result.success' }));
         onFrechList()
       },
     });
@@ -39,6 +40,7 @@ class operateMenu extends React.Component {
             name,
           },
           cb: () => {
+            message.success(formatMessage({ id: 'result.success' }));
             onFrechList()
           },
         })
