@@ -109,7 +109,7 @@ class AppPopover extends PureComponent {
               onMouseEnter={() => this.handleEnter(item.id)}
               onMouseLeave={() => this.handleLeave(item.id)}
             >
-              <Link to={`/canvas/${item.id}`} target="_blank">
+              <Link to={`/canvas/${item.id}/0`} target="_blank">
                 <IconFont type="OS-iconapi" />
                 <Ellipsis tooltip length={13}>
                   {item.name}
@@ -131,7 +131,7 @@ class AppPopover extends PureComponent {
             onMouseEnter={() => this.handleEnter(item.id)}
             onMouseLeave={() => this.handleLeave(item.id)}
           >
-            <Link to={`/canvas/${item.id}`} target="_blank">
+            <Link to={`/canvas/${item.id}/0`} target="_blank">
               <IconFont type="OS-iconapi" />
               <Ellipsis tooltip length={13}>
                 {item.name}

@@ -121,7 +121,6 @@ class CustomList extends React.Component {
       this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
       onStateChange({
         isFresh: false,
-
       })
     }
   }

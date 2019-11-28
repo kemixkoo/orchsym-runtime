@@ -59,7 +59,7 @@ export default {
         yield put({
           type: 'appendValue',
           payload: {
-            groupsBreadcrumb: response.groups.reverse(),
+            groupsBreadcrumb: response.groups,
           },
         });
       }

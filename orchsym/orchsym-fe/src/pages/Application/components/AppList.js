@@ -153,7 +153,7 @@ class AppList extends PureComponent {
   createSnippets = (item, state) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'application/fetchcreateSnippets',
+      type: 'application/fetchCreateSnippets',
       payload: item,
       cb: (res) => {
         if (state === 'RUNNING') { // 运行
