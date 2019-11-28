@@ -50,7 +50,7 @@ class AppPopover extends PureComponent {
     this.setState({ visible });
     if (visible) {
       this.fetchApplication('', 'modifiedTime', 'true', 3)
-      this.fetchApplication('', 'name', 'false', 2000)
+      this.fetchApplication('', 'name', 'false', -1)
     } else {
       this.setState({
         searchValue: '',
@@ -109,7 +109,7 @@ class AppPopover extends PureComponent {
               onMouseEnter={() => this.handleEnter(item.id)}
               onMouseLeave={() => this.handleLeave(item.id)}
             >
-              <Link to={`/canvas/${item.id}`} target="_blank">
+              <Link to={`/canvas/${item.id}/0`} target="_blank">
                 <IconFont type="OS-iconapi" />
                 <Ellipsis tooltip length={13}>
                   {item.name}
@@ -131,7 +131,7 @@ class AppPopover extends PureComponent {
             onMouseEnter={() => this.handleEnter(item.id)}
             onMouseLeave={() => this.handleLeave(item.id)}
           >
-            <Link to={`/canvas/${item.id}`} target="_blank">
+            <Link to={`/canvas/${item.id}/0`} target="_blank">
               <IconFont type="OS-iconapi" />
               <Ellipsis tooltip length={13}>
                 {item.name}

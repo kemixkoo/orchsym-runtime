@@ -12,7 +12,7 @@ import { parse, stringify } from 'qs';
  * @当前环境为本地开发环境(development)时，该值为在/config/config.local.js中配置好的后端地址
  */
 export function logout() {
-  localStorage.removeItem('token');
+  localStorage.clear();
   window.location.href = '/logout'
 }
 

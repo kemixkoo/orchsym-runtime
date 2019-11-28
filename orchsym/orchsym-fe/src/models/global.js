@@ -1,8 +1,7 @@
 // import { queryNotices } from '@/services/api';
 import { validationDownApp } from '@/services/validation';
-import { queryClientId } from '@/services/Flow';
 import { setClientId } from '@/utils/authority';
-import { licenseWarn } from '@/services/studio';
+import { queryClientId, licenseWarn, queryBreadcrumb } from '@/services/studio';
 
 export default {
   namespace: 'global',
@@ -11,6 +10,7 @@ export default {
     collapsed: false,
     notices: [],
     clientId: '',
+    groupsBreadcrumb: [],
     // leftDays: '',
   },
 
@@ -50,6 +50,17 @@ export default {
         yield put({
           type: 'addClientId',
           payload: response,
+        });
+      }
+    },
+    *fetchBreadcrumb({ payload }, { call, put }) {
+      const response = yield call(queryBreadcrumb, payload);
+      if (response) {
+        yield put({
+          type: 'appendValue',
+          payload: {
+            groupsBreadcrumb: response.groups,
+          },
         });
       }
     },

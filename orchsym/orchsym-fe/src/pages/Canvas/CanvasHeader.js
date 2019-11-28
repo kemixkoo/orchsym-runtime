@@ -113,7 +113,7 @@ class HeaderView extends Component {
   };
 
   render() {
-    const { handleMenuCollapse, setting, componentName } = this.props;
+    const { handleMenuCollapse, setting, componentId, componentIdChange } = this.props;
     const { navTheme, layout } = setting;
     const { visible } = this.state;
     /**
@@ -130,7 +130,7 @@ class HeaderView extends Component {
     const HeaderDom = visible ? (
       <Header
         style={{ padding: 0, width, zIndex: 4 }}
-        // className={fixedHeader ? styles.fixedHeader : ''}
+      // className={fixedHeader ? styles.fixedHeader : ''}
       >
         {isTop ? (
           <TopNavHeader
@@ -145,7 +145,8 @@ class HeaderView extends Component {
           />
         ) : (
           <GlobalHeader
-            componentName={componentName}
+            componentIdChange={componentIdChange}
+            componentId={componentId}
             onCollapse={handleMenuCollapse}
             onNoticeClear={this.handleNoticeClear}
             onMenuClick={this.handleMenuClick}

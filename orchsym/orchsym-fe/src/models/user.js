@@ -1,4 +1,4 @@
-import { queryCurrentUser } from '@/services/Flow';
+import { queryCurrentUser } from '@/services/studio';
 
 export default {
   namespace: 'user',
@@ -23,15 +23,15 @@ export default {
         currentUser: action.payload || {},
       };
     },
-    changeNotifyCount(state, action) {
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          notifyCount: action.payload.totalCount,
-          unreadCount: action.payload.unreadCount,
-        },
-      };
-    },
+    // changeNotifyCount(state, action) {
+    //   return {
+    //     ...state,
+    //     currentUser: {
+    //       ...state.currentUser,
+    //       notifyCount: action.payload.totalCount,
+    //       unreadCount: action.payload.unreadCount,
+    //     },
+    //   };
+    // },
   },
 };

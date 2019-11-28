@@ -20,6 +20,7 @@ export default {
   'page.application.modifySort': '编辑时间升序',
   'page.application.modifyDesc': '编辑时间降序',
 
-  'application.delete.title': '确定放入回收站？',
+  'application.delete.title': '该应用已停止，确认放入回收站？',
+  'application.delete.title2': '该应用仍在运行中，确认强制放入回收站？',
   'application.delete.description': '放入回收站后应用内的文件流不可恢复',
 }
