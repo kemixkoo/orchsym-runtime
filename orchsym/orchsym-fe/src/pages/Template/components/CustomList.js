@@ -115,12 +115,13 @@ class CustomList extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { onStateChange, pageSizeNum, searchVal, sortedField, isDesc } = this.props
+    const { onStateChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc, isFresh } = this.props
     // 如果数据发生变化，则更新图表
-    if ((prevProps.searchVal !== searchVal)) {
-      this.getList(1, pageSizeNum, sortedField, isDesc, searchVal)
+    if (isFresh) {
+      this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
       onStateChange({
-        pageNum: 1,
+        isFresh: false,
+
       })
     }
   }
