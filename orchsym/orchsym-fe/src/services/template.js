@@ -87,16 +87,25 @@ export async function editTemplate(body) {
   });
 }
 // 上传
-export async function uploadTemplate(params) {
-  console.log(params)
-  const { file } = params;
-  const formData = new FormData();
-  formData.append('template', file[0]);
-  return request('/studio/nifi-api/process-groups/root/templates/upload', {
-    method: 'POST',
-    data: formData,
-  });
-}
+// export async function uploadTemplate(params) {
+//   const { file } = params;
+//   const formData = new FormData();
+//   formData.append('template', file[0]);
+//   return request('/studio/nifi-api/orchsym-template/xml_parse', {
+//     method: 'POST',
+//     data: formData,
+//   });
+// }
+// export async function uploadTemplate(params) {
+//   console.log(params)
+//   const { file } = params;
+//   const formData = new FormData();
+//   formData.append('template', file[0]);
+//   return request('/studio/nifi-api/process-groups/root/templates/upload', {
+//     method: 'POST',
+//     data: formData,
+//   });
+// }
 // 收藏
 export async function collectTemplate(templateId) {
   return request(`/studio/orchsym-pro-api/favorites/templates/${templateId}`, {
@@ -115,12 +124,24 @@ export async function deleteTemplate(param) {
     method: 'DELETE',
   })
 }
-// 批量下载
+// 批量删除
 export async function deletedMTemplates(param) {
-  return request('/studio/orchsym-pro-api/batch/templates/download', {
+  return request('/studio/orchsym-pro-api/batch/templates/logic_delete', {
     method: 'DELETE',
     params: {
       templateIds: param.templateIds,
     },
   })
+}
+
+// 存为模板
+export async function saveApplicationTemp(params) {
+  return request(`/studio/application/template/${params.appId}/saveas`, {
+    method: 'POST',
+    data: {
+      name: params.name,
+      description: params.description,
+      overwrite: params.overwrite,
+    },
+  });
 }

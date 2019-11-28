@@ -3,8 +3,8 @@ export default {
   'menu.application': '应用管理',
   // 模板页面
   'menu.template': '模板管理',
-  // 控制器服务页面
-  'menu.controllerServices': '控制器服务页面',
+  // 控制器服务
+  'menu.controllerServices': '服务管理',
   // 标签管理
   'menu.tag': '标签管理',
   // 回收站

@@ -10,8 +10,6 @@ export default {
   'page.application.content.intoApp': 'Open Application',
   'page.application.content.running': 'Running',
   'page.application.content.stop': 'Stopped',
-  'page.application.content.enable': 'Enable',
-  'page.application.content.disable': 'Disable',
   'page.application.content.cope': 'Cope',
   'page.application.content.queued': 'Queued',
   'page.application.content.readWrite': 'Read / Written',

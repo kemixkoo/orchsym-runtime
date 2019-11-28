@@ -70,7 +70,7 @@ class AppList extends PureComponent {
   }
 
   doubleGoToApp = (item) => {
-    item.component.additions && item.component.additions.IS_ENABLED && router.push(`/canvas/${item.id}`)
+    item.component.additions && item.component.additions.IS_ENABLED === 'true' && router.push(`/canvas/${item.id}`)
   }
 
   showEditModal = (item, state) => {
@@ -237,7 +237,7 @@ class AppList extends PureComponent {
   getCarList = (item, index) => {
     const { errorData } = this.state;
     const { canDownLoad } = this.props;
-    const menu = item.component.additions && item.component.additions.IS_ENABLED ? (
+    const menu = item.component.additions && item.component.additions.IS_ENABLED === 'true' ? (
       <Menu>
         <Menu.Item key="1" onClick={() => { this.goToApp(item) }}>
           <IconFont type="OS-iconi-jr" />
@@ -258,11 +258,11 @@ class AppList extends PureComponent {
         </Menu.Item>
         <Menu.Item key="5" disabled={!item.canEnable} onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <IconFont type="OS-iconqiyong" />
-          {`${formatMessage({ id: 'page.application.content.enable' })}`}
+          {`${formatMessage({ id: 'button.enable' })}`}
         </Menu.Item>
         <Menu.Item key="6" disabled={!item.canDisable} onClick={() => { this.updateStates(item, 'DISABLED') }}>
           <IconFont type="OS-iconjinyong" />
-          {`${formatMessage({ id: 'page.application.content.disable' })}`}
+          {`${formatMessage({ id: 'button.disable' })}`}
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="7" onClick={() => { this.showEditModal(item, 'COPE') }}>
@@ -287,13 +287,12 @@ class AppList extends PureComponent {
       <Menu>
         <Menu.Item key="5" disabled={!item.canEnable} onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <IconFont type="OS-iconqiyong" />
-          {`${formatMessage({ id: 'page.application.content.enable' })}`}
+          {`${formatMessage({ id: 'button.enable' })}`}
         </Menu.Item>
         <Menu.Item key="9" onClick={() => { this.deleteAppHandel(item.id) }}>
           <IconFont type="OS-iconshanchu" />
-          {`${formatMessage({ id: 'page.application.content.delete' })}`}
+          {`${formatMessage({ id: 'button.delete' })}`}
         </Menu.Item>
-        <Menu.Divider />
       </Menu>
     );
 
@@ -411,7 +410,7 @@ class AppList extends PureComponent {
     const tagContent = <div className={styles.tagContent}>{item.component.tags.map((i) => (<Tag color="blue" key={i}>{i}</Tag>))}</div>
     const isError = item.bulletins.length > 0
     const isErrorCarName = isError ? `${styles.errorApp}` : ''
-    const isDownApp = item.component.additions && item.component.additions.IS_ENABLED ? '' : `${styles.disableApp}`
+    const isDownApp = item.component.additions && item.component.additions.IS_ENABLED === 'true' ? '' : `${styles.disableApp}`
     return (
       <Card onDoubleClick={() => { this.doubleGoToApp(item) }} className={`${styles.applicationCart} ${isErrorCarName} ${isDownApp}`} style={{ width: '100%', height: 165 }}>
         <Card.Meta

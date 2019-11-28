@@ -12,5 +12,9 @@ export default {
   'template.table.title.operateUser': 'Operater',
   'template.table.title.createTime': 'Create time',
   'template.tab.official': 'Official',
-  'template.tab.customize': 'Customize',
+  'template.tab.customize': 'Custom',
+  'template.tab.favorite': 'Favorite',
+  'template.source.saved': 'Saved',
+  'template.source.uploaded': 'Uploaded',
+  'template.source.unknown': 'Unknown',
 }

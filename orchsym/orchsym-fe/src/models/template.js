@@ -2,16 +2,18 @@
 import {
   queryOfficialTemplates, queryCollectTemplates, queryCustomTemplates,
   queryDownloadMTemplates, queryDownloadToken, queryDownloadTemplate,
-  editTemplate, uploadTemplate, collectTemplate, cancelCollectTemplate,
-  deletedMTemplates, deleteTemplate,
+  editTemplate, collectTemplate, cancelCollectTemplate,
+  deletedMTemplates, deleteTemplate, saveApplicationTemp,
 } from '@/services/template';
 import { download } from '@/utils/utils';
+import { formatMessage } from 'umi-plugin-react/locale';
+import { message } from 'antd';
 
 export default {
   namespace: 'template',
 
   state: {
-    collectList: [],
+    favoriteList: [],
     officialList: [],
     customList: [],
   },
@@ -31,7 +33,7 @@ export default {
       yield put({
         type: 'appendValue',
         payload: {
-          collectList: response,
+          favoriteList: response,
         },
       });
     },
@@ -49,11 +51,11 @@ export default {
       yield call(editTemplate, payload);
       yield cb && cb()
     },
-    // 上传
-    *fetchUploadTemp({ payload, cb }, { call, put }) {
-      yield call(uploadTemplate, payload);
-      yield cb && cb();
-    },
+    // // 上传
+    // *fetchUploadTemp({ payload, cb }, { call, put }) {
+    //   yield call(uploadTemplate, payload);
+    //   yield cb && cb();
+    // },
     // 下载
     *fetchDownloadTemplates({ payload }, { call, put }) {
       if (payload.type === 'multiple') {
@@ -88,6 +90,14 @@ export default {
         yield call(cancelCollectTemplate, payload.id);
       }
       yield cb && cb();
+    },
+    // 存为模板
+    * fetchSaveTemplate({ payload, cb }, { call, put }) {
+      const response = yield call(saveApplicationTemp, payload);
+      if (response) {
+        message.success(formatMessage({ id: 'result.success' }));
+      }
+      yield cb && cb()
     },
   },
 

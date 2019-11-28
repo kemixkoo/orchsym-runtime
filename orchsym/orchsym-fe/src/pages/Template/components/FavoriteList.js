@@ -9,10 +9,10 @@ import { EditableContext } from '@/utils/utils'
 import OperateMenu from './OperateMenu';
 
 @connect(({ template }) => ({
-  collectList: template.collectList,
+  favoriteList: template.favoriteList,
 }))
 
-class CollectList extends React.Component {
+class FavoriteList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -203,7 +203,7 @@ class CollectList extends React.Component {
   }
 
   render() {
-    const { form, collectList: { results, totalSize },
+    const { form, favoriteList: { results, totalSize },
       onStateChange, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
     const components = {
       body: {
@@ -272,4 +272,4 @@ class CollectList extends React.Component {
     );
   }
 }
-export default (Form.create()(CollectList));
+export default (Form.create()(FavoriteList));

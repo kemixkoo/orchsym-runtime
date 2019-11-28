@@ -13,4 +13,8 @@ export default {
   'template.table.title.createTime': '创建时间',
   'template.tab.official': '官方',
   'template.tab.customize': '自定义',
+  'template.tab.favorite': '收藏',
+  'template.source.saved': '另存',
+  'template.source.uploaded': '上传',
+  'template.source.unknown': '未知',
 }

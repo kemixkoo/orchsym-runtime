@@ -147,13 +147,13 @@ class CreateOrEditApp extends React.Component {
     //   callback();
     // }
     const checkReName = (rule, value, callback) => {
-      const { dispatch, appDetails } = this.props;
+      const { dispatch, appDetails, editOrCope } = this.props;
       if (value) {
         const queryData = {
           name: value,
           appId: '',
         }
-        if (Object.keys(appDetails).length > 0) {
+        if (editOrCope === 'EDIT' && Object.keys(appDetails).length > 0) {
           queryData.appId = appDetails.id
         }
         dispatch({
@@ -177,7 +177,7 @@ class CreateOrEditApp extends React.Component {
       let str = ''
       if (v) {
         if (editOrCope === 'COPE') {
-          str = `App copy ${v.name}`
+          str = `${v.name}_copy`
         } else {
           str = v.name
         }

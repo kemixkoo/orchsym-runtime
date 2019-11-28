@@ -70,23 +70,23 @@ export default [
       {
         name: 'template',
         icon: 'OS-iconmoban',
-        path: '/temp/:tab',
+        path: '/template/:tab',
         component: './Template',
       },
       // 控制器服务
       {
         name: 'controllerServices',
         icon: 'OS-iconkongzhiqi',
-        path: '/ControllerServices',
+        path: '/services',
         component: './ControllerServices',
       },
       // 标签管理
-      {
-        name: 'tag',
-        icon: 'OS-iconbiaoqian',
-        path: '/tag',
-        component: './Tag',
-      },
+      // {
+      //   name: 'tag',
+      //   icon: 'OS-iconbiaoqian',
+      //   path: '/tag',
+      //   component: './Tag',
+      // },
       // 回收站
       {
         name: 'recycleBin',

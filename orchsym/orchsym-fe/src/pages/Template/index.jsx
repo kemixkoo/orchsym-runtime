@@ -1,14 +1,15 @@
 import React from 'react';
-import { Input, Row, Col, Button, Modal } from 'antd';
+import { Input, Row, Col, Button, Modal, Upload, message } from 'antd';
 import { connect } from 'dva';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import router from 'umi/router'
 import { debounce } from 'lodash'
 import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
-import CollectList from './components/CollectList';
-import CustomizeList from './components/CustomizeList';
+import FavoriteList from './components/FavoriteList';
+import CustomList from './components/CustomList';
 import OfficialList from './components/OfficialList';
-import AddTemp from './components/AddTemp';
+import { getToken } from '@/utils/authority';
+// import AddTemp from './components/AddTemp';
 import styles from './index.less';
 
 const { Search } = Input;
@@ -24,7 +25,8 @@ class Template extends React.Component {
   }
 
   state = {
-    createTempVisible: null,
+    uploadLoading: false,
+    // createTempVisible: null,
     tabActiveKey: '',
     selectedRowKeys: [],
     // 列表传参
@@ -38,7 +40,7 @@ class Template extends React.Component {
   componentDidMount() {
     const { match } = this.props
     const { tab } = match.params;
-    const tabKey = (!tab || tab === ':tab') ? 'collect' : tab;
+    const tabKey = (!tab || tab === ':tab') ? 'favorite' : tab;
     this.onTabChange(tabKey)
   }
 
@@ -48,7 +50,7 @@ class Template extends React.Component {
         tabActiveKey: key,
       }
     )
-    router.replace(`/temp/${key}`)
+    router.replace(`/template/${key}`)
   }
 
   onStateChange = (obj) => {
@@ -68,17 +70,17 @@ class Template extends React.Component {
     });
   }
 
-  showUploadModal = () => {
-    this.setState({
-      createTempVisible: true,
-    })
-  };
+  // showUploadModal = () => {
+  //   this.setState({
+  //     createTempVisible: true,
+  //   })
+  // };
 
-  handleCreateEditCancel = () => {
-    this.setState({
-      createTempVisible: false,
-    })
-  };
+  // handleCreateEditCancel = () => {
+  //   this.setState({
+  //     createTempVisible: false,
+  //   })
+  // };
 
   deleteTemps = (id) => {
     const { selectedRowKeys } = this.state;
@@ -109,7 +111,6 @@ class Template extends React.Component {
 
   // 下载
   downloadTemps = () => {
-    console.log(this.props)
     const { selectedRowKeys } = this.state;
     const { dispatch } = this.props;
     const templateIds = selectedRowKeys.join(',')
@@ -123,13 +124,13 @@ class Template extends React.Component {
   }
 
   render() {
-    const { match } = this.props
-    const { createTempVisible, tabActiveKey, searchVal, selectedRowKeys,
+    const { match, onFrechList } = this.props
+    const { uploadLoading, tabActiveKey, searchVal, selectedRowKeys,
       sortedField, isDesc, pageSizeNum, pageNum } = this.state;
     const tabList = [
       {
-        tab: formatMessage({ id: 'button.collect' }),
-        key: 'collect',
+        tab: formatMessage({ id: 'template.tab.favorite' }),
+        key: 'favorite',
       },
       {
         tab: formatMessage({ id: 'template.tab.official' }),
@@ -137,21 +138,55 @@ class Template extends React.Component {
       },
       {
         tab: formatMessage({ id: 'template.tab.customize' }),
-        key: 'customize',
+        key: 'custom',
       },
     ]
     const hasSelected = selectedRowKeys.length > 0;
+    const props = {
+      name: 'template',
+      showUploadList: false,
+      action: '/studio/nifi-api/process-groups/root/templates/upload',
+      headers: {
+        authorization: `Bearer ${getToken()}`,
+      },
+      beforeUpload: file => {
+        const isAccept = file.name.endsWith('.xml');
+        if (!isAccept) {
+          message.error(formatMessage({ id: 'validation.file.format' }));
+        }
+        return isAccept;
+      },
+      onChange: (info) => {
+        if (info.file.status === 'uploading') {
+          this.setState({ uploadLoading: true });
+        }
+        if (info.file.status === 'done') {
+          onFrechList()
+          this.setState({
+            uploadLoading: false,
+          });
+        }
+        if (info.file.status === 'error') {
+          message.error(info.file.response);
+          this.setState({
+            uploadLoading: false,
+          });
+        }
+      },
+    };
     return (
       <PageHeaderWrapper tabActiveKey={tabActiveKey} tabList={tabList} onTabChange={this.onTabChange}>
         <div className={styles.templateWrapper}>
           <div className={styles.tableTopHeader}>
             <Row gutter={16} className={styles.bottomSpace}>
-              {tabActiveKey === 'customize' &&
+              {tabActiveKey === 'custom' &&
                 (
                   <Col span={12}>
-                    <Button type="primary" style={{ marginRight: '10px' }} onClick={this.showUploadModal}>
-                      <FormattedMessage id="button.upload" />
-                    </Button>
+                    <Upload {...props}>
+                      <Button loading={uploadLoading} type="primary" style={{ marginRight: '10px' }}>
+                        <FormattedMessage id="button.upload" />
+                      </Button>
+                    </Upload>
                     <Button disabled={!hasSelected} style={{ marginRight: '10px' }} onClick={this.downloadTemps}>
                       <FormattedMessage id="button.download" />
                     </Button>
@@ -161,13 +196,13 @@ class Template extends React.Component {
                   </Col>
                 )
               }
-              <Col span={tabActiveKey === 'customize' ? 12 : 24}>
+              <Col span={tabActiveKey === 'custom' ? 12 : 24}>
                 <Search placeholder={formatMessage({ id: 'button.search' })} className={styles.Search} onChange={this.handleSearch} allowClear />
               </Col>
             </Row>
           </div>
-          {tabActiveKey === 'collect' && (
-            <CollectList
+          {tabActiveKey === 'favorite' && (
+            <FavoriteList
               match={match}
               onStateChange={this.onStateChange}
               pageNum={pageNum}
@@ -188,8 +223,8 @@ class Template extends React.Component {
               isDesc={isDesc}
             />
           )}
-          {tabActiveKey === 'customize' && (
-            <CustomizeList
+          {tabActiveKey === 'custom' && (
+            <CustomList
               match={match}
               selectedRowKeys={selectedRowKeys}
               onStateChange={this.onStateChange}
@@ -201,7 +236,7 @@ class Template extends React.Component {
             />
           )}
         </div>
-        {createTempVisible && (
+        {/* {createTempVisible && (
           <AddTemp
             visible={createTempVisible}
             handleCancel={this.handleCreateEditCancel}
@@ -212,7 +247,7 @@ class Template extends React.Component {
             sortedField={sortedField}
             isDesc={isDesc}
           />
-        )}
+        )} */}
 
       </PageHeaderWrapper>
     );
