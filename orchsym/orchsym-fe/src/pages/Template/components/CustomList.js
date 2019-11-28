@@ -53,7 +53,7 @@ class CustomList extends React.Component {
         render: (text, record) => {
           if (text === 'SAVE_AS') {
             return formatMessage({ id: 'template.source.saved' })
-          } else if (text === 'Uploaded') {
+          } else if (text === 'UPLOADED') {
             return formatMessage({ id: 'template.source.uploaded' })
           } else {
             return formatMessage({ id: 'template.source.unknown' })
