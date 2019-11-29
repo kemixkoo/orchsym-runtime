@@ -88,12 +88,12 @@ export default [
       //   component: './Tag',
       // },
       // 回收站
-      {
-        name: 'recycleBin',
-        icon: 'OS-iconhuishouzhan',
-        path: '/recycleBin',
-        component: './RecycleBin',
-      },
+      // {
+      //   name: 'recycleBin',
+      //   icon: 'OS-iconhuishouzhan',
+      //   path: '/recycleBin',
+      //   component: './RecycleBin',
+      // },
       // // 自带的结果页面
       // {
       //   name: 'result',

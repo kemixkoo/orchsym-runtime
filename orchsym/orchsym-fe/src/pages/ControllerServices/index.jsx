@@ -1,6 +1,7 @@
 import React from 'react';
 import { Row, Col, Button, Form, Table, message, Input, Dropdown, Icon, Menu, Badge } from 'antd';
 import { connect } from 'dva';
+import { debounce } from 'lodash'
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
@@ -12,13 +13,15 @@ import styles from './index.less';
 const { Search } = Input;
 const ButtonGroup = Button.Group;
 
-@connect(({ controllerServices }) => ({
+@connect(({ controllerServices, loading }) => ({
   controllerServicesList: controllerServices.controllerServicesList,
+  loading: loading.effects['controllerServices/fetchControllerServices'],
 }))
 
 class ControllerServices extends React.Component {
   constructor(props) {
     super(props);
+    this.doSearchAjax = debounce(this.doSearchAjax, 800)
     this.state = {
       refreshTime: '',
       selectedRowKeys: [],
@@ -26,15 +29,15 @@ class ControllerServices extends React.Component {
       searchVal: '',
       pageNum: 1,
       pageSizeNum: 10,
-      // filteredInfo: null,
-      // sortedInfo: null,
+      filteredInfo: null,
+      sortedInfo: null,
     };
     this.columns = [
       {
         title: formatMessage({ id: 'title.name' }),
         width: 200,
         dataIndex: 'name',
-        key: 'name',
+        key: 'NAME',
         editable: true,
         sorter: true,
         rules: [
@@ -47,7 +50,7 @@ class ControllerServices extends React.Component {
       {
         title: formatMessage({ id: 'title.type' }),
         dataIndex: 'type',
-        key: 'type',
+        key: 'TYPE',
         sorter: true,
       },
       {
@@ -59,7 +62,7 @@ class ControllerServices extends React.Component {
       {
         title: formatMessage({ id: 'service.title.refComponent' }),
         dataIndex: 'referencingComponents',
-        key: 'refComponent',
+        key: 'REFERENCING_COMPONENTS',
         sorter: true,
         render: (text, record) => (
           <div>
@@ -162,20 +165,22 @@ class ControllerServices extends React.Component {
 
 
   componentDidMount() {
-    const { pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.state
-    this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+    this.getList()
   }
 
-  getList = (page, pageSize, sortedField, isDesc, text) => {
+  getList = (params = {}) => {
     const { dispatch } = this.props;
+    const { pageNum, pageSizeNum, searchVal, sortedInfo, filteredInfo } = this.state
     dispatch({
       type: 'controllerServices/fetchControllerServices',
       payload: {
-        page,
-        pageSize,
-        text,
-        sortedField,
-        isDesc,
+        page: pageNum,
+        pageSize: pageSizeNum,
+        text: searchVal,
+        sortedField: sortedInfo && sortedInfo.columnKey,
+        desc: sortedInfo && sortedInfo.order !== 'ascend',
+        filteredInfo,
+        ...params,
       },
       cb: () => {
         this.setState({
@@ -186,13 +191,34 @@ class ControllerServices extends React.Component {
   }
 
   handleTableChange = (pagination, filters, sorter) => {
-    // const pager = { ...this.state.pagination };
-    // pager.current = pagination.current;
-    // this.setState({
-    //   pagination: pager,
-    // });
-    // this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+    console.log(sorter)
+    this.setState({
+      pageNum: pagination.current,
+      pageSizeNum: pagination.pageSize,
+      filteredInfo: filters,
+      sortedInfo: sorter,
+    })
+    this.getList({
+      page: pagination.current,
+      pageSize: pagination.pageSize,
+      sortedField: sorter.columnKey,
+      desc: sorter.order !== 'ascend',
+      ...filters,
+    })
   };
+
+  // 搜索
+  handleSearch = e => {
+    this.doSearchAjax(e.target.value)
+  }
+
+  doSearchAjax = value => {
+    this.getList({ text: value })
+    this.setState({
+      searchVal: value,
+    });
+  }
+
 
   menu = (item) => (
     <Menu>
@@ -272,8 +298,8 @@ class ControllerServices extends React.Component {
   }
 
   render() {
-    const { selectedRowKeys, pageNum, pageSizeNum, searchVal, sortedField, isDesc, refreshTime } = this.state;
-    const { form, controllerServicesList: { results, totalSize } } = this.props;
+    const { selectedRowKeys, pageNum, pageSizeNum, refreshTime } = this.state;
+    const { form, controllerServicesList: { results, totalSize }, loading } = this.props;
     const rowSelection = {
       selectedRowKeys,
       onChange: this.onSelectChange,
@@ -346,6 +372,7 @@ class ControllerServices extends React.Component {
           </div>
           <EditableContext.Provider value={form}>
             <Table
+              loading={loading}
               rowSelection={rowSelection}
               components={components}
               dataSource={results}
@@ -355,20 +382,6 @@ class ControllerServices extends React.Component {
               onChange={this.handleTableChange}
               pagination={{
                 size: 'small',
-                onChange: (page, pageSize) => {
-                  this.getList(page, pageSize, sortedField, isDesc, searchVal)
-                  this.setState({
-                    pageNum: page,
-                    pageSizeNum: pageSize,
-                  })
-                },
-                onShowSizeChange: (current, size) => {
-                  this.getList(current, size, sortedField, isDesc, searchVal)
-                  this.setState({
-                    pageNum: current,
-                    pageSizeNum: size,
-                  })
-                },
                 current: pageNum,
                 pageSize: pageSizeNum,
                 total: totalSize,
