@@ -292,7 +292,7 @@ class AppList extends PureComponent {
     const { errorData } = this.state;
     const { canDownLoad } = this.props;
     const menu = item.component.additions && item.component.additions.IS_ENABLED === 'true' ? (
-      <Menu>
+      <Menu style={{ width: '120px' }}>
         <Menu.Item key="1" onClick={() => { this.goToApp(item) }}>
           <IconFont type="OS-iconi-jr" />
           {`${formatMessage({ id: 'page.application.content.intoApp' })}`}
