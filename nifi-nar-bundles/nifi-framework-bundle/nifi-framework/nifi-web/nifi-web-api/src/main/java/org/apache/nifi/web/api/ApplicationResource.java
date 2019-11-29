@@ -59,6 +59,7 @@ import org.apache.nifi.web.util.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -124,13 +125,21 @@ public abstract class ApplicationResource {
 
     @Context
     protected UriInfo uriInfo;
-    @Autowired(required=false)
+
+    @Lazy
+    @Autowired(required = false)
     protected NiFiProperties properties;
-    @Autowired(required=false)
+
+    @Lazy
+    @Autowired(required = false)
     protected RequestReplicator requestReplicator;
-    @Autowired(required=false)
+
+    @Lazy
+    @Autowired(required = false)
     protected ClusterCoordinator clusterCoordinator;
-    @Autowired(required=false)
+
+    @Lazy
+    @Autowired(required = false)
     protected FlowController flowController;
 
     private static final int MAX_CACHE_SOFT_LIMIT = 500;

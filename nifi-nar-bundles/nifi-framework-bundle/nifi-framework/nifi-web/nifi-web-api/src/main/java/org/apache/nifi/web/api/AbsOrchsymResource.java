@@ -56,6 +56,7 @@ import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -68,9 +69,11 @@ import net.minidev.json.parser.JSONParser;
 public abstract class AbsOrchsymResource extends ApplicationResource implements ICodeMessages {
     private static final Logger logger = LoggerFactory.getLogger(AbsOrchsymResource.class);
 
+    @Lazy
     @Autowired(required = false)
     protected NiFiServiceFacade serviceFacade;
 
+    @Lazy
     @Autowired(required = false)
     protected Authorizer authorizer;
 

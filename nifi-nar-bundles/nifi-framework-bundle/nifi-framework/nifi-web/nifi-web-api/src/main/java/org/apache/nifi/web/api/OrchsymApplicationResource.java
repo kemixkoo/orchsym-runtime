@@ -487,8 +487,17 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         DataPage<AppGroupEntity> appsPage = new DataPage<AppGroupEntity>(appGroupEntityList, searchEnity.getPageSize(), searchEnity.getPage());
         if (searchEnity.isNeedDetail()) {
+            DataPage<ProcessGroupEntity> detailsPage = new DataPage<ProcessGroupEntity>();
+            // 设置返回信息同原appsPage的分页信息，并保持一致
+            detailsPage.setCurrentPage(appsPage.getCurrentPage());
+            detailsPage.setPageSize(appsPage.getPageSize());
+            detailsPage.setTotalPage(appsPage.getTotalPage());
+            detailsPage.setTotalSize(appsPage.getTotalSize());
+
+            // 仅更新结果集
             List<ProcessGroupEntity> detailsList = appsPage.getResults().stream().map(app -> serviceFacade.getProcessGroup(app.getId())).collect(Collectors.toList());
-            DataPage<ProcessGroupEntity> detailsPage = new DataPage<ProcessGroupEntity>(detailsList, searchEnity.getPageSize(), searchEnity.getPage());
+            detailsPage.setResults(detailsList);
+
             return noCache(Response.ok(detailsPage)).build();
         } else {
             return noCache(Response.ok(appsPage)).build();
