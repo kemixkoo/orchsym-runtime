@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.additions.StandardTypeAdditions;
 import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.groups.ProcessTags;
@@ -160,33 +161,38 @@ public final class ProcessUtil {
         }
     }
 
-    public static void fixDefaultValue(Map<String, String> additions, String name, Object defaultValue) {
+    public static void fixDefaultValue(Map<String, String> additionsMap, String name, Object defaultValue) {
         if (Objects.isNull(defaultValue)) {
             return;
         }
-        if (additions.containsKey(name)) {
+        StandardTypeAdditions additions = new StandardTypeAdditions(additionsMap);
+
+        if (additions.has(name)) {// 名字统一
             return;
         }
+        // 名字统一，且设置值到原map
+        additionsMap.put(additions.unifyName(name), defaultValue.toString());
+    }
 
-        additions.put(name, defaultValue.toString());
+    public static boolean containAddition(Map<String, String> additionsMap, String name) {
+        return new StandardTypeAdditions(additionsMap).has(name);// 名字统一
     }
 
     /**
      * 
      * 获取返回值
      */
-    public static Boolean getAdditionBooleanValue(Map<String, String> additionParam, String name, Boolean defaultValue) {
-        if (!Objects.isNull(additionParam) && !additionParam.isEmpty()) {
-            final String valueStr = additionParam.get(name);
-            if (StringUtils.isNotBlank(valueStr)) {
-                return Boolean.parseBoolean(valueStr);
-            }
+
+    public static Boolean getAdditionBooleanValue(TypeAdditions additionParam, String name, Boolean defaultValue) {
+        final String valueStr = additionParam.getValue(name); // 名字统一
+        if (StringUtils.isNotBlank(valueStr)) {
+            return Boolean.parseBoolean(valueStr);
         }
         return defaultValue;
     }
 
-    public static Boolean getAdditionBooleanValue(TypeAdditions additionParam, String name, Boolean defaultValue) {
-        return getAdditionBooleanValue(additionParam.values(), name, defaultValue);
+    public static Boolean getAdditionBooleanValue(Map<String, String> additionsMap, String name, Boolean defaultValue) {
+        return getAdditionBooleanValue(new StandardTypeAdditions(additionsMap), name, defaultValue);
     }
 
     public static Boolean getGroupAdditionBooleanValue(ProcessGroup group, String name) {
@@ -197,19 +203,45 @@ public final class ProcessUtil {
         return getAdditionBooleanValue(group.getAdditions(), name, defaultValue);
     }
 
+    public static Long getAdditionLongValue(TypeAdditions additionParam, String name, Long defaultValue) {
+        final String valueStr = additionParam.getValue(name); // 名字统一
+        if (StringUtils.isNotBlank(valueStr)) {
+            try {
+                return Long.valueOf(valueStr);
+            } catch (NumberFormatException e) {
+                //
+            }
+        }
+        return defaultValue;
+    }
+
+    public static Long getAdditionLongValue(Map<String, String> additionsMap, String name, Long defaultValue) {
+        return getAdditionLongValue(new StandardTypeAdditions(additionsMap), name, defaultValue);
+    }
+
     public static Long getGroupAdditionLongValue(ProcessGroup group, String name) {
         return getGroupAdditionLongValue(group, name, null);
     }
 
     public static Long getGroupAdditionLongValue(ProcessGroup group, String name, Long defaultValue) {
-        final String valueStr = group.getAdditions().getValue(name);
+        return getAdditionLongValue(group.getAdditions(), name, defaultValue);
+    }
 
-        if (StringUtils.isNotBlank(valueStr)) {
-            return Long.parseLong(valueStr);
+    public static String getAdditionValue(TypeAdditions additions, String name, String defaultValue) {
+        if (additions.has(name)) {// 名字统一
+            return additions.getValue(name);
         }
         return defaultValue;
     }
 
+    public static String getAdditionValue(Map<String, String> additionsMap, String name, String defaultValue) {
+        return getAdditionValue(new StandardTypeAdditions(additionsMap), name, defaultValue);
+    }
+
+    /**
+     * 
+     * 计算应用路径信息和父模块信息
+     */
     public static ApplicationInfoDTO calcApplicationInfo(ProcessGroup group, String rootId) {
         ApplicationInfoDTO appInfoDto = new ApplicationInfoDTO();
         if (isRootGroup(group, rootId)) { // 可能已经在根

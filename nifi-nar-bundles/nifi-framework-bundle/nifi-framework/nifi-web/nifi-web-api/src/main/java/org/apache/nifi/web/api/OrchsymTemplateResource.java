@@ -55,6 +55,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.collections4.list.TreeList;
+import org.apache.nifi.additions.StandardTypeAdditions;
 import org.apache.nifi.authorization.AuthorizableLookup;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.SnippetAuthorizable;
@@ -66,6 +67,7 @@ import org.apache.nifi.controller.Template;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.security.xml.XmlUtils;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.util.StringUtils;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
@@ -609,15 +611,29 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
 
         final List<TemplateFavority> tempFavorites = getTempFavoriteByCurrentUser();
         notOfficalTemps.forEach(t -> {
-            Map<String, String> additions = t.getAdditions();
-            if (Objects.isNull(additions)) {
-                additions = new HashMap<>();
-            } else {
-                additions = new HashMap<>(additions);
-            }
+            StandardTypeAdditions additions = new StandardTypeAdditions(t.getAdditions());
+
+            // 临时设置为前端提供收藏标记
             final boolean existed = tempFavorites.contains(new TemplateFavority(t.getId(), 0L));
-            additions.put(TemplateFieldName.IS_FAVORITE, Boolean.valueOf(existed).toString());
-            t.setAdditions(additions);
+            additions.setValue(TemplateFieldName.IS_FAVORITE, existed);
+
+            // 尽量为前端提供创建时间
+            if (!additions.has(AdditionConstants.KEY_CREATED_TIMESTAMP)) {
+                Long time = null;
+                // 先尝试原始创建时间戳
+                if (additions.has(AdditionConstants.KEY_ORIGINAL_CREATED_TIMESTAMP)) {
+                    time = ProcessUtil.getAdditionLongValue(additions, AdditionConstants.KEY_ORIGINAL_CREATED_TIMESTAMP, null);
+                }
+                // 尝试上传时间
+                if (Objects.isNull(time) && additions.has(TemplateFieldName.UPLOADED_TIMESTAMP)) {
+                    time = ProcessUtil.getAdditionLongValue(additions, TemplateFieldName.UPLOADED_TIMESTAMP, null);
+                }
+                if (!Objects.isNull(time)) {
+                    additions.setValue(AdditionConstants.KEY_CREATED_TIMESTAMP, time);
+                }
+            }
+
+            t.setAdditions(additions.values());
         });
 
         return notOfficalTemps;

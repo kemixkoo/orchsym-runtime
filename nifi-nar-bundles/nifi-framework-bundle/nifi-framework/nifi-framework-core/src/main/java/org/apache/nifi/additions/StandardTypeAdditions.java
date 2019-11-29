@@ -29,6 +29,15 @@ import java.util.Objects;
 public class StandardTypeAdditions implements TypeAdditions {
     private volatile Map<String, String> additions = new HashMap<>();
 
+    public StandardTypeAdditions() {
+        super();
+    }
+
+    public StandardTypeAdditions(Map<String, String> additions) {
+        this();
+        set(additions);
+    }
+
     @Override
     public Map<String, String> values() {
         return this.additions;
