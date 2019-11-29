@@ -171,12 +171,9 @@ public class TemplateSearchEntity extends OrchsymSearchEntity {
     public DataPage<TemplateDTO> getTempsByFilter(List<TemplateDTO> list, final Comparator<String> nameComparator) {
         // 过滤筛选 + 排序
         final List<TemplateDTO> filterList = list.stream().filter(t -> {
-            String q = this.getText();
-            if (StringUtils.isNotBlank(q)) {
-                q = q.toLowerCase();
-                if (!(t.getName().toLowerCase().contains(q) || t.getDescription() != null && t.getDescription().toLowerCase().contains(q))) {
-                    return false;
-                }
+            String text = this.getText();
+            if (StringUtils.isNotBlank(text) && !contains(text, new String[] { t.getName(), t.getDescription() })) {
+                return false;
             }
             if (this.getTags() != null && t.getTags() != null && !t.getTags().containsAll(this.getTags())) {
                 return false;

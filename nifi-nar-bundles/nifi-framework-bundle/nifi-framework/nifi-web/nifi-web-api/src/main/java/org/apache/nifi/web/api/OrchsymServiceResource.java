@@ -96,6 +96,7 @@ import org.apache.nifi.web.api.entity.DbcpControllerServiceEntity;
 import org.apache.nifi.web.api.entity.DbcpControllerServicesEntity;
 import org.apache.nifi.web.api.entity.VariableEntity;
 import org.apache.nifi.web.api.orchsym.DataPage;
+import org.apache.nifi.web.api.orchsym.OrchsymSearchEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.service.ControllerServicesBatchOperationEntity;
 import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity;
@@ -968,7 +969,10 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
     @ApiResponses(value = { @ApiResponse(code = 400, message = CODE_MESSAGE_400), @ApiResponse(code = 401, message = CODE_MESSAGE_401), @ApiResponse(code = 403, message = CODE_MESSAGE_403),
             @ApiResponse(code = 409, message = CODE_MESSAGE_409) })
-    public Response queryControllerServices(@Context HttpServletRequest httpServletRequest, @RequestBody final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity) {
+    public Response queryControllerServices(//
+            @Context HttpServletRequest httpServletRequest, //
+            @RequestBody final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity//
+    ) {
         if (requestServiceSearchCriteriaEntity == null) {
             throw new IllegalArgumentException("The Controller Service Search Criteria must be specified.");
         }
@@ -1003,10 +1007,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
                 .filter(controllerServiceDTO -> states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState()))
                         || states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus())))
                 // 3. filter by search string. Only try to match search string with controller service's name, type and comments
-                .filter(controllerServiceDTO -> Objects.isNull(searchStr) // 空，表示全部
-                        || StringUtils.containsIgnoreCase(controllerServiceDTO.getName(), searchStr) // 匹配名字
-                        || StringUtils.containsIgnoreCase(controllerServiceDTO.getType(), searchStr) // 匹配类型
-                        || StringUtils.containsIgnoreCase(controllerServiceDTO.getComments(), searchStr)) // 匹配描述
+                .filter(controllerServiceDTO -> OrchsymSearchEntity.contains(searchStr, //
+                        new String[] { controllerServiceDTO.getName(), controllerServiceDTO.getType(), controllerServiceDTO.getComments() }))
                 .collect(Collectors.toList());
         // 4. sorting
         final OrchsymServiceSortField sortField = Objects.isNull(requestServiceSearchCriteriaEntity.getSortedField()) ? OrchsymServiceSortField.NAME

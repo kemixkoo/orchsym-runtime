@@ -17,6 +17,12 @@
  */
 package org.apache.nifi.web.api.orchsym;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.web.api.entity.Entity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
@@ -69,4 +75,30 @@ public class OrchsymSearchEntity extends Entity{
         this.deleted = deleted;
     }
 
+
+    /**
+     * 
+     * 支持search串包含空格的多个字符的”或“匹配
+     */
+    public static boolean contains(String searchStr, String[] values) {
+        if (Objects.isNull(searchStr)) {
+            return true; // 未设置，无需匹配
+        }
+        if (Objects.isNull(values)) {
+            return false; // 没有任何匹配
+        }
+        final Set<String> searchList = Arrays.asList(searchStr.split(" ")).stream() //
+                .filter(one -> StringUtils.isNotBlank(one))//
+                .map(one -> one.trim())//
+                .collect(Collectors.toSet());
+        for (String part : searchList) {
+            for (String value : values) {
+                if (StringUtils.isNotBlank(value) // 忽略空值
+                        && StringUtils.containsIgnoreCase(value, part)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

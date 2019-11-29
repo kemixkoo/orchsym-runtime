@@ -205,16 +205,22 @@
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
 
-    <logger name="org.apache.nifi.controller.cluster.ClusterProtocolHeartbeater" level="INFO" additivity="false">
+    <!-- cluster log -->
+    <logger name="org.apache.nifi.cluster" level="ERROR"/>
+    <logger name="org.apache.nifi.cluster" level="INFO" additivity="false">
         <appender-ref ref="CLUSTER_FILE" />
     </logger>
-    <logger name="org.apache.nifi.cluster.protocol.impl.SocketProtocolListener" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.controller.cluster" level="ERROR"/>
+    <logger name="org.apache.nifi.controller.cluster" level="INFO" additivity="false">
         <appender-ref ref="CLUSTER_FILE" />
     </logger>
 
+    <!-- repository log -->
+    <logger name="org.apache.nifi.provenance" level="ERROR"/>
     <logger name="org.apache.nifi.provenance" level="INFO" additivity="false">
         <appender-ref ref="REPOSITORY_FILE" />
     </logger>
+    <logger name="org.apache.nifi.controller.repository" level="ERROR"/>
     <logger name="org.apache.nifi.controller.repository" level="INFO" additivity="false">
         <appender-ref ref="REPOSITORY_FILE" />
     </logger>
