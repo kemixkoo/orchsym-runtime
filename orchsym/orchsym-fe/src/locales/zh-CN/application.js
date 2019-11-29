@@ -20,7 +20,13 @@ export default {
   'page.application.modifySort': '编辑时间升序',
   'page.application.modifyDesc': '编辑时间降序',
 
-  'application.delete.title': '该应用已停止，确认放入回收站？',
-  'application.delete.title2': '该应用仍在运行中，确认强制放入回收站？',
-  'application.delete.description': '放入回收站后应用内的文件流不可恢复',
+  // 'application.delete.title': '该应用已停止，确认放入回收站？',
+  // 'application.delete.title2': '该应用仍在运行中，确认强制放入回收站？',
+  // 'application.delete.description': '放入回收站后应用内的文件流不可恢复',
+  'application.delete.title': '删除应用',
+  'application.delete.description': '删除后不可恢复，确认删除吗？',
+  'application.delete.description2': '该应用仍在运行中，确认强制删除吗？',
+  'application.disable.title': '禁用应用',
+  'application.disable.description': '确认禁用该应用吗？',
+  'application.disable.description2': '该应用仍在运行中，确认强制禁用吗？',
 }

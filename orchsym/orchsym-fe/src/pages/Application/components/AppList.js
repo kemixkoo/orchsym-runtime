@@ -127,11 +127,39 @@ class AppList extends PureComponent {
       });
     } else if (state === 'DISABLED') {
       dispatch({
-        type: 'application/fetchUpdateDisable',
+        type: 'application/fetchValidationDeleteApp',
         payload: item.id,
-        cb: () => {
-          message.success(formatMessage({ id: 'result.success' }));
-          this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        cb: (res) => {
+          const that = this
+          if (res.canDelete) {
+            confirm({
+              title: formatMessage({ id: 'application.disable.title' }),
+              content: formatMessage({ id: 'application.disable.description' }),
+              okText: 'Yes',
+              okType: 'warning',
+              cancelText: 'No',
+              onOk() {
+                that.disableFetch(item.id)
+              },
+              onCancel() {
+                console.log('Cancel');
+              },
+            });
+          } else {
+            confirm({
+              title: formatMessage({ id: 'application.disable.title' }),
+              content: formatMessage({ id: 'application.disable.description2' }),
+              okText: 'Yes',
+              okType: 'warning',
+              cancelText: 'No',
+              onOk() {
+                that.disableFetch(item.id)
+              },
+              onCancel() {
+                console.log('Cancel');
+              },
+            });
+          }
         },
       });
     } else {
@@ -151,7 +179,7 @@ class AppList extends PureComponent {
 
   // 创建snippets
   createSnippets = (item, state) => {
-    const { dispatch } = this.props;
+    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
     dispatch({
       type: 'application/fetchCreateSnippets',
       payload: item,
@@ -162,6 +190,10 @@ class AppList extends PureComponent {
             payload: {
               id: item.id,
               snippetId: res.id,
+            },
+            cb: () => {
+              message.success(formatMessage({ id: 'result.success' }));
+              this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
             },
           });
         }
@@ -202,8 +234,8 @@ class AppList extends PureComponent {
           });
         } else {
           confirm({
-            title: formatMessage({ id: 'application.delete.title2' }),
-            content: formatMessage({ id: 'application.delete.description' }),
+            title: formatMessage({ id: 'application.delete.title' }),
+            content: formatMessage({ id: 'application.delete.description2' }),
             okText: 'Yes',
             okType: 'warning',
             cancelText: 'No',
@@ -229,6 +261,19 @@ class AppList extends PureComponent {
         this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
       },
     })
+  }
+
+  // 禁用
+  disableFetch = (id) => {
+    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    dispatch({
+      type: 'application/fetchUpdateDisable',
+      payload: id,
+      cb: () => {
+        message.success(formatMessage({ id: 'result.success' }));
+        this.getAppList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+      },
+    });
   }
 
   // 下载
