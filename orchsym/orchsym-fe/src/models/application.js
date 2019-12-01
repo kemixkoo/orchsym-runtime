@@ -151,7 +151,7 @@ export default {
       }
       yield cb && cb(res)
     },
-    * fetchValidationRunApp({ payload }, { call, put }) {
+    * fetchValidationRunApp({ payload, cb }, { call, put }) {
       const response = yield call(validationRunApp, payload.snippetId);
       if (response) {
         yield put({
@@ -161,6 +161,7 @@ export default {
             state: 'RUNNING',
           },
         });
+        yield cb && cb()
       }
     },
 
