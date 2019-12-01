@@ -438,7 +438,7 @@
         <div id="data-flow-title-viewport">
             <div id="data-flow-title-container">
                 <div class="action-button-right">
-                    <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openConfigureOrDetailsView();"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Configuration']}}" class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openConfigureOrDetailsView();"
                             ng-disabled="!(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
                         <span class="acon-setting"></span>
                     </button>
@@ -460,28 +460,28 @@
                     <button class="svg-right">
                         <span class="hicon-service"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['template'](appCtrl.nf.CanvasUtils.getSelection());">
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['partials.canvas.navigation.uploadTemplate']}}" class="svg-right" ng-click="appCtrl.nf.Actions['template'](appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-cloud-upload"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['emptyQueue'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.EmptyQueue']}}"  class="svg-right" ng-click="appCtrl.nf.Actions['emptyQueue'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty())">
                         <span class="hicon-clearing-queue"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['listQueue'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.QueueList']}}" class="svg-right" ng-click="appCtrl.nf.Actions['listQueue'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty())">
                         <span class="acon-unordered-list"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['openProvenance'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.DataProvenance']}}" class="svg-right" ng-click="appCtrl.nf.Actions['openProvenance'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="hicon-data-traceability"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['showStats'](appCtrl.nf.CanvasUtils.getSelection());" ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.StatsHistory']}}" class="svg-right" ng-click="appCtrl.nf.Actions['showStats'](appCtrl.nf.CanvasUtils.getSelection());" ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-area-chart"></span>
                     </button>
                     <div class="svg-right">
                         <div class="line"></div>
                     </div>
-                    <button class="svg-right button-alignment-menu" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Align']}}" class="svg-right button-alignment-menu" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
                         <span class="hicon-alignment"></span>
                         <span class="acon-caret-down" style="font-size: 10px;margin-left: -8px;"></span>
@@ -498,49 +498,49 @@
                             </div>
                         </div>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
-                            ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Collapse']}}" class="svg-right" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-minus"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['expand'](appCtrl.nf.CanvasUtils.getSelection());"
-                            ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Expand']}}" class="svg-right" ng-click="appCtrl.nf.Actions['expand'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-plus"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['disable'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Disable']}}" class="svg-right" ng-click="appCtrl.nf.Actions['disable'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-lock"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['enable'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Enable']}}" class="svg-right" ng-click="appCtrl.nf.Actions['enable'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-unlock"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['stop'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Stop']}}" class="svg-right" ng-click="appCtrl.nf.Actions['stop'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-stopb red"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['start'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Start']}}" class="svg-right" ng-click="appCtrl.nf.Actions['start'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-playb green"></span>
                     </button>
                     <div class="svg-right">
                         <div class="line"></div>
                     </div>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['delete'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Delete']}}" class="svg-right" ng-click="appCtrl.nf.Actions['delete'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-delete"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['paste'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Paste']}}" class="svg-right" ng-click="appCtrl.nf.Actions['paste'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.isPastable()">
                         <span class="acon-paste"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['copy'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.Copy']}}" class="svg-right" ng-click="appCtrl.nf.Actions['copy'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-copy"></span>
                     </button>
                     <div class="svg-right">
                         <div class="line"></div>
                     </div>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['reload'](appCtrl.nf.CanvasUtils.getSelection());">
+                    <button class="svg-right" title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.Refresh']}}" ng-click="appCtrl.nf.Actions['reload'](appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-reload"></span>
                     </button>
                 </div>
