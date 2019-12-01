@@ -683,6 +683,10 @@
      * @param {type} selection
      */
     var canMoveToParent = function (selection) {
+        var groupsBreadcrumb = window.parent.getGroupsBreadcrumb();
+        if(groupsBreadcrumb.length<2) {
+            return false;
+        }
         if (nfCanvasUtils.canModify(selection) === false) {
             return false;
         }
