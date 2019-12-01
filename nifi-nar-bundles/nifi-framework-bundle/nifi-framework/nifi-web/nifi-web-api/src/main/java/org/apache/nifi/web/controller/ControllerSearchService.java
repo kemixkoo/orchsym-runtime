@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -177,7 +178,7 @@ public class ControllerSearchService {
                     groupMatch.setId(processGroup.getIdentifier());
                     results.getProcessGroupResults().add(groupMatch);
                 }else {
-                    final ComponentSearchResultDTO groupMatch = search(search, processGroup);
+                    final ComponentSearchResultDTO groupMatch = searchAppByName(search, processGroup);
                     if (groupMatch != null) {
                         // get the parent group, not the current one
                         groupMatch.setParentGroup(buildResultGroup(group.getParent(), user));
@@ -352,6 +353,40 @@ public class ControllerSearchService {
         addIfAppropriate(searchStr, group.getVersionedComponentId().orElse(null), "Version Control ID", matches);
         addIfAppropriate(searchStr, group.getName(), "Name", matches);
         addIfAppropriate(searchStr, group.getComments(), "Comments", matches);
+
+        final ComponentVariableRegistry varRegistry = group.getVariableRegistry();
+        if (varRegistry != null) {
+            final Map<VariableDescriptor, String> variableMap = varRegistry.getVariableMap();
+            for (final Map.Entry<VariableDescriptor, String> entry : variableMap.entrySet()) {
+                addIfAppropriate(searchStr, entry.getKey().getName(), "Variable Name", matches);
+                addIfAppropriate(searchStr, entry.getValue(), "Variable Value", matches);
+            }
+        }
+
+        if (matches.isEmpty()) {
+            return null;
+        }
+
+        final ComponentSearchResultDTO result = new ComponentSearchResultDTO();
+        result.setId(group.getIdentifier());
+        result.setName(group.getName());
+        result.setGroupId(parent.getIdentifier());
+        result.setMatches(matches);
+        return result;
+    }
+    // only search app by name
+    private ComponentSearchResultDTO searchAppByName(final String searchStr, final ProcessGroup group) {
+        final List<String> matches = new ArrayList<>();
+        final ProcessGroup parent = group.getParent();
+        if (parent == null) {
+            return null;
+        }
+
+        addIfAppropriate(searchStr, group.getName(), "Name", matches);
+        addIfAppropriate(searchStr, group.getComments(), "Comments", matches);
+        if (!Objects.isNull(group.getTags())) {
+            addIfAppropriate(searchStr, String.join(",", group.getTags()), "Tags", matches);
+        }
 
         final ComponentVariableRegistry varRegistry = group.getVariableRegistry();
         if (varRegistry != null) {

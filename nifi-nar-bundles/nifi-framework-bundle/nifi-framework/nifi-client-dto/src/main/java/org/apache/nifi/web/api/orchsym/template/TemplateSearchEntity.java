@@ -19,6 +19,7 @@ package org.apache.nifi.web.api.orchsym.template;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -172,7 +173,12 @@ public class TemplateSearchEntity extends OrchsymSearchEntity {
         // 过滤筛选 + 排序
         final List<TemplateDTO> filterList = list.stream().filter(t -> {
             String text = this.getText();
-            if (StringUtils.isNotBlank(text) && !contains(text, new String[] { t.getName(), t.getDescription() })) {
+            if (StringUtils.isNotBlank(text) //
+                    && !contains(text, new String[] { //
+                            t.getName(), //
+                            t.getDescription(), //
+                            Objects.isNull(t.getTags()) ? "" : String.join(",", t.getTags())//
+            })) {
                 return false;
             }
             if (this.getTags() != null && t.getTags() != null && !t.getTags().containsAll(this.getTags())) {
