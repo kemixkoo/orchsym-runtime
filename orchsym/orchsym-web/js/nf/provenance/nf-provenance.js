@@ -165,6 +165,13 @@
                 // set the document title and the about title
                 document.title = provenanceTitle;
                 $('#provenance-header-text').text(provenanceTitle);
+                $('#clear-provenance-search').text(nf._.msg('partials.provenance.provenance-content.clear-provenance-search'));
+                $('#user-logout').text(nf._.msg('nf-provenance.DataProvenance'));
+                $('#partials-provenance-provenance-content-LastUpdated').text(nf._.msg('partials.provenance.provenance-content.LastUpdated'));
+                $('#refresh-button').attr({title: nf._.msg('paritals.provenance.provenance-content.refresh-button.title')})
+                $('#provenance-filter').attr({placeholder: nf._.msg('paritals.provenance.provenance-content.provenance-filter-container')})
+                $('#partials-provenance-provenance-content-Displaying').text(nf._.msg('partials.provenance.provenance-content.Displaying'));
+                $('#partials-provenance-provenance-content-oldest-event-message').text(nf._.msg('partials.provenance.provenance-content.oldest-event-message'));
             }).fail(nfErrorHandler.handleAjaxError);
         };
 
