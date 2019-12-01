@@ -965,9 +965,10 @@
             }
 
             // allow policy configuration conditionally
-            if (nfCanvasUtils.isManagedAuthorizer() && nfCommon.canAccessTenants()) {
+            // wanzhen fa-key
+            /*if (nfCanvasUtils.isManagedAuthorizer() && nfCommon.canAccessTenants()) {
                 markup += '<div title="' + nf._.msg('nf-controller-services.acesspolicies') + '" class="pointer edit-access-policies fa fa-key" style="margin-top: 2px;"></div>';
-            }
+            }*/
 
             return markup;
         };

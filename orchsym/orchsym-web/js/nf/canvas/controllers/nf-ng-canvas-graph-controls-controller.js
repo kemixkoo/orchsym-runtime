@@ -138,7 +138,8 @@
             /**
              * Initialize the graph controls.
              */
-            init: function () {
+            init: function (nfCanvasRef) {
+                this.nfCanvas = nfCanvasRef;
 
                 var tooltipHtml1 = '<div class="component-info" id="component-info1">'+
                                       '<div class="shang-caret"></div>'+

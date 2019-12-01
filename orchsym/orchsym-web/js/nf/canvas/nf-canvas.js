@@ -1187,7 +1187,6 @@
                 actualSize: function () {
                     var translate = nfCanvas.View.getTranslate();
                     var scale = nfCanvas.View.getScale();
-
                     // get the first selected component
                     var selection = nfCanvasUtils.getSelection();
 

@@ -425,7 +425,7 @@
                     nfRemoteProcessGroupDetails.init();
                     nfGoto.init();
                     nfGraph.init().done(function () {
-                        nfNgBridge.injector.get('graphControlsCtrl').init();
+                        nfNgBridge.injector.get('graphControlsCtrl').init(nfCanvas);
                         nfNgBridge.injector.get('templatesControlsCtrl').init();
 
                         // determine the split between the polling
