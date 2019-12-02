@@ -549,4 +549,18 @@
     <!-- NiFi locking -->
     <bean id="serviceFacadeLock" class="org.apache.nifi.web.NiFiServiceFacadeLock"/>
 
+    <!-- init admin policy -->
+    <bean id="orchsymInitAdminPolicy" class="org.apache.nifi.web.init.OrchsymInitAdminPolicy" init-method="initAdminPolicy" destroy-method="destroy" lazy-init="false">
+        <property name="accessPolicyDAO" ref="policyBasedAuthorizerDAO" />
+        <property name="authorizer" ref="authorizer" />
+        <property name="flowController" ref="flowController" />
+        <property name="serviceFacade" ref="serviceFacade" />
+        <property name="userDAO" ref="policyBasedAuthorizerDAO" />
+        <property name="userGroupDAO" ref="policyBasedAuthorizerDAO" />
+        <property name="properties" ref="nifiProperties" />
+        <property name="authorizableLookup" ref="authorizableLookup" />
+        <property name="dtoFactory" ref="dtoFactory" />
+        <property name="entityFactory" ref="entityFactory" />
+        <property name="revisionManager" ref="revisionManager" />
+    </bean>
 </beans>
