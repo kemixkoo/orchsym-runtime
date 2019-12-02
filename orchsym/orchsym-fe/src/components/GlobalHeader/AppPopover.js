@@ -103,7 +103,7 @@ class AppPopover extends PureComponent {
   };
 
   render() {
-    const { loading } = this.props;
+    const { loading, componentIdChange } = this.props;
     const { visible, onMouseId, appList, searchValue, topList } = this.state;
 
     const appMenu = (
@@ -115,12 +115,14 @@ class AppPopover extends PureComponent {
               onMouseEnter={() => this.handleEnter(item.id)}
               onMouseLeave={() => this.handleLeave(item.id)}
             >
-              <Link to={`/canvas/${item.id}/0`} target="_self">
+              {/* <Link to={`/canvas/${item.id}/0`} target="_self"> */}
+              <span onClick={() => (componentIdChange(item.id))}>
                 <IconFont type="OS-iconapi" />
                 <Ellipsis tooltip length={13}>
                   {item.name}
                 </Ellipsis>
-              </Link>
+              </span>
+              {/* </Link> */}
               {onMouseId === item.id ?
                 (<span className={styles.appMenuIcon}><Link to={`/canvas/${item.id}/0`} target="_blank"><IconFont type="OS-iconai37" /></Link></span>)
                 : (null)}

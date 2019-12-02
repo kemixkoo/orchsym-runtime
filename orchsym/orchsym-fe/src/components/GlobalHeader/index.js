@@ -177,7 +177,7 @@ class GlobalHeader extends PureComponent {
         </span>)
         }
         {processGroupId ? (
-          <div className={styles.appPopover} ><AppPopover /></div>
+          <div className={styles.appPopover} ><AppPopover componentIdChange={componentIdChange}/></div>
         ) : (null)}
         {processGroupId ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
