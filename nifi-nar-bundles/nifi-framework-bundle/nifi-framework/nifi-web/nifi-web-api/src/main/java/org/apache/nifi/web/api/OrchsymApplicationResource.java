@@ -314,10 +314,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     private void fixDefaultSearchEnity(final AppSearchEntity searchEnity) {
 
         // FIXME, 暂不支持modified_time，否应该删除统一到创建日期上
-        if (AppSearchEntity.PARAM_MODIFIED_TIME.equals(searchEnity.getSortedField())) {
+        if (AppSearchEntity.PARAM_MODIFIED_TIME.equalsIgnoreCase(searchEnity.getSortedField())) {
             searchEnity.setSortedField(AppSearchEntity.PARAM_CREATED_TIME);
         }
-        if (AppSearchEntity.PARAM_MODIFIED_TIME.equals(searchEnity.getFilterTimeField())) {
+        if (AppSearchEntity.PARAM_MODIFIED_TIME.equalsIgnoreCase(searchEnity.getFilterTimeField())) {
             searchEnity.setFilterTimeField(AppSearchEntity.PARAM_CREATED_TIME);
         }
 
