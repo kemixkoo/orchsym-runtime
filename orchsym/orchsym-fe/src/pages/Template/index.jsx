@@ -162,11 +162,16 @@ class Template extends React.Component {
         return isAccept;
       },
       onChange: (info) => {
-        console.log(this.props)
         if (info.file.status === 'uploading') {
           this.setState({ uploadLoading: true });
         }
         if (info.file.status === 'done') {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(info.file.response, 'text/xml');
+          if (xmlDoc.documentElement.tagName === 'errorResponse') {
+            const errorMessage = xmlDoc.documentElement.getAttribute('statusText');
+            message.error(errorMessage);
+          }
           this.setState({
             pageNum: 1,
             isFresh: true,

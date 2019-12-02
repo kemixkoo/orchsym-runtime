@@ -1,7 +1,6 @@
 import request from '@/utils/request';
 
 export async function queryControllerServices(params) {
-  console.log(params)
   return request('/studio/nifi-api/service/search', {
     method: 'POST',
     data: {

@@ -221,7 +221,7 @@ class ControllerServices extends React.Component {
 
 
   menu = (item) => (
-    <Menu>
+    <Menu style={{ width: '80px' }}>
       {item && (
         <Menu.Item key="rename" onClick={() => { this.deleteTempHandel() }}>
           {`${formatMessage({ id: 'service.button.rename' })}`}
@@ -341,7 +341,7 @@ class ControllerServices extends React.Component {
           <div className={styles.tableTopHeader}>
             <Row gutter={16} className={styles.bottomSpace}>
               <Col span={12}>
-                <Button type="primary" style={{ marginRight: '10px' }} onClick={this.showUploadModal}>
+                <Button type="primary" style={{ marginRight: '10px' }}>
                   <FormattedMessage id="button.create" />
                 </Button>
                 <ButtonGroup>
@@ -349,12 +349,12 @@ class ControllerServices extends React.Component {
                   <Button>{formatMessage({ id: 'button.disable' })}</Button>
                   <Dropdown overlay={this.menu} trigger={['click']}>
                     <Button>
-                      <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
+                      <Icon type="ellipsis" key="ellipsis" />
                     </Button>
                   </Dropdown>
                 </ButtonGroup>
               </Col>
-              <Col>
+              <Col span={12}>
                 <div className={styles.headerRight}>
                   <span style={{ marginRight: '8px' }}>
                     <Icon
