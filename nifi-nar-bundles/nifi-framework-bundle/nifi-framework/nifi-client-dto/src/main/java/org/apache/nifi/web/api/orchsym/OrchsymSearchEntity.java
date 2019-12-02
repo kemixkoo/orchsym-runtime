@@ -26,13 +26,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.web.api.entity.Entity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
-public class OrchsymSearchEntity extends Entity{
+public class OrchsymSearchEntity extends Entity {
     protected String text = ""; // 搜索文本
 
     protected int page = 1; // 默认当前页为第一页
     protected int pageSize = 10;// 默认每页10条
 
-    protected boolean isDesc = true; // 默认降序
+    protected boolean desc = true; // 默认降序
     protected boolean deleted = AdditionConstants.KEY_IS_DELETED_DEFAULT; // 默认非删除
 
     public String getText() {
@@ -60,11 +60,11 @@ public class OrchsymSearchEntity extends Entity{
     }
 
     public boolean isDesc() {
-        return isDesc;
+        return desc;
     }
 
-    public void setDesc(boolean isDesc) {
-        this.isDesc = isDesc;
+    public void setDesc(boolean desc) {
+        this.desc = desc;
     }
 
     public boolean isDeleted() {
@@ -75,17 +75,16 @@ public class OrchsymSearchEntity extends Entity{
         this.deleted = deleted;
     }
 
-
     /**
      * 
      * 支持search串包含空格的多个字符的”或“匹配
      */
     public static boolean contains(String searchStr, String[] values) {
-        if (Objects.isNull(searchStr)) {
-            return true; // 未设置，无需匹配
+        if (StringUtils.isBlank(searchStr)) {
+            return true; // 未设置，无需验证匹配，直接返回所有
         }
         if (Objects.isNull(values)) {
-            return false; // 没有任何匹配
+            return false; // 不匹配任何
         }
         final Set<String> searchList = Arrays.asList(searchStr.split(" ")).stream() //
                 .filter(one -> StringUtils.isNotBlank(one))//
