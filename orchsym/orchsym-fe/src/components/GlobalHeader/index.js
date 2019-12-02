@@ -158,7 +158,7 @@ class GlobalHeader extends PureComponent {
   }
 
   render() {
-    const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange } = this.props; // appDetails: { component },
+    const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange, closePop, changeState } = this.props; // appDetails: { component },
     const { params } = match;
     const { processGroupId } = params;
     const onClose = e => {
@@ -177,7 +177,7 @@ class GlobalHeader extends PureComponent {
         </span>)
         }
         {processGroupId ? (
-          <div className={styles.appPopover} ><AppPopover componentIdChange={componentIdChange}/></div>
+          <div className={styles.appPopover} ><AppPopover closePop={closePop} changeState={changeState} componentId={componentId} componentIdChange={componentIdChange}/></div>
         ) : (null)}
         {processGroupId ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>

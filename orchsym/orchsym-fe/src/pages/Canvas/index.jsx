@@ -7,6 +7,7 @@ const logo = window.logoHref.companyLogoIndex
 export default class Index extends Component {
   state = {
     componentId: '',
+    closePop: false,
   };
 
   componentDidMount() {
@@ -30,17 +31,22 @@ export default class Index extends Component {
     }
   }
 
+  changeState = (obj) => {
+    this.setState(obj)
+  }
+
   componentIdChange = (id) => {
     this.canvasIframe.contentWindow.iframeEnterGroup(id)
     this.setState(
       {
         componentId: id,
+        closePop: true,
       }
     )
   }
 
   render() {
-    const { componentId } = this.state
+    const { componentId, closePop } = this.state
     const { match, menuData } = this.props
     const { params } = match
     const { processGroupId, componentIds } = params
@@ -49,6 +55,8 @@ export default class Index extends Component {
     return (
       <div className={styles.canvasWrapper}>
         <Header
+          changeState={this.changeState}
+          closePop={closePop}
           componentIdChange={this.componentIdChange}
           componentId={componentId}
           menuData={menuData}
