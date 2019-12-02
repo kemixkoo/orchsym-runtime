@@ -100,12 +100,12 @@
     <div id="provenance-event-search" class="provenance-panel">
         <div id="provenance-filter-controls" class="filter-controls">
             <div id="provenance-filter-stats" class="filter-status">
-                <span id="partials-provenance-provenance-content-Displaying">{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-content.Displaying"] }}</span>&nbsp;<span id="displayed-events"></span>&nbsp;/&nbsp;<span id="total-events"></span>
+                {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-content.Displaying"] }}&nbsp;<span id="displayed-events"></span>&nbsp;/&nbsp;<span id="total-events"></span>
             </div>
             <div id="oldest-event-message">
-                <span id="partials-provenance-provenance-content-oldest-event-message">{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.provenance.provenance-content.oldest-event-message'] }}</span>:&nbsp;<span id="oldest-event" class="value-color"></span>
+                {{ appCtrl.serviceProvider.globalMenuCtrl.getOldestEventMessage() }}:&nbsp;<span id="oldest-event" class="value-color"></span>
             </div>
-
+            
             <div id="provenance-filter-container" class="filter-container">
                 <input type="text" placeholder="{{appCtrl.serviceProvider.globalMenuCtrl.constant['paritals.provenance.provenance-content.provenance-filter-container']}}" id="provenance-filter" class="filter"/>
                 <div id="provenance-filter-type" class="filter-type"></div>
@@ -120,10 +120,10 @@
         </div>
         <div id="provenance-table"></div>
         <div id="provenance-refresh-container">
-
+        	
             <button id="refresh-button" class="refresh-button pointer fa fa-refresh" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['paritals.provenance.provenance-content.refresh-button.title'] }}"></button>
             <div id="provenance-last-refreshed-container" class="last-refreshed-container">
-                <span id="partials-provenance-provenance-content-LastUpdated">{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-content.LastUpdated"] }}</span>:&nbsp;<span id="provenance-last-refreshed" class="value-color"></span>
+                {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-content.LastUpdated"] }}:&nbsp;<span id="provenance-last-refreshed" class="value-color"></span>
             </div>
             <div id="provenance-loading-container" class="loading-container"></div>
         </div>
@@ -133,9 +133,9 @@
             <div id="provenance-lineage-loading" class="loading-container"></div>
         </div>
         <div id="provenance-lineage-close-container">
-
+        	
             <div id="provenance-lineage-downloader" class="fa fa-download" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['paritals.provenance.provenance-content.provenance-lineage-downloader.title'] }}"></div>
-
+            
             <div id="provenance-lineage-closer" class="fa fa-long-arrow-left" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['paritals.provenance.provenance-content.provenance-lineage-closer.title'] }}"></div>
         </div>
         <div id="provenance-lineage-context-menu" class="context-menu"></div>
@@ -346,7 +346,7 @@
             <div class="start-date-setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-search-dialog.StartDate"] }}
-
+                    
                     <div class="fa fa-question-circle" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.provenance.provenance-search-dialog.StartDate.title'] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -356,7 +356,7 @@
             <div class="start-time-setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-search-dialog.StartTime"] }}(<span class="timezone"></span>)
-
+                    
                     <div class="fa fa-question-circle" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.provenance.provenance-search-dialog.StartTime.title'] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -369,7 +369,7 @@
             <div class="end-date-setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-search-dialog.EndDate"] }}
-
+                    
                     <div class="fa fa-question-circle" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.provenance.provenance-search-dialog.EndDate.title'] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -379,7 +379,7 @@
             <div class="end-time-setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-search-dialog.EndTime"] }}(<span class="timezone"></span>)
-
+                    
                     <div class="fa fa-question-circle" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.provenance.provenance-search-dialog.EndTime.title'] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -392,7 +392,7 @@
             <div class="end-date-setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-search-dialog.MinimumFileSize"] }}
-
+                    
                     <div class="fa fa-question-circle" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.provenance.provenance-search-dialog.MinimumFileSize.title'] }}"></div>
                 </div>
                 <div class="setting-field">
@@ -402,7 +402,7 @@
             <div class="end-time-setting">
                 <div class="setting-name">
                     {{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.provenance.provenance-search-dialog.MaximumFileSize"] }}
-
+                    
                     <div class="fa fa-question-circle" title="{{ appCtrl.serviceProvider.globalMenuCtrl.constant['partials.provenance.provenance-search-dialog.MaximumFileSize.title'] }}"></div>
                 </div>
                 <div class="setting-field">

@@ -118,6 +118,10 @@ class GlobalHeader extends PureComponent {
 
   showBreadcrumb = () => {
     const { groupsBreadcrumb, componentId, componentIdChange } = this.props
+    window.getGroupsBreadcrumb = () => {
+      return groupsBreadcrumb
+    }
+    // console.log("groupsBreadcrumb.length", groupsBreadcrumb.length)
     if (groupsBreadcrumb) {
       if (groupsBreadcrumb.length > 4) {
         return (
@@ -154,7 +158,7 @@ class GlobalHeader extends PureComponent {
   }
 
   render() {
-    const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange } = this.props; // appDetails: { component }, 
+    const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange } = this.props; // appDetails: { component },
     const { params } = match;
     const { processGroupId } = params;
     const onClose = e => {
