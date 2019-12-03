@@ -44,8 +44,8 @@ export function getJwtPayload(jwt) {
 
   return null;
 }
-export function getExpiration(token) {
-  const res = getJwtPayload(token);
+export function getExpiration(jwt) {
+  const res = getJwtPayload(jwt);
   return parseInt(res.exp, 10) * 1000;
 }
 export function fixedZero(val) {

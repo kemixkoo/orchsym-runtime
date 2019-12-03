@@ -69,7 +69,7 @@ class operateMenu extends React.Component {
     const { tab } = match.params;
     const tabKey = (!tab || tab === ':tab') ? 'favorite' : tab;
     const menu = (
-      <Menu>
+      <Menu style={{ width: '80px' }}>
         {(data.additions.SOURCE_TYPE === 'OFFICIAL' || tabKey === 'official') ? (null) : (
           <Menu.Item key="edit" disabled={editingKey !== ''} onClick={() => edit(data.id)}>
             {`${formatMessage({ id: 'button.edit' })}`}
@@ -98,10 +98,9 @@ class operateMenu extends React.Component {
       <span className={styles.operateMenu}>
         {(data.additions.IS_FAVORITE === 'true' || tabKey === 'favorite') ? (
           <Icon type="star" theme="filled" style={{ color: '#faad14' }} onClick={() => { this.collectTemp(data.id, false) }} />
-        ) : (<Icon type="star" theme="twoTone" onClick={() => { this.collectTemp(data.id, true) }} />
-        )}
+        ) : (<Icon type="star" onClick={() => { this.collectTemp(data.id, true) }} />)}
         <Dropdown overlay={menu} trigger={['click']}>
-          <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '5px' }} />
+          <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '8px' }} />
         </Dropdown>
       </span>
     )

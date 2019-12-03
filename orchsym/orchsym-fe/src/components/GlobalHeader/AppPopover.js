@@ -1,13 +1,15 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import Link from 'umi/link';
+import router from 'umi/router'
 import { debounce } from 'lodash'
 import { formatMessage } from 'umi-plugin-react/locale';
-import { Popover, Icon, Input, Menu, Spin } from 'antd';
+import { Popover, Icon, Input, Menu, Spin, Button } from 'antd';
 import IconFont from '@/components/IconFont';
 import Ellipsis from '@/components/Ellipsis';
 import styles from './index.less';
 
+const ButtonGroup = Button.Group;
 @connect(({ application, loading }) => ({
   loading:
     loading.effects['application/fetchApplication'],
@@ -25,6 +27,15 @@ class AppPopover extends PureComponent {
     topList: [],
     searchValue: '',
   };
+
+  componentDidUpdate(prevProps, prevState) {
+    const { closePop, changeState } = this.props;
+    // 如果数据发生变化，则更新图表
+    if ((prevProps.closePop !== closePop)) {
+      this.handleVisibleChange(false)
+      changeState({ closePop: false })
+    }
+  }
 
   // 搜索
   onSearchChange = e => {
@@ -96,8 +107,12 @@ class AppPopover extends PureComponent {
   };
 
 
+  toGo = () => {
+    router.push('/')
+  };
+
   render() {
-    const { loading } = this.props;
+    const { loading, componentIdChange } = this.props;
     const { visible, onMouseId, appList, searchValue, topList } = this.state;
 
     const appMenu = (
@@ -105,19 +120,23 @@ class AppPopover extends PureComponent {
         <Menu className={styles.appMenu}>
           {appList && appList.length > 0 ? (appList.map(item => (
             <Menu.Item
+              selectable={false}
               key={item.id}
               onMouseEnter={() => this.handleEnter(item.id)}
               onMouseLeave={() => this.handleLeave(item.id)}
             >
-              <Link to={`/canvas/${item.id}/0`} target="_blank">
+              {/* <Link to={`/canvas/${item.id}/0`} target="_self"> */}
+              <span onClick={() => (componentIdChange(item.id))}>
                 <IconFont type="OS-iconapi" />
                 <Ellipsis tooltip length={13}>
                   {item.name}
                 </Ellipsis>
-                {onMouseId === item.id ?
-                  (<span className={styles.appMenuIcon}><IconFont type="OS-iconai37" /></span>)
-                  : (null)}
-              </Link>
+              </span>
+              {/* </Link> */}
+              {onMouseId === item.id ?
+                (<span className={styles.appMenuIcon}><Link to={`/canvas/${item.id}/0`} target="_blank"><IconFont type="OS-iconai37" /></Link></span>)
+                : (null)}
+
             </Menu.Item>
           ))) : (<div style={{ textAlign: 'center' }}>{`${formatMessage({ id: 'result.empty' })}`}</div>)}
         </Menu>
@@ -127,19 +146,23 @@ class AppPopover extends PureComponent {
       <Menu className={styles.appMenu}>
         {topList.map(item => (
           <Menu.Item
+            selectable={false}
             key={item.id}
             onMouseEnter={() => this.handleEnter(item.id)}
             onMouseLeave={() => this.handleLeave(item.id)}
           >
-            <Link to={`/canvas/${item.id}/0`} target="_blank">
+            {/* <Link to={`/canvas/${item.id}/0`} target="_self"> */}
+            <span onClick={() => (componentIdChange(item.id))}>
               <IconFont type="OS-iconapi" />
               <Ellipsis tooltip length={13}>
                 {item.name}
               </Ellipsis>
-              {onMouseId === item.id ?
-                (<span className={styles.appMenuIcon}><IconFont type="OS-iconai37" /></span>)
-                : (null)}
-            </Link>
+            </span>
+            {/* </Link> */}
+            {onMouseId === item.id ?
+              (<span className={styles.appMenuIcon}><Link to={`/canvas/${item.id}/0`} target="_blank"><IconFont type="OS-iconai37" /></Link></span>)
+              : (null)}
+
           </Menu.Item>
         ))}
       </Menu>
@@ -162,15 +185,21 @@ class AppPopover extends PureComponent {
       </div>
     );
     return (
-      <Popover
-        placement="bottomLeft"
-        content={content}
-        trigger="click"
-        visible={visible}
-        onVisibleChange={this.handleVisibleChange}
-      >
-        <Icon type="caret-down" style={{ padding: '0 10px' }} />
-      </Popover>
+      <div className={styles.buttonGroups}>
+        <ButtonGroup>
+          <Button onClick={this.toGo}><Icon type="left" /></Button>
+          <Popover
+            placement="bottomLeft"
+            content={content}
+            trigger="click"
+            visible={visible}
+            onVisibleChange={this.handleVisibleChange}
+          >
+            <Button style={{ width: '30px', padding: 0 }}><Icon type="caret-down" /></Button>
+          </Popover>
+        </ButtonGroup>
+      </div>
+
     );
   }
 }

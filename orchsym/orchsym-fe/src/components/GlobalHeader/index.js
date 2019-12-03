@@ -67,6 +67,7 @@ class GlobalHeader extends PureComponent {
           type: 'login/fetchRefreshToken',
         });
       }
+      return
     }
     const activeTime = getExpiration(oldJwt) - (new Date()).getTime();
     const interval = 30;
@@ -143,7 +144,7 @@ class GlobalHeader extends PureComponent {
       return (
         groupsBreadcrumb.map(item => (<Breadcrumb.Item key={item.id}>
           {(componentId === item.id) ? item.name :
-            <a onClick={() => (componentIdChange(item.id))}>{item.name}</a>
+            <a onClick={() => (componentIdChange(item.id))} className={styles.breadcrumblink} >{item.name}</a>
           }
         </Breadcrumb.Item>))
       )
@@ -157,7 +158,7 @@ class GlobalHeader extends PureComponent {
   }
 
   render() {
-    const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange } = this.props; // appDetails: { component },
+    const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange, closePop, changeState } = this.props; // appDetails: { component },
     const { params } = match;
     const { processGroupId } = params;
     const onClose = e => {
@@ -167,14 +168,17 @@ class GlobalHeader extends PureComponent {
     return (
       <div className={styles.header} style={pstyle}>
 
-        {processGroupId ? (
-          <span className={styles.trigger} onClick={this.toGo}>
-            <Icon type="left" />
-          </span>) : (<span className={styles.trigger} onClick={this.toggle}>
-            <Icon type={collapsed ? 'menu-unfold' : 'menu-fold'} />
-          </span>)
+        {processGroupId ? (null
+          // <span className={styles.trigger} onClick={this.toGo}>
+          //   <Icon type="left" />
+          // </span>
+        ) : (<span className={styles.trigger} onClick={this.toggle}>
+          <Icon type={collapsed ? 'menu-unfold' : 'menu-fold'} />
+        </span>)
         }
-        {processGroupId ? (<div className={styles.appPopover} ><AppPopover /></div>) : (null)}
+        {processGroupId ? (
+          <div className={styles.appPopover} ><AppPopover closePop={closePop} changeState={changeState} componentId={componentId} componentIdChange={componentIdChange}/></div>
+        ) : (null)}
         {processGroupId ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
             {this.showBreadcrumb()}
