@@ -11,6 +11,14 @@ export default class Index extends Component {
   };
 
   componentDidMount() {
+    const { match } = this.props
+    const { params } = match
+    const { processGroupId } = params
+    this.setState(
+      {
+        componentId: processGroupId,
+      }
+    )
     window.gotoCanvasApp = (d) => {
       // console.log('processGroup', d)
       this.setState(
@@ -21,13 +29,13 @@ export default class Index extends Component {
       window.history.pushState({ title: d.status.name }, d.status.name, `https://${window.location.host}/canvas/${d.id}/0`);
     }
     // console.log('this.canvasIframe', this.canvasIframe.contentWindow, this.canvasIframe.contentWindow.iframeEnterGroup)
-    window.gotoComponent = (processGroupId, componentIds) => {
+    window.gotoComponent = (processGroupIds, componentIds) => {
       this.setState(
         {
-          componentId: processGroupId,
+          componentId: processGroupIds,
         }
       )
-      window.history.pushState({ title: processGroupId }, processGroupId, `https://${window.location.host}/canvas/${processGroupId}/${componentIds || 0}`);
+      window.history.pushState({ title: processGroupIds }, processGroupId, `https://${window.location.host}/canvas/${processGroupIds}/${componentIds || 0}`);
     }
   }
 
@@ -43,6 +51,7 @@ export default class Index extends Component {
         closePop: true,
       }
     )
+    window.history.pushState({ title: id }, id, `https://${window.location.host}/canvas/${id}/0`);
   }
 
   render() {
