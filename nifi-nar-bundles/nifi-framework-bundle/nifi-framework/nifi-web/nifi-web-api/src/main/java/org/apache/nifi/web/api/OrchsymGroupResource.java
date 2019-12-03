@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -46,6 +47,7 @@ import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Port;
 import org.apache.nifi.controller.ControllerService;
+import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ReportingTaskNode;
 import org.apache.nifi.controller.Snippet;
@@ -273,52 +275,69 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
     public Response getNavigatorInfo(//
             @PathParam("id") String id//
     ) {
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.GET);
-        }
-
         final Object component = getComponentById(id);
         if (component == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        Map<String, Object> infoMap = getCurrentGroup(component);
-        ProcessGroup currentGroup = (ProcessGroup) infoMap.get("currentGroup");
-        String name = (String) infoMap.get("name");
-        if (currentGroup == null) {
+        ComponentInfo compInfo = getCurrentGroup(component);
+        if (Objects.isNull(compInfo.currentGroup)) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
+        final String currentGroupId = compInfo.currentGroup.getIdentifier();
         Map<String, Object> resultMap = new HashMap<>();
-        Boolean isGroup = currentGroup.getIdentifier().equals(id);
-        resultMap.put("id", id);
-        resultMap.put("name", name);
-        resultMap.put("parentGroupId", isGroup ? currentGroup.getParent().getIdentifier() : currentGroup.getIdentifier());
-        resultMap.put("parentGroupName", isGroup ? currentGroup.getParent().getName() : currentGroup.getName());
+        resultMap.put("id", currentGroupId);
+        resultMap.put("name", compInfo.componentName);
+        if (!compInfo.currentGroup.isRootGroup()) {
+            final ProcessGroup parentGroup = compInfo.currentGroup.getParent();
+            if (!Objects.isNull(parentGroup) && !parentGroup.isRootGroup()) {// 当前模块为非应用解包
+                final boolean groupSelf = currentGroupId.equals(id);
+                // 当前选择的是非模块，则父模块则为当前模块
+                resultMap.put("parentGroupId", groupSelf ? parentGroup.getIdentifier() : currentGroupId);
+                resultMap.put("parentGroupName", groupSelf ? parentGroup.getName() : compInfo.currentGroup.getName());
+            }
+        }
 
-        ProcessGroup tempGroup = currentGroup;
+        ProcessGroup tempGroup = compInfo.currentGroup;
         List<Map<String, String>> groups = new ArrayList<>();
         while (!tempGroup.isRootGroup()) {
             Map<String, String> groupInfoMap = new HashMap<>();
             groupInfoMap.put("id", tempGroup.getIdentifier());
             groupInfoMap.put("name", tempGroup.getName());
-            groupInfoMap.put("parentGroupId", tempGroup.getParent().getIdentifier());
+            if (!tempGroup.getParent().isRootGroup()) {//仅到应用级别
+                groupInfoMap.put("parentGroupId", tempGroup.getParent().getIdentifier());
+            }
             groups.add(groupInfoMap);
             tempGroup = tempGroup.getParent();
         }
-        Collections.reverse(groups);
-        ProcessGroup appGroup = flowController.getGroup(groups.get(0).get("id"));
-        final String path = StringUtils.join(groups.stream().map(map -> map.getOrDefault("name", "")).collect(Collectors.toList()), "/");
+        if (groups.size() > 0) {
+            Collections.reverse(groups);
 
-        resultMap.put("applicationId", appGroup.getIdentifier());
-        resultMap.put("applicationName", appGroup.getName());
-        resultMap.put("path", path);
-        resultMap.put("groups", groups);
+            final String path = StringUtils.join(groups.stream().map(map -> map.getOrDefault("name", "")).collect(Collectors.toList()), "/");
+            resultMap.put("path", path);
+            resultMap.put("groups", groups);
+
+            // 第一个即为应用级别的模块
+            ProcessGroup appGroup = flowController.getGroup(groups.get(0).get("id"));
+            resultMap.put("applicationId", appGroup.getIdentifier());
+            resultMap.put("applicationName", appGroup.getName());
+
+        }
 
         return Response.ok(resultMap).build();
     }
 
-    private Map<String, Object> getCurrentGroup(Object component) {
+    static class ComponentInfo {
+        String componentName;
+        ProcessGroup currentGroup;// 当前Component的模块，
+        String parentGroupId, parentGroupName;// 包含该Component的模块
+
+    }
+
+    private ComponentInfo getCurrentGroup(Object component) {
+        ComponentInfo compInfo = new ComponentInfo();
+
         ProcessGroup currentGroup = null;
         String name = null;
         if (component instanceof Label) {
@@ -352,11 +371,16 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             final Snippet snippet = (Snippet) component;
             currentGroup = flowController.getGroup(snippet.getParentGroupId());
         }
+        if (!Objects.isNull(currentGroup)) {
+            compInfo.currentGroup = currentGroup;
 
-        Map<String, Object> infoMap = new HashMap<>();
-        infoMap.put("currentGroup", currentGroup);
-        infoMap.put("name", name);
-        return infoMap;
+            if (currentGroup.isRootGroup()) {
+                compInfo.componentName = FlowController.ROOT_GROUP_ID_ALIAS;
+            } else {
+                compInfo.componentName = name;
+            }
+        }
+        return compInfo;
     }
 
     /**
