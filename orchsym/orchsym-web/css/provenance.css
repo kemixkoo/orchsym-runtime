@@ -290,6 +290,7 @@ div.event-detail {
 #input-content-view, #output-content-view {
     float: left;
     margin-left: 10px;
+    margin-top: 0px;
 }
 
 div.content-detail-name {
