@@ -960,7 +960,8 @@
                     }
                 } else {
                     // not defined in current group... show go to arrow
-                    markup += '<div class="pointer go-to-controller-service fa fa-long-arrow-right" title="Go To" style="margin-top: 2px; margin-right: 3px;" ></div>';
+                    // wanzhen go-to-controller-service
+                    // markup += '<div class="pointer go-to-controller-service fa fa-long-arrow-right" title="Go To" style="margin-top: 2px; margin-right: 3px;" ></div>';
                 }
             }
 
