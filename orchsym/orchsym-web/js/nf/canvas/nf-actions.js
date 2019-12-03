@@ -300,6 +300,7 @@
          * Exits the current process group but entering the parent group.
          */
         leaveGroup: function () {
+            window.parent.gotoComponent(nfCanvasUtils.getParentGroupId(), 0);
             nfCanvasUtils.getComponentByType('ProcessGroup').enterGroup(nfCanvasUtils.getParentGroupId());
         },
 

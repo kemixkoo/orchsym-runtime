@@ -52,6 +52,10 @@
      * @param {selection} selection         The selection of currently selected components
      */
     var isNotRootGroup = function (selection) {
+        var groupsBreadcrumb = window.parent.getGroupsBreadcrumb();
+        if(groupsBreadcrumb.length<2) {
+            return false;
+        }
         return nfCanvasUtils.getParentGroupId() !== null && selection.empty();
     };
 
