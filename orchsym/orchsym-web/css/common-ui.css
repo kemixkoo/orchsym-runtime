@@ -289,7 +289,23 @@ div.checkbox-checked {
 }
 
 div.ajax-loading {
-    background-image: url(../images/iconLoading.gif);
+    /*background-image: url(../images/iconLoading.gif);*/
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgb(0, 102, 213);
+    border-top-color: rgba(255, 255, 255, 0);
+    animation: ajax-spin 1s infinite linear;
+    margin-top: 3px;
+}
+
+@keyframes ajax-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 div.ajax-complete:before {
