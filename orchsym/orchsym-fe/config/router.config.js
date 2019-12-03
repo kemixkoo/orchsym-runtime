@@ -18,6 +18,11 @@ export default [
         name: '画布',
       },
       {
+        path: '/canvas/:processGroupId',
+        component: './Canvas',
+        name: '画布',
+      },
+      {
         component: '404',
       },
     ],

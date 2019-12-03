@@ -161,7 +161,6 @@ class GlobalHeader extends PureComponent {
     const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange, closePop, changeState } = this.props; // appDetails: { component },
     const { params } = match;
     const { processGroupId } = params;
-    console.log(componentId)
     const onClose = e => {
       console.log(e, 'I was closed.');
     };

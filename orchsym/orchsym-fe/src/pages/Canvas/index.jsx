@@ -26,7 +26,7 @@ export default class Index extends Component {
           componentId: d.id,
         }
       )
-      window.history.pushState({ title: d.status.name }, d.status.name, `https://${window.location.host}/canvas/${d.id}/0`);
+      window.history.pushState({ title: d.status.name }, d.status.name, `https://${window.location.host}/canvas/${d.id}`);
     }
     // console.log('this.canvasIframe', this.canvasIframe.contentWindow, this.canvasIframe.contentWindow.iframeEnterGroup)
     window.gotoComponent = (processGroupIds, componentIds) => {
@@ -35,7 +35,7 @@ export default class Index extends Component {
           componentId: processGroupIds,
         }
       )
-      window.history.pushState({ title: processGroupIds }, processGroupId, `https://${window.location.host}/canvas/${processGroupIds}/${componentIds || 0}`);
+      window.history.pushState({ title: processGroupIds }, processGroupId, `https://${window.location.host}/canvas/${processGroupIds}/${componentIds || ''}`);
     }
   }
 
@@ -51,7 +51,7 @@ export default class Index extends Component {
         closePop: true,
       }
     )
-    window.history.pushState({ title: id }, id, `https://${window.location.host}/canvas/${id}/0`);
+    window.history.pushState({ title: id }, id, `https://${window.location.host}/canvas/${id}`);
   }
 
   render() {
@@ -59,7 +59,7 @@ export default class Index extends Component {
     const { match, menuData } = this.props
     const { params } = match
     const { processGroupId, componentIds } = params
-    const compId = componentIds === '0' ? '' : componentIds;
+    const compId = (componentIds === '0' || !componentIds) ? '' : componentIds;
     const src = `${getCanvasUrl()}?processGroupId=${processGroupId}&componentIds=${compId}`
     return (
       <div className={styles.canvasWrapper}>
