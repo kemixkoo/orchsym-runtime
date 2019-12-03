@@ -129,19 +129,17 @@ public class OrchsymQueueResource extends AbsOrchsymResource {
      * @return
      * @apiNote 判断是否可以清除指定连接的队列数据
      */
-    private Boolean isCanClearQueue(String connectionId) {
-        final Connection connection = flowController.getConnection(connectionId);
+    private boolean isCanClearQueue(String connectionId) {
+        return isCanClearQueue(flowController.getConnection(connectionId));
+    }
+
+    private boolean isCanClearQueue(final Connection connection) {
         if (connection == null) {
             return false;
         }
 
-        if (isStoped(connection.getSource()) && isStoped(connection.getDestination())) { // both don't run
-            final ConnectionStatusEntity entity = serviceFacade.getConnectionStatus(connectionId);
-            if (entity.getConnectionStatus().getAggregateSnapshot().getFlowFilesQueued() > 0) { // have queue
-                return true;
-            }
-        }
-        return false;
+        return isStoped(connection.getSource()) && isStoped(connection.getDestination())//
+                && !connection.getFlowFileQueue().isEmpty();
     }
 
     private boolean isStoped(final Connectable node) {
@@ -163,7 +161,7 @@ public class OrchsymQueueResource extends AbsOrchsymResource {
             return;
         }
         for (Connection connection : group.getConnections()) {
-            if (isCanClearQueue(connection.getIdentifier())) {
+            if (isCanClearQueue(connection)) {
                 connIdsSet.add(connection.getIdentifier());
             }
         }
