@@ -84,7 +84,7 @@ class ControllerServices extends React.Component {
       {
         title: formatMessage({ id: 'service.title.serviceStatus' }),
         dataIndex: 'state',
-        key: 'state',
+        key: 'states',
         filters: [
           {
             text: formatMessage({ id: 'service.text.ENABLED' }),
@@ -121,7 +121,7 @@ class ControllerServices extends React.Component {
       },
       {
         title: formatMessage({ id: 'title.operate' }),
-        width: 150,
+        width: 120,
         render: (text, record) => {
           // const { match } = this.props
           // const { editingKey } = this.state;
@@ -148,16 +148,17 @@ class ControllerServices extends React.Component {
                 )}
               </EditableContext.Consumer>
             </span>
-          ) : (
-            <span className={styles.operateMenu}>
-              {record.state === 'DISABLED' && (<a><Icon type="lock" /></a>)}
-              {record.state === 'ENABLED' && (<a><Icon type="unlock" /></a>)}
-              <a><Icon type="setting" style={{ marginLeft: '8px' }} /></a>
-              <Dropdown overlay={this.menu(record)} trigger={['click']}>
-                <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '8px' }} />
-              </Dropdown>
-            </span>
-          );
+          ) :
+            (
+              <span className={styles.operateMenu}>
+                {record.state === 'DISABLED' && (<a><Icon type="lock" /></a>)}
+                {record.state === 'ENABLED' && (<a><Icon type="unlock" /></a>)}
+                <a><Icon type="setting" style={{ marginLeft: '10px' }} /></a>
+                <Dropdown overlay={this.menu(record)} trigger={['click']}>
+                  <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '10px' }} />
+                </Dropdown>
+              </span>
+            );
         },
       },
     ];
@@ -179,7 +180,7 @@ class ControllerServices extends React.Component {
         text: searchVal,
         sortedField: sortedInfo && sortedInfo.columnKey,
         desc: sortedInfo && sortedInfo.order !== 'ascend',
-        filteredInfo,
+        ...filteredInfo,
         ...params,
       },
       cb: () => {
@@ -191,7 +192,6 @@ class ControllerServices extends React.Component {
   }
 
   handleTableChange = (pagination, filters, sorter) => {
-    console.log(sorter)
     this.setState({
       pageNum: pagination.current,
       pageSizeNum: pagination.pageSize,
@@ -213,12 +213,11 @@ class ControllerServices extends React.Component {
   }
 
   doSearchAjax = value => {
-    this.getList({ text: value })
+    this.getList({ page: 1, text: value })
     this.setState({
       searchVal: value,
     });
   }
-
 
   menu = (item) => (
     <Menu style={{ width: '80px' }}>
