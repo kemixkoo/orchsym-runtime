@@ -5,6 +5,7 @@ import { debounce } from 'lodash'
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
+import FilterDropdown from '@/components/FilterDropdown';
 import { EditableContext } from '@/utils/utils'
 import IconFont from '@/components/IconFont';
 import moment from 'moment';
@@ -13,7 +14,8 @@ import styles from './index.less';
 const { Search } = Input;
 const ButtonGroup = Button.Group;
 
-@connect(({ controllerServices, loading }) => ({
+@connect(({ controllerServices, loading, application }) => ({
+  application,
   controllerServicesList: controllerServices.controllerServicesList,
   loading: loading.effects['controllerServices/fetchControllerServices'],
 }))
@@ -31,6 +33,9 @@ class ControllerServices extends React.Component {
       pageSizeNum: 10,
       filteredInfo: null,
       sortedInfo: null,
+      // 过滤作用域
+      filterList: [],
+      visible: false,
     };
     this.columns = [
       {
@@ -56,8 +61,9 @@ class ControllerServices extends React.Component {
       {
         title: formatMessage({ id: 'service.title.scope' }),
         dataIndex: 'scope',
-        key: 'scope',
-        filters: this.scopeList,
+        key: 'scopes',
+        filterDropdown: this.filterDropdownHandel,
+        onFilterDropdownVisibleChange: this.onFilterVisibleChange,
       },
       {
         title: formatMessage({ id: 'service.title.refComponent' }),
@@ -84,7 +90,7 @@ class ControllerServices extends React.Component {
       {
         title: formatMessage({ id: 'service.title.serviceStatus' }),
         dataIndex: 'state',
-        key: 'state',
+        key: 'states',
         filters: [
           {
             text: formatMessage({ id: 'service.text.ENABLED' }),
@@ -121,7 +127,7 @@ class ControllerServices extends React.Component {
       },
       {
         title: formatMessage({ id: 'title.operate' }),
-        width: 150,
+        width: 120,
         render: (text, record) => {
           // const { match } = this.props
           // const { editingKey } = this.state;
@@ -148,16 +154,17 @@ class ControllerServices extends React.Component {
                 )}
               </EditableContext.Consumer>
             </span>
-          ) : (
-            <span className={styles.operateMenu}>
-              {record.state === 'DISABLED' && (<a><Icon type="lock" /></a>)}
-              {record.state === 'ENABLED' && (<a><Icon type="unlock" /></a>)}
-              <a><Icon type="setting" style={{ marginLeft: '8px' }} /></a>
-              <Dropdown overlay={this.menu(record)} trigger={['click']}>
-                <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '8px' }} />
-              </Dropdown>
-            </span>
-          );
+          ) :
+            (
+              <span className={styles.operateMenu}>
+                {record.state === 'DISABLED' && (<a><Icon type="lock" /></a>)}
+                {record.state === 'ENABLED' && (<a><Icon type="unlock" /></a>)}
+                <a><Icon type="setting" style={{ marginLeft: '10px' }} /></a>
+                <Dropdown overlay={this.menu(record)} trigger={['click']}>
+                  <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '10px' }} />
+                </Dropdown>
+              </span>
+            );
         },
       },
     ];
@@ -179,7 +186,7 @@ class ControllerServices extends React.Component {
         text: searchVal,
         sortedField: sortedInfo && sortedInfo.columnKey,
         desc: sortedInfo && sortedInfo.order !== 'ascend',
-        filteredInfo,
+        ...filteredInfo,
         ...params,
       },
       cb: () => {
@@ -191,7 +198,6 @@ class ControllerServices extends React.Component {
   }
 
   handleTableChange = (pagination, filters, sorter) => {
-    console.log(sorter)
     this.setState({
       pageNum: pagination.current,
       pageSizeNum: pagination.pageSize,
@@ -213,12 +219,11 @@ class ControllerServices extends React.Component {
   }
 
   doSearchAjax = value => {
-    this.getList({ text: value })
+    this.getList({ page: 1, text: value })
     this.setState({
       searchVal: value,
     });
   }
-
 
   menu = (item) => (
     <Menu style={{ width: '80px' }}>
@@ -238,6 +243,60 @@ class ControllerServices extends React.Component {
       </Menu.Item>
     </Menu>
   );
+
+  // 过滤作用域
+  filterDropdownHandel = ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {
+    const { filterList, visible } = this.state
+    const setSelKeys = (val) => {
+      setSelectedKeys(val)
+    }
+    return (
+      <div style={{ width: '160px' }}>
+        {visible && (
+          <div>
+            <FilterDropdown selectedKeys={selectedKeys} setSelKeys={setSelKeys} filterList={filterList} searchValue={this.searchValue} />
+            <div className={styles.filterButton}>
+              <Button type="link" onClick={() => confirm()}>{formatMessage({ id: 'button.submit' })}</Button>
+              <Button type="link" onClick={() => clearFilters()}>{formatMessage({ id: 'button.reset' })}</Button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  onFilterVisibleChange = visible => {
+    this.setState({ visible })
+    if (visible) {
+      this.getScopes()
+    }
+  }
+
+  searchValue = (val) => {
+    this.getScopes(val)
+  }
+
+  getScopes = (val) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchApplication',
+      payload: {
+        q: val,
+        page: 1,
+        pageSize: -1,
+      },
+      cb: (res) => {
+        const list = []
+        res.results.map(v => list.push({ value: v.id, name: v.name }))
+        this.setState({
+          filterList: [
+            { value: 'root', name: 'ROOT' },
+            ...list,
+          ],
+        })
+      },
+    });
+  }
 
   isEditing = record => {
     const { editingKey } = this.state;

@@ -50,10 +50,10 @@ class AppPopover extends PureComponent {
       this.setState({
         topList: [],
       });
-      this.fetchApplication(value, 'name', 'false', 2000)
+      this.fetchApplication(value, 'name', 'false', -1)
     } else {
       this.fetchApplication('', 'modifiedTime', 'true', 3)
-      this.fetchApplication('', 'name', 'false', 2000)
+      this.fetchApplication('', 'name', 'false', -1)
     }
   }
 
