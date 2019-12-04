@@ -46,7 +46,7 @@ export default {
     // 起停
     *fetchStateUpdateServices({ payload, cb }, { call, put }) {
       if (payload.type === 'multiple') {
-        if (payload.value === 'enable') {
+        if (payload.state === 'enable') {
           yield call(queryMEnableServices, payload.serviceIds);
         } else {
           yield call(queryMDisableServices, payload.serviceIds);

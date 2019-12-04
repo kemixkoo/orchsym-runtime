@@ -156,8 +156,8 @@ class ControllerServices extends React.Component {
           ) :
             (
               <span className={styles.operateMenu}>
-                {record.state === 'DISABLED' && (<Icon type="lock" onClick={() => { this.stateHandel(record) }} />)}
-                {record.state === 'ENABLED' && (<Icon type="unlock" onClick={() => { this.stateHandel(record) }} />)}
+                {record.state === 'DISABLED' && (<Icon type="lock" onClick={() => { this.stateHandel('ENABLED', record.id) }} />)}
+                {record.state === 'ENABLED' && (<Icon type="unlock" onClick={() => { this.stateHandel('DISABLED', record.id) }} />)}
                 <Icon type="setting" style={{ marginLeft: '10px' }} />
                 <Dropdown overlay={this.menu(record)} trigger={['click']}>
                   <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '10px' }} />
@@ -351,10 +351,26 @@ class ControllerServices extends React.Component {
   };
 
   // 起停
-  stateHandel = (val, mul) => {
+  stateHandel = (state, val) => {
     const { selectedRowKeys } = this.state;
     const { dispatch } = this.props;
-    if (!mul) {
+    if (val === 'multiple') {
+      dispatch({
+        type: 'controllerServices/fetchStateUpdateServices',
+        payload: {
+          state,
+          serviceIds: selectedRowKeys,
+          type: val,
+        },
+        cb: () => {
+          message.success(formatMessage({ id: 'result.success' }));
+          this.getList()
+          this.setState({
+            selectedRowKeys: [],
+          })
+        },
+      })
+    } else {
       dispatch({
         type: 'controllerServices/fetchDetailServices',
         payload: val.id,
@@ -363,7 +379,7 @@ class ControllerServices extends React.Component {
           const body = {
             component: {
               id: val.id,
-              state: val.state,
+              state,
             },
             revision,
           }
@@ -379,22 +395,6 @@ class ControllerServices extends React.Component {
           });
         },
       });
-    } else {
-      dispatch({
-        type: 'controllerServices/fetchStateUpdateServices',
-        payload: {
-          value: val,
-          serviceIds: selectedRowKeys,
-          type: mul,
-        },
-        cb: () => {
-          message.success(formatMessage({ id: 'result.success' }));
-          this.getList()
-          this.setState({
-            selectedRowKeys: [],
-          })
-        },
-      })
     }
   }
 
