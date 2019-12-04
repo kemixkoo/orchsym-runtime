@@ -776,7 +776,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}/move")
-    @ApiOperation(value = "Move a controller service", response = ControllerServiceEntity.class, authorizations = { @Authorization(value = "Write - /controller-services/{uuid}"),
+    @ApiOperation(value = "Move a controller service", response = ControllerServiceEntity.class, authorizations = {
+            @Authorization(value = "Write - /controller-services/{uuid}"),
             @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}") })
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
@@ -824,8 +825,12 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
         }, () -> serviceFacade.verifyMoveControllerService(controllerServiceDTO, requestControllerServiceMoveEntity.getGroupId()), (revision, csEntity) -> {
             final ControllerServiceDTO controllerService = csEntity.getComponent();
-            controllerService.setName(requestControllerServiceMoveEntity.getName());
-            controllerService.setComments(requestControllerServiceMoveEntity.getComments());
+            if (requestControllerServiceMoveEntity.getName() != null) {
+                controllerService.setName(requestControllerServiceMoveEntity.getName());
+            }
+            if (requestControllerServiceMoveEntity.getComments() != null) {
+                controllerService.setComments(requestControllerServiceMoveEntity.getComments());
+            }
 
             // move the controller service
             final ControllerServiceEntity entity = serviceFacade.moveControllerService(revision, controllerService, requestControllerServiceMoveEntity.getGroupId());
@@ -1044,9 +1049,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             final String parentGroupId = controllerServiceSearchDTO.getParentGroupId();
             String scope;
             ApplicationInfoDTO appInfo = new ApplicationInfoDTO();
-            if (Objects.isNull(parentGroupId)) {
-                scope = "CONTROLLER";
-            } else {
+            // We don't need return Controller Services on controller level anymore.
+            if (!Objects.isNull(parentGroupId)) {
                 ProcessGroup group = flowController.getGroup(parentGroupId);
                 if (!Objects.isNull(group) && group.getIdentifier().equals(flowController.getRootGroupId())) {
                     scope = "ROOT";
@@ -1054,10 +1058,12 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
                     appInfo = ProcessUtil.calcApplicationInfo(group, flowController.getRootGroupId());
                     scope = appInfo.getApplicationName();
                 }
+                controllerServiceSearchDTO.setScope(scope);
+                controllerServiceSearchDTO.setInfo(appInfo);
             }
-            controllerServiceSearchDTO.setScope(scope);
-            controllerServiceSearchDTO.setInfo(appInfo);
         });
+
+
         return noCache(Response.ok(dataPage)).build();
     }
 

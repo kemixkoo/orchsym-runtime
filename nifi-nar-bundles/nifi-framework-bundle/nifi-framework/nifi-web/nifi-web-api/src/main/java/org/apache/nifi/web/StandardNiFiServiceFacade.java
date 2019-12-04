@@ -3924,6 +3924,8 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
 
         return serviceNodes.stream()
                 .filter(controllerServiceNode -> isDeleted == ProcessUtil.getAdditionBooleanValue(controllerServiceNode.getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT))
+                // We don't need return Controller Services on controller level anymore.
+                .filter(controllerServiceNode -> controllerServiceNode.getProcessGroup() != null)
                 .map(serviceNode -> createControllerServiceSearchDTO(serviceNode, serviceIds))
                 .collect(Collectors.toList());
     }
