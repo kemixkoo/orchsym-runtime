@@ -3,6 +3,8 @@ import {
   queryControllerServices,
   queryDetailServices, queryUpdateServices,
   queryMEnableServices, queryMDisableServices, queryStateServices,
+  queryDeleteServices, queryMDeleteServices,
+  queryCopeServices, queryMoveServices, queryMCopeServices, queryMMoveeServices,
 } from '@/services/controllerServices';
 
 export default {
@@ -53,6 +55,30 @@ export default {
         }
       } else {
         yield call(queryStateServices, payload.value);
+      }
+      yield cb && cb();
+    },
+    // 删除
+    *fetchDeleteServices({ payload, cb }, { call, put }) {
+      if (payload.type === 'multiple') {
+        yield call(queryMDeleteServices, payload.id);
+      } else {
+        yield call(queryDeleteServices, payload.serviceIds);
+      }
+      yield cb && cb();
+    },
+    // 复制移动
+    *fetchCopeServices({ payload, cb }, { call, put }) {
+      if (payload.id) {
+        if (payload.state === 'COPE') {
+          yield call(queryCopeServices, payload);
+        } else {
+          yield call(queryMoveServices, payload);
+        }
+      } else if (payload.state === 'COPE') {
+        yield call(queryMCopeServices, payload.values);
+      } else {
+        yield call(queryMMoveeServices, payload.values);
       }
       yield cb && cb();
     },

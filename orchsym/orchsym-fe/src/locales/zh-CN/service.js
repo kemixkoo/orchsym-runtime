@@ -15,4 +15,8 @@ export default {
   'service.text.DISABLED': '已禁用',
   'service.text.INVALID': '无效',
   'service.text.ENABLING': '启动中',
+  'service.title.copeTo': '复制服务',
+  'service.title.moveTo': '移动服务',
+  'service.form.name': '服务名称',
+  'service.form.scope': '选择作用域',
 }

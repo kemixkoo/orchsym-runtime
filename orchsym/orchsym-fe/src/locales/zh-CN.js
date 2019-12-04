@@ -5,7 +5,7 @@ import globalHeader from './zh-CN/globalHeader';
 import login from './zh-CN/login';
 // 左侧导航组件
 import menu from './zh-CN/menu';
-import result from './zh-CN/result';
+import message from './zh-CN/message';
 import settingDrawer from './zh-CN/settingDrawer';
 import settings from './zh-CN/settings';
 import validation from './zh-CN/validation';
@@ -29,7 +29,7 @@ export default {
   ...globalHeader,
   ...login,
   ...menu,
-  ...result,
+  ...message,
   ...settingDrawer,
   ...settings,
   ...form,

@@ -7,4 +7,5 @@ export default {
   'validation.tag.placeholder2': '每个标签不能超过5个字符',
   'validation.file.required': '请上传文件!',
   'validation.file.format': '目前仅支持.xml格式文件!',
+  'validation.groupId.required': '请选择作用域!',
 };
