@@ -27,6 +27,7 @@ import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.components.AllowableValue;
 import org.apache.nifi.components.PropertyDescriptor;
+import org.apache.nifi.components.Validator;
 import org.apache.nifi.dbcp.DBCPService;
 import org.apache.nifi.expression.AttributeExpression;
 import org.apache.nifi.expression.ExpressionLanguageScope;
@@ -297,6 +298,7 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
                     + " if empty, will use 'database.connection.identifier' by default, also even eval value is empty ")
             .required(false)
             .defaultValue(DATABASE_CONNECTION_IDENTIFIER)
+            .addValidator(Validator.VALID)
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .build();
 
