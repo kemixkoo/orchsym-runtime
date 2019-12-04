@@ -18,3 +18,40 @@ export async function queryControllerServices(params) {
 // export async function queryControllerServices() {
 //   return request('/studio/nifi-api/flow/controller/controller-services');
 // }
+
+// 详情
+export async function queryDetailServices(serviceId) {
+  return request(`/studio/nifi-api/controller-services/${serviceId}`)
+}
+
+// 重命名
+export async function queryUpdateServices(body) {
+  const { component: { id } } = body;
+  return request(`/studio/nifi-api/controller-services/${id}`, {
+    method: 'PUT',
+    data: body,
+  })
+}
+
+// 启用 禁止
+export async function queryStateServices(body) {
+  const { component: { id } } = body;
+  return request(`/studio//nifi-api/controller-services/${id}`, {
+    method: 'PUT',
+    data: body,
+  })
+}
+
+export async function queryMEnableServices(serviceIds) {
+  return request('/studio/orchsym-pro-api/batch/services/enable', {
+    method: 'PUT',
+    data: serviceIds,
+  })
+}
+
+export async function queryMDisableServices(serviceIds) {
+  return request('/studio/orchsym-pro-api/batch/services/disable', {
+    method: 'PUT',
+    data: serviceIds,
+  })
+}

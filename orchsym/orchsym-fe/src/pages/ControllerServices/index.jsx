@@ -5,6 +5,7 @@ import { debounce } from 'lodash'
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
+import FilterDropdown from '@/components/FilterDropdown';
 import { EditableContext } from '@/utils/utils'
 import IconFont from '@/components/IconFont';
 import moment from 'moment';
@@ -13,7 +14,8 @@ import styles from './index.less';
 const { Search } = Input;
 const ButtonGroup = Button.Group;
 
-@connect(({ controllerServices, loading }) => ({
+@connect(({ controllerServices, loading, application }) => ({
+  application,
   controllerServicesList: controllerServices.controllerServicesList,
   loading: loading.effects['controllerServices/fetchControllerServices'],
 }))
@@ -31,6 +33,9 @@ class ControllerServices extends React.Component {
       pageSizeNum: 10,
       filteredInfo: null,
       sortedInfo: null,
+      // 过滤作用域
+      filterList: [],
+      visible: false,
     };
     this.columns = [
       {
@@ -44,7 +49,6 @@ class ControllerServices extends React.Component {
           { required: true, message: formatMessage({ id: 'validation.name.required' }) },
           { max: 20, message: formatMessage({ id: 'validation.name.placeholder' }) },
           { whitespace: true, message: formatMessage({ id: 'validation.name.required' }) },
-          { validator: this.checkReName },
         ],
       },
       {
@@ -56,8 +60,9 @@ class ControllerServices extends React.Component {
       {
         title: formatMessage({ id: 'service.title.scope' }),
         dataIndex: 'scope',
-        key: 'scope',
-        filters: this.scopeList,
+        key: 'scopes',
+        filterDropdown: this.filterDropdownHandel,
+        onFilterDropdownVisibleChange: this.onFilterVisibleChange,
       },
       {
         title: formatMessage({ id: 'service.title.refComponent' }),
@@ -84,7 +89,7 @@ class ControllerServices extends React.Component {
       {
         title: formatMessage({ id: 'service.title.serviceStatus' }),
         dataIndex: 'state',
-        key: 'state',
+        key: 'states',
         filters: [
           {
             text: formatMessage({ id: 'service.text.ENABLED' }),
@@ -121,7 +126,7 @@ class ControllerServices extends React.Component {
       },
       {
         title: formatMessage({ id: 'title.operate' }),
-        width: 150,
+        width: 120,
         render: (text, record) => {
           // const { match } = this.props
           // const { editingKey } = this.state;
@@ -148,16 +153,17 @@ class ControllerServices extends React.Component {
                 )}
               </EditableContext.Consumer>
             </span>
-          ) : (
-            <span className={styles.operateMenu}>
-              {record.state === 'DISABLED' && (<a><Icon type="lock" /></a>)}
-              {record.state === 'ENABLED' && (<a><Icon type="unlock" /></a>)}
-              <a><Icon type="setting" style={{ marginLeft: '8px' }} /></a>
-              <Dropdown overlay={this.menu(record)} trigger={['click']}>
-                <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '8px' }} />
-              </Dropdown>
-            </span>
-          );
+          ) :
+            (
+              <span className={styles.operateMenu}>
+                {record.state === 'DISABLED' && (<Icon type="lock" onClick={() => { this.stateHandel('ENABLED', record.id) }} />)}
+                {record.state === 'ENABLED' && (<Icon type="unlock" onClick={() => { this.stateHandel('DISABLED', record.id) }} />)}
+                <Icon type="setting" style={{ marginLeft: '10px' }} />
+                <Dropdown overlay={this.menu(record)} trigger={['click']}>
+                  <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '10px' }} />
+                </Dropdown>
+              </span>
+            );
         },
       },
     ];
@@ -178,8 +184,8 @@ class ControllerServices extends React.Component {
         pageSize: pageSizeNum,
         text: searchVal,
         sortedField: sortedInfo && sortedInfo.columnKey,
-        desc: sortedInfo && sortedInfo.order !== 'ascend',
-        filteredInfo,
+        desc: (sortedInfo && sortedInfo.order !== 'ascend') || true,
+        ...filteredInfo,
         ...params,
       },
       cb: () => {
@@ -191,7 +197,6 @@ class ControllerServices extends React.Component {
   }
 
   handleTableChange = (pagination, filters, sorter) => {
-    console.log(sorter)
     this.setState({
       pageNum: pagination.current,
       pageSizeNum: pagination.pageSize,
@@ -213,17 +218,17 @@ class ControllerServices extends React.Component {
   }
 
   doSearchAjax = value => {
-    this.getList({ text: value })
+    this.getList({ page: 1, text: value })
     this.setState({
+      pageNum: 1,
       searchVal: value,
     });
   }
 
-
   menu = (item) => (
     <Menu style={{ width: '80px' }}>
       {item && (
-        <Menu.Item key="rename" onClick={() => { this.deleteTempHandel() }}>
+        <Menu.Item key="rename" disabled={item.state !== 'DISABLED'} onClick={() => this.edit(item.id)}>
           {`${formatMessage({ id: 'service.button.rename' })}`}
         </Menu.Item>
       )}
@@ -239,6 +244,65 @@ class ControllerServices extends React.Component {
     </Menu>
   );
 
+  // 过滤作用域
+  filterDropdownHandel = ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => {
+    const { filterList, visible } = this.state
+    const setSelKeys = (val) => {
+      setSelectedKeys(val)
+    }
+    return (
+      <div style={{ width: '160px' }}>
+        {visible && (
+          <div>
+            <FilterDropdown selectedKeys={selectedKeys} setSelKeys={setSelKeys} filterList={filterList} searchValue={this.searchValue} />
+            <div className={styles.filterButton}>
+              <Button type="link" onClick={() => confirm()}>{formatMessage({ id: 'button.submit' })}</Button>
+              <Button type="link" onClick={() => clearFilters()}>{formatMessage({ id: 'button.reset' })}</Button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  onFilterVisibleChange = visible => {
+    this.setState({ visible })
+    if (visible) {
+      this.getScopes()
+    }
+  }
+
+  searchValue = (val) => {
+    this.getScopes(val)
+  }
+
+  getScopes = (val) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'application/fetchApplication',
+      payload: {
+        q: val,
+        page: 1,
+        pageSize: -1,
+      },
+      cb: (res) => {
+        const list = []
+        res.results.map(v => list.push({ value: v.id, name: v.name }))
+        this.setState({
+          filterList: [
+            { value: 'root', name: 'ROOT' },
+            ...list,
+          ],
+        })
+      },
+    });
+  }
+  // 重命名
+
+  edit = (key) => {
+    this.setState({ editingKey: key });
+  }
+
   isEditing = record => {
     const { editingKey } = this.state;
     return record.id === editingKey;
@@ -249,51 +313,88 @@ class ControllerServices extends React.Component {
   };
 
   save = (form, record) => {
-    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    const { dispatch } = this.props;
     form.validateFields((error, row) => {
       if (error) {
         return;
       }
       dispatch({
-        type: 'template/fetchEditTemplate',
-        payload: {
-          id: record.id,
-          ...row,
-        },
-        cb: () => {
-          this.cancel()
-          message.success(formatMessage({ id: 'result.success' }));
-          this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        type: 'controllerServices/fetchDetailServices',
+        payload: record.id,
+        cb: (res) => {
+          const { revision } = res
+          const body = {
+            component: {
+              id: record.id,
+              ...row,
+            },
+            revision,
+          }
+          dispatch({
+            type: 'controllerServices/fetchUpdateServices',
+            payload: body,
+            cb: () => {
+              this.cancel()
+              message.success(formatMessage({ id: 'result.success' }));
+              this.getList()
+            },
+          });
         },
       });
     });
   }
 
-  edit = (key) => {
-    this.setState({ editingKey: key });
-  }
+  onSelectChange = selectedRowKeys => {
+    this.setState({
+      selectedRowKeys,
+    })
+  };
 
-  checkReName = (rule, value, callback) => {
-    const { editingKey } = this.state;
+  // 起停
+  stateHandel = (state, val) => {
+    const { selectedRowKeys } = this.state;
     const { dispatch } = this.props;
-    if (value) {
-      const queryData = {
-        name: value,
-        templateId: editingKey,
-      }
+    if (val === 'multiple') {
       dispatch({
-        type: 'application/fetchCheckTempName',
-        payload: queryData,
+        type: 'controllerServices/fetchStateUpdateServices',
+        payload: {
+          state,
+          serviceIds: selectedRowKeys,
+          type: val,
+        },
+        cb: () => {
+          message.success(formatMessage({ id: 'result.success' }));
+          this.getList()
+          this.setState({
+            selectedRowKeys: [],
+          })
+        },
+      })
+    } else {
+      dispatch({
+        type: 'controllerServices/fetchDetailServices',
+        payload: val.id,
         cb: (res) => {
-          if (res.isValid) {
-            callback();
-          } else {
-            callback([new Error(formatMessage({ id: 'validation.name.duplicate' }))]);
+          const { revision } = res
+          const body = {
+            component: {
+              id: val.id,
+              state,
+            },
+            revision,
           }
+          dispatch({
+            type: 'controllerServices/fetchStateUpdateServices',
+            payload: {
+              value: body,
+            },
+            cb: () => {
+              message.success(formatMessage({ id: 'result.success' }));
+              this.getList()
+            },
+          });
         },
       });
-    } else {
-      callback();
     }
   }
 
@@ -334,7 +435,7 @@ class ControllerServices extends React.Component {
         return `Total ${total} items`;
       }
     }
-    // const hasSelected = selectedRowKeys.length > 0;
+    const hasSelected = selectedRowKeys.length > 0;
     return (
       <PageHeaderWrapper>
         <div className={styles.contentWrapper}>
@@ -345,9 +446,9 @@ class ControllerServices extends React.Component {
                   <FormattedMessage id="button.create" />
                 </Button>
                 <ButtonGroup>
-                  <Button>{formatMessage({ id: 'button.enable' })}</Button>
-                  <Button>{formatMessage({ id: 'button.disable' })}</Button>
-                  <Dropdown overlay={this.menu} trigger={['click']}>
+                  <Button disabled={!hasSelected} onClick={() => { this.stateHandel('enable', 'multiple') }}>{formatMessage({ id: 'button.enable' })}</Button>
+                  <Button disabled={!hasSelected} onClick={() => { this.stateHandel('disable', 'multiple') }}>{formatMessage({ id: 'button.disable' })}</Button>
+                  <Dropdown disabled={!hasSelected} overlay={this.menu} trigger={['click']}>
                     <Button>
                       <Icon type="ellipsis" key="ellipsis" />
                     </Button>

@@ -292,7 +292,7 @@ class AppList extends PureComponent {
     const { errorData } = this.state;
     const { canDownLoad } = this.props;
     const menu = item.component.additions && item.component.additions.IS_ENABLED === 'true' ? (
-      <Menu style={{ width: '120px' }}>
+      <Menu style={{ minWidth: '120px' }}>
         <Menu.Item key="1" onClick={() => { this.goToApp(item) }}>
           <IconFont type="OS-iconi-jr" />
           {`${formatMessage({ id: 'page.application.content.intoApp' })}`}
@@ -338,7 +338,7 @@ class AppList extends PureComponent {
         </Menu.Item>
       </Menu>
     ) : (
-      <Menu>
+      <Menu style={{ minWidth: '120px' }}>
         <Menu.Item key="5" disabled={!item.canEnable} onClick={() => { this.updateStates(item, 'ENABLED') }}>
           <IconFont type="OS-iconqiyong" />
           {`${formatMessage({ id: 'button.enable' })}`}
