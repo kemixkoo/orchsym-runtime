@@ -49,7 +49,6 @@ class ControllerServices extends React.Component {
           { required: true, message: formatMessage({ id: 'validation.name.required' }) },
           { max: 20, message: formatMessage({ id: 'validation.name.placeholder' }) },
           { whitespace: true, message: formatMessage({ id: 'validation.name.required' }) },
-          { validator: this.checkReName },
         ],
       },
       {
@@ -157,9 +156,9 @@ class ControllerServices extends React.Component {
           ) :
             (
               <span className={styles.operateMenu}>
-                {record.state === 'DISABLED' && (<a><Icon type="lock" /></a>)}
-                {record.state === 'ENABLED' && (<a><Icon type="unlock" /></a>)}
-                <a><Icon type="setting" style={{ marginLeft: '10px' }} /></a>
+                {record.state === 'DISABLED' && (<Icon type="lock" onClick={() => { this.stateHandel(record) }} />)}
+                {record.state === 'ENABLED' && (<Icon type="unlock" onClick={() => { this.stateHandel(record) }} />)}
+                <Icon type="setting" style={{ marginLeft: '10px' }} />
                 <Dropdown overlay={this.menu(record)} trigger={['click']}>
                   <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '10px' }} />
                 </Dropdown>
@@ -185,7 +184,7 @@ class ControllerServices extends React.Component {
         pageSize: pageSizeNum,
         text: searchVal,
         sortedField: sortedInfo && sortedInfo.columnKey,
-        desc: sortedInfo && sortedInfo.order !== 'ascend',
+        desc: (sortedInfo && sortedInfo.order !== 'ascend') || true,
         ...filteredInfo,
         ...params,
       },
@@ -221,6 +220,7 @@ class ControllerServices extends React.Component {
   doSearchAjax = value => {
     this.getList({ page: 1, text: value })
     this.setState({
+      pageNum: 1,
       searchVal: value,
     });
   }
@@ -228,7 +228,7 @@ class ControllerServices extends React.Component {
   menu = (item) => (
     <Menu style={{ width: '80px' }}>
       {item && (
-        <Menu.Item key="rename" onClick={() => { this.deleteTempHandel() }}>
+        <Menu.Item key="rename" disabled={item.state !== 'DISABLED'} onClick={() => this.edit(item.id)}>
           {`${formatMessage({ id: 'service.button.rename' })}`}
         </Menu.Item>
       )}
@@ -297,6 +297,11 @@ class ControllerServices extends React.Component {
       },
     });
   }
+  // 重命名
+
+  edit = (key) => {
+    this.setState({ editingKey: key });
+  }
 
   isEditing = record => {
     const { editingKey } = this.state;
@@ -308,51 +313,88 @@ class ControllerServices extends React.Component {
   };
 
   save = (form, record) => {
-    const { dispatch, pageNum, pageSizeNum, searchVal, sortedField, isDesc } = this.props;
+    const { dispatch } = this.props;
     form.validateFields((error, row) => {
       if (error) {
         return;
       }
       dispatch({
-        type: 'template/fetchEditTemplate',
-        payload: {
-          id: record.id,
-          ...row,
-        },
-        cb: () => {
-          this.cancel()
-          message.success(formatMessage({ id: 'result.success' }));
-          this.getList(pageNum, pageSizeNum, sortedField, isDesc, searchVal)
+        type: 'controllerServices/fetchDetailServices',
+        payload: record.id,
+        cb: (res) => {
+          const { revision } = res
+          const body = {
+            component: {
+              id: record.id,
+              ...row,
+            },
+            revision,
+          }
+          dispatch({
+            type: 'controllerServices/fetchUpdateServices',
+            payload: body,
+            cb: () => {
+              this.cancel()
+              message.success(formatMessage({ id: 'result.success' }));
+              this.getList()
+            },
+          });
         },
       });
     });
   }
 
-  edit = (key) => {
-    this.setState({ editingKey: key });
-  }
+  onSelectChange = selectedRowKeys => {
+    this.setState({
+      selectedRowKeys,
+    })
+  };
 
-  checkReName = (rule, value, callback) => {
-    const { editingKey } = this.state;
+  // 起停
+  stateHandel = (val, mul) => {
+    const { selectedRowKeys } = this.state;
     const { dispatch } = this.props;
-    if (value) {
-      const queryData = {
-        name: value,
-        templateId: editingKey,
-      }
+    if (!mul) {
       dispatch({
-        type: 'application/fetchCheckTempName',
-        payload: queryData,
+        type: 'controllerServices/fetchDetailServices',
+        payload: val.id,
         cb: (res) => {
-          if (res.isValid) {
-            callback();
-          } else {
-            callback([new Error(formatMessage({ id: 'validation.name.duplicate' }))]);
+          const { revision } = res
+          const body = {
+            component: {
+              id: val.id,
+              state: val.state,
+            },
+            revision,
           }
+          dispatch({
+            type: 'controllerServices/fetchStateUpdateServices',
+            payload: {
+              value: body,
+            },
+            cb: () => {
+              message.success(formatMessage({ id: 'result.success' }));
+              this.getList()
+            },
+          });
         },
       });
     } else {
-      callback();
+      dispatch({
+        type: 'controllerServices/fetchStateUpdateServices',
+        payload: {
+          value: val,
+          serviceIds: selectedRowKeys,
+          type: mul,
+        },
+        cb: () => {
+          message.success(formatMessage({ id: 'result.success' }));
+          this.getList()
+          this.setState({
+            selectedRowKeys: [],
+          })
+        },
+      })
     }
   }
 
@@ -393,7 +435,7 @@ class ControllerServices extends React.Component {
         return `Total ${total} items`;
       }
     }
-    // const hasSelected = selectedRowKeys.length > 0;
+    const hasSelected = selectedRowKeys.length > 0;
     return (
       <PageHeaderWrapper>
         <div className={styles.contentWrapper}>
@@ -404,9 +446,9 @@ class ControllerServices extends React.Component {
                   <FormattedMessage id="button.create" />
                 </Button>
                 <ButtonGroup>
-                  <Button>{formatMessage({ id: 'button.enable' })}</Button>
-                  <Button>{formatMessage({ id: 'button.disable' })}</Button>
-                  <Dropdown overlay={this.menu} trigger={['click']}>
+                  <Button disabled={!hasSelected} onClick={() => { this.stateHandel('enable', 'multiple') }}>{formatMessage({ id: 'button.enable' })}</Button>
+                  <Button disabled={!hasSelected} onClick={() => { this.stateHandel('disable', 'multiple') }}>{formatMessage({ id: 'button.disable' })}</Button>
+                  <Dropdown disabled={!hasSelected} overlay={this.menu} trigger={['click']}>
                     <Button>
                       <Icon type="ellipsis" key="ellipsis" />
                     </Button>
