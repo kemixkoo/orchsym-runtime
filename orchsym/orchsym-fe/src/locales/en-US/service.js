@@ -15,4 +15,8 @@ export default {
   'service.text.DISABLED': 'Disable',
   'service.text.INVALID': 'Invalid',
   'service.text.ENABLING': 'Enabling',
+  'service.title.copeTo': 'Cope service',
+  'service.title.moveTo': 'Move service',
+  'service.form.name': 'Service name',
+  'service.form.scope': 'Select scope',
 }

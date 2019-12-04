@@ -1,14 +1,15 @@
 import React from 'react';
-import { Row, Col, Button, Form, Table, message, Input, Dropdown, Icon, Menu, Badge } from 'antd';
+import { Row, Col, Button, Form, Table, message, Input, Dropdown, Icon, Menu, Badge, Modal } from 'antd';
 import { connect } from 'dva';
 import { debounce } from 'lodash'
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/locale';
 import EditableCell from '@/components/EditableCell';
 import FilterDropdown from '@/components/FilterDropdown';
+import moment from 'moment';
+import MoveOrCope from './MoveOrCope';
 import { EditableContext } from '@/utils/utils'
 import IconFont from '@/components/IconFont';
-import moment from 'moment';
 import styles from './index.less';
 
 const { Search } = Input;
@@ -36,6 +37,10 @@ class ControllerServices extends React.Component {
       // 过滤作用域
       filterList: [],
       visible: false,
+      // 移动复制
+      copeVisible: false,
+      modelState: '',
+      nowServiceId: '',
     };
     this.columns = [
       {
@@ -232,13 +237,13 @@ class ControllerServices extends React.Component {
           {`${formatMessage({ id: 'service.button.rename' })}`}
         </Menu.Item>
       )}
-      <Menu.Item key="copeTo" onClick={() => { this.deleteTempHandel() }}>
+      <Menu.Item key="copeTo" onClick={() => { this.showCopeModal('COPE', item.id) }}>
         {`${formatMessage({ id: 'service.button.copeTo' })}`}
       </Menu.Item>
-      <Menu.Item key="moveTo" onClick={() => { this.deleteTempHandel() }}>
+      <Menu.Item key="moveTo" onClick={() => { this.showCopeModal('MOVE', item.id) }}>
         {`${formatMessage({ id: 'service.button.moveTo' })}`}
       </Menu.Item>
-      <Menu.Item key="delete" onClick={() => { this.deleteTempHandel() }}>
+      <Menu.Item key="delete" disabled={item && item.state !== 'DISABLED'} onClick={() => { this.deleteHandel(item.id) }}>
         {`${formatMessage({ id: 'button.delete' })}`}
       </Menu.Item>
     </Menu>
@@ -398,8 +403,65 @@ class ControllerServices extends React.Component {
     }
   }
 
+  deleteHandel = (id) => {
+    const { selectedRowKeys } = this.state;
+    const { dispatch } = this.props;
+    const { confirm } = Modal;
+    confirm({
+      title: formatMessage({ id: 'service.delete.title' }),
+      content: formatMessage({ id: 'service.delete.description' }),
+      okText: 'Yes',
+      okType: 'warning',
+      cancelText: 'No',
+      onOk() {
+        let body = {}
+        if (id) {
+          body = { id }
+        } else {
+          body = {
+            serviceIds: selectedRowKeys,
+            type: 'multiple',
+          }
+        }
+        dispatch({
+          type: 'controllerServices/fetchDeleteServices',
+          payload: body,
+          cb: () => {
+            message.success(formatMessage({ id: 'result.success' }));
+            this.getList()
+          },
+        })
+      },
+      onCancel() {
+        console.log('Cancel');
+      },
+    });
+  }
+
+  // 复制 移动
+  showCopeModal = (state, id) => {
+    this.setState({
+      copeVisible: true,
+      modelState: state,
+      nowServiceId: id,
+    });
+  }
+
+  handleCopeCancel = () => {
+    this.setState({
+      copeVisible: false,
+    })
+  }
+
+  refreshList = () => {
+    this.getList({ page: 1 })
+    this.setState({
+      pageNum: 1,
+    });
+  }
+
   render() {
-    const { selectedRowKeys, pageNum, pageSizeNum, refreshTime } = this.state;
+    const { selectedRowKeys, pageNum, pageSizeNum, refreshTime, copeVisible, modelState, nowServiceId } = this.state;
     const { form, controllerServicesList: { results, totalSize }, loading } = this.props;
     const rowSelection = {
       selectedRowKeys,
@@ -494,6 +556,18 @@ class ControllerServices extends React.Component {
             />
           </EditableContext.Provider>
         </div>
+        {
+          copeVisible && (
+            <MoveOrCope
+              refreshList={this.refreshList}
+              handleCopeCancel={this.handleCopeCancel}
+              visible={copeVisible}
+              modelState={modelState}
+              selectedRowKeys={selectedRowKeys}
+              nowServiceId={nowServiceId}
+            />
+          )
+        }
       </PageHeaderWrapper>
     );
   }

@@ -1,4 +1,16 @@
 export default {
+  // 'application.delete.title': 'This app has been stopped. Are you sure to put it into the recycle bin?',
+  // 'application.delete.title2': 'The application is still running. Are you sure to force it to be put into the recycle bin?',
+  // 'application.delete.description': 'The file stream in the application cannot be recovered after it is put into the recycle bin',
+  'application.delete.title': 'Delete Application',
+  'application.delete.description': 'Cannot restore the application after delete,  are you sure?',
+  'application.delete.description2': 'The application is still running. Are you sure to delete it forcibly?',
+  'template.delete.title': 'Delete template',
+  // 'template.delete.description': 'The deleted template will be put into the recycle bin. Are you sure to delete it ？',
+  'template.delete.description': 'Cannot restore the template after delete,  are you sure?',
+  'service.delete.title': 'Delete service',
+  // 'template.delete.description': '删除的模板将放入回收站，确认删除吗',
+  'service.delete.description': 'Cannot restore the service after delete,  are you sure？',
   // 'app.result.error.description':
   //   'Please check and modify the following information before resubmitting.',
   // 'app.result.error.hint-title': 'The content you submitted has the following error:',

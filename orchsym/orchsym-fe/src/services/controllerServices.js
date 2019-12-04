@@ -36,7 +36,7 @@ export async function queryUpdateServices(body) {
 // 启用 禁止
 export async function queryStateServices(body) {
   const { component: { id } } = body;
-  return request(`/studio//nifi-api/controller-services/${id}`, {
+  return request(`/studio/nifi-api/controller-services/${id}`, {
     method: 'PUT',
     data: body,
   })
@@ -53,5 +53,47 @@ export async function queryMDisableServices(serviceIds) {
   return request('/studio/orchsym-pro-api/batch/services/disable', {
     method: 'PUT',
     data: serviceIds,
+  })
+}
+
+// 删除
+export async function queryDeleteServices(serviceId) {
+  return request(`/studio/nifi-api/service/${serviceId}/logic_delete`, {
+    method: 'DELETE',
+  })
+}
+
+export async function queryMDeleteServices(serviceIds) {
+  return request('/studio/orchsym-pro-api/batch/services/logic-delete', {
+    method: 'DELETE',
+    data: serviceIds,
+  })
+}
+
+// 移动 复制
+export async function queryCopeServices(body) {
+  return request(`/studio/nifi-api/service/${body.id}/copy`, {
+    method: 'POST',
+    data: body.values,
+  })
+}
+
+export async function queryMoveServices(body) {
+  return request(`/studio/nifi-api/service/${body.id}/move`, {
+    method: 'POST',
+    data: body.values,
+  })
+}
+
+export async function queryMCopeServices(body) {
+  return request('/studio/orchsym-pro-api/batch/services/copy', {
+    method: 'POST',
+    data: body,
+  })
+}
+export async function queryMMoveeServices(body) {
+  return request('/studio/orchsym-pro-api/batch/services/move', {
+    method: 'PUT',
+    data: body,
   })
 }
