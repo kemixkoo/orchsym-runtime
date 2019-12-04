@@ -18,7 +18,9 @@
 package org.apache.nifi.web.api.orchsym;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 分页类
@@ -29,39 +31,41 @@ import java.util.List;
  */
 public class DataPage<T> {
     private int currentPage = 1; // 当前页码
-    private int totalSize; // 全部数量
-    private int pageSize = 10; // 每页大小
-    private int totalPage; // 分页页数
+    private int totalSize; // 结果总数
+    private int pageSize = 10; // 指定分页的每页大小
+    private int totalPage = 1; // 总页数，默认仅一页
 
-    private List<T> results; // 当前页结果集
+    private List<T> results; // 当前页结果列表
 
     public DataPage() {
     }
 
-    public DataPage(List<T> list, int pageSize, int currentPage) {
-        if (currentPage < 1) { // 必须从1开始，否则强制第1页
-            currentPage = 1;
-        }
-        final int totalSize = list.size();
-        if (pageSize < 1) {// 当每页大小为-1，表示不分页，即只有1页
-            pageSize = totalSize;
-        }
+    public DataPage(final List<T> list, final int pageSize, final int currentPage) {
+        this.setTotalSize(Objects.isNull(list) ? 0 : list.size()); // 结果总数
+        this.setPageSize(pageSize < 1 ? getTotalSize() : pageSize);// 当每页大小<1，表示不分页, 一般设置为-1，即只有1页,且每页大小同list大小
+        this.setCurrentPage(currentPage < 1 ? 1 : currentPage); // 须从1开始，否则默认从第1页开始
 
-        this.setCurrentPage(currentPage);
-        this.setTotalSize(totalSize);
-        this.setPageSize(pageSize);
+        if (getTotalSize() > 0) {// 有数据时，即list>0
+            if (getPageSize() >= getTotalSize()) {// 每页大小等同或高过总数，则全部返回原列表
+                this.setTotalPage(1);
+                this.setResults(list);// 直接返回原始列表
+            } else {
+                this.setTotalPage((getTotalSize() + getPageSize() - 1) / getPageSize());
 
-        this.setTotalPage((totalSize + pageSize - 1) / pageSize);
-
-        int index = (currentPage - 1) * pageSize;
-        List<T> resultList = null;
-        if (index >= totalSize) {
-            resultList = new ArrayList<>();
+                int index = (getCurrentPage() - 1) * getPageSize();
+                List<T> pageList = null;
+                if (index >= getTotalSize()) {
+                    pageList = new ArrayList<>();
+                } else {
+                    int endIndex = Math.min(index + getPageSize(), getTotalSize());
+                    pageList = list.subList(index, endIndex);
+                }
+                this.setResults(pageList);
+            }
         } else {
-            int endIndex = Math.min(index + pageSize, totalSize);
-            resultList = list.subList(index, endIndex);
+            this.setTotalPage(1); // 无数据时，仍旧保持1页
+            this.setResults(Collections.emptyList());
         }
-        this.setResults(resultList);
     }
 
     public int getCurrentPage() {

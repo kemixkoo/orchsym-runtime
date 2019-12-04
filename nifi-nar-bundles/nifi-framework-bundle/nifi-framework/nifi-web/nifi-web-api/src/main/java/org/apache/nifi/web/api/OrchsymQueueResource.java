@@ -38,11 +38,11 @@ import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.connectable.Connectable;
 import org.apache.nifi.connectable.Connection;
+import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.web.api.dto.DropRequestDTO;
 import org.apache.nifi.web.api.entity.ConnectionEntity;
-import org.apache.nifi.web.api.entity.ConnectionStatusEntity;
 import org.apache.nifi.web.api.entity.QueueSnippetEntity;
 import org.springframework.stereotype.Component;
 
@@ -144,6 +144,10 @@ public class OrchsymQueueResource extends AbsOrchsymResource {
 
     private boolean isStoped(final Connectable node) {
         final ScheduledState state = node.getScheduledState();
+        if (node instanceof Funnel) { // running for Funnel always
+            return true;
+        }
+        // processor or port
         if (ScheduledState.DISABLED.equals(state) || ScheduledState.STOPPED.equals(state)) {
             return true;
         }
