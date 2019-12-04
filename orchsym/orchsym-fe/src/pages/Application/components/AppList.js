@@ -67,7 +67,7 @@ class AppList extends PureComponent {
 
   goToApp = (item) => {
     // console.log('item', item)
-    router.push(`/canvas/${item.id}/0`)
+    router.push(`/canvas/${item.id}`)
   }
 
   doubleGoToApp = (item) => {
