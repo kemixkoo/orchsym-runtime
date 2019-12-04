@@ -43,6 +43,12 @@
             /**
              * Zoom in on the canvas.
              */
+            this.getCanvasScale = function () {
+                return nfCanvasUtils.getCanvasScale();
+            };
+            /**
+             * Zoom in on the canvas.
+             */
             this.zoomIn = function () {
                 $timeout(function () {
                     nfCanvasUtils.zoomInCanvas();
@@ -68,6 +74,24 @@
             };
 
             /**
+             * Zoom 100%.
+             */
+            this.zoom100 = function (num) {
+                $timeout(function () {
+                    nfCanvasUtils.zoom100(num);
+                }, 0);
+            };
+
+            /**
+             * Zoom 100%.
+             */
+            this.show100 = function (num) {
+                $timeout(function () {
+                    nfCanvasUtils.show100(num);
+                }, 0);
+            };
+
+            /**
              * Zoom actual size on the canvas.
              */
             this.zoomActualSize = function () {
@@ -80,7 +104,6 @@
         NavigateCtrl.prototype = {
             constructor: NavigateCtrl
         };
-
         var navigateCtrl = new NavigateCtrl();
         return navigateCtrl;
     };

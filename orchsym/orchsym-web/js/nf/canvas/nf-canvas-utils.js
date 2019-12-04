@@ -2040,6 +2040,16 @@
         },
 
         /**
+         * Zooms out a single zoom increment.
+         */
+        zoom100: function (scale) {
+            return nfCanvas.setViewScale100(scale);
+        },
+
+        show100: function(){
+            return nfCanvas.show100();
+        },
+        /**
          * Zooms to the actual size (1 to 1).
          */
         actualSizeCanvas: function () {

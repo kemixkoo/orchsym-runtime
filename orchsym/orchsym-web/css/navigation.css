@@ -894,7 +894,60 @@ div.action-button-right{
     border: 0px solid #AABBC3!important;
     color: #000!important;
 }
-
+.w-100{
+    font-size: 14px;
+    line-height: 32px;
+    margin-top: -2px;
+    width: 60px;
+    float: right;
+    margin-right: 12px;
+    background-color: rgba(0,0,0,0)!important;
+    border: 0px solid #AABBC3!important;
+    color: #000!important;
+    text-align: right;
+    cursor: pointer;
+    margin-left: -10px;
+}
+.w-100-list {
+    position: absolute;
+    z-index: 10;
+    width: 65px;
+    font-size: 14px;
+    text-align: right;
+    background-color: #fff;
+    bottom: 30px;
+    right: 5px;
+    /* padding: 10px; */
+    border: 1px solid rgba(0, 0, 0, 0.1);
+     display: none;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+.w-100-list ul{
+    padding: 0;
+    margin: 0;
+}
+.w-100-list ul li{
+    line-height: 20px;
+    padding-right: 21px;
+    cursor: pointer;
+}
+.w-100-list ul li:hover{
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.w-slider{
+    width: 172px;
+    height: 10px;
+    border-bottom: 2px solid #666!important;
+}
+.w-slider .slider-handle{
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 1px solid #666!important;
+    margin-top: 3px;
+    margin-left: 10px;
+}
 button.svg-right:disabled {
     color: #CCDADB !important; /*tint link-color 80%*/
     cursor: not-allowed;

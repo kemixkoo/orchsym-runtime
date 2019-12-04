@@ -272,10 +272,113 @@
             }).promise();
         },
 
+        dragsMove : function(par){
+            var M = false;
+            var clientY,clientX;
+            var _YDrags = function(_dom,par)
+            {
+                var _drop = function()
+                {
+                    document.onmousemove = document.onselectstart = document.onmouseup = null;
+                };
+                var _drag = function(e,par)
+                {
+                    var ev = e || window.event;
+                    ev.rScreenX = ev.screenX;
+                    ev.rScreenY = ev.screenY;
+                    document.onmouseup = function(e)
+                    {
+                        var ev2 = e || window.event;
+                        _drop();
+                        if(M)
+                        {
+                            par["up"] && par["up"](e,e.clientY - clientY,e.clientX - clientX);
+                            M = false;
+                        }
+                        else if(par["up-nomove"])
+                        {
+                            par["up-nomove"](e);
+                        }
+                        else {
+                            par["up"] && par["up"](e,ev2.screenX - ev.rScreenX,ev2.screenY - ev.rScreenY);
+                            M = false;
+                        }
+                    };
+                    document.onmousemove = function(e)
+                    {
+                        var ev2 = e || window.event;
+                        par["move"] && par["move"](e,ev2.screenX - ev.rScreenX,ev2.screenY - ev.rScreenY, ev2.screenX, ev.rScreenX, ev2.screenY, ev.rScreenY);
+                        M = true;
+                        return false;
+                    };
+                    document.onselectstart = function(){return false;};
+                };
+                _dom[0].onmousedown = function(e)
+                {
+                    clientY = e.clientY;
+                    clientX = e.clientX;
+                    var boo = par["drag"](e,clientX,clientY);
+                    if(boo)
+                    {
+                        _drag(e,par);
+                    }
+                    else
+                    {
+                        var element = this,ev = e || window.event;
+                    }
+                };
+            };
+            if(par.dom)
+            {
+                _YDrags(par.dom,par);
+            }
+        },
+
+        setMarginLeft: function(){
+            var scale = this.View.getScale();
+            var marginLeft = ((scale - 0.2) / 0.2) * 4;
+            $("#w-slider-handle").css({
+                marginLeft: marginLeft
+            });
+            $('#w-100').html(Math.floor(scale*100) + '%');
+        },
+
+        setViewScale: function(scale){
+            this.View.scale(((scale + 4)/20)/nfCanvas.View.getScale());
+        },
+
+        setViewScale100: function(scale){
+            $("#w-100-list").fadeToggle();
+            this.View.scale((scale/nfCanvas.View.getScale()));
+        },
+
+        show100: function(){
+            $("#w-100-list").fadeToggle();
+        },
         /**
          * Initializes the canvas.
          */
         initCanvas: function () {
+            var marginLeft = 0;
+            var _this = this;
+            this.dragsMove({
+                dom: $("#w-slider-handle"),
+                moveDom: $("#w-slider-handle"),
+                move: function(e,x,y){
+                    var X = Math.min(Math.max(0, x + marginLeft), 156);
+                    $("#w-slider-handle").css({
+                        marginLeft: X
+                    });
+                    _this.setViewScale(X);
+                },
+                drag:function(){
+                    marginLeft = parseInt($("#w-slider-handle").css("marginLeft"), 10);
+                    return true;
+                },
+                up:function(){
+                }
+            });
+            this.setMarginLeft();
             var canvasContainer = $('#canvas-container');
             // create the canvas
             svg = d3.select('#canvas-container').append('svg')
@@ -958,11 +1061,9 @@
         },
 
         View: (function () {
-
             // initialize the zoom behavior
             var behavior;
             var x = 0, y = 0, k = SCALE;
-
             return {
 
                 init: function () {
@@ -1017,6 +1118,8 @@
                             if (!isNaN(d3.event.transform.k)) {
                                 k = d3.event.transform.k;
                             }
+
+                            nfCanvas.setMarginLeft();
 
                             // if we have zoomed, indicate that we are panning
                             // to prevent deselection elsewhere
@@ -1090,6 +1193,8 @@
                     behavior.translateBy(svg, translate[0], translate[1]);
                 },
 
+                behavior: behavior,
+
                 /**
                  * Scales by the specified scale.
                  *
@@ -1107,6 +1212,7 @@
                  */
                 transform: function (translate, scale) {
                     behavior.transform(svg, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+                    nfCanvas.setMarginLeft();
                 },
 
                 /**

@@ -558,6 +558,18 @@
 </div>
 <div id="search-flow-results"></div>
 
+<div class="w-100-list" id="w-100-list">
+    <ul>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(8);">800%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(7);">700%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(6);">600%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(5);">500%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(4);">400%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(3);">300%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(2);">200%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(1);">100%</li>
+    </ul>
+</div>
 <div id="flow-status" flex layout="row" layout-align="space-between center" style="bottom: 0px;position: absolute;width: 100%;">
     <div id="flow-status-container" layout="row" layout-align="space-around center">
         <!--<div class="fa fa-cubes" ng-if="appCtrl.nf.ClusterSummary.isClustered()" title="Connected nodes / Total number of nodes in the cluster">
@@ -610,23 +622,27 @@
     </div>
     <div>
         <div class="action-button-right">
-            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
-                <span class="acon-eye" style="font-size: 18px;"></span>
-            </button>
-            <div class="svg-right" style="margin-top: 0px;">
-                <div class="line"></div>
+            <div class="w-100" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.show100();">
+                <span id="w-100"></span>
+                <span class="acon-up" style="font-size: 12px;margin-left: -6px;"></span>
             </div>
             <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">
                 <span class="acon-zoom-in" style="font-size: 18px;"></span>
             </button>
+            <div class="svg-right w-slider">
+                <div class="slider-handle" id="w-slider-handle"></div>
+            </div>
             <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">
                 <span class="acon-zoom-out" style="font-size: 18px;"></span>
             </button>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
+                <span class="acon-eye" style="font-size: 18px;font-weight: 600;"></span>
+            </button>
             <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">
-                <span class="acon-fullscreen" style="font-size: 18px;"></span>
+                <span class="acon-fullscreen" style="font-size: 18px;font-weight: 600;"></span>
             </button>
             <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">
-                <span class="acon-shrink" style="font-size: 18px;"></span>
+                <span class="acon-shrink" style="font-size: 18px;font-weight: 600;"></span>
             </button>
             <div class="svg-right" style="margin-top: 0px;">
                 <div class="line"></div>
@@ -1525,7 +1541,7 @@
         <span class="right-icon hicon-assembly"></span>
     </div>
     <div class="acon" type="system-tools-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('system-tools-panel')">
-        <span class="right-icon acon-appstore"></span>
+        <span class="right-icon hicon-tool"></span>
     </div>
     <div class="acon" type="system-tools-model" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('template-panel')">
         <span class="right-icon hicon-template"></span>
