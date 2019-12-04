@@ -563,4 +563,8 @@
         <property name="entityFactory" ref="entityFactory" />
         <property name="revisionManager" ref="revisionManager" />
     </bean>
+
+    <bean id="orchsymCommon" class="org.apache.nifi.web.api.common.OrchsymCommon">
+        <property name="flowController" ref="flowController" />
+    </bean>
 </beans>

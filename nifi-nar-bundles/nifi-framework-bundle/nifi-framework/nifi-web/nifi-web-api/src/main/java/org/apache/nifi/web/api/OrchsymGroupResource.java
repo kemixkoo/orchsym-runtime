@@ -17,13 +17,7 @@
  */
 package org.apache.nifi.web.api;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,17 +40,14 @@ import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Port;
-import org.apache.nifi.controller.ControllerService;
-import org.apache.nifi.controller.FlowController;
-import org.apache.nifi.controller.ProcessorNode;
-import org.apache.nifi.controller.ReportingTaskNode;
-import org.apache.nifi.controller.Snippet;
-import org.apache.nifi.controller.Template;
+import org.apache.nifi.controller.*;
 import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
+import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
 import org.apache.nifi.web.Revision;
+import org.apache.nifi.web.api.common.OrchsymCommon;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.DropRequestDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
@@ -64,10 +55,8 @@ import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
-import org.apache.nifi.web.api.entity.ProcessGroupEntity;
-import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
-import org.apache.nifi.web.api.entity.SearchResultsEntity;
-import org.apache.nifi.web.api.entity.SnippetEntity;
+import org.apache.nifi.web.api.entity.*;
+import org.apache.nifi.web.api.orchsym.group.AllComponentIdInGroup;
 import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +82,9 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
     private RevisionManager revisionManager;
     @Autowired
     private FlowService flowService;
+
+    @Autowired
+    private OrchsymCommon orchsymCommon;
 
     Object getComponentById(String id) {
         // 首先查找Label
@@ -223,41 +215,90 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
                 });
     }
 
+
     void safeCleanGroup(ProcessGroup group, boolean stopComponents, boolean stopServices, boolean cleanQueue, boolean removeTemplates) {
+        final AllComponentIdInGroup allIdsInGroup = orchsymCommon.getAllComponentIdsInGroup(group.getIdentifier());
         if (stopComponents) { // 停止所有组件
-            for (ProcessorNode processorNode : group.getProcessors()) {
+            for (String processorId : allIdsInGroup.getProcessorIds()){
                 final ProcessorDTO processorDTO = new ProcessorDTO();
-                processorDTO.setId(processorNode.getIdentifier());
+                processorDTO.setId(processorId);
                 processorDTO.setState(ScheduleComponentsEntity.STATE_STOPPED);
-                Revision revision = revisionManager.getRevision(processorNode.getIdentifier());
+                Revision revision = revisionManager.getRevision(processorId);
                 serviceFacade.updateProcessor(revision, processorDTO);
             }
         }
-        if (stopServices) { // 停止服务
-            for (ControllerServiceNode controllerServiceNode : group.getControllerServices(false)) {
-                Revision revision = revisionManager.getRevision(controllerServiceNode.getIdentifier());
-                ControllerServiceDTO controllerServiceDTO = new ControllerServiceDTO();
-                controllerServiceDTO.setId(controllerServiceNode.getIdentifier());
-                controllerServiceDTO.setState(ScheduleComponentsEntity.STATE_DISABLED);
-                serviceFacade.updateControllerService(revision, controllerServiceDTO);
-            }
-        }
-        if (cleanQueue) { // 清空队列
-            for (Connection connection : group.getConnections()) {
-                DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connection.getIdentifier(), generateUuid());
-                serviceFacade.deleteFlowFileDropRequest(connection.getIdentifier(), dropRequest.getId());
-            }
-        }
-        if (removeTemplates) { // 删除应用内所有模块下的模板
-            for (Template template : group.getTemplates()) {
-                serviceFacade.deleteTemplate(template.getIdentifier());
+        // 如果组件未终止 需要强制等待
+        int times = 30;
+        // 轮询间隔 0.1秒
+        long timeUnit = 100;
+        int count = 0;
+        while (!isAllProcessorStoppped(group) && count < times){
+            try {
+                Thread.sleep(timeUnit);
+                count++;
+            } catch (InterruptedException e) {
+                //
             }
         }
 
-        // 迭代处理子模块
-        for (ProcessGroup childGroup : group.getProcessGroups()) {
-            safeCleanGroup(childGroup, stopComponents, stopServices, cleanQueue, removeTemplates);
+        if (count >= times){
+            throw new IllegalStateException("the time of stopping processors too long, please retry");
         }
+
+        if (cleanQueue) { // 清空队列
+            for (String connectionId : allIdsInGroup.getConnectionIds()){
+                DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connectionId, generateUuid());
+                serviceFacade.deleteFlowFileDropRequest(connectionId, dropRequest.getId());
+            }
+        }
+        if (removeTemplates) { // 删除应用内所有模块下的模板
+            for (String templateId : allIdsInGroup.getTemplateIds()){
+                serviceFacade.deleteTemplate(templateId);
+            }
+        }
+
+        if (stopServices) { // 停止服务
+            for (String serviceId : allIdsInGroup.getServiceIds()){
+                disableServiceByIdentifier(serviceId);
+            }
+        }
+    }
+
+    private boolean isAllProcessorStoppped(ProcessGroup group){
+     return group.getProcessors().stream().noneMatch(p -> {
+         final ScheduledState state = p.getPhysicalScheduledState();
+         return !state.equals(ScheduledState.DISABLED) && !state.equals(ScheduledState.STOPPED);
+     });
+    }
+
+    /**
+     * 禁用服务 涉及到自身被引用的服务及其组件 需单独处理
+     * @param controllerServiceId
+     */
+    private void disableServiceByIdentifier(final String controllerServiceId){
+        final ControllerServiceEntity controllerServiceToDisable = serviceFacade.getControllerService(controllerServiceId);
+        if (controllerServiceToDisable.getComponent().getState().equalsIgnoreCase(ControllerServiceState.DISABLED.name())) {
+            return ;
+        }
+
+        final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(controllerServiceId)
+                .getControllerServiceReferencingComponents();
+        final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream().collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
+            final Revision revision = revisionManager.getRevision(entity.getId());
+            return revision;
+        }));
+
+        serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, controllerServiceId, ScheduledState.STOPPED, null);
+
+        serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), controllerServiceId, ScheduledState.DISABLED, ControllerServiceState.DISABLED);
+
+        final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+        serviceDTO.setId(controllerServiceId);
+        serviceDTO.setState(ControllerServiceState.DISABLED.name());
+
+        final Revision revision = revisionManager.getRevision(serviceDTO.getId());
+        serviceFacade.updateControllerService(revision, serviceDTO);
+
     }
 
     @GET
