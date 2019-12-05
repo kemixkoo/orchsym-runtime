@@ -26,7 +26,7 @@ class MoveOrCope extends React.Component {
       dispatch,
       handleCancel,
       form: { validateFields, resetFields },
-      nowServiceId,
+      nowService,
       selectedRowKeys,
       modelState,
     } = this.props;
@@ -34,9 +34,9 @@ class MoveOrCope extends React.Component {
     validateFields((err, values) => {
       if (!err) {
         let body = {}
-        if (nowServiceId) {
+        if (nowService) {
           body = {
-            id: nowServiceId,
+            id: nowService.id,
             values,
             state: modelState,
           }
