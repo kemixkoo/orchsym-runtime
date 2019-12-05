@@ -315,10 +315,10 @@
                     $("#component-panel").addClass("component-panel-toggleClass");
                     $("#system-tools-panel").addClass("component-panel-toggleClass");
                     $("#template-panel").toggleClass("component-panel-toggleClass");
-                    if($("#system-tools-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
-                        $("#component-panel-tools > .acon[type=system-tools-panel]").removeClass("blue");
+                    if($("#template-panel").attr("class").indexOf("component-panel-toggleClass")!==-1){
+                        $("#component-panel-tools > .acon[type=template-panel]").removeClass("blue");
                     } else {
-                        $("#component-panel-tools > .acon[type=system-tools-panel]").addClass("blue");
+                        $("#component-panel-tools > .acon[type=template-panel]").addClass("blue");
                     }
                 }
             },
