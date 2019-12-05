@@ -24,8 +24,7 @@ class MoveOrCope extends React.Component {
     const {
       refreshList,
       dispatch,
-      handleCancel,
-      form: { validateFields, resetFields },
+      form: { validateFields },
       nowService,
       selectedRowKeys,
       modelState,
@@ -55,8 +54,7 @@ class MoveOrCope extends React.Component {
           cb: res => {
             message.success(formatMessage({ id: 'result.success' }));
             refreshList();
-            resetFields();
-            handleCancel();
+            this.handleCancel();
           },
         });
       }
@@ -107,7 +105,7 @@ class MoveOrCope extends React.Component {
                   { whitespace: true, message: formatMessage({ id: 'validation.name.required' }) },
                 ],
               })(
-                <Input autoComplete="off" />
+                <Input autoComplete="off" style={{ width: 200 }} />
               )}
             </FormItem>
           )}

@@ -407,6 +407,7 @@ class ControllerServices extends React.Component {
     const { selectedRowKeys } = this.state;
     const { dispatch } = this.props;
     const { confirm } = Modal;
+    const that = this
     confirm({
       title: formatMessage({ id: 'service.delete.title' }),
       content: formatMessage({ id: 'service.delete.description' }),
@@ -428,7 +429,7 @@ class ControllerServices extends React.Component {
           payload: body,
           cb: () => {
             message.success(formatMessage({ id: 'result.success' }));
-            this.getList()
+            that.getList()
           },
         })
       },
