@@ -1141,7 +1141,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             @ApiParam(value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.") @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged//
     ) {
         if (isReplicateRequest()) {
-            return replicate(HttpMethod.DELETE);
+            return replicate(HttpMethod.PUT);
         } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
@@ -1181,7 +1181,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             @ApiParam(value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.") @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged//
     ) {
         if (isReplicateRequest()) {
-            return replicate(HttpMethod.DELETE);
+            return replicate(HttpMethod.PUT);
         } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
@@ -1222,7 +1222,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             @PathParam("serviceId") final String serviceId//
     ) {
         if (isReplicateRequest()) {
-            return replicate(HttpMethod.DELETE);
+            return replicate(HttpMethod.PUT);
         } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
