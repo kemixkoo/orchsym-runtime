@@ -989,8 +989,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         // 1. get Controller Services by groupId (filter by scope)
         final boolean deleted = requestServiceSearchCriteriaEntity.isDeleted();
         if (scopes.isEmpty()) {
-            // controller scope Controller Services
-            services.addAll(serviceFacade.searchControllerServices(null, true, true, deleted));
+            // controller scope Controller Services, ignore the controller scope
+            // services.addAll(serviceFacade.searchControllerServices(null, true, true, deleted));
             // Controller Services in Process Groups
             services.addAll(serviceFacade.searchControllerServices(ROOT_GROUP_ID_ALIAS, true, true, deleted));
         } else {

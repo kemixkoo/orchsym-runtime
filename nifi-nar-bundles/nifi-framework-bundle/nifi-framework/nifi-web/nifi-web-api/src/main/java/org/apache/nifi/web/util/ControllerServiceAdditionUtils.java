@@ -38,7 +38,11 @@ public class ControllerServiceAdditionUtils {
         }
     }
 
+    // Return false if the Controller Service has already been deleted logically
+    public static Predicate<ControllerServiceEntity> CONTROLLER_SERVICE_NOT_DELETED = controllerServiceEntity -> !ProcessUtil
+            .getAdditionBooleanValue(controllerServiceEntity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+
     // Return true if the Controller Service has already been deleted logically
-    public static Predicate<ControllerServiceEntity> CONTROLLER_SERVICE_NOT_DELETED = controllerServiceEntity -> false == ProcessUtil
-            .getAdditionBooleanValue(controllerServiceEntity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);;
+    public static Predicate<ControllerServiceEntity> CONTROLLER_SERVICE_DELETED = controllerServiceEntity -> ProcessUtil
+            .getAdditionBooleanValue(controllerServiceEntity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
 }
