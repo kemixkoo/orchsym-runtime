@@ -3,7 +3,7 @@ import exception from './en-US/exception';
 import globalHeader from './en-US/globalHeader';
 import login from './en-US/login';
 import menu from './en-US/menu';
-import result from './en-US/result';
+import message from './en-US/message';
 import settingDrawer from './en-US/settingDrawer';
 import settings from './en-US/settings';
 import form from './en-US/form';
@@ -28,7 +28,7 @@ export default {
   ...globalHeader,
   ...login,
   ...menu,
-  ...result,
+  ...message,
   ...settingDrawer,
   ...settings,
   ...form,

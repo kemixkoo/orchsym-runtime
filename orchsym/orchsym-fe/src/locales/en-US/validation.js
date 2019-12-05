@@ -7,4 +7,5 @@ export default {
   'validation.tag.placeholder2': 'Tag cannot exceed 5 characters',
   'validation.file.required': 'Please upload file!',
   'validation.file.format': 'Currently only. XML format files are supported!',
+  'validation.groupId.required': 'Please select scope!',
 };

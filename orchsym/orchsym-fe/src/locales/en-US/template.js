@@ -6,9 +6,6 @@
  */
 export default {
   'template.title.uploadTemp': 'Upload Template',
-  'template.delete.title': 'Delete template',
-  // 'template.delete.description': 'The deleted template will be put into the recycle bin. Are you sure to delete it ？',
-  'template.delete.description': 'Cannot restore the application after delete,  are you sure?',
   'template.table.title.source': 'Source',
   'template.table.title.operateUser': 'Operater',
   'template.table.title.createTime': 'Create time',
