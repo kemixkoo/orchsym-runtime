@@ -45,6 +45,7 @@ import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.fun.SqlLibrary;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.parser.SqlParser.Config;
 import org.apache.calcite.util.ConversionUtil;
@@ -461,6 +462,8 @@ public class QueryRecord extends AbstractProcessor {
         final Supplier<CalciteConnection> connectionSupplier = () -> {
             final Properties properties = new Properties();
             properties.put(CalciteConnectionProperty.LEX.camelName(), Lex.MYSQL_ANSI.name());
+            // in order to support the to_base64, from_base64, to_date, etc
+            properties.put(CalciteConnectionProperty.FUN.camelName(), SqlLibrary.MYSQL.fun);
 
             try {
                 final Connection connection = DriverManager.getConnection("jdbc:calcite:", properties);
