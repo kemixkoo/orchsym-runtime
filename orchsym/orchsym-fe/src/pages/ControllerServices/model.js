@@ -61,9 +61,9 @@ export default {
     // 删除
     *fetchDeleteServices({ payload, cb }, { call, put }) {
       if (payload.type === 'multiple') {
-        yield call(queryMDeleteServices, payload.id);
+        yield call(queryMDeleteServices, payload.serviceIds);
       } else {
-        yield call(queryDeleteServices, payload.serviceIds);
+        yield call(queryDeleteServices, payload.id);
       }
       yield cb && cb();
     },

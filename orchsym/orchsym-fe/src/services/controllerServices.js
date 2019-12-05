@@ -80,7 +80,7 @@ export async function queryCopeServices(body) {
 
 export async function queryMoveServices(body) {
   return request(`/studio/nifi-api/service/${body.id}/move`, {
-    method: 'POST',
+    method: 'PUT',
     data: body.values,
   })
 }

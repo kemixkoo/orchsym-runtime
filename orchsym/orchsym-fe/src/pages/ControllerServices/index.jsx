@@ -40,7 +40,7 @@ class ControllerServices extends React.Component {
       // 移动复制
       copeVisible: false,
       modelState: '',
-      nowServiceId: '',
+      nowService: '',
     };
     this.columns = [
       {
@@ -237,13 +237,13 @@ class ControllerServices extends React.Component {
           {`${formatMessage({ id: 'service.button.rename' })}`}
         </Menu.Item>
       )}
-      <Menu.Item key="copeTo" onClick={() => { this.showCopeModal('COPE', item.id) }}>
+      <Menu.Item key="copeTo" onClick={() => { this.showCopeModal('COPE', item) }}>
         {`${formatMessage({ id: 'service.button.copeTo' })}`}
       </Menu.Item>
-      <Menu.Item key="moveTo" onClick={() => { this.showCopeModal('MOVE', item.id) }}>
+      <Menu.Item key="moveTo" onClick={() => { this.showCopeModal('MOVE', item) }}>
         {`${formatMessage({ id: 'service.button.moveTo' })}`}
       </Menu.Item>
-      <Menu.Item key="delete" disabled={item && item.state !== 'DISABLED'} onClick={() => { this.deleteHandel(item.id) }}>
+      <Menu.Item key="delete" disabled={item && item.state !== 'DISABLED'} onClick={() => { this.deleteHandel(item) }}>
         {`${formatMessage({ id: 'button.delete' })}`}
       </Menu.Item>
     </Menu>
@@ -403,10 +403,11 @@ class ControllerServices extends React.Component {
     }
   }
 
-  deleteHandel = (id) => {
+  deleteHandel = (item) => {
     const { selectedRowKeys } = this.state;
     const { dispatch } = this.props;
     const { confirm } = Modal;
+    const that = this
     confirm({
       title: formatMessage({ id: 'service.delete.title' }),
       content: formatMessage({ id: 'service.delete.description' }),
@@ -415,8 +416,8 @@ class ControllerServices extends React.Component {
       cancelText: 'No',
       onOk() {
         let body = {}
-        if (id) {
-          body = { id }
+        if (item) {
+          body = { id: item.id }
         } else {
           body = {
             serviceIds: selectedRowKeys,
@@ -428,7 +429,7 @@ class ControllerServices extends React.Component {
           payload: body,
           cb: () => {
             message.success(formatMessage({ id: 'result.success' }));
-            this.getList()
+            that.getList()
           },
         })
       },
@@ -439,11 +440,11 @@ class ControllerServices extends React.Component {
   }
 
   // 复制 移动
-  showCopeModal = (state, id) => {
+  showCopeModal = (state, item) => {
     this.setState({
       copeVisible: true,
       modelState: state,
-      nowServiceId: id,
+      nowService: item,
     });
   }
 
@@ -461,7 +462,7 @@ class ControllerServices extends React.Component {
   }
 
   render() {
-    const { selectedRowKeys, pageNum, pageSizeNum, refreshTime, copeVisible, modelState, nowServiceId } = this.state;
+    const { selectedRowKeys, pageNum, pageSizeNum, refreshTime, copeVisible, modelState, nowService } = this.state;
     const { form, controllerServicesList: { results, totalSize }, loading } = this.props;
     const rowSelection = {
       selectedRowKeys,
@@ -564,7 +565,7 @@ class ControllerServices extends React.Component {
               visible={copeVisible}
               modelState={modelState}
               selectedRowKeys={selectedRowKeys}
-              nowServiceId={nowServiceId}
+              nowService={nowService}
             />
           )
         }
