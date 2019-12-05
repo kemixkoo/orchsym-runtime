@@ -58,12 +58,14 @@ class ControllerServices extends React.Component {
       },
       {
         title: formatMessage({ id: 'title.type' }),
+        // width: 300,
         dataIndex: 'type',
         key: 'TYPE',
         sorter: true,
       },
       {
         title: formatMessage({ id: 'service.title.scope' }),
+        width: 150,
         dataIndex: 'scope',
         key: 'scopes',
         filterDropdown: this.filterDropdownHandel,
@@ -72,6 +74,7 @@ class ControllerServices extends React.Component {
       },
       {
         title: formatMessage({ id: 'service.title.refComponent' }),
+        width: 200,
         dataIndex: 'referencingComponents',
         key: 'REFERENCING_COMPONENTS',
         sorter: true,
@@ -94,6 +97,7 @@ class ControllerServices extends React.Component {
       },
       {
         title: formatMessage({ id: 'service.title.serviceStatus' }),
+        width: 150,
         dataIndex: 'state',
         key: 'states',
         filters: [
