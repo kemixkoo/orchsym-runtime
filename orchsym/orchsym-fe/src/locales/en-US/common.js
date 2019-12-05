@@ -27,4 +27,5 @@ export default {
   'title.createTime': 'Deployed Time',
   'title.operate': 'Operation',
   'text.extra.extension': 'Support extension',
+  'text.global': 'Global',
 };

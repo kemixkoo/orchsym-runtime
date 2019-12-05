@@ -125,7 +125,7 @@ class MoveOrCope extends React.Component {
                   option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
               >
-                <Option value="root">ROOT</Option>
+                <Option value="root">{formatMessage({ id: 'text.global' })}</Option>
                 {results && results.map(item => (<Option value={item.id}>{item.name}</Option>))}
               </Select>
 
