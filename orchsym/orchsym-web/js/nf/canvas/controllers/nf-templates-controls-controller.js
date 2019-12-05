@@ -64,8 +64,8 @@
         var config = {
             urls: {
                 templates: apiHost + "/nifi-api/flow/templates",
-                official: apiHost + "/orchsym-api/template/official/search",
-                favorites: apiHost + "/orchsym-pro-api/favorites/templates/search",
+                official: "https://172.18.28.230:8443/orchsym-api/template/official/search",
+                favorites: "https://172.18.28.230:8443/orchsym-pro-api/favorites/templates/search",
                 custom: apiHost + "/nifi-api/orchsym-template/custom/search"
             }
         };
