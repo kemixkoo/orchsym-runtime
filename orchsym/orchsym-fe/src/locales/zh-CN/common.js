@@ -26,4 +26,5 @@ export default {
   'title.createTime': '发布时间',
   'title.operate': '操作',
   'text.extra.extension': '支持扩展名',
+  'text.global': '全局',
 };

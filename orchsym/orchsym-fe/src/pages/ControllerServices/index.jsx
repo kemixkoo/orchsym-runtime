@@ -7,7 +7,7 @@ import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/loc
 import EditableCell from '@/components/EditableCell';
 import FilterDropdown from '@/components/FilterDropdown';
 import moment from 'moment';
-import MoveOrCope from './MoveOrCope';
+import MoveOrCope from './components/MoveOrCope';
 import { EditableContext } from '@/utils/utils'
 import IconFont from '@/components/IconFont';
 import styles from './index.less';
@@ -68,6 +68,7 @@ class ControllerServices extends React.Component {
         key: 'scopes',
         filterDropdown: this.filterDropdownHandel,
         onFilterDropdownVisibleChange: this.onFilterVisibleChange,
+        render: (text, record) => (text === 'ROOT' ? formatMessage({ id: 'text.global' }) : (text)),
       },
       {
         title: formatMessage({ id: 'service.title.refComponent' }),
@@ -240,7 +241,7 @@ class ControllerServices extends React.Component {
       <Menu.Item key="copeTo" onClick={() => { this.showCopeModal('COPE', item) }}>
         {`${formatMessage({ id: 'service.button.copeTo' })}`}
       </Menu.Item>
-      <Menu.Item key="moveTo" onClick={() => { this.showCopeModal('MOVE', item) }}>
+      <Menu.Item key="moveTo" disabled={item.state !== 'DISABLED'} onClick={() => { this.showCopeModal('MOVE', item) }}>
         {`${formatMessage({ id: 'service.button.moveTo' })}`}
       </Menu.Item>
       <Menu.Item key="delete" disabled={item && item.state !== 'DISABLED'} onClick={() => { this.deleteHandel(item) }}>
@@ -295,7 +296,7 @@ class ControllerServices extends React.Component {
         res.results.map(v => list.push({ value: v.id, name: v.name }))
         this.setState({
           filterList: [
-            { value: 'root', name: 'ROOT' },
+            { value: 'root', name: formatMessage({ id: 'text.global' }) },
             ...list,
           ],
         })
@@ -536,6 +537,7 @@ class ControllerServices extends React.Component {
           </div>
           <EditableContext.Provider value={form}>
             <Table
+              scroll={{ y: 400 }}
               loading={loading}
               rowSelection={rowSelection}
               components={components}
