@@ -62,6 +62,7 @@ import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Port;
 import org.apache.nifi.controller.ControllerService;
 import org.apache.nifi.controller.FlowController;
+import org.apache.nifi.controller.FlowController.GroupStatusCounts;
 import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ReportingTaskNode;
 import org.apache.nifi.controller.ScheduledState;
@@ -70,7 +71,9 @@ import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
+import org.apache.nifi.groups.ProcessGroupCounts;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.util.FormatUtils;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
@@ -80,6 +83,8 @@ import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
+import org.apache.nifi.web.api.dto.status.ControllerStatusDTO;
+import org.apache.nifi.web.api.entity.ControllerStatusEntity;
 import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
 import org.apache.nifi.web.api.entity.ProcessGroupEntity;
 import org.apache.nifi.web.api.entity.SearchResultsEntity;
@@ -121,9 +126,6 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
     @Autowired
     private OrchsymGroupResource orchsymGroupResource;
-
-    @Autowired
-    private ProcessGroupResource groupResource;
 
     @Autowired
     private TemplateResource templateResource;
@@ -1149,14 +1151,34 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        // get this process group contents
-        final ProcessGroupEntity appEntity = serviceFacade.getProcessGroup(appGroup.getIdentifier());
-        groupResource.populateRemainingProcessGroupEntityContent(appEntity);
+        // same as ControllerFacade.getControllerStatus
+        final GroupStatusCounts groupStatusCounts = flowController.getGroupStatusCounts(appGroup);
 
-        if (appEntity.getComponent() != null) {
-            appEntity.getComponent().setContents(null);
-        }
+        final ControllerStatusDTO controllerStatus = new ControllerStatusDTO();
+        controllerStatus.setActiveThreadCount(groupStatusCounts.getActiveThreadCount());
+        controllerStatus.setTerminatedThreadCount(groupStatusCounts.getTerminatedThreadCount());
+        controllerStatus.setQueued(FormatUtils.formatCount(groupStatusCounts.getQueuedCount()) + " / " + FormatUtils.formatDataSize(groupStatusCounts.getQueuedContentSize()));
+        controllerStatus.setBytesQueued(groupStatusCounts.getQueuedContentSize());
+        controllerStatus.setFlowFilesQueued(groupStatusCounts.getQueuedCount());
 
-        return generateOkResponse(appEntity).build();
+        final ProcessGroupCounts counts = appGroup.getCounts();
+        controllerStatus.setRunningCount(counts.getRunningCount());
+        controllerStatus.setStoppedCount(counts.getStoppedCount());
+        controllerStatus.setInvalidCount(counts.getInvalidCount());
+        controllerStatus.setDisabledCount(counts.getDisabledCount());
+        controllerStatus.setActiveRemotePortCount(counts.getActiveRemotePortCount());
+        controllerStatus.setInactiveRemotePortCount(counts.getInactiveRemotePortCount());
+        controllerStatus.setUpToDateCount(counts.getUpToDateCount());
+        controllerStatus.setLocallyModifiedCount(counts.getLocallyModifiedCount());
+        controllerStatus.setStaleCount(counts.getStaleCount());
+        controllerStatus.setLocallyModifiedAndStaleCount(counts.getLocallyModifiedAndStaleCount());
+        controllerStatus.setSyncFailureCount(counts.getSyncFailureCount());
+
+        // create the response entity
+        final ControllerStatusEntity entity = new ControllerStatusEntity();
+        entity.setControllerStatus(controllerStatus);
+
+        // generate the response
+        return generateOkResponse(entity).build();
     }
 }
