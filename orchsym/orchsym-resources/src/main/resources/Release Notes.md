@@ -1,3 +1,46 @@
+# License
+
+Except as otherwise noted this software is licensed under the
+[Orchsym License, Version 1.0]
+
+Licensed under the Orchsym License, Version 1.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    
+https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
+    
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+----------------------------
+# Version 2.0_11000
+
+版本号：1.7.1-2.0_11000
+
+发布日期：2019-12-06
+
+组件总数：286 (+14)
+
+服务总数：59 (+2)
+
+
+## 新功能
+- 前端改版
+- 应用列表管理
+- 模板库管理
+- 服务管理
+
+## 改进
+- QueryRecord组件升级Apache Calcite版本
+
+## 缺陷 
+- 编排2.0_09000查看含有中文的流文件内容时显示乱码
+
+
 ----------------------------
 # Version 2.0_10000
 
