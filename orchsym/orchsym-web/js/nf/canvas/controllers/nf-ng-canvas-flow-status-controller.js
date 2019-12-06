@@ -62,7 +62,7 @@
                 status: apiHost + "/nifi-api/flow/status",
                 root: apiHost + '/nifi-api/process-groups/root',
                 statusById: function(){
-                    return apiHost + "/nifi-api/application/" + window.SYSTEMID.groupId + "/app-status/";
+                    return apiHost + "/nifi-api/application/" + window.SYSTEMID.groupId + "/app-status";
                 },
                 statusApp: function(){
                     return apiHost + "/nifi-api/group/" + window.SYSTEMID.groupId + "/search-results";
@@ -395,7 +395,7 @@
                 var flowStatusCtrl = this;
                 return $.ajax({
                     type: 'GET',
-                    url: config.urls.status,//ById()
+                    url: config.urls.statusById(),//ById()
                     dataType: 'json'
                 }).done(function (response) {
                     // report the updated s
