@@ -128,6 +128,11 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     private static final Logger logger = LoggerFactory.getLogger(OrchsymServiceResource.class);
 
     private static final String DBCP_CLASS = "org.apache.nifi.dbcp.DBCPConnectionPool";
+    private static final String DATABASE_CONNECTION_URL = "Database Connection URL";
+    private static final String DATABASE_DRIVER_CLASS_NAME = "Database Driver Class Name";
+    private static final String DATABASE_DRIVER_LOCATION = "database-driver-locations";
+    private static final String DATABASE_USER = "Database User";
+    private static final String DATABASE_PASSWORD = "Password";
 
     @Autowired
     private NiFiServiceFacade serviceFacade;
@@ -416,7 +421,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             result.put("message", error.getMessage());
 
             StringWriter sw = new StringWriter();
-            try (PrintWriter pw = new PrintWriter(sw);) {
+            try (PrintWriter pw = new PrintWriter(sw)) {
                 error.printStackTrace(pw);
                 result.put("stackTrace", sw.toString());
             }
@@ -443,26 +448,40 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
     /**
      * Try to enable a Controller Service
-     *
-     * @apiNote This function won't check whether the Controller Service(s) has already been deleted logically,
-     *          you may need to perform the check when you get the ControllerServiceEntities.
      */
     private ControllerServiceEntity enableControllerService(final String controllerServiceId) {
-        final ControllerServiceEntity controllerServiceToEnable = serviceFacade.getControllerService(controllerServiceId);
-        final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
-        serviceDTO.setId(controllerServiceId);
-        serviceDTO.setState(ControllerServiceState.ENABLED.name());
-        final Revision revision = getRevision(controllerServiceToEnable.getRevision(), controllerServiceId);
-        final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
-        controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
-        return controllerServiceEntity;
+        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
+        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
+
+        if (!requestControllerServiceEntity.getComponent().getState().equalsIgnoreCase(ControllerServiceState.DISABLED.name())) {
+            throw new IllegalStateException("Cannot enable " + requestControllerServiceEntity.getId() + " because it is not disabled");
+        }
+
+        withWriteLock(
+                serviceFacade,
+                requestControllerServiceEntity,
+                lookup -> {
+                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
+                    // ensure write permission to the controller service
+                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                },
+                null,
+                controllerServiceEntity -> {
+                    final ControllerServiceEntity controllerServiceToEnable = serviceFacade.getControllerService(controllerServiceId);
+                    final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                    serviceDTO.setId(controllerServiceId);
+                    serviceDTO.setState(ControllerServiceState.ENABLED.name());
+                    final Revision revision = getRevision(controllerServiceToEnable.getRevision(), controllerServiceId);
+                    serviceFacade.updateControllerService(revision, serviceDTO);
+
+                    return generateOkResponse("success").build();
+                });
+
+        return serviceFacade.getControllerService(controllerServiceId);
     }
 
     /**
      * Try to disable a bulk of controller services.
-     *
-     * @apiNote This function won't check whether the Controller Service(s) has already been deleted logically,
-     *          you may need to perform the check when you get the ControllerServiceEntities or filter out that are logically deleted.
      */
     private JSONArray disableControllerServices(Set<ControllerServiceEntity> servicesToDisable, boolean skipInvalid) {
         JSONArray result = new JSONArray();
@@ -482,36 +501,50 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
     /**
      * Try to disable a Controller Service
-     *
-     * @apiNote This function won't check whether the Controller Service(s) has already been deleted logically,
-     *          you may need to perform the check when you get the ControllerServiceEntities.
      */
     private ControllerServiceEntity disableControllerService(final String controllerServiceId) {
-        final ControllerServiceEntity controllerServiceToDisable = serviceFacade.getControllerService(controllerServiceId);
-        if (controllerServiceToDisable.getComponent().getState().equalsIgnoreCase(ControllerServiceState.DISABLED.name())) {
-            return controllerServiceToDisable;
+        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
+        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
+
+        if (!requestControllerServiceEntity.getComponent().getState().equalsIgnoreCase(ControllerServiceState.ENABLED.name())) {
+            throw new IllegalStateException("Cannot disable " + requestControllerServiceEntity.getId() + " because it is not enabled");
         }
 
-        // stop the controller service references
-        final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(controllerServiceId)
-                .getControllerServiceReferencingComponents();
-        final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream().collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
-            final RevisionDTO rev = entity.getRevision();
-            return new Revision(rev.getVersion(), rev.getClientId(), entity.getId());
-        }));
-        serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, controllerServiceId, ScheduledState.STOPPED, null);
-        // disable the controller service references
-        serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), controllerServiceId, ScheduledState.DISABLED, ControllerServiceState.DISABLED);
-        // disable the controller service
+        withWriteLock(
+                serviceFacade,
+                requestControllerServiceEntity,
+                lookup -> {
+                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
+                    // ensure write permission to the controller service
+                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                },
+                null,
+                controllerServiceEntity -> {
+                    final ControllerServiceEntity controllerServiceToDisable = serviceFacade.getControllerService(controllerServiceId);
+                    // stop the controller service references
+                    final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(controllerServiceId)
+                            .getControllerServiceReferencingComponents();
+                    final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream().collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
+                        final RevisionDTO rev = entity.getRevision();
+                        return new Revision(rev.getVersion(), rev.getClientId(), entity.getId());
+                    }));
+                    serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, controllerServiceId, ScheduledState.STOPPED, null);
+                    // disable the controller service references
+                    serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), controllerServiceId, ScheduledState.DISABLED, ControllerServiceState.DISABLED);
+                    // disable the controller service
 
-        final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
-        serviceDTO.setId(controllerServiceId);
-        serviceDTO.setState(ControllerServiceState.DISABLED.name());
+                    final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                    serviceDTO.setId(controllerServiceId);
+                    serviceDTO.setState(ControllerServiceState.DISABLED.name());
 
-        final Revision revision = getRevision(controllerServiceToDisable.getRevision(), serviceDTO.getId());
-        final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
-        controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
-        return controllerServiceEntity;
+                    final Revision revision = getRevision(controllerServiceToDisable.getRevision(), serviceDTO.getId());
+                    serviceFacade.updateControllerService(revision, serviceDTO);
+
+                    return generateOkResponse("success").build();
+                });
+
+
+        return serviceFacade.getControllerService(controllerServiceId);
     }
 
     /**
@@ -543,8 +576,30 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      *          you may need to perform the check when you get the ControllerServiceEntities.
      */
     private ControllerServiceEntity deleteControllerServiceLogically(final String controllerServiceId) {
-        flowController.getControllerServiceNode(controllerServiceId).getAdditions().setValue(AdditionConstants.KEY_IS_DELETED, Boolean.TRUE);
-        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
+        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
+        withWriteLock(
+                serviceFacade,
+                requestControllerServiceEntity,
+                lookup -> {
+                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
+
+                    // ensure write permission to the controller service
+                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // ensure write permission to the parent process group
+                    controllerService.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // verify any referenced services
+                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService, authorizer, lookup, false);
+                },
+                () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceEntity.getComponent()),
+                controllerServiceEntity -> {
+                    flowController.getControllerServiceNode(controllerServiceId).getAdditions().setValue(AdditionConstants.KEY_IS_DELETED, Boolean.TRUE);
+                    flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+
+                    return generateOkResponse("success").build();
+                });
 
         return serviceFacade.getControllerService(controllerServiceId);
     }
@@ -578,8 +633,32 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      *          you may need to perform the check when you get the ControllerServiceEntities.
      */
     private ControllerServiceEntity recoverControllerService(final String controllerServiceId) {
-        flowController.getControllerServiceNode(controllerServiceId).getAdditions().setValue(AdditionConstants.KEY_IS_DELETED, Boolean.FALSE);
-        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+        final ControllerServiceNode controllerServiceNode = flowController.getControllerServiceNode(controllerServiceId);
+        if (controllerServiceNode == null) {
+            throw new ResourceNotFoundException(String.format("Unable to locate controller service with id '%s'.", controllerServiceId));
+        }
+
+        if (!ProcessUtil.getAdditionBooleanValue(controllerServiceNode.getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT)) {
+            throw new IllegalArgumentException(String.format("Unable to recover controller service with id '%s' because it is not in the Recycle Bin.", controllerServiceId));
+        }
+
+        final ControllerServiceEntity requestControllerServiceEntity = new ControllerServiceEntity();
+        withWriteLock(
+                serviceFacade,
+                requestControllerServiceEntity,
+                lookup -> {
+                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
+                    // ensure write permission to the controller service
+                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                },
+                null,
+                controllerServiceEntity -> {
+                    flowController.getControllerServiceNode(controllerServiceId).getAdditions().setValue(AdditionConstants.KEY_IS_DELETED, Boolean.FALSE);
+                    flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+
+                    return generateOkResponse("success").build();
+                });
+
 
         return serviceFacade.getControllerService(controllerServiceId);
     }
@@ -606,9 +685,32 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      * Try to delete a Controller Service permanently
      */
     private ControllerServiceEntity deleteControllerServicePhysically(final String controllerServiceId) {
-        final ControllerServiceEntity controllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
-        final Revision revision = getRevision(controllerServiceEntity.getRevision(), controllerServiceId);
-        return serviceFacade.deleteControllerService(revision, controllerServiceId);
+        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
+
+         withWriteLock(
+                serviceFacade,
+                requestControllerServiceEntity,
+                lookup -> {
+                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
+
+                    // ensure write permission to the controller service
+                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // ensure write permission to the parent process group
+                    controllerService.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // verify any referenced services
+                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService, authorizer, lookup, false);
+                },
+                () -> serviceFacade.verifyDeleteControllerService(controllerServiceId),
+                controllerServiceEntity -> {
+                    final Revision revision = getRevision(controllerServiceEntity.getRevision(), controllerServiceId);
+                    serviceFacade.deleteControllerService(revision, controllerServiceId);
+
+                    return generateOkResponse("success").build();
+                });
+
+         return requestControllerServiceEntity;
     }
 
     /**
@@ -654,12 +756,6 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
         return generateOkResponse(entity).build();
     }
-
-    private static final String DATABASE_CONNECTION_URL = "Database Connection URL";
-    private static final String DATABASE_DRIVER_CLASS_NAME = "Database Driver Class Name";
-    private static final String DATABASE_DRIVER_LOCATION = "database-driver-locations";
-    private static final String DATABASE_USER = "Database User";
-    private static final String DATABASE_PASSWORD = "Password";
 
     /**
      * Retrieves the specified controller service.
@@ -809,34 +905,39 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         // handle expects request (usually from the cluster manager)
         final Revision requestRevision = getRevision(controllerServiceEntity.getRevision(), id);
         final ControllerServiceDTO controllerServiceDTO = controllerServiceEntity.getComponent();
-        return withWriteLock(serviceFacade, controllerServiceEntity, requestRevision, lookup -> {
-            final NiFiUser user = NiFiUserUtils.getNiFiUser();
-            // authorize the service
-            final ComponentAuthorizable authorizable = lookup.getControllerService(id);
-            authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+        return withWriteLock(serviceFacade,
+                controllerServiceEntity,
+                requestRevision,
+                lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
+                    // authorize the service
+                    final ComponentAuthorizable authorizable = lookup.getControllerService(id);
+                    authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
 
-            // ensure write permission to the parent Process Group
-            authorizable.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+                    // ensure write permission to the parent Process Group
+                    authorizable.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
 
-            // ensure write permission to the target Process Group
-            lookup.getProcessGroup(requestControllerServiceMoveEntity.getGroupId()).getAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+                    // ensure write permission to the target Process Group
+                    lookup.getProcessGroup(requestControllerServiceMoveEntity.getGroupId()).getAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
 
-            // authorize any referenced services
-            AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
-        }, () -> serviceFacade.verifyMoveControllerService(controllerServiceDTO, requestControllerServiceMoveEntity.getGroupId()), (revision, csEntity) -> {
-            final ControllerServiceDTO controllerService = csEntity.getComponent();
-            if (requestControllerServiceMoveEntity.getName() != null) {
-                controllerService.setName(requestControllerServiceMoveEntity.getName());
-            }
-            if (requestControllerServiceMoveEntity.getComments() != null) {
-                controllerService.setComments(requestControllerServiceMoveEntity.getComments());
-            }
+                    // authorize any referenced services
+                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
+                    },
+                () -> serviceFacade.verifyMoveControllerService(controllerServiceDTO, requestControllerServiceMoveEntity.getGroupId()),
+                (revision, csEntity) -> {
+                final ControllerServiceDTO controllerService = csEntity.getComponent();
+                if (requestControllerServiceMoveEntity.getName() != null) {
+                    controllerService.setName(requestControllerServiceMoveEntity.getName());
+                }
+                if (requestControllerServiceMoveEntity.getComments() != null) {
+                    controllerService.setComments(requestControllerServiceMoveEntity.getComments());
+                }
 
-            // move the controller service
-            final ControllerServiceEntity entity = serviceFacade.moveControllerService(revision, controllerService, requestControllerServiceMoveEntity.getGroupId());
-            controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
+                // move the controller service
+                final ControllerServiceEntity entity = serviceFacade.moveControllerService(revision, controllerService, requestControllerServiceMoveEntity.getGroupId());
+                controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
 
-            return generateOkResponse(entity).build();
+                return generateOkResponse(entity).build();
         });
     }
 
@@ -881,50 +982,55 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(requestControllerServiceCopyEntity.isDisconnectedNodeAcknowledged());
         }
 
-        return withWriteLock(serviceFacade, requestControllerServiceCopyEntity, lookup -> {
-            final NiFiUser user = NiFiUserUtils.getNiFiUser();
+        return withWriteLock(
+                serviceFacade,
+                requestControllerServiceCopyEntity,
+                lookup -> {
+                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
 
-            // ensure write permission to the target process group
-            final Authorizable processGroup = lookup.getProcessGroup(requestControllerServiceCopyEntity.getGroupId()).getAuthorizable();
-            authorizeProcessGroup(controllerService, lookup, user, processGroup);
-        }, null, controllerServiceCopyEntity -> {
-            // handle sensitive properties
-            final Map<String, String> serviceProperties = controllerService.getProperties();
-            if (serviceProperties != null) {
-                // find the corresponding controller service
-                final ControllerServiceNode serviceNode = flowController.getControllerServiceNode(controllerService.getId());
-                if (serviceNode == null) {
-                    throw new IllegalArgumentException(String.format("Unable to copy because Controller Service '%s' could not be found", controllerService.getId()));
-                }
+                    // ensure write permission to the target process group
+                    final Authorizable processGroup = lookup.getProcessGroup(requestControllerServiceCopyEntity.getGroupId()).getAuthorizable();
+                    authorizeProcessGroup(controllerService, lookup, user, processGroup);
+                    },
+                null,
+                controllerServiceCopyEntity -> {
+                    // handle sensitive properties
+                    final Map<String, String> serviceProperties = controllerService.getProperties();
+                    if (serviceProperties != null) {
+                        // find the corresponding controller service
+                        final ControllerServiceNode serviceNode = flowController.getControllerServiceNode(controllerService.getId());
+                        if (serviceNode == null) {
+                            throw new IllegalArgumentException(String.format("Unable to copy because Controller Service '%s' could not be found", controllerService.getId()));
+                        }
 
-                // look for sensitive properties get the actual value
-                for (Map.Entry<PropertyDescriptor, String> entry : serviceNode.getProperties().entrySet()) {
-                    final PropertyDescriptor descriptor = entry.getKey();
+                        // look for sensitive properties get the actual value
+                        for (Map.Entry<PropertyDescriptor, String> entry : serviceNode.getProperties().entrySet()) {
+                            final PropertyDescriptor descriptor = entry.getKey();
 
-                    if (descriptor.isSensitive()) {
-                        serviceProperties.put(descriptor.getName(), entry.getValue());
+                            if (descriptor.isSensitive()) {
+                                serviceProperties.put(descriptor.getName(), entry.getValue());
+                            }
+                        }
                     }
-                }
-            }
 
-            controllerService.setId(generateUuid());
+                    controllerService.setId(generateUuid());
 
-            // create the controller service and generate the json
-            final Revision revision = new Revision(0L, null, controllerService.getId());
+                    // create the controller service and generate the json
+                    final Revision revision = new Revision(0L, null, controllerService.getId());
 
-            if (requestControllerServiceCopyEntity.getName() != null) {
-                controllerService.setName(requestControllerServiceCopyEntity.getName());
-            }
-            if (requestControllerServiceCopyEntity.getComments() != null) {
-                controllerService.setComments(requestControllerServiceCopyEntity.getComments());
-            }
-            controllerService.setState(ControllerServiceState.DISABLED.name());
+                    if (requestControllerServiceCopyEntity.getName() != null) {
+                        controllerService.setName(requestControllerServiceCopyEntity.getName());
+                    }
+                    if (requestControllerServiceCopyEntity.getComments() != null) {
+                        controllerService.setComments(requestControllerServiceCopyEntity.getComments());
+                    }
+                    controllerService.setState(ControllerServiceState.DISABLED.name());
 
-            final ControllerServiceEntity entity = serviceFacade.createControllerService(revision, requestControllerServiceCopyEntity.getGroupId(), controllerService);
-            controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
+                    final ControllerServiceEntity entity = serviceFacade.createControllerService(revision, requestControllerServiceCopyEntity.getGroupId(), controllerService);
+                    controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
 
-            // build the response
-            return generateCreatedResponse(URI.create(entity.getUri()), entity).build();
+                    // build the response
+                    return generateCreatedResponse(URI.create(entity.getUri()), entity).build();
         });
     }
 
@@ -1009,8 +1115,20 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         final boolean desc = requestServiceSearchCriteriaEntity.isDesc();
         services = services.stream()
                 // 2. filter by controller service state
-                .filter(controllerServiceDTO -> states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState()))
-                        || states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus())))
+                .filter(controllerServiceDTO -> {
+                    final OrchsymServiceSearchCriteriaEntity.OrchsymServiceState serviceState = OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState());
+                    final OrchsymServiceSearchCriteriaEntity.OrchsymServiceState validateStatus = OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus());
+                    if (states.size() == 1 && states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.DISABLED)) {
+                        // If the filter condition is: DISABLED, the result shouldn't contains Controller Services which are in INVALID state
+                        return serviceState.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.DISABLED) && validateStatus.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.VALID);
+                    } else if (states.size() == 1 && states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.INVALID)) {
+                        // If the filter condition is: INVALID, the result shouldn't contains Controller Services which are in DISABLED state
+                        return validateStatus.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.INVALID);
+                    } else {
+                        return states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState()))
+                                || states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus()));
+                    }
+                })
                 // 3. filter by search string. Only try to match search string with controller service's name, type and comments
                 .filter(controllerServiceDTO -> OrchsymSearchEntity.contains(searchStr, //
                         new String[] { controllerServiceDTO.getName(), controllerServiceDTO.getType(), controllerServiceDTO.getComments() }))
@@ -1094,33 +1212,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
 
-        // It will check if the Controller Service exists
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(serviceId);
-        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
-        return withWriteLock(//
-                serviceFacade, //
-                requestControllerServiceEntity, //
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(serviceId);
+        deleteControllerServiceLogically(serviceId);
 
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // ensure write permission to the parent process group
-                    controllerService.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // verify any referenced services
-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService, authorizer, lookup, false);
-                }, //
-                null, //
-                controllerServiceEntity -> {
-                    // 1. Disable it
-                    disableControllerService(serviceId);
-                    // 2. Perform the logic deletion
-                    deleteControllerServiceLogically(serviceId);
-
-                    return generateOkResponse("success").build();
-                });
+        return generateStringOkResponse("success");
     }
 
     /**
@@ -1146,21 +1240,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
 
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(serviceId);
-        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
-        return withWriteLock(//
-                serviceFacade, //
-                requestControllerServiceEntity, //
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(serviceId);
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                }, //
-                null, //
-                controllerServiceEntity -> {
-                    enableControllerService(serviceId);
-                    return generateOkResponse("success").build();
-                });
+        enableControllerService(serviceId);
+
+        return generateStringOkResponse("success");
     }
 
     /**
@@ -1186,21 +1268,13 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
 
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(serviceId);
-        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
-        return withWriteLock(//
-                serviceFacade, //
-                requestControllerServiceEntity, //
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(serviceId);
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                }, //
-                null, //
-                controllerServiceEntity -> {
-                    disableControllerService(serviceId);
-                    return generateOkResponse("success").build();
-                });
+        try {
+            disableControllerService(serviceId);
+        } catch (IllegalStateException ise) {
+            return generateStringOkResponse(ise.getMessage());
+        }
+
+        return generateStringOkResponse("success");
     }
 
     /**
@@ -1227,25 +1301,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
 
-        final ControllerServiceNode controllerServiceNode = flowController.getControllerServiceNode(serviceId);
-        final ControllerServiceEntity requestControllerServiceEntity = new ControllerServiceEntity();
-        if (controllerServiceNode == null) {
-            throw new ResourceNotFoundException(String.format("Unable to locate controller service with id '%s'.", serviceId));
-        }
-        return withWriteLock(//
-                serviceFacade, //
-                requestControllerServiceEntity, //
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(serviceId);
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                }, //
-                null, //
-                controllerServiceEntity -> {
-                    recoverControllerService(serviceId);
+        recoverControllerService(serviceId);
 
-                    return generateOkResponse("success").build();
-                });
+        return generateStringOkResponse("success");
     }
 
     /**
@@ -1271,31 +1329,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
         }
 
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(serviceId);
-        return withWriteLock(//
-                serviceFacade, //
-                requestControllerServiceEntity, //
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(serviceId);
+        deleteControllerServicePhysically(serviceId);
 
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // ensure write permission to the parent process group
-                    controllerService.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // verify any referenced services
-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService, authorizer, lookup, false);
-                }, //
-                null, //
-                controllerServiceEntity -> {
-                    // 1. Disable it
-                    disableControllerService(serviceId);
-                    // 2. Delete it
-                    deleteControllerServicePhysically(serviceId);
-
-                    return generateOkResponse("success").build();
-                });
+        return generateStringOkResponse("success");
     }
 
     private void authorizeProcessGroup(ControllerServiceDTO controllerService, AuthorizableLookup lookup, NiFiUser user, Authorizable processGroup) {

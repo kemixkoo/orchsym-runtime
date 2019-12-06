@@ -33,7 +33,7 @@ import org.apache.nifi.web.api.entity.Entity;
 public class ControllerServicesBatchOperationEntity extends Entity {
     private String operation;
     private boolean includeDescendantGroups;
-    private boolean skipInvalid;
+    private boolean skipInvalid = true;
     private Boolean disconnectedNodeAcknowledged;
 
     /**
@@ -42,7 +42,7 @@ public class ControllerServicesBatchOperationEntity extends Entity {
      */
     @ApiModelProperty(
             value = "The operation on the controller services.",
-            allowableValues = "ENABLE, DISABLE, DELETE"
+            allowableValues = "ENABLE, DISABLE, LOGICAL_DELETION, RECOVERY, PHYSICAL_DELETION"
     )
     public String getOperation() {
         return operation;
@@ -79,6 +79,9 @@ public class ControllerServicesBatchOperationEntity extends Entity {
         this.disconnectedNodeAcknowledged = disconnectedNodeAcknowledged;
     }
 
+    @ApiModelProperty(
+            value = "Whether to stop when an error happens. default is true"
+    )
     public boolean isSkipInvalid() {
         return skipInvalid;
     }
