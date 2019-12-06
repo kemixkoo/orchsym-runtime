@@ -55,12 +55,15 @@
 
     return function (serviceProvider) {
         'use strict';
-
         var config = {
             search: 'Search',
             urls: {
                 search: apiHost + "/nifi-api/flow/search-results",
                 status: apiHost + "/nifi-api/flow/status",
+                root: apiHost + '/nifi-api/process-groups/root',
+                statusById: function(){
+                    return apiHost + "/nifi-api/application/" + window.SYSTEMID.groupId + "/app-status/";
+                },
                 statusApp: function(){
                     return apiHost + "/nifi-api/group/" + window.SYSTEMID.groupId + "/search-results";
                 }
@@ -392,10 +395,11 @@
                 var flowStatusCtrl = this;
                 return $.ajax({
                     type: 'GET',
-                    url: config.urls.status,
+                    url: config.urls.status,//ById()
                     dataType: 'json'
                 }).done(function (response) {
-                    // report the updated status
+                    // report the updated s
+                    // tatus
                     if (nfCommon.isDefinedAndNotNull(response.controllerStatus)) {
                         flowStatusCtrl.update(response.controllerStatus);
                     }
