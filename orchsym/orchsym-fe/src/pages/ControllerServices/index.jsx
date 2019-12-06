@@ -383,12 +383,12 @@ class ControllerServices extends React.Component {
     } else {
       dispatch({
         type: 'controllerServices/fetchDetailServices',
-        payload: val.id,
+        payload: val,
         cb: (res) => {
           const { revision } = res
           const body = {
             component: {
-              id: val.id,
+              id: val,
               state,
             },
             revision,

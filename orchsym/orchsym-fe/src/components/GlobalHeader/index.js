@@ -125,20 +125,19 @@ class GlobalHeader extends PureComponent {
     if (groupsBreadcrumb) {
       if (groupsBreadcrumb.length > 4) {
         return (
-          <span>
+          <Breadcrumb>
             <Breadcrumb.Item>
-              <a onClick={() => (componentIdChange(groupsBreadcrumb[0].id))}>{groupsBreadcrumb[0].name}</a>
+              <a onClick={() => (componentIdChange(groupsBreadcrumb[0].id))} className={styles.breadcrumblink} >{groupsBreadcrumb[0].name}</a>
             </Breadcrumb.Item>
+            <Breadcrumb.Item><Icon type="ellipsis" key="ellipsis" /></Breadcrumb.Item>
             <Breadcrumb.Item>
-              <Icon type="ellipsis" key="ellipsis" />
+              <a onClick={() => (componentIdChange(groupsBreadcrumb[groupsBreadcrumb.length - 2].id))} className={styles.breadcrumblink} >{groupsBreadcrumb[groupsBreadcrumb.length - 2].name}</a>
             </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              <a onClick={() => (componentIdChange(groupsBreadcrumb[groupsBreadcrumb.length - 2].id))}>{groupsBreadcrumb[groupsBreadcrumb.length - 2].name}</a>
-            </Breadcrumb.Item>
+            {/* <Breadcrumb.Separator>>></Breadcrumb.Separator> */}
             <Breadcrumb.Item>
               {groupsBreadcrumb[groupsBreadcrumb.length - 1].name}
             </Breadcrumb.Item>
-          </span>
+          </Breadcrumb>
         )
       }
       return (
@@ -177,7 +176,7 @@ class GlobalHeader extends PureComponent {
         </span>)
         }
         {processGroupId ? (
-          <div className={styles.appPopover} ><AppPopover closePop={closePop} changeState={changeState} componentId={componentId} componentIdChange={componentIdChange}/></div>
+          <div className={styles.appPopover} ><AppPopover closePop={closePop} changeState={changeState} componentId={componentId} componentIdChange={componentIdChange} /></div>
         ) : (null)}
         {processGroupId ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
