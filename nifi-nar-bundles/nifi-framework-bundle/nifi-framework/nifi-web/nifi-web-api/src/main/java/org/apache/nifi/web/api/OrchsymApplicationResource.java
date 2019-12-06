@@ -62,7 +62,6 @@ import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Port;
 import org.apache.nifi.controller.ControllerService;
 import org.apache.nifi.controller.FlowController;
-import org.apache.nifi.controller.FlowController.GroupStatusCounts;
 import org.apache.nifi.controller.ProcessorNode;
 import org.apache.nifi.controller.ReportingTaskNode;
 import org.apache.nifi.controller.ScheduledState;
@@ -71,9 +70,7 @@ import org.apache.nifi.controller.label.Label;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
-import org.apache.nifi.groups.ProcessGroupCounts;
 import org.apache.nifi.services.FlowService;
-import org.apache.nifi.util.FormatUtils;
 import org.apache.nifi.util.PositionCalcUtil;
 import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
@@ -1151,29 +1148,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        // same as ControllerFacade.getControllerStatus
-        final GroupStatusCounts groupStatusCounts = flowController.getGroupStatusCounts(appGroup);
-
-        final ControllerStatusDTO controllerStatus = new ControllerStatusDTO();
-        controllerStatus.setActiveThreadCount(groupStatusCounts.getActiveThreadCount());
-        controllerStatus.setTerminatedThreadCount(groupStatusCounts.getTerminatedThreadCount());
-        controllerStatus.setQueued(FormatUtils.formatCount(groupStatusCounts.getQueuedCount()) + " / " + FormatUtils.formatDataSize(groupStatusCounts.getQueuedContentSize()));
-        controllerStatus.setBytesQueued(groupStatusCounts.getQueuedContentSize());
-        controllerStatus.setFlowFilesQueued(groupStatusCounts.getQueuedCount());
-
-        final ProcessGroupCounts counts = appGroup.getCounts();
-        controllerStatus.setRunningCount(counts.getRunningCount());
-        controllerStatus.setStoppedCount(counts.getStoppedCount());
-        controllerStatus.setInvalidCount(counts.getInvalidCount());
-        controllerStatus.setDisabledCount(counts.getDisabledCount());
-        controllerStatus.setActiveRemotePortCount(counts.getActiveRemotePortCount());
-        controllerStatus.setInactiveRemotePortCount(counts.getInactiveRemotePortCount());
-        controllerStatus.setUpToDateCount(counts.getUpToDateCount());
-        controllerStatus.setLocallyModifiedCount(counts.getLocallyModifiedCount());
-        controllerStatus.setStaleCount(counts.getStaleCount());
-        controllerStatus.setLocallyModifiedAndStaleCount(counts.getLocallyModifiedAndStaleCount());
-        controllerStatus.setSyncFailureCount(counts.getSyncFailureCount());
-
+        final ControllerStatusDTO controllerStatus = serviceFacade.getControllerStatus(appGroup.getIdentifier());
         // create the response entity
         final ControllerStatusEntity entity = new ControllerStatusEntity();
         entity.setControllerStatus(controllerStatus);

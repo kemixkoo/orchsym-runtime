@@ -2984,8 +2984,8 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
     }
 
     @Override
-    public ControllerStatusDTO getControllerStatus() {
-        return controllerFacade.getControllerStatus();
+    public ControllerStatusDTO getControllerStatus(String groupId) {
+        return controllerFacade.getControllerStatus(groupId);
     }
 
     @Override

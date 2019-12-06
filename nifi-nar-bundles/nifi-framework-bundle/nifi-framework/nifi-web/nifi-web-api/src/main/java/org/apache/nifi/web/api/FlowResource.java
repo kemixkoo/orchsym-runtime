@@ -784,7 +784,7 @@ public class FlowResource extends ApplicationResource {
             return replicate(HttpMethod.GET);
         }
 
-        final ControllerStatusDTO controllerStatus = serviceFacade.getControllerStatus();
+        final ControllerStatusDTO controllerStatus = serviceFacade.getControllerStatus(flowController.getRootGroupId());
 
         // create the response entity
         final ControllerStatusEntity entity = new ControllerStatusEntity();

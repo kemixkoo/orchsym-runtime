@@ -368,7 +368,7 @@ public interface NiFiServiceFacade {
      *
      * @return status
      */
-    ControllerStatusDTO getControllerStatus();
+    ControllerStatusDTO getControllerStatus(String groupId);
 
     /**
      * Updates the specified counter by setting its value to 0.
