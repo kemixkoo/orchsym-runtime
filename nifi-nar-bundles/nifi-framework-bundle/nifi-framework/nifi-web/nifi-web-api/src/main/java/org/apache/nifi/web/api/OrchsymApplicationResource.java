@@ -1131,7 +1131,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Path("/{id}/app-entity")
+    @Path("/{id}/app-status")
     @ApiOperation(value = "Get the status of current app", //
             response = Map.class)
     @ApiResponses(value = { //
