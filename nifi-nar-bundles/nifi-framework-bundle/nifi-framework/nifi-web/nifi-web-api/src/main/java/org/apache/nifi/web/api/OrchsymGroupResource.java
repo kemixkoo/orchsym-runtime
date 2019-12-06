@@ -17,7 +17,14 @@
  */
 package org.apache.nifi.web.api;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -40,12 +47,18 @@ import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Port;
-import org.apache.nifi.controller.*;
+import org.apache.nifi.controller.ControllerService;
+import org.apache.nifi.controller.FlowController;
+import org.apache.nifi.controller.ProcessorNode;
+import org.apache.nifi.controller.ReportingTaskNode;
+import org.apache.nifi.controller.ScheduledState;
+import org.apache.nifi.controller.Snippet;
+import org.apache.nifi.controller.Template;
 import org.apache.nifi.controller.label.Label;
-import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.services.FlowService;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.common.OrchsymCommon;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
@@ -55,7 +68,12 @@ import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.search.SearchResultsDTO;
-import org.apache.nifi.web.api.entity.*;
+import org.apache.nifi.web.api.entity.ControllerServiceEntity;
+import org.apache.nifi.web.api.entity.ControllerServiceReferencingComponentEntity;
+import org.apache.nifi.web.api.entity.ProcessGroupEntity;
+import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
+import org.apache.nifi.web.api.entity.SearchResultsEntity;
+import org.apache.nifi.web.api.entity.SnippetEntity;
 import org.apache.nifi.web.api.orchsym.group.AllComponentIdInGroup;
 import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.revision.RevisionManager;
@@ -215,11 +233,10 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
                 });
     }
 
-
     void safeCleanGroup(ProcessGroup group, boolean stopComponents, boolean stopServices, boolean cleanQueue, boolean removeTemplates) {
         final AllComponentIdInGroup allIdsInGroup = orchsymCommon.getAllComponentIdsInGroup(group.getIdentifier());
         if (stopComponents) { // 停止所有组件
-            for (String processorId : allIdsInGroup.getProcessorIds()){
+            for (String processorId : allIdsInGroup.getProcessorIds()) {
                 final ProcessorDTO processorDTO = new ProcessorDTO();
                 processorDTO.setId(processorId);
                 processorDTO.setState(ScheduleComponentsEntity.STATE_STOPPED);
@@ -232,7 +249,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         // 轮询间隔 0.1秒
         long timeUnit = 100;
         int count = 0;
-        while (!isAllProcessorStoppped(group) && count < times){
+        while (!isAllProcessorStoppped(group) && count < times) {
             try {
                 Thread.sleep(timeUnit);
                 count++;
@@ -241,44 +258,45 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             }
         }
 
-        if (count >= times){
+        if (count >= times) {
             throw new IllegalStateException("the time of stopping processors too long, please retry");
         }
 
         if (cleanQueue) { // 清空队列
-            for (String connectionId : allIdsInGroup.getConnectionIds()){
+            for (String connectionId : allIdsInGroup.getConnectionIds()) {
                 DropRequestDTO dropRequest = serviceFacade.createFlowFileDropRequest(connectionId, generateUuid());
                 serviceFacade.deleteFlowFileDropRequest(connectionId, dropRequest.getId());
             }
         }
         if (removeTemplates) { // 删除应用内所有模块下的模板
-            for (String templateId : allIdsInGroup.getTemplateIds()){
+            for (String templateId : allIdsInGroup.getTemplateIds()) {
                 serviceFacade.deleteTemplate(templateId);
             }
         }
 
         if (stopServices) { // 停止服务
-            for (String serviceId : allIdsInGroup.getServiceIds()){
+            for (String serviceId : allIdsInGroup.getServiceIds()) {
                 disableServiceByIdentifier(serviceId);
             }
         }
     }
 
-    private boolean isAllProcessorStoppped(ProcessGroup group){
-     return group.getProcessors().stream().noneMatch(p -> {
-         final ScheduledState state = p.getPhysicalScheduledState();
-         return !state.equals(ScheduledState.DISABLED) && !state.equals(ScheduledState.STOPPED);
-     });
+    private boolean isAllProcessorStoppped(ProcessGroup group) {
+        return group.getProcessors().stream().noneMatch(p -> {
+            final ScheduledState state = p.getPhysicalScheduledState();
+            return !state.equals(ScheduledState.DISABLED) && !state.equals(ScheduledState.STOPPED);
+        });
     }
 
     /**
      * 禁用服务 涉及到自身被引用的服务及其组件 需单独处理
+     * 
      * @param controllerServiceId
      */
-    private void disableServiceByIdentifier(final String controllerServiceId){
+    private void disableServiceByIdentifier(final String controllerServiceId) {
         final ControllerServiceEntity controllerServiceToDisable = serviceFacade.getControllerService(controllerServiceId);
         if (controllerServiceToDisable.getComponent().getState().equalsIgnoreCase(ControllerServiceState.DISABLED.name())) {
-            return ;
+            return;
         }
 
         final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(controllerServiceId)
@@ -330,14 +348,12 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("id", currentGroupId);
         resultMap.put("name", compInfo.componentName);
-        if (!compInfo.currentGroup.isRootGroup()) {
+        if (!compInfo.currentGroup.isRootGroup() && !ProcessUtil.isAppGroup(compInfo.currentGroup)) {// 当前模块为非应用解包
             final ProcessGroup parentGroup = compInfo.currentGroup.getParent();
-            if (!Objects.isNull(parentGroup) && !parentGroup.isRootGroup()) {// 当前模块为非应用解包
-                final boolean groupSelf = currentGroupId.equals(id);
-                // 当前选择的是非模块，则父模块则为当前模块
-                resultMap.put("parentGroupId", groupSelf ? parentGroup.getIdentifier() : currentGroupId);
-                resultMap.put("parentGroupName", groupSelf ? parentGroup.getName() : compInfo.currentGroup.getName());
-            }
+            final boolean groupSelf = currentGroupId.equals(id);
+            // 当前选择的是非模块，则父模块则为当前模块
+            resultMap.put("parentGroupId", groupSelf ? parentGroup.getIdentifier() : currentGroupId);
+            resultMap.put("parentGroupName", groupSelf ? parentGroup.getName() : compInfo.currentGroup.getName());
         }
 
         ProcessGroup tempGroup = compInfo.currentGroup;
@@ -346,7 +362,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             Map<String, String> groupInfoMap = new HashMap<>();
             groupInfoMap.put("id", tempGroup.getIdentifier());
             groupInfoMap.put("name", tempGroup.getName());
-            if (!tempGroup.getParent().isRootGroup()) {//仅到应用级别
+            if (!tempGroup.getParent().isRootGroup()) {// 仅到应用级别
                 groupInfoMap.put("parentGroupId", tempGroup.getParent().getIdentifier());
             }
             groups.add(groupInfoMap);
@@ -376,7 +392,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
 
     }
 
-    private ComponentInfo getCurrentGroup(Object component) {
+    ComponentInfo getCurrentGroup(Object component) {
         ComponentInfo compInfo = new ComponentInfo();
 
         ProcessGroup currentGroup = null;
@@ -422,6 +438,17 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             }
         }
         return compInfo;
+    }
+
+    ProcessGroup getAppGroup(String anyId) {
+        final Object component = getComponentById(anyId);
+        if (!Objects.isNull(component)) {
+            ComponentInfo compInfo = getCurrentGroup(component);
+            if (!Objects.isNull(compInfo.currentGroup)) {
+                return compInfo.currentGroup;
+            }
+        }
+        return null;
     }
 
     /**

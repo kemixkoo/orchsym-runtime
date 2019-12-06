@@ -284,4 +284,12 @@ public final class ProcessUtil {
         }
         return false;
     }
+
+    public static boolean isAppGroup(ProcessGroup group) {
+        if (!Objects.isNull(group) && !group.isRootGroup() //
+                && !Objects.isNull(group.getParent()) && group.getParent().isRootGroup()) {
+            return true;
+        }
+        return false;
+    }
 }

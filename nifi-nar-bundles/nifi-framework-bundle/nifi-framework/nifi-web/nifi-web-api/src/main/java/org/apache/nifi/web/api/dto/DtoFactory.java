@@ -2304,11 +2304,14 @@ public final class DtoFactory {
         dto.setVariables(variables);
 
         dto.setTags(group.getTags());
+        
         Map<String, String> additions = new HashMap<>(group.getAdditions().values());
-        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
-        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
-        final AppType appType = AppTypeAssessor.judgeType(group);
-        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_APP_TYPE, appType.getName());
+        if (ProcessUtil.isAppGroup(group)) {
+            ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+            ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
+            final AppType appType = AppTypeAssessor.judgeType(group);
+            ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_APP_TYPE, appType.getName());
+        }
         dto.setAdditions(additions);
 
         final ProcessGroup parentGroup = group.getParent();

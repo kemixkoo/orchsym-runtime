@@ -94,8 +94,8 @@ import org.apache.nifi.web.api.orchsym.application.ApplicationFieldName;
 import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.revision.RevisionManager;
 import org.apache.nifi.web.util.AppTypeAssessor;
-import org.apache.nifi.web.util.ChinesePinyinUtil;
 import org.apache.nifi.web.util.AppTypeAssessor.AppType;
+import org.apache.nifi.web.util.ChinesePinyinUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -120,7 +120,10 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
     private FlowService flowService;
 
     @Autowired
-    private OrchsymGroupResource groupResource;
+    private OrchsymGroupResource orchsymGroupResource;
+
+    @Autowired
+    private ProcessGroupResource groupResource;
 
     @Autowired
     private TemplateResource templateResource;
@@ -157,7 +160,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return verifyApp;
         }
 
-        return groupResource.generateTemplateData(appId);
+        return orchsymGroupResource.generateTemplateData(appId);
     }
 
     /**
@@ -692,7 +695,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         Consumer<String> cleanAction = (id) -> {
             final ProcessGroup group = flowController.getGroup(id);
             // 停组件和服务，清队列，保留模板
-            groupResource.safeCleanGroup(group, true, true, true, false);
+            orchsymGroupResource.safeCleanGroup(group, true, true, true, false);
         };
 
         return updateAppStatus(appId, AdditionConstants.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
@@ -726,7 +729,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         Consumer<String> cleanAction = (id) -> {
             final ProcessGroup group = flowController.getGroup(id);
             // 停组件和服务，清队列，保留模板
-            groupResource.safeCleanGroup(group, true, true, true, false);
+            orchsymGroupResource.safeCleanGroup(group, true, true, true, false);
         };
 
         return updateAppStatus(findFirst.get().getIdentifier(), AdditionConstants.KEY_IS_DELETED, Boolean.TRUE, cleanAction);
@@ -803,7 +806,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         Consumer<String> cleanAction = (id) -> {
             final ProcessGroup group = flowController.getGroup(id);
             // 停组件和服务，保留队列和模板
-            groupResource.safeCleanGroup(group, true, true, false, false);
+            orchsymGroupResource.safeCleanGroup(group, true, true, false, false);
         };
         return updateAppStatus(appId, AdditionConstants.KEY_IS_ENABLED, Boolean.FALSE, cleanAction);
     }
@@ -864,7 +867,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         if (groupApp == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the application of the groupId: " + appId).build();
         }
-        return groupResource.getResponseForForceDeleteGroup(groupApp);
+        return orchsymGroupResource.getResponseForForceDeleteGroup(groupApp);
     }
 
     @PUT
@@ -893,7 +896,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             return Response.status(Response.Status.NOT_FOUND).entity("cant find the app by the appName" + "'" + appGroupEntity.getName() + "'").build();
         }
 
-        return groupResource.getResponseForForceDeleteGroup(findFirst.get());
+        return orchsymGroupResource.getResponseForForceDeleteGroup(findFirst.get());
     }
 
     @GET
@@ -911,7 +914,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         if (isReplicateRequest()) {
             return replicate(HttpMethod.GET);
         }
-        final Object component = groupResource.getComponentById(id);
+        final Object component = orchsymGroupResource.getComponentById(id);
         if (component == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -1123,4 +1126,37 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 });
     }
 
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path("/{id}/app-entity")
+    @ApiOperation(value = "Get the status of current app", //
+            response = Map.class)
+    @ApiResponses(value = { //
+            @ApiResponse(code = 404, message = CODE_MESSAGE_404) //
+    })
+    public Response getAppEntity(//
+            @PathParam("id") final String anyId//
+    ) {
+
+        // authorize access
+        serviceFacade.authorizeAccess(lookup -> {
+            final Authorizable processGroup = lookup.getProcessGroup(anyId).getAuthorizable();
+            processGroup.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+        });
+        ProcessGroup appGroup = orchsymGroupResource.getAppGroup(anyId);
+        if (Objects.isNull(appGroup)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // get this process group contents
+        final ProcessGroupEntity appEntity = serviceFacade.getProcessGroup(appGroup.getIdentifier());
+        groupResource.populateRemainingProcessGroupEntityContent(appEntity);
+
+        if (appEntity.getComponent() != null) {
+            appEntity.getComponent().setContents(null);
+        }
+
+        return generateOkResponse(appEntity).build();
+    }
 }

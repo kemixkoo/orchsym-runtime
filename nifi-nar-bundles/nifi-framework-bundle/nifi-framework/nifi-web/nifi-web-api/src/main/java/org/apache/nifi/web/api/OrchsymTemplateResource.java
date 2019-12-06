@@ -169,9 +169,9 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                                 });
                     }
 
-                    final ProcessGroup group = flowController.getGroup(parentGroupId);
+                    final ProcessGroup parentGroup = flowController.getGroup(parentGroupId);
                     // 构建默认设置
-                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, group.isRootGroup(), NiFiUserUtils.getNiFiUserIdentity());
+                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(createTemplateRequestEntity, parentGroup.isRootGroup(), NiFiUserUtils.getNiFiUserIdentity());
 
                     final Set<String> tags = createTemplateRequestEntity.getTags();
                     // create the template and generate the json
