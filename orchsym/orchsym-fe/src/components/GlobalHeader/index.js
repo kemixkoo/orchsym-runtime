@@ -1,16 +1,20 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Icon, Alert, Breadcrumb } from 'antd';
-import Link from 'umi/link';
+// import Link from 'umi/link';
 import router from 'umi/router'
 import Debounce from 'lodash-decorators/debounce';
 import styles from './index.less';
 import RightContent from './RightContent';
 import AppPopover from './AppPopover';
+import { getToken } from '@/utils/authority';
+import { getExpiration } from '@/utils/utils';
 
-@connect(({ login, canvas }) => ({
-  leftDays: login.leftDays,
-  appDetails: canvas.appDetails,
+@connect(({ application, global, login }) => ({
+  login,
+  leftDays: global.leftDays,
+  appDetails: application.appDetails,
+  groupsBreadcrumb: global.groupsBreadcrumb,
 }))
 class GlobalHeader extends PureComponent {
   componentWillMount() {
@@ -21,16 +25,32 @@ class GlobalHeader extends PureComponent {
       type: 'user/fetchCurrent',
     });
     dispatch({
-      type: 'login/fetchLicenseWarn',
+      type: 'global/fetchLicenseWarn',
     });
     dispatch({
-      type: 'login/fetchGetClientId',
+      type: 'global/fetchGetClientId',
+    });
+    dispatch({
+      type: 'global/fetchValidDownApp',
     });
     if (match && processGroupId) {
-      dispatch({
-        type: 'canvas/fetchDetailApplication',
-        payload: processGroupId,
-      });
+      // dispatch({
+      //   type: 'application/fetchDetailApplication',
+      //   payload: processGroupId,
+      // });
+      this.getBreadcrumb(processGroupId)
+    }
+    // kc登录 刷新
+    if (getToken()) {
+      this.poll()
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { componentId } = this.props;
+    // 如果数据发生变化，则更新图表
+    if ((prevProps.componentId !== componentId)) {
+      this.getBreadcrumb(componentId)
     }
   }
 
@@ -38,6 +58,29 @@ class GlobalHeader extends PureComponent {
     this.triggerResizeEvent.cancel();
   }
 
+  poll = () => {
+    const { dispatch } = this.props;
+    const oldJwt = localStorage.getItem('jwt');
+    if (!oldJwt) {
+      if (window.document.cookie > -1) {
+        dispatch({
+          type: 'login/fetchRefreshToken',
+        });
+      }
+      return
+    }
+    const activeTime = getExpiration(oldJwt) - (new Date()).getTime();
+    const interval = 30;
+    const refreshLeftTime = interval * 1000 * 1.5;
+    if (activeTime <= refreshLeftTime) {
+      dispatch({
+        type: 'login/fetchRefreshToken',
+      });
+    }
+    setTimeout(() => {
+      this.poll();
+    }, 30 * 1000);
+  }
 
   /* eslint-disable*/
   @Debounce(600)
@@ -47,6 +90,15 @@ class GlobalHeader extends PureComponent {
     event.initEvent('resize', true, false);
     window.dispatchEvent(event);
   }
+
+  getBreadcrumb = (id) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'global/fetchBreadcrumb',
+      payload: id,
+    });
+  }
+
   toggle = () => {
     const { collapsed, onCollapse } = this.props;
     onCollapse(!collapsed);
@@ -54,36 +106,81 @@ class GlobalHeader extends PureComponent {
   };
 
   toGo = () => {
+    // const { dispatch } = this.props
+    // dispatch({
+    //   type: 'application/appendValue',
+    //   payload: {
+    //     appDetails: {},
+    //   },
+    // });
     router.push('/')
   };
 
+  showBreadcrumb = () => {
+    const { groupsBreadcrumb, componentId, componentIdChange } = this.props
+    window.getGroupsBreadcrumb = () => {
+      return groupsBreadcrumb
+    }
+    // console.log("groupsBreadcrumb.length", groupsBreadcrumb.length)
+    if (groupsBreadcrumb) {
+      if (groupsBreadcrumb.length > 4) {
+        return (
+          <Breadcrumb>
+            <Breadcrumb.Item>
+              <a onClick={() => (componentIdChange(groupsBreadcrumb[0].id))} className={styles.breadcrumblink} >{groupsBreadcrumb[0].name}</a>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item><Icon type="ellipsis" key="ellipsis" /></Breadcrumb.Item>
+            <Breadcrumb.Item>
+              <a onClick={() => (componentIdChange(groupsBreadcrumb[groupsBreadcrumb.length - 2].id))} className={styles.breadcrumblink} >{groupsBreadcrumb[groupsBreadcrumb.length - 2].name}</a>
+            </Breadcrumb.Item>
+            {/* <Breadcrumb.Separator>>></Breadcrumb.Separator> */}
+            <Breadcrumb.Item>
+              {groupsBreadcrumb[groupsBreadcrumb.length - 1].name}
+            </Breadcrumb.Item>
+          </Breadcrumb>
+        )
+      }
+      return (
+        groupsBreadcrumb.map(item => (<Breadcrumb.Item key={item.id}>
+          {(componentId === item.id) ? item.name :
+            <a onClick={() => (componentIdChange(item.id))} className={styles.breadcrumblink} >{item.name}</a>
+          }
+        </Breadcrumb.Item>))
+      )
+
+    }
+    //   <Breadcrumb.Item>
+    //     {(processGroupId === component.id) ? component.name :
+    //       <Link to={`/canvas/${processGroupId}/0`} target="_self">{component.name}</Link>
+    //     }
+    //   </Breadcrumb.Item>)
+  }
+
   render() {
-    const { pstyle, match, collapsed, leftDays, appDetails: { component } } = this.props;
+    const { pstyle, match, collapsed, leftDays, groupsBreadcrumb, componentId, componentIdChange, closePop, changeState } = this.props; // appDetails: { component },
     const { params } = match;
     const { processGroupId } = params;
     const onClose = e => {
       console.log(e, 'I was closed.');
     };
     const showDays = leftDays < 30
-    const url = `/canvas/${processGroupId}`
     return (
       <div className={styles.header} style={pstyle}>
 
-        {processGroupId ? (
-          <span className={styles.trigger} onClick={this.toGo}>
-            <Icon type="left" />
-          </span>) : (<span className={styles.trigger} onClick={this.toggle}>
-            <Icon type={collapsed ? 'menu-unfold' : 'menu-fold'} />
-          </span>)
+        {processGroupId ? (null
+          // <span className={styles.trigger} onClick={this.toGo}>
+          //   <Icon type="left" />
+          // </span>
+        ) : (<span className={styles.trigger} onClick={this.toggle}>
+          <Icon type={collapsed ? 'menu-unfold' : 'menu-fold'} />
+        </span>)
         }
-        {processGroupId ? (<div className={styles.appPopover} ><AppPopover /></div>) : (null)}
-        {processGroupId && component ? (
+        {processGroupId ? (
+          <div className={styles.appPopover} ><AppPopover closePop={closePop} changeState={changeState} componentId={componentId} componentIdChange={componentIdChange} /></div>
+        ) : (null)}
+        {processGroupId ? (
           <Breadcrumb separator=">>" style={{ display: 'inline-block' }}>
-            <Breadcrumb.Item>
-              {processGroupId === component.id ? component.name :
-                <Link to={url} target="blank">{component.name}</Link>
-              }
-            </Breadcrumb.Item>
+            {this.showBreadcrumb()}
           </Breadcrumb>) : (null)
         }
         {

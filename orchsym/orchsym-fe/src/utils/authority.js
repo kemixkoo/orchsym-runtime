@@ -1,3 +1,4 @@
+import { getExpiration } from '@/utils/utils';
 // use localStorage to store the authority info, which might be sent from server in actual project.
 export function getAuthority() {
   return ['admin'];
@@ -11,7 +12,7 @@ export function getToken() {
 }
 export function setToken(token) {
   const jwt = {};
-  jwt.expires = (new Date()).getTime() + 24 * 60 * 60 * 1000;
+  jwt.expires = getExpiration(token);
   jwt.item = token;
   localStorage.setItem('jwt', JSON.stringify(jwt));
   return localStorage.setItem('token', token);

@@ -457,6 +457,9 @@
             },
             getSupportEmail: function () {
                 return nf._.msg('nf-canvas-global-menu-controller.supportEmail') + ': ' +  window.supportEmail;
+            },
+            getOldestEventMessage: function () {
+                return nf._.msg('partials.provenance.provenance-content.oldest-event-message') + ': ' +  window.supportEmail;
             }
         }
 

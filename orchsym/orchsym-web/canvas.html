@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="assets/angular-material/angular-material.min.css?1.7.0-SNAPSHOT" type="text/css" />
     <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css?1.7.0-SNAPSHOT" type="text/css" />
     <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="stylesheet" href="haida.css" type="text/css" />
     <script>URLSearchParams=void 0;</script>
     <script type="text/javascript" src="assets/url-search-params/build/url-search-params.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/codemirror/lib/codemirror-compressed.js?1.7.0-SNAPSHOT"></script>
@@ -124,6 +125,7 @@
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-flow-status-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-global-menu-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-graph-controls-controller.js?1.7.0-SNAPSHOT"></script>
+    <script type="text/javascript" src="js/nf/canvas/controllers/nf-templates-controls-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-navigate-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/controllers/nf-ng-canvas-operate-controller.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/nf/canvas/header/components/nf-ng-processor-component.js?1.7.0-SNAPSHOT"></script>
@@ -143,7 +145,10 @@
     <script type="text/javascript" src="js/jquery/nfeditor/jquery.nfeditor.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/jquery/propertytable/jquery.propertytable.js?1.7.0-SNAPSHOT"></script>
     <script type="text/javascript" src="js/jquery/tagcloud/jquery.tagcloud.js?1.7.0-SNAPSHOT"></script>
-</head><body ng-controller="ngCanvasAppCtrl" id="canvas-body"><div id="splash" layout="column" layout-align="center center"><div id="splash-logo" layout="column" layout-align="end center" style="width:50%;height:40%"><img src="images/logo.svg" style="width:50%"/><div id="splash-progress" layout="column" layout-align="end center" style="height:10%;width:85%"><md-progress-linear md-mode="indeterminate" class="md-warn md-hue-1"></md-progress-linear></div></div><div id="splash-copyright" layout="row" layout-align="center end" style="height:40%"><p style="font-size:20px; color:white">&copy; 2018 Baishan Cloud Incorporated. All rights reserved.</p></div></div><div id="message-pane" class="message-pane hidden">
+</head><body ng-controller="ngCanvasAppCtrl" id="canvas-body"><div id="splash" layout="column" layout-align="center center">
+    <div id="splash-logo" layout="column" layout-align="end center" style="width:50%;height:30%">
+<!--        <img src="images/logo.svg" style="width:50%"/>-->
+        <div id="splash-progress" layout="column" layout-align="end center" style="height:10%;width:85%"><md-progress-linear md-mode="indeterminate" class="md-warn md-hue-1"></md-progress-linear></div></div><div id="splash-copyright" layout="row" layout-align="center end" style="height:40%"><p style="font-size:20px; color:white">&copy; 2018 Baishan Cloud Incorporated. All rights reserved.</p></div></div><div id="message-pane" class="message-pane hidden">
     <div class="message-pane-message-box">
         <div id="message-title" class="message-pane-title"></div>
         <div id="user-links-container">
@@ -161,6 +166,92 @@
 </div>
 
 <div id="banner-header" class="main-banner-header"></div>
+<!--wanzhen 2019-11-20-->
+<!--<md-menu md-position-mode="target-right target" md-offset="-1 44" id="global-menu-button-box">
+    <button md-menu-origin id="global-menu-button" ng-click="$mdOpenMenu()">
+        <div class="icon icon-menu" style="margin-right: -30px;"></div>
+    </button>
+    <md-menu-content id="global-menu-content">
+        <md-menu-item layout-align="space-around center">
+            <a id="reporting-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.summary.shell.launch();">
+                <i class="fa fa-table"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Summary'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center">
+            <a id="counters-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.counters.shell.launch();"
+               ng-class="{disabled: !appCtrl.nf.Common.canAccessCounters()}">
+                <i class="icon icon-menu-counters"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Counter'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center">
+            <a id="bulletin-board-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.bulletinBoard.shell.launch();">
+                <i class="icon icon-bell"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.BulletinBoard'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item
+                layout-align="space-around center">
+            <a id="provenance-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.dataProvenance.shell.launch();"
+               ng-class="{disabled: !appCtrl.nf.Common.canAccessProvenance()}">
+                <i class="icon icon-provenance"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.DataProvenance'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item layout-align="space-around center">
+            <a id="flow-settings-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.controllerSettings.shell.launch();">
+                <i class="icon icon-menu-contorller-settings"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.ControllerSettings'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item ng-if="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.cluster.visible();"
+                      layout-align="space-around center">
+            <a id="cluster-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.cluster.shell.launch();"
+               ng-class="{disabled: !appCtrl.nf.Common.canAccessController()}">
+                <i class="fa fa-cubes"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Cluster'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center">
+            <a id="history-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.flowConfigHistory.shell.launch();">
+                <i class="icon icon-menu-history"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.OperationHistory'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider ng-if="appCtrl.nf.CanvasUtils.isConfigurableAuthorizer()"></md-menu-divider>
+        <md-menu-item layout-align="space-around center" ng-if="appCtrl.nf.CanvasUtils.isConfigurableAuthorizer()">
+            <a id="users-link" layout="row"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.users.shell.launch();"
+               ng-class="{disabled: !(appCtrl.nf.Common.canAccessTenants())}">
+                <i class="fa fa-users"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Users'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-item layout-align="space-around center" ng-if="appCtrl.nf.CanvasUtils.isConfigurableAuthorizer()">
+            <a id="policies-link" layout="row"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.policies.shell.launch();"
+               ng-class="{disabled: !(appCtrl.nf.Common.canAccessTenants() && appCtrl.nf.Common.canModifyPolicies())}">
+                <i class="fa fa-key"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Policies'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item layout-align="space-around center">
+            <a id="templates-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.templates.shell.launch();">
+                <i class="icon icon-template"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.Templates'] }}
+            </a>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item layout-align="space-around center">
+            <a id="about-link"
+               ng-click="appCtrl.serviceProvider.headerCtrl.globalMenuCtrl.about.modal.show();">
+                <i class="icon icon-menu-about"></i>{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.About'] }}
+            </a>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>-->
 <!--
 <div id="banner-footer" class="main-banner-footer"></div><md-toolbar id="header" layout-align="space-between center" layout="row" class="md-small md-accent md-hue-1">
     <img id="nifi-logo" src="images/logo.svg">
@@ -331,7 +422,7 @@
 
 <div id="flow-status-top" flex layout="row" layout-align="space-between center">
     <div id="breadcrumbs" layout="row" layout-align="space-around center">
-        <nf-breadcrumbs style="width: 100%;"
+        <!--<nf-breadcrumbs style="width: 100%;"
             breadcrumbs="appCtrl.serviceProvider.breadcrumbsCtrl.getBreadcrumbs();"
             click-func="appCtrl.nf.CanvasUtils.getComponentByType('ProcessGroup').enterGroup"
             highlight-crumb-id="appCtrl.nf.CanvasUtils.getGroupId();"
@@ -339,21 +430,21 @@
             is-tracking="appCtrl.serviceProvider.breadcrumbsCtrl.isTracking"
             get-version-control-class="appCtrl.serviceProvider.breadcrumbsCtrl.getVersionControlClass"
             get-version-control-tooltip="appCtrl.serviceProvider.breadcrumbsCtrl.getVersionControlTooltip">
-        </nf-breadcrumbs>
-        <!--<div id="breadcrumbs-search">
-            <input type="text">
+        </nf-breadcrumbs>-->
+        <div id="breadcrumbs-search">
+            <input type="text" id="search-field">
             <span class="acon-search"></span>
-        </div>-->
+        </div>
         <div id="data-flow-title-viewport">
             <div id="data-flow-title-container">
                 <div class="action-button-right">
-                    <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openConfigureOrDetailsView();"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Configuration']}}" class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openConfigureOrDetailsView();"
                             ng-disabled="!(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
                         <span class="acon-setting"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['managePolicies'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <!--<button class="svg-right" ng-click="appCtrl.nf.Actions['managePolicies'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!(appCtrl.nf.CanvasUtils.canManagePolicies())">
-                        <span class="acon-key"></span>
+                        <span class="fa fa-key"></span>
                     </button>
                     <button class="svg-right" ng-click="appCtrl.nf.Actions['fillColor'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.isColorable(appCtrl.nf.CanvasUtils.getSelection());">
@@ -363,62 +454,93 @@
                             ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() &amp;&amp; (appCtrl.nf.CanvasUtils.getSelection().empty() || appCtrl.nf.CanvasUtils.canRead(appCtrl.nf.CanvasUtils.getSelection())));">
                         <span class="icon-template-save"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['uploadTemplate']();" ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() &amp;&amp; appCtrl.nf.CanvasUtils.getSelection().empty());">
+                    <button class="svg-right" ng-click="appCtrl.nf.Actions['uploadTemplate']();" ng-disabled="!(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty());">
                         <span class="icon-template-import"></span>
+                    </button>-->
+                    <button class="svg-right">
+                        <span class="hicon-service"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['group'](appCtrl.nf.CanvasUtils.getSelection());"
-                            ng-disabled="!(appCtrl.nf.CanvasUtils.getComponentByType('Connection').isDisconnected(appCtrl.nf.CanvasUtils.getSelection()) && appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection()));">
-                        <span class="acon-plus-square"></span>
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['partials.canvas.navigation.uploadTemplate']}}" class="svg-right" ng-click="appCtrl.nf.Actions['template'](appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="acon-cloud-upload"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['showStats'](appCtrl.nf.CanvasUtils.getSelection());" ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.EmptyQueue']}}"  class="svg-right" ng-click="appCtrl.nf.Actions['emptyQueue'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty())">
+                        <span class="hicon-clearing-queue"></span>
+                    </button>
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.QueueList']}}" class="svg-right" ng-click="appCtrl.nf.Actions['listQueue'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="(appCtrl.nf.CanvasUtils.canWriteCurrentGroup() && appCtrl.nf.CanvasUtils.getSelection().empty())">
+                        <span class="acon-unordered-list"></span>
+                    </button>
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-header.DataProvenance']}}" class="svg-right" ng-click="appCtrl.nf.Actions['openProvenance'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
+                        <span class="hicon-data-traceability"></span>
+                    </button>
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.StatsHistory']}}" class="svg-right" ng-click="appCtrl.nf.Actions['showStats'](appCtrl.nf.CanvasUtils.getSelection());" ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-area-chart"></span>
                     </button>
                     <div class="svg-right">
                         <div class="line"></div>
                     </div>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
-                            ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Align']}}" class="svg-right button-alignment-menu" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="(appCtrl.serviceProvider.graphControlsCtrl.canConfigureOrOpenDetails())">
+                        <span class="hicon-alignment"></span>
+                        <span class="acon-caret-down" style="font-size: 10px;margin-left: -8px;"></span>
+                        <div class="alignment-menu">
+                            <div class="context-menu-item" ng-click="appCtrl.nf.Actions['alignHorizontal'](appCtrl.nf.CanvasUtils.getSelection());">
+                                <div class="context-menu-item-img fa fa-align-center fa-rotate-90"></div>
+                                <div class="context-menu-item-text">水平对齐</div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="context-menu-item" ng-click="appCtrl.nf.Actions['alignVertical'](appCtrl.nf.CanvasUtils.getSelection());">
+                                <div class="context-menu-item-img fa fa-align-center"></div>
+                                <div class="context-menu-item-text">垂直对齐</div>
+                                <div class="clear"></div>
+                            </div>
+                        </div>
+                    </button>
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Collapse']}}" class="svg-right" ng-click="appCtrl.nf.Actions['collapse'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-minus"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['expand'](appCtrl.nf.CanvasUtils.getSelection());"
-                            ng-disabled="!appCtrl.nf.CanvasUtils.areDeletable(appCtrl.nf.CanvasUtils.getSelection());">
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Expand']}}" class="svg-right" ng-click="appCtrl.nf.Actions['expand'](appCtrl.nf.CanvasUtils.getSelection());"
+                            ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-plus"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['disable'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Disable']}}" class="svg-right" ng-click="appCtrl.nf.Actions['disable'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-lock"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['enable'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Enable']}}" class="svg-right" ng-click="appCtrl.nf.Actions['enable'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-unlock"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['stop'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Stop']}}" class="svg-right" ng-click="appCtrl.nf.Actions['stop'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-stopb red"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['start'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Start']}}" class="svg-right" ng-click="appCtrl.nf.Actions['start'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-playb green"></span>
                     </button>
                     <div class="svg-right">
                         <div class="line"></div>
                     </div>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['delete'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Delete']}}" class="svg-right" ng-click="appCtrl.nf.Actions['delete'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.getSelection().empty() && !appCtrl.nf.CanvasUtils.canModify(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-delete"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['paste'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-toobbar.Paste']}}" class="svg-right" ng-click="appCtrl.nf.Actions['paste'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.isPastable()">
                         <span class="acon-paste"></span>
                     </button>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['copy'](appCtrl.nf.CanvasUtils.getSelection());"
+                    <button title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.Copy']}}" class="svg-right" ng-click="appCtrl.nf.Actions['copy'](appCtrl.nf.CanvasUtils.getSelection());"
                             ng-disabled="!appCtrl.nf.CanvasUtils.isCopyable(appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-copy"></span>
                     </button>
                     <div class="svg-right">
                         <div class="line"></div>
                     </div>
-                    <button class="svg-right" ng-click="appCtrl.nf.Actions['reload'](appCtrl.nf.CanvasUtils.getSelection());">
+                    <button class="svg-right" title="{{appCtrl.serviceProvider.globalMenuCtrl.constant['nf-context-menu.Refresh']}}" ng-click="appCtrl.nf.Actions['reload'](appCtrl.nf.CanvasUtils.getSelection());">
                         <span class="acon-reload"></span>
                     </button>
                 </div>
@@ -436,11 +558,23 @@
 </div>
 <div id="search-flow-results"></div>
 
+<div class="w-100-list" id="w-100-list">
+    <ul>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(8);">800%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(7);">700%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(6);">600%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(5);">500%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(4);">400%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(3);">300%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(2);">200%</li>
+        <li ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoom100(1);">100%</li>
+    </ul>
+</div>
 <div id="flow-status" flex layout="row" layout-align="space-between center" style="bottom: 0px;position: absolute;width: 100%;">
     <div id="flow-status-container" layout="row" layout-align="space-around center">
-        <div class="fa fa-cubes" ng-if="appCtrl.nf.ClusterSummary.isClustered()" title="Connected nodes / Total number of nodes in the cluster">
+        <!--<div class="fa fa-cubes" ng-if="appCtrl.nf.ClusterSummary.isClustered()" title="Connected nodes / Total number of nodes in the cluster">
             <span id="connected-nodes-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.connectedNodesCount}}</span>
-        </div>
+        </div>-->
         <div class="icon icon-threads" ng-class="appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.getExtraThreadStyles()"
              title="Active Threads{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.hasTerminatedThreads() ? ' (Terminated)' : ''}}">
             <span id="active-thread-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.threadCounts}}</span>
@@ -448,12 +582,12 @@
         <div class="fa fa-list" title="Total queued data">
             <span id="total-queued">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.totalQueued}}</span>
         </div>
-        <div class="icon icon-transmitting" title="Transmitting Remote Process Groups">
+        <!--<div class="icon icon-transmitting" title="Transmitting Remote Process Groups">
             <span id="controller-transmitting-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerTransmittingCount}}</span>
         </div>
         <div class="icon icon-transmit-false" title="Not Transmitting Remote Process Groups">
             <span id="controller-not-transmitting-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerNotTransmittingCount}}</span>
-        </div>
+        </div>-->
         <div class="fa fa-play" title="Running Components">
             <span id="controller-running-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerRunningCount}}</span>
         </div>
@@ -466,7 +600,7 @@
         <div class="icon icon-enable-false" title="Disabled Components">
             <span id="controller-disabled-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerDisabledCount}}</span>
         </div>
-        <div class="fa fa-check" title="Up to date Versioned Process Groups">
+        <!--<div class="fa fa-check" title="Up to date Versioned Process Groups">
             <span id="controller-up-to-date-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerUpToDateCount}}</span>
         </div>
         <div class="icon icon-version-modified" title="Locally modified Versioned Process Groups">
@@ -480,7 +614,7 @@
         </div>
         <div class="icon icon-version-sync-failed" title="Sync failure Versioned Process Groups">
             <span id="controller-sync-failure-count">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.controllerSyncFailureCount}}</span>
-        </div>
+        </div>-->
         <div class="icon icon-refresh-time" title="Last refresh">
             <span id="stats-last-refreshed">{{appCtrl.serviceProvider.headerCtrl.flowStatusCtrl.statsLastRefreshed}}</span>
         </div>
@@ -488,25 +622,29 @@
     </div>
     <div>
         <div class="action-button-right">
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
-                <span class="acon-eye"></span>
-            </button>
-            <div class="svg-right" style="margin-right: 4px;">
-                <div class="line"></div>
+            <div class="w-100" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.show100();">
+                <span id="w-100"></span>
+                <span class="acon-up" style="font-size: 12px;margin-left: -6px;"></span>
             </div>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">
-                <span class="acon-zoom-in"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomIn();">
+                <span class="acon-zoom-in" style="font-size: 18px;"></span>
             </button>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">
-                <span class="acon-zoom-out"></span>
+            <div class="svg-right w-slider">
+                <div class="slider-handle" id="w-slider-handle"></div>
+            </div>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomOut();">
+                <span class="acon-zoom-out" style="font-size: 18px;"></span>
             </button>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">
-                <span class="acon-fullscreen"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
+                <span class="acon-eye" style="font-size: 18px;font-weight: 600;"></span>
             </button>
-            <button class="svg-right" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">
-                <span class="acon-shrink"></span>
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomActualSize();">
+                <span class="acon-fullscreen" style="font-size: 18px;font-weight: 600;"></span>
             </button>
-            <div class="svg-right">
+            <button class="svg-right" style="margin-top: 0px;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.navigateCtrl.zoomFit();">
+                <span class="acon-shrink" style="font-size: 18px;font-weight: 600;"></span>
+            </button>
+            <div class="svg-right" style="margin-top: 0px;">
                 <div class="line"></div>
             </div>
         </div>
@@ -1217,7 +1355,7 @@
              ng-click="appCtrl.serviceProvider.graphControlsCtrl.expand($event)">
             <!--<div class="graph-control-header-icon fa fa-compass">
             </div>-->
-            <div class="graph-control-header">{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Navigate'] }}</div>
+            <div class="graph-control-header" style="margin-left: 10px;">{{ appCtrl.serviceProvider.globalMenuCtrl.constant['nf-canvas-navigate.Navigate'] }}</div>
             <div class="graph-control-header-action">
                 <div class="graph-control-expansion fa fa-plus-square-o pointer"></div>
             </div>
@@ -1400,10 +1538,13 @@
 </div>
 <div class="component-panel-tools" id="component-panel-tools">
     <div class="acon" type="component-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('component-panel')">
-        <span class="acon-api"></span>
+        <span class="right-icon hicon-assembly"></span>
     </div>
     <div class="acon" type="system-tools-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('system-tools-panel')">
-        <span class="acon-appstore"></span>
+        <span class="right-icon hicon-tool"></span>
+    </div>
+    <div class="acon" type="template-panel" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent('template-panel')">
+        <span class="right-icon hicon-template"></span>
     </div>
 </div>
 <div class="component-panel component-panel-toggleClass" id="system-tools-panel">
@@ -1411,19 +1552,19 @@
         <div class="panel-main-left">
             <div class="main-left-header">
                 <div class="collapse">
-                    <!--            <img src="images/youshou.svg" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">-->
+                    <span class="icon right-icon acon-appstore"></span>
                 </div>
                 {{appCtrl.serviceProvider.graphControlsCtrl.systemToolsName}}
             </div>
             <div class="system-tools-list" id="system-tools-list">
-                <div class="button-box">
+                <!--<div class="button-box">
                     <button id="processor-component"
                             class="component-button icon icon-processor"
                             ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
                             nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.processorComponent);">
                         <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.processor}}</span>
                     </button>
-                </div>
+                </div>-->
                 <div class="button-box">
                     <button id="port-in-component"
                             class="component-button icon icon-port-in"
@@ -1464,14 +1605,14 @@
                         <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.funnel}}</span>
                     </button>
                 </div>
-                <div class="button-box">
+                <!--<div class="button-box">
                     <button id="template-component"
                             class="component-button icon icon-template"
                             ng-disabled="!appCtrl.nf.CanvasUtils.canWriteCurrentGroup();"
                             nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableComponentConfig(appCtrl.serviceProvider.headerCtrl.toolboxCtrl.templateComponent);">
                         <span>{{appCtrl.serviceProvider.headerCtrl.toolboxCtrl.config.type.template}}</span>
                     </button>
-                </div>
+                </div>-->
                 <div class="button-box">
                     <button id="label-component"
                             class="component-button icon icon-label"
@@ -1485,7 +1626,6 @@
     </div>
 </div>
 <div class="component-panel component-panel-toggleClass" id="component-panel">
-
     <div class="graph-control right docked"
          ng-class="{true:'hidden',false:'hidden'}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]"
          style="position: absolute; width:32px; right:0; top:25px;display: none;">
@@ -1500,13 +1640,25 @@
 
     <div class="panel-main" ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
       <div class="panel-main-left">
-        <div class="main-left-header">
-          <div class="collapse">
-<!--            <img src="images/youshou.svg" ng-click="appCtrl.serviceProvider.graphControlsCtrl.openComponent()">-->
+          <div class="main-left-header" ng-click="appCtrl.serviceProvider.graphControlsCtrl.showClassification()">
+              <div class="collapse">
+                  <img src=" images/{{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationIcon}}">
+              </div>
+              <span>{{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName}}</span>
+              <span class="acon-caret-down" style="font-size: 12px;margin-left: 0px;"></span>
           </div>
-          {{appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName}}
-        </div>
-        <div style="width:100%; height:52px; z-index:1;  position: relative;">
+          <div class="panel-main-right" id="classification-menu">
+              <ul class="classification">
+                  <li ng-repeat="classification in appCtrl.serviceProvider.graphControlsCtrl.componentDuanwuData"
+                      ng-click="appCtrl.serviceProvider.graphControlsCtrl.toggleClassification(classification)"
+                      ng-class="{true:'active',false:''}[appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName == classification.name]"
+                      title="{{classification.name}}">
+                      <img src=" images/{{classification.icon}}">
+                      <p>{{classification.name}}</p>
+                  </li>
+              </ul>
+          </div>
+        <div style="width:100%; height:40px; z-index:0;  position: relative;">
           <div class="search-kuang">
             <img src="images/search.svg">
             <input type="text"
@@ -1519,11 +1671,10 @@
         </div>
         <div class="component-list" id="component-list">
           <div ng-repeat="item in appCtrl.serviceProvider.graphControlsCtrl.componentList">
-              <div class="classification-title">
+              <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.graphControlsCtrl.changeDomStatus(item)">
                 <span class="shouzhan-outer">
                     <i class="shouzhan fa"
-                       ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[item.open]"
-                       ng-click="appCtrl.serviceProvider.graphControlsCtrl.changeDomStatus(item)"></i>
+                       ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[item.open]"></i>
                  </span>
                 {{item.name}}
               </div>
@@ -1536,9 +1687,9 @@
                    ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()">
                 <div class="component-img">
                   <img src="images/{{component.icon}}">
-                </div>
-                <div class="component-name">
-                  {{component.name}}
+                    <div class="component-name">
+                        {{component.name}}
+                    </div>
                 </div>
                 <!-- <div class="component-info">
                   <div class="shang-caret"></div>
@@ -1551,24 +1702,99 @@
           <div class="emptydata-warning" ng-class="{true:'hidden',false:''}[appCtrl.serviceProvider.graphControlsCtrl.componentList.length > 0]">
             未找到该组件
           </div>
-
-
         </div>
       </div>
-      <div class="panel-main-right">
-        <ul class="classification">
-          <li ng-repeat="classification in appCtrl.serviceProvider.graphControlsCtrl.componentDuanwuData"
-              ng-click="appCtrl.serviceProvider.graphControlsCtrl.toggleClassification(classification)"
-              ng-class="{true:'active',false:''}[appCtrl.serviceProvider.graphControlsCtrl.bigClassificationName == classification.name]"
-              title="{{classification.name}}">
-            <img src=" images/{{classification.icon}}">
-          </li>
-        </ul>
-      </div>
     </div>
+</div>
+<div class="component-panel component-panel-toggleClass" id="template-panel">
+    <div class="panel-main" ng-class="{true:'',false:''}[appCtrl.serviceProvider.graphControlsCtrl.isComponentOpen]">
+        <div class="panel-main-left">
+            <div class="main-left-header">
+                <div class="collapse">
+                    <span class="icon right-icon hicon-template"></span>
+                </div>
+                <span>{{appCtrl.serviceProvider.graphControlsCtrl.AllTemplates}}</span>
+<!--                <span class="acon-caret-down" style="font-size: 12px;margin-left: 0px;"></span>-->
+            </div>
+            <div style="width:100%; height:40px; z-index:0;  position: relative;">
+                <div class="search-kuang">
+                    <img src="images/search.svg">
+                    <input type="text"
+                           id="search-template-input"
+                           placeholder="{{appCtrl.serviceProvider.graphControlsCtrl.AllTemplates}}"
+                           ng-model="appCtrl.serviceProvider.graphControlsCtrl.filterText"
+                           ng-focus="appCtrl.serviceProvider.graphControlsCtrl.inputFocus()"
+                           ng-change="appCtrl.serviceProvider.templatesControlsCtrl.search($event)">
+                </div>
+            </div>
+            <div class="component-list" id="template-list">
+                <div>
+                    <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('favorites')">
+                        <span class="shouzhan-outer">
+                         <i class="shouzhan fa" ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.favorites]"></i>
+                        </span>
+                        {{appCtrl.serviceProvider.templatesControlsCtrl.favoritesName}}
+                    </div>
 
+                    <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.favorites]"
+                         class="templates-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesFavoritesList"
+                         nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);"
+                    >
+<!--                                                 nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);"-->
+                        <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
+                        <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
+                        <div class="template-name">
+                            {{templates.name}}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('official')">
+                        <span class="shouzhan-outer">
+                         <i class="shouzhan fa"
+                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.official]"></i>
+                        </span>
+                        {{appCtrl.serviceProvider.templatesControlsCtrl.officialName}}
+                    </div>
 
+                    <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.official]"
+                         class="templates-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesOfficialList"
+                         nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);">
+                        <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
+                        <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
+                        <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
+                        <div class="template-name">
+                            {{templates.name}}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="classification-title" style="cursor: pointer;" ng-click="appCtrl.serviceProvider.templatesControlsCtrl.openListBox('custom')">
+                        <span class="shouzhan-outer">
+                         <i class="shouzhan fa fa-caret-down"
+                            ng-class="{true:'fa-caret-down',false:'fa-caret-right'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.custom]"></i>
+                        </span>
+                        {{appCtrl.serviceProvider.templatesControlsCtrl.customName}}
+                    </div>
+
+                    <div ng-class="{true:'',false:'hidden'}[appCtrl.serviceProvider.templatesControlsCtrl.openList.custom]"
+                         class="templates-item"
+                         ng-repeat="templates in appCtrl.serviceProvider.templatesControlsCtrl.templatesCustomList"
+                         nf-draggable="appCtrl.serviceProvider.templatesControlsCtrl.draggableTemplatesConfig(templates);">
+                        <!--                         nf-draggable="appCtrl.serviceProvider.headerCtrl.toolboxCtrl.draggableRightComponentConfig(appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name],component.icon);"-->
+                        <!--                         ng-mouseover="appCtrl.serviceProvider.graphControlsCtrl.showTooltip($event, component.name, appCtrl.serviceProvider.graphControlsCtrl.componentDict[component.name].description)"-->
+                        <!--ng-mouseleave="appCtrl.serviceProvider.graphControlsCtrl.hiddenTootip()"-->
+                        <div class="template-name">
+                            {{templates.name}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 <div id="settings" class="hidden">
     <div id="settings-header-text" class="settings-header-text">{{ appCtrl.serviceProvider.globalMenuCtrl.constant["partials.canvas.settings-content.settings-header-text"] }}</div>
     <div class="settings-container">

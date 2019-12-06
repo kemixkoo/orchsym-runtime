@@ -55,12 +55,18 @@
 
     return function (serviceProvider) {
         'use strict';
-
         var config = {
             search: 'Search',
             urls: {
                 search: apiHost + "/nifi-api/flow/search-results",
-                status: apiHost + "/nifi-api/flow/status"
+                status: apiHost + "/nifi-api/flow/status",
+                root: apiHost + '/nifi-api/process-groups/root',
+                statusById: function(){
+                    return apiHost + "/nifi-api/application/" + window.SYSTEMID.groupId + "/app-status";
+                },
+                statusApp: function(){
+                    return apiHost + "/nifi-api/group/" + window.SYSTEMID.groupId + "/search-results";
+                }
             }
         };
 
@@ -225,7 +231,6 @@
                             return $('<li></li>').data('ui-autocomplete-item', match).append(itemContent).appendTo(ul);
                         }
                     });
-
                     // configure the new searchAutocomplete jQuery UI widget
                     this.getInputElement().searchAutocomplete({
                         appendTo: '#search-flow-results',
@@ -242,7 +247,7 @@
                                     q: request.term
                                 },
                                 dataType: 'json',
-                                url: config.urls.search
+                                url: config.urls.statusApp()
                             }).done(function (searchResponse) {
                                 response(searchResponse.searchResultsDTO);
                             });
@@ -289,7 +294,7 @@
                     nfContextMenu.hide();
 
                     var isVisible = searchCtrl.getInputElement().is(':visible');
-                    var display = 'none';
+                    var display = 'inline-block';
                     var class1 = 'search-container-opened';
                     var class2 = 'search-container-closed';
                     if (!isVisible) {
@@ -388,13 +393,13 @@
              */
             reloadFlowStatus: function () {
                 var flowStatusCtrl = this;
-
                 return $.ajax({
                     type: 'GET',
-                    url: config.urls.status,
+                    url: config.urls.statusById(),//ById()
                     dataType: 'json'
                 }).done(function (response) {
-                    // report the updated status
+                    // report the updated s
+                    // tatus
                     if (nfCommon.isDefinedAndNotNull(response.controllerStatus)) {
                         flowStatusCtrl.update(response.controllerStatus);
                     }

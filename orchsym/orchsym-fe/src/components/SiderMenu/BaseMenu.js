@@ -76,7 +76,7 @@ export default class BaseMenu extends PureComponent {
         </SubMenu>
       );
     }
-    return <Menu.Item key={item.path} disabled={item.locale !== 'menu.application'}>{this.getMenuItemPath(item, theme)}</Menu.Item>;
+    return <Menu.Item key={item.path}>{this.getMenuItemPath(item, theme)}</Menu.Item>;
   };
 
   /**

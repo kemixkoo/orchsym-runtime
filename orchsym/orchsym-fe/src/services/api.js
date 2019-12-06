@@ -27,3 +27,16 @@ export async function queryNotices(params = {}) {
 export async function getFakeCaptcha(mobile) {
   return request(`/api/captcha?mobile=${mobile}`);
 }
+
+// 框架自带
+export async function query() {
+  return request('/api/users');
+}
+
+export async function queryCurrent() {
+  return request('/api/currentUser');
+}
+
+export default async function queryError(code) {
+  return request(`/api/${code}`);
+}

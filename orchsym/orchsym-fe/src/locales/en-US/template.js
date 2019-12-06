@@ -5,6 +5,14 @@
  * Time: 11:54
  */
 export default {
-  'page.template.local.content': 'local template content',
-  'page.template.remote.content': 'remote template content',
+  'template.title.uploadTemp': 'Upload Template',
+  'template.table.title.source': 'Source',
+  'template.table.title.operateUser': 'Operater',
+  'template.table.title.createTime': 'Create time',
+  'template.tab.official': 'Official',
+  'template.tab.customize': 'Custom',
+  'template.tab.favorite': 'Favorite',
+  'template.source.saved': 'Saved',
+  'template.source.uploaded': 'Uploaded',
+  'template.source.unknown': 'Unknown',
 }

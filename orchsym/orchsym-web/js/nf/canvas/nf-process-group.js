@@ -58,8 +58,8 @@
     var PREVIEW_NAME_LENGTH = 30;
 
     var dimensions = {
-        width: 380,
-        height: 172
+        width: 320,
+        height: 150
     };
 
     // ----------------------------
@@ -164,7 +164,7 @@
                     return d.dimensions.width;
                 },
                 'height': 32,
-                'fill': '#506773'
+                'fill': 'rgb(57, 60, 82)'
             });
 
         // process group name
@@ -188,6 +188,7 @@
         // always support selecting and navigation
         processGroup.on('dblclick', function (d) {
             // enter this group on double click
+            window.parent.gotoCanvasApp(d);
             nfProcessGroup.enterGroup(d.id);
         })
             .call(nfSelectable.activate).call(nfContextMenu.activate);
@@ -283,10 +284,11 @@
                                 return processGroupData.dimensions.width
                             },
                             'height': 24,
-                            'fill': '#e3e8eb'
+                            'fill': '#ffffff',
+                            'baishan': 'baishan'
                         });
 
-                    details.append('rect')
+                    /*details.append('rect')
                         .attrs({
                             'x': 0,
                             'y': function () {
@@ -296,15 +298,16 @@
                                 return processGroupData.dimensions.width;
                             },
                             'height': 24,
-                            'fill': '#e3e8eb'
-                        });
+                            'fill': '#ffffff',
+                            'w-name': 'food'
+                        });*/
 
                     // --------
                     // contents
                     // --------
 
                     // transmitting icon
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'x': 10,
                             'y': 49,
@@ -313,18 +316,18 @@
                         })
                         .text('\uf140')
                         .append("title")
-                        .text("Transmitting Remote Process Groups");
+                        .text("Transmitting Remote Process Groups");*/
 
 
                     // transmitting count
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'y': 49,
                             'class': 'process-group-transmitting-count process-group-contents-count'
-                        });
+                        });*/
 
                     // not transmitting icon
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'y': 49,
                             'class': 'process-group-not-transmitting process-group-contents-icon',
@@ -332,18 +335,19 @@
                         })
                         .text('\ue831')
                         .append("title")
-                        .text("Not Transmitting Remote Process Groups");
+                        .text("Not Transmitting Remote Process Groups");*/
 
                     // not transmitting count
-                    details.append('text')
+                    /*details.append('text')
                         .attrs({
                             'y': 49,
                             'class': 'process-group-not-transmitting-count process-group-contents-count'
-                        });
+                        });*/
 
                     // running icon
                     details.append('text')
                         .attrs({
+                            'x': 10,
                             'y': 49,
                             'class': 'process-group-running process-group-contents-icon',
                             'font-family': 'FontAwesome'
@@ -413,7 +417,7 @@
                             'class': 'process-group-disabled-count process-group-contents-count'
                         });
 
-                    // up to date icon
+                    /*// up to date icon
                     details.append('text')
                         .attrs({
                             'x': 10,
@@ -522,32 +526,68 @@
                                 return processGroupData.dimensions.height - 7;
                             },
                             'class': 'process-group-sync-failure-count process-group-contents-count'
-                        });
+                        });*/
 
                     // ----------------
                     // stats background
                     // ----------------
-
+                    details.append('rect')
+                        .attrs({
+                            'width': function () {
+                                return dimensions.width;
+                            },
+                            'height': 1,
+                            'x': 0,
+                            'y': 56,
+                            'fill': '#c7d2d7',
+                        });
+                    /*details.append('rect')
+                        .attrs({
+                            'width': function () {
+                                return dimensions.width;
+                            },
+                            'height': 1,
+                            'x': 0,
+                            'y': 149,
+                            'fill': '#c7d2d7',
+                        });*/
+                    details.append('rect')
+                        .attrs({
+                            'width': 1,
+                            'height': 93,
+                            'x': 39,
+                            'y': 56,
+                            'fill': '#c7d2d7',
+                        });
+                    details.append('text')
+                        .attrs({
+                            'width': 38,
+                            'height': 80,
+                            'x': 20,
+                            'y': 68,
+                            'class': 'stats-5min'
+                        })
+                        .text(nf._.msg('nf-processor.5min1'));
                     // queued
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 66,
-                            'fill': '#f4f6f7'
+                            'fill': '#ffffff'
                         });
 
                     // border
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 1,
-                            'x': 0,
+                            'x': 40,
                             'y': 84,
                             'fill': '#c7d2d7'
                         });
@@ -556,10 +596,10 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 85,
                             'fill': '#ffffff'
                         });
@@ -568,10 +608,10 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 1,
-                            'x': 0,
+                            'x': 40,
                             'y': 103,
                             'fill': '#c7d2d7'
                         });
@@ -580,22 +620,22 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 104,
-                            'fill': '#f4f6f7'
+                            'fill': '#ffffff'
                         });
 
                     // border
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 1,
-                            'x': 0,
+                            'x': 40,
                             'y': 122,
                             'fill': '#c7d2d7'
                         });
@@ -604,10 +644,10 @@
                     details.append('rect')
                         .attrs({
                             'width': function () {
-                                return processGroupData.dimensions.width;
+                                return processGroupData.dimensions.width - 40;
                             },
                             'height': 19,
-                            'x': 0,
+                            'x': 40,
                             'y': 123,
                             'fill': '#ffffff'
                         });
@@ -619,7 +659,7 @@
                     // stats label container
                     var processGroupStatsLabel = details.append('g')
                         .attrs({
-                            'transform': 'translate(6, 75)'
+                            'transform': 'translate(50, 75)'
                         });
 
                     // queued label
@@ -669,7 +709,7 @@
                     // stats value container
                     var processGroupStatsValue = details.append('g')
                         .attrs({
-                            'transform': 'translate(95, 75)'
+                            'transform': 'translate(125, 75)'
                         });
 
                     // queued value
@@ -761,43 +801,43 @@
                         });
 
                     // stats value container
-                    var processGroupStatsInfo = details.append('g')
-                        .attrs({
-                            'transform': 'translate(335, 75)'
-                        });
+                    // var processGroupStatsInfo = details.append('g')
+                    //     .attrs({
+                    //         'transform': 'translate(335, 75)'
+                    //     });
 
                     // in info
-                    processGroupStatsInfo.append('text')
-                        .attrs({
-                            'width': 25,
-                            'height': 10,
-                            'x': 4,
-                            'y': 24,
-                            'class': 'stats-info'
-                        })
-                        .text(nf._.msg('nf-process-group.5min'));
+                    // processGroupStatsInfo.append('text')
+                    //     .attrs({
+                    //         'width': 25,
+                    //         'height': 10,
+                    //         'x': 4,
+                    //         'y': 24,
+                    //         'class': 'stats-info'
+                    //     })
+                    //     .text(nf._.msg('nf-process-group.5min'));
 
                     // read/write info
-                    processGroupStatsInfo.append('text')
-                        .attrs({
-                            'width': 25,
-                            'height': 10,
-                            'x': 4,
-                            'y': 42,
-                            'class': 'stats-info'
-                        })
-                        .text(nf._.msg('nf-process-group.5min'));
-
-                    // out info
-                    processGroupStatsInfo.append('text')
-                        .attrs({
-                            'width': 25,
-                            'height': 10,
-                            'x': 4,
-                            'y': 60,
-                            'class': 'stats-info'
-                        })
-                        .text(nf._.msg('nf-process-group.5min'));
+                    // processGroupStatsInfo.append('text')
+                    //     .attrs({
+                    //         'width': 25,
+                    //         'height': 10,
+                    //         'x': 4,
+                    //         'y': 42,
+                    //         'class': 'stats-info'
+                    //     })
+                    //     .text(nf._.msg('nf-process-group.5min'));
+                    //
+                    // // out info
+                    // processGroupStatsInfo.append('text')
+                    //     .attrs({
+                    //         'width': 25,
+                    //         'height': 10,
+                    //         'x': 4,
+                    //         'y': 60,
+                    //         'class': 'stats-info'
+                    //     })
+                    //     .text(nf._.msg('nf-process-group.5min'));
 
                     // --------
                     // comments
@@ -858,7 +898,7 @@
                 }
 
                 // update transmitting
-                var transmitting = details.select('text.process-group-transmitting')
+                /*var transmitting = details.select('text.process-group-transmitting')
                     .classed('transmitting', function (d) {
                         return d.permissions.canRead && d.activeRemotePortCount > 0;
                     })
@@ -873,10 +913,11 @@
                     .text(function (d) {
                         return d.activeRemotePortCount;
                     });
-                transmittingCount.append("title").text("Transmitting Remote Process Groups");
+                transmittingCount.append("title").text("Transmitting Remote Process Groups");*/
 
                 // update not transmitting
-                var notTransmitting = details.select('text.process-group-not-transmitting')
+                //wanzhen
+                /*var notTransmitting = details.select('text.process-group-not-transmitting')
                     .classed('not-transmitting', function (d) {
                         return d.permissions.canRead && d.inactiveRemotePortCount > 0;
                     })
@@ -894,8 +935,8 @@
                     })
                     .text(function (d) {
                         return d.inactiveRemotePortCount;
-                    });
-                notTransmittingCount.append("title").text("Not transmitting Remote Process Groups")
+                    });*/
+                // notTransmittingCount.append("title").text("Not transmitting Remote Process Groups")
 
                 // update running
                 var running = details.select('text.process-group-running')
@@ -905,10 +946,12 @@
                     .classed('zero', function (d) {
                         return d.permissions.canRead && d.component.runningCount === 0;
                     })
-                    .attr('x', function () {
-                        var notTransmittingX = parseInt(notTransmittingCount.attr('x'), 10);
-                        return notTransmittingX + Math.round(notTransmittingCount.node().getComputedTextLength()) + CONTENTS_SPACER;
-                    });
+                    /*.attr('x', function () {
+                        var transmittingCountX = parseInt(running.attr('x'), 10);
+                        return transmittingCountX + Math.round(running.node().getComputedTextLength()) + CONTENTS_VALUE_SPACER;
+                        // var notTransmittingX = parseInt(notTransmittingCount.attr('x'), 10);
+                        // return notTransmittingX + Math.round(notTransmittingCount.node().getComputedTextLength()) + CONTENTS_SPACER;
+                    })*/;
                 var runningCount = details.select('text.process-group-running-count')
                     .attr('x', function () {
                         var runningCountX = parseInt(running.attr('x'), 10);
@@ -1674,6 +1717,7 @@
             });
         }
     };
-
+    // wanzhen 2019.11.13
+    window.iframeEnterGroup = nfProcessGroup.enterGroup;
     return nfProcessGroup;
 }));

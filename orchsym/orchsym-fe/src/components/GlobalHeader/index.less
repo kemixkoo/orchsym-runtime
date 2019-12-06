@@ -161,6 +161,17 @@
 .appPopover {
   display: inline-block;
   margin-right: 10px;
+  margin-left: 30px;
+
+  .buttonGroups {
+
+    button {
+      font-size: 12px;
+      background: #fafafa;
+      border-color: #eae9e9!important;
+      box-shadow: 0 1px 3px rgba(0, 21, 41, .08);
+    }
+  }
 }
 
 .appPopoverWrapper {
@@ -186,11 +197,13 @@
 
 .appMenu {
   border: none;
+  border-right: 0 solid #e8e8e8 !important;
   .appMenuIcon {
     position: absolute;
     top: 0;
     right: 0;
   }
+
   .appMenuName {
     position: absolute;
     top: 0;
@@ -210,7 +223,9 @@
     }
   }
 }
-
+.breadcrumblink {
+  color: #1890ff !important;
+}
 @media only screen and (max-width: @screen-md) {
   .header {
     :global(.ant-divider-vertical) {

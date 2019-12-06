@@ -166,6 +166,7 @@ div.flowfile-detail {
 #content-view {
     float: left;
     margin-left: 5px;
+    margin-top: 0px;
 }
 
 div.content-detail-name {

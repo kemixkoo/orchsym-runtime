@@ -5,6 +5,14 @@
  * Time: 11:54
  */
 export default {
-  'page.template.local.content': '本地模板页面内容',
-  'page.template.remote.content': '远程模板页面内容',
+  'template.title.uploadTemp': '上传模板',
+  'template.table.title.source': '来源',
+  'template.table.title.operateUser': '操作人',
+  'template.table.title.createTime': '创建时间',
+  'template.tab.official': '官方',
+  'template.tab.customize': '自定义',
+  'template.tab.favorite': '收藏',
+  'template.source.saved': '另存',
+  'template.source.uploaded': '上传',
+  'template.source.unknown': '未知',
 }

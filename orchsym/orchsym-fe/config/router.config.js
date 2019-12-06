@@ -13,6 +13,11 @@ export default [
     Routes: ['src/pages/Authorized'],
     routes: [
       {
+        path: '/canvas/:processGroupId/:componentIds',
+        component: './Canvas',
+        name: '画布',
+      },
+      {
         path: '/canvas/:processGroupId',
         component: './Canvas',
         name: '画布',
@@ -70,36 +75,29 @@ export default [
       {
         name: 'template',
         icon: 'OS-iconmoban',
-        path: '/template',
+        path: '/template/:tab',
         component: './Template',
       },
       // 控制器服务
       {
         name: 'controllerServices',
         icon: 'OS-iconkongzhiqi',
-        path: '/ControllerServices',
+        path: '/services',
         component: './ControllerServices',
       },
       // 标签管理
-      {
-        name: 'tag',
-        icon: 'OS-iconbiaoqian',
-        path: '/tag',
-        component: './Tag',
-      },
-      // 回收站
-      {
-        name: 'recycleBin',
-        icon: 'OS-iconhuishouzhan',
-        path: '/recycleBin',
-        component: './RecycleBin',
-      },
-      // // 编排
       // {
-      //   name: 'orchestrations',
-      //   path: '/orchestrations',
-      //   icon: 'share-alt',
-      //   component: './Orchestrations/Index',
+      //   name: 'tag',
+      //   icon: 'OS-iconbiaoqian',
+      //   path: '/tag',
+      //   component: './Tag',
+      // },
+      // 回收站
+      // {
+      //   name: 'recycleBin',
+      //   icon: 'OS-iconhuishouzhan',
+      //   path: '/recycleBin',
+      //   component: './RecycleBin',
       // },
       // // 自带的结果页面
       // {

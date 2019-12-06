@@ -960,14 +960,16 @@
                     }
                 } else {
                     // not defined in current group... show go to arrow
-                    markup += '<div class="pointer go-to-controller-service fa fa-long-arrow-right" title="Go To" style="margin-top: 2px; margin-right: 3px;" ></div>';
+                    // wanzhen go-to-controller-service
+                    // markup += '<div class="pointer go-to-controller-service fa fa-long-arrow-right" title="Go To" style="margin-top: 2px; margin-right: 3px;" ></div>';
                 }
             }
 
             // allow policy configuration conditionally
-            if (nfCanvasUtils.isManagedAuthorizer() && nfCommon.canAccessTenants()) {
+            // wanzhen fa-key
+            /*if (nfCanvasUtils.isManagedAuthorizer() && nfCommon.canAccessTenants()) {
                 markup += '<div title="' + nf._.msg('nf-controller-services.acesspolicies') + '" class="pointer edit-access-policies fa fa-key" style="margin-top: 2px;"></div>';
-            }
+            }*/
 
             return markup;
         };

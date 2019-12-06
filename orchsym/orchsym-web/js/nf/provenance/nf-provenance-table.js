@@ -132,7 +132,6 @@
 
             // build the uri to the data
             var dataUri = controllerUri + 'provenance-events/' + encodeURIComponent(eventId) + '/content/' + encodeURIComponent(direction);
-
             // generate tokens as necessary
             var getAccessTokens = $.Deferred(function (deferred) {
                 if (nfStorage.hasItem('jwt')) {
@@ -205,7 +204,8 @@
                 }
 
                 // open the content viewer
-                window.open(contentViewerUrl + $.param(contentViewerParameters));
+                // console.log("contentViewerUrl", contentViewerUrl)
+                window.open('https://172.18.28.230:8443' + contentViewerUrl + $.param(contentViewerParameters));
             });
         };
 

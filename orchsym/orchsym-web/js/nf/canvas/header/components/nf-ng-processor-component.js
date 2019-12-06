@@ -474,8 +474,10 @@
 
                         var generalRestriction = nfCommon.getPolicyTypeListing('restricted-components');
                         serviceProvider.graphControlsCtrl.isComponentOpen = false
+                        serviceProvider.graphControlsCtrl.bigClassificationIcon = "search.svg";
                         serviceProvider.graphControlsCtrl.bigClassificationName = nf._.msg('nf-processor-component.AllProcessor')
                         serviceProvider.graphControlsCtrl.systemToolsName = nf._.msg('nf-processor-component.SystemTools')
+                        serviceProvider.graphControlsCtrl.AllTemplates = nf._.msg('nf-processor-component.AllTemplates')
                         // load the available processor types, this select is shown in the
                         // new processor dialog when a processor is dragged onto the screen
 
@@ -622,7 +624,6 @@
 
                                 serviceProvider.graphControlsCtrl.componentDict[documentedType.name] = documentedType
                             });
-
                             $.ajax({
                                 type: 'GET',
                                 url: serviceProvider.headerCtrl.toolboxCtrl.config.urls.marks,
@@ -678,6 +679,7 @@
                                     serviceProvider.graphControlsCtrl.backupComponentList = obj.classification
                                     serviceProvider.graphControlsCtrl.componentList = obj.classification
                                     serviceProvider.graphControlsCtrl.componentDuanwuData = respnse
+                                    serviceProvider.graphControlsCtrl.componentList = obj.classification
 
 
 
@@ -738,6 +740,21 @@
                                 select: applyFilter
                             });
                         }).fail(nfErrorHandler.handleAjaxError);
+                        // var config = {
+                        //     urls: {
+                        //         templates: apiHost + "/nifi-api/flow/templates",
+                        //         downloadToken: apiHost + "/nifi-api/access/download-token"
+                        //     }
+                        // };
+                        // $.ajax({
+                        //     type: 'GET',
+                        //     url: config.urls.templates,
+                        //     dataType: 'json'
+                        // }).done(function (response) {
+                        //     // ensure there are groups specified
+                        //     console.log("response0000000000000", response, serviceProvider);
+                        //     serviceProvider.templatesControlsCtrl.templatesList = response.templates;
+                        // }).fail(nfErrorHandler.handleAjaxError);
                     }
                 },
 

@@ -1,6 +1,7 @@
 import moment from 'moment';
 import React from 'react';
 import nzh from 'nzh/cn';
+import { Base64 } from 'js-base64';
 // import router from 'umi/router';
 import { parse, stringify } from 'qs';
 // import cookie from 'react-cookies';
@@ -15,6 +16,38 @@ export function logout() {
   window.location.href = '/logout'
 }
 
+export function download(res, name) {
+  const blob = new Blob([res], { type: 'application/octet-stream' })
+  const a = document.createElement('a')
+  a.setAttribute('href', window.URL.createObjectURL(blob))
+  // const fileName = `${payload.name}.xml`;
+  a.setAttribute('download', name)
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+export function getJwtPayload(jwt) {
+  if (jwt && Object.keys(jwt).length !== 0) {
+    const segments = jwt.split('.');
+    if (segments.length !== 3) {
+      return '';
+    }
+    const rawPayload = Base64.decode(segments[1]);
+    const payload = JSON.parse(rawPayload);
+
+    if (payload && Object.keys(payload).length !== 0) {
+      return payload;
+    } else {
+      return null;
+    }
+  }
+
+  return null;
+}
+export function getExpiration(jwt) {
+  const res = getJwtPayload(jwt);
+  return parseInt(res.exp, 10) * 1000;
+}
 export function fixedZero(val) {
   return val * 1 < 10 ? `0${val}` : val;
 }
@@ -204,3 +237,5 @@ export const importCDN = (url, name) =>
     };
     document.head.appendChild(dom);
   });
+
+export const EditableContext = React.createContext();
