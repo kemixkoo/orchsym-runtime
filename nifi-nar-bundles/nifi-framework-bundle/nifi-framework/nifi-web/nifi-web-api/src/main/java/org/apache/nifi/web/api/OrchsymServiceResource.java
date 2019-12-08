@@ -67,6 +67,7 @@ import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.bundle.Bundle;
 import org.apache.nifi.bundle.BundleCoordinate;
 import org.apache.nifi.components.PropertyDescriptor;
+import org.apache.nifi.components.validation.ValidationStatus;
 import org.apache.nifi.controller.ControllerService;
 import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ScheduledState;
@@ -101,6 +102,7 @@ import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.service.ControllerServicesBatchOperationEntity;
 import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity;
 import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity.OrchsymServiceSortField;
+import org.apache.nifi.web.revision.RevisionManager;
 import org.apache.nifi.web.util.ChinesePinyinUtil;
 import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 import org.slf4j.Logger;
@@ -143,6 +145,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
     @Autowired
     private FlowService flowService;
+
+    @Autowired
+    private RevisionManager revisionManager;
 
     /**
      * Updates the specified a new Controller Service.
@@ -252,10 +257,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         });
 
         if (!Response.Status.CREATED.equals(responseGroup.getStatusInfo())) {
-            JSONObject result = new JSONObject();
-            result.put("code", responseGroup.getStatus());
-            result.put("messages", "Create Group Error.");
-            return Response.ok(result.toJSONString()).build();
+            return responseGroup;
         }
 
         ControllerServiceEntity controllerServiceEntityResult = (ControllerServiceEntity) responseGroup.getEntity();
@@ -271,7 +273,6 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
         // 启动服务
         if (ControllerServiceDTO.VALID.equalsIgnoreCase(component.getValidationStatus()) && ControllerServiceState.ENABLED.name().equalsIgnoreCase(state)) {
-            final Revision requestRevision = getRevision(requestControllerServiceEntity, requestControllerService.getId());
             ControllerServiceSimpleEntity requestControllerServiceEntityEnable = new ControllerServiceSimpleEntity();
             revisionDTO.setVersion(1L);
             requestControllerServiceEntityEnable.setRevision(revisionDTO);
@@ -279,29 +280,38 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             serviceDTO.setId(component.getId());
             serviceDTO.setState(state);
             requestControllerServiceEntityEnable.setComponent(serviceDTO);
-            Response responseEnable = withWriteLock(serviceFacade, requestControllerServiceEntityEnable, requestRevision, lookup -> {
-                // authorize the service
-                final ComponentAuthorizable authorizable = lookup.getControllerService(requestControllerService.getId());
+            // authorize the service
+            serviceFacade.authorizeAccess(lookup -> {
+                final ComponentAuthorizable authorizable = lookup.getControllerService(controllerServiceEntityResult.getId());
                 authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                // authorize any referenced services
                 AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestControllerService.getProperties(), authorizable, authorizer, lookup);
-            }, () -> serviceFacade.verifyUpdateControllerService(requestControllerService), (revision, controllerServiceEntity) -> {
-                final ControllerServiceDTO controllerService = controllerServiceEntity.getComponent();
-
-                // update the controller service
-                final ControllerServiceEntity entity = serviceFacade.updateControllerService(revision, controllerService);
-                controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
-
-                return generateOkResponse(entity).build();
             });
-            component = ((ControllerServiceEntity) responseEnable.getEntity()).getComponent();
-            result.put("code", responseEnable.getStatus());
+
+            String serviceId = controllerServiceEntityResult.getId();
+
+            // update the controller service
+            final Revision revision = revisionManager.getRevision(serviceId);
+            final ControllerServiceDTO controllerServiceDTO = new ControllerServiceDTO();
+            controllerServiceDTO.setId(serviceId);
+            controllerServiceDTO.setState("ENABLED");
+            // 校验等待
+            waitValidateService(serviceId);
+
+            final ControllerServiceEntity entity = serviceFacade.updateControllerService(revision, controllerServiceDTO);
+            controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
+
+            return generateOkResponse(entity).build();
         } else {
             result.put("code", Response.Status.OK);
         }
         result.put("state", component.getState());
         return Response.ok(result.toJSONString()).build();
+    }
+
+    private void waitValidateService(String serviceId){
+        ControllerServiceNode controllerServiceNode = flowController.getControllerServiceNode(serviceId);
+        // 给 3s 的校验上限
+        controllerServiceNode.getValidationStatus(3L, TimeUnit.SECONDS);
     }
 
     /**
