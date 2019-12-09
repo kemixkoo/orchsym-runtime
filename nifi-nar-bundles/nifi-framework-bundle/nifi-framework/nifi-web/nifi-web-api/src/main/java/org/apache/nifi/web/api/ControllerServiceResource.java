@@ -191,7 +191,6 @@ public class ControllerServiceResource extends ApplicationResource {
 
         // get the controller service
         final ControllerServiceEntity entity = serviceFacade.getControllerService(id);
-        ControllerServiceAdditionUtils.logicalDeletionCheck(entity);
         populateRemainingControllerServiceEntityContent(entity);
         
         //fix i18n
@@ -268,7 +267,6 @@ public class ControllerServiceResource extends ApplicationResource {
         final Locale requestLocale = this.getRequestLocale();
         if (requestLocale != null) {
             final ControllerServiceEntity controllerService = serviceFacade.getControllerService(id);
-            ControllerServiceAdditionUtils.logicalDeletionCheck(controllerService);
             if (controllerService != null) {
                 final String type = controllerService.getComponent().getType();
                 DtoI18nHelper.fix(requestLocale, type, descriptor);
@@ -333,7 +331,6 @@ public class ControllerServiceResource extends ApplicationResource {
         final Locale requestLocale = this.getRequestLocale();
         if (requestLocale != null) {
             final ControllerServiceEntity controllerService = serviceFacade.getControllerService(id);
-            ControllerServiceAdditionUtils.logicalDeletionCheck(controllerService);
             if (controllerService != null) {
                 final String type = controllerService.getComponent().getType();
                 final String statefulDesc = MessagesProvider.getStatefulDesc(requestLocale, type);
@@ -654,6 +651,8 @@ public class ControllerServiceResource extends ApplicationResource {
             throw new IllegalArgumentException(String.format("The controller service id (%s) in the request body does not equal the "
                     + "controller service id of the requested resource (%s).", requestControllerServiceDTO.getId(), id));
         }
+
+        ControllerServiceAdditionUtils.onUpdate(requestControllerServiceEntity.getComponent());
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestControllerServiceEntity);

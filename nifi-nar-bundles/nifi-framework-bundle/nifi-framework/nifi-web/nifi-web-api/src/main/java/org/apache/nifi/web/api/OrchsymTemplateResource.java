@@ -628,7 +628,7 @@ public class OrchsymTemplateResource extends AbsOrchsymResource {
                 if (Objects.isNull(time) && additions.has(TemplateFieldName.UPLOADED_TIMESTAMP)) {
                     time = ProcessUtil.getAdditionLongValue(additions, TemplateFieldName.UPLOADED_TIMESTAMP, null);
                 }
-                if (!Objects.isNull(time)) {
+                if (Objects.nonNull(time)) {
                     additions.setValue(AdditionConstants.KEY_CREATED_TIMESTAMP, time);
                 }
             }

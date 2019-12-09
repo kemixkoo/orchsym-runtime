@@ -386,21 +386,21 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             if (deleted != appGroupEntity.isDeleted()) {
                 return false;
             }
-            if (!Objects.isNull(enabled) // 设置值
+            if (Objects.nonNull(enabled) // 设置值
                     && enabled != appGroupEntity.isEnabled()) {
                 return false;
             }
-            if (!Objects.isNull(isRunning)) {// 设置值
+            if (Objects.nonNull(isRunning)) {// 设置值
                 final ProcessGroupEntity groupEntity = serviceFacade.getProcessGroup(appGroupEntity.getId());
                 if (!isRunning.equals((groupEntity.getRunningCount() > 0))) {
                     return false;
                 }
             }
-            if (!Objects.isNull(hasDataQueue) // 设置值
+            if (Objects.nonNull(hasDataQueue) // 设置值
                     && !hasDataQueue.equals(isGroupHasDataQueue(appGroupEntity.getId()))) {
                 return false;
             }
-            if (!Objects.isNull(tags)) {
+            if (Objects.nonNull(tags)) {
                 final Set<String> tagList = tags.stream()//
                         .filter(t -> StringUtils.isNotBlank(t))//
                         .map(FUN_LOWERCASE)//
@@ -450,9 +450,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
 
         Predicate<? super AppGroupEntity> timePredicate = null;
         Comparator<AppGroupEntity> timeComparator = null;
-        if (!Objects.isNull(sortField)) {
+        if (Objects.nonNull(sortField)) {
             if (AppSearchEntity.PARAM_CREATED_TIME.equalsIgnoreCase(sortField)) {
-                timePredicate = app -> !Objects.isNull(app.getCreatedTime());
+                timePredicate = app -> Objects.nonNull(app.getCreatedTime());
                 timeComparator = new Comparator<AppGroupEntity>() {
                     @Override
                     public int compare(AppGroupEntity o1, AppGroupEntity o2) {
@@ -462,7 +462,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 };
 
             } else if (AppSearchEntity.PARAM_MODIFIED_TIME.equalsIgnoreCase(sortField)) {
-                timePredicate = app -> !Objects.isNull(app.getModifiedTime());
+                timePredicate = app -> Objects.nonNull(app.getModifiedTime());
                 timeComparator = new Comparator<AppGroupEntity>() {
                     @Override
                     public int compare(AppGroupEntity o1, AppGroupEntity o2) {
@@ -473,7 +473,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             } // 名字排序
         }
 
-        if (!Objects.isNull(timePredicate) && !Objects.isNull(timeComparator)) {
+        if (Objects.nonNull(timePredicate) && Objects.nonNull(timeComparator)) {
             // 需分桶处理不存在日期的情况
             List<AppGroupEntity> holdTimeList = appGroupEntityList.stream().filter(timePredicate).sorted(timeComparator).collect(Collectors.toList());
 
@@ -827,7 +827,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 }, //
                 null, //
                 (entity) -> {
-                    if (!Objects.isNull(cleanAction)) {
+                    if (Objects.nonNull(cleanAction)) {
                         cleanAction.accept(entity.getId());
                     }
                     saveAppStatus(entity.getId(), additionKey, value);

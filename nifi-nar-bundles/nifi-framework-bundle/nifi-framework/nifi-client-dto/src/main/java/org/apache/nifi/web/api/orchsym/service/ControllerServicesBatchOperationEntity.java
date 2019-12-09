@@ -42,7 +42,7 @@ public class ControllerServicesBatchOperationEntity extends Entity {
      */
     @ApiModelProperty(
             value = "The operation on the controller services.",
-            allowableValues = "ENABLE, DISABLE, LOGICAL_DELETION, RECOVERY, PHYSICAL_DELETION"
+            allowableValues = "ENABLE, DISABLE, LOGIC_DELETE, RECOVER, FORCE_DELETE"
     )
     public String getOperation() {
         return operation;
@@ -96,9 +96,9 @@ public class ControllerServicesBatchOperationEntity extends Entity {
     public enum ControllerServiceBatchOperation{
         ENABLE,
         DISABLE,
-        LOGICAL_DELETION,
-        RECOVERY,
-        PHYSICAL_DELETION;
+        LOGIC_DELETE,
+        RECOVER,
+        FORCE_DELETE;
 
         @Override
         public String toString() {

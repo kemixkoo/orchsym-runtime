@@ -67,7 +67,6 @@ import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.bundle.Bundle;
 import org.apache.nifi.bundle.BundleCoordinate;
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.components.validation.ValidationStatus;
 import org.apache.nifi.controller.ControllerService;
 import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ScheduledState;
@@ -100,6 +99,7 @@ import org.apache.nifi.web.api.orchsym.DataPage;
 import org.apache.nifi.web.api.orchsym.OrchsymSearchEntity;
 import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.orchsym.service.ControllerServicesBatchOperationEntity;
+import org.apache.nifi.web.api.orchsym.service.ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation;
 import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity;
 import org.apache.nifi.web.api.orchsym.service.OrchsymServiceSearchCriteriaEntity.OrchsymServiceSortField;
 import org.apache.nifi.web.revision.RevisionManager;
@@ -148,6 +148,158 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
     @Autowired
     private RevisionManager revisionManager;
+
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path("/search-results")
+    @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
+    @ApiResponses(value = { //
+            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
+            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
+            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) }//
+    )
+    public Response searchControllerServices(//
+            @Context HttpServletRequest httpServletRequest, //
+            @QueryParam("text") String text, //
+
+            // page
+            @QueryParam("page") @DefaultValue("1") int currentPage, //
+            @QueryParam("pageSize") @DefaultValue("10") int pageSize, //
+
+            // sort
+            @QueryParam("sortedField") @DefaultValue("name") String sortedField, //
+            @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, //
+            @QueryParam("deleted") @DefaultValue("false") boolean deleted//
+    ) {
+        final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity = new OrchsymServiceSearchCriteriaEntity();
+        requestServiceSearchCriteriaEntity.setText(text);
+        requestServiceSearchCriteriaEntity.setPage(currentPage);
+        requestServiceSearchCriteriaEntity.setPageSize(pageSize);
+        requestServiceSearchCriteriaEntity.setSortedField(sortedField);
+        requestServiceSearchCriteriaEntity.setDesc(isDesc);
+        requestServiceSearchCriteriaEntity.setDeleted(deleted);
+
+        return queryControllerServices(httpServletRequest, requestServiceSearchCriteriaEntity);
+    }
+
+    /**
+     * Retrieve controller services.
+     * To make use of existing NiFi API, the Controller Services will be sorted in lexicographical order by controller-service-id first.
+     */
+    @POST
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path("/search")
+    @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
+    @ApiResponses(value = { @ApiResponse(code = 400, message = CODE_MESSAGE_400), @ApiResponse(code = 401, message = CODE_MESSAGE_401), @ApiResponse(code = 403, message = CODE_MESSAGE_403),
+            @ApiResponse(code = 409, message = CODE_MESSAGE_409) })
+    public Response queryControllerServices(//
+            @Context HttpServletRequest httpServletRequest, //
+            @RequestBody final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity//
+    ) {
+        if (requestServiceSearchCriteriaEntity == null) {
+            throw new IllegalArgumentException("The Controller Service Search Criteria must be specified.");
+        }
+        final Set<String> scopes = requestServiceSearchCriteriaEntity.getScopes();
+        if (scopes == null) {
+            throw new IllegalArgumentException("The search scope can't be null");
+        }
+        List<ControllerServiceSearchDTO> services = new ArrayList<>();
+        // 1. get Controller Services by groupId (filter by scope)
+        final boolean deleted = requestServiceSearchCriteriaEntity.isDeleted();
+        if (scopes.isEmpty()) {
+            // controller scope Controller Services, ignore the controller scope
+            // services.addAll(serviceFacade.searchControllerServices(null, true, true, deleted));
+            // Controller Services in Process Groups
+            services.addAll(serviceFacade.searchControllerServices(ROOT_GROUP_ID_ALIAS, true, true, deleted));
+        } else {
+            for (String scope : scopes) {
+                services.addAll(serviceFacade.searchControllerServices(scope, false, true, deleted));
+            }
+        }
+        final Set<OrchsymServiceSearchCriteriaEntity.OrchsymServiceState> states = requestServiceSearchCriteriaEntity.getStates();
+        if (states == null) {
+            throw new IllegalArgumentException("The state can't be null. If you don't want filter by state, just ignore it.");
+        }
+        if (states.isEmpty()) {
+            states.addAll(Arrays.asList(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.values()));
+        }
+        final String searchStr = requestServiceSearchCriteriaEntity.getText();
+        final boolean desc = requestServiceSearchCriteriaEntity.isDesc();
+        services = services.stream()
+                // 2. filter by controller service state
+                .filter(controllerServiceDTO -> {
+                    final OrchsymServiceSearchCriteriaEntity.OrchsymServiceState serviceState = OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState());
+                    final OrchsymServiceSearchCriteriaEntity.OrchsymServiceState validateStatus = OrchsymServiceSearchCriteriaEntity.OrchsymServiceState
+                            .valueOf(controllerServiceDTO.getValidationStatus());
+                    if (states.size() == 1 && states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.DISABLED)) {
+                        // If the filter condition is: DISABLED, the result shouldn't contains Controller Services which are in INVALID state
+                        return serviceState.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.DISABLED)
+                                && validateStatus.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.VALID);
+                    } else if (states.size() == 1 && states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.INVALID)) {
+                        // If the filter condition is: INVALID, the result shouldn't contains Controller Services which are in DISABLED state
+                        return validateStatus.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.INVALID);
+                    } else {
+                        return states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState()))
+                                || states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus()));
+                    }
+                })
+                // 3. filter by search string. Only try to match search string with controller service's name, type and comments
+                .filter(controllerServiceDTO -> OrchsymSearchEntity.contains(searchStr, //
+                        new String[] { controllerServiceDTO.getName(), controllerServiceDTO.getType(), controllerServiceDTO.getComments() }))
+                .collect(Collectors.toList());
+        // 4. sorting
+        final OrchsymServiceSortField sortField = Objects.isNull(requestServiceSearchCriteriaEntity.getSortedField()) ? OrchsymServiceSortField.NAME
+                : OrchsymServiceSortField.valueOf(requestServiceSearchCriteriaEntity.getSortedField().toUpperCase());
+        services.sort((o2, o1) -> {
+            switch (sortField) {
+            case NAME:
+                final int compare = ChinesePinyinUtil.zhComparator.compare(o2.getName(), o1.getName());
+                return desc ? -compare : compare;
+            case TYPE:
+                return desc ? o1.getType().compareTo(o2.getType()) : o2.getType().compareTo(o1.getType());
+            case REFERENCING_COMPONENTS:
+                int size1 = 0;
+                for (Map.Entry<String, Set<String>> entry : o1.getReferencingComponents().entrySet()) {
+                    size1 += entry.getValue().size();
+                }
+                int size2 = 0;
+                for (Map.Entry<String, Set<String>> entry : o2.getReferencingComponents().entrySet()) {
+                    size2 += entry.getValue().size();
+                }
+                final int diff = size1 - size2;
+                return desc ? -diff : diff;
+            default:
+                return 0;
+            }
+        });
+        // 5. page
+        final DataPage<ControllerServiceSearchDTO> dataPage = new DataPage<>(services, requestServiceSearchCriteriaEntity.getPageSize(), requestServiceSearchCriteriaEntity.getPage());
+        // 6. set uri, scope and info
+        dataPage.getResults().forEach(controllerServiceSearchDTO -> {
+            controllerServiceSearchDTO.setUri(generateResourceUri("controller-services", controllerServiceSearchDTO.getId()));
+
+            final String parentGroupId = controllerServiceSearchDTO.getParentGroupId();
+            String scope;
+            ApplicationInfoDTO appInfo = new ApplicationInfoDTO();
+            // We don't need return Controller Services on controller level anymore.
+            if (Objects.nonNull(parentGroupId)) {
+                ProcessGroup group = flowController.getGroup(parentGroupId);
+                if (Objects.nonNull(group) && group.getIdentifier().equals(flowController.getRootGroupId())) {
+                    scope = "ROOT";
+                } else {
+                    appInfo = ProcessUtil.calcApplicationInfo(group, flowController.getRootGroupId());
+                    scope = appInfo.getApplicationName();
+                }
+                controllerServiceSearchDTO.setScope(scope);
+                controllerServiceSearchDTO.setInfo(appInfo);
+            }
+        });
+
+        return noCache(Response.ok(dataPage)).build();
+    }
 
     /**
      * Updates the specified a new Controller Service.
@@ -211,6 +363,8 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
             revisionDTO.setClientId(generateUuid());
         }
         revisionDTO.setVersion(0L);
+
+        ControllerServiceAdditionUtils.onCreate(requestControllerServiceEntity.getComponent());
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestControllerServiceEntity);
@@ -308,419 +462,31 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         return Response.ok(result.toJSONString()).build();
     }
 
-    private void waitValidateService(String serviceId){
+    private void waitValidateService(String serviceId) {
         ControllerServiceNode controllerServiceNode = flowController.getControllerServiceNode(serviceId);
         // 给 3s 的校验上限
         controllerServiceNode.getValidationStatus(3L, TimeUnit.SECONDS);
     }
 
-    /**
-     * Try to enable/disable/delete all the controller services in the specified process group.
-     *
-     * @param httpServletRequest
-     *            request
-     * @param groupId
-     *            The process group id.
-     * @param requestOperationEntity
-     *            A controllerServicesBatchOperationEntity
-     * @return A controllerServicesEntity.
-     */
-    @PUT
-    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Path("/{id}/operation")
-    @ApiOperation(value = "batch enable/disable/delete controller services in a process group", response = ControllerServicesEntity.class, authorizations = {
-            @Authorization(value = "Write - /controller-services/{uuid}"), @Authorization(value = "Write - Parent Process Group if scoped by Process Group - /process-groups/{uuid}"),
-            @Authorization(value = "Write - Controller if scoped by Controller - /controller"),
-            @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}") })
-    @ApiResponses(value = { @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
-            @ApiResponse(code = 401, message = "Client could not be authenticated."), @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
-            @ApiResponse(code = 404, message = "The specified resource could not be found."),
-            @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.") })
-    public Response updateControllerServices(//
-            @Context HttpServletRequest httpServletRequest, //
-            @ApiParam(value = "The process group id.", required = true) @PathParam("id") final String groupId, //
-            @ApiParam(value = "The controller service configuration details.", required = true) final ControllerServicesBatchOperationEntity requestOperationEntity//
-    ) {
+    private void authorizeProcessGroup(ControllerServiceDTO controllerService, AuthorizableLookup lookup, NiFiUser user, Authorizable processGroup) {
+        processGroup.authorize(authorizer, RequestAction.WRITE, user);
 
-        if (requestOperationEntity == null) {
-            throw new IllegalArgumentException("Controller service details must be specified.");
-        }
-
-        ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation controllerServiceBatchOperation = null;
+        ComponentAuthorizable authorizable = null;
         try {
-            controllerServiceBatchOperation = ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation.valueOf(requestOperationEntity.getOperation());
-        } catch (final IllegalArgumentException iae) {
-            // ignore
-        }
-        if (controllerServiceBatchOperation == null) {
-            throw new IllegalArgumentException("Must specify the operation. Allowable values are: ENABLE, DISABLE, LOGICAL_DELETION, RECOVER, PHYSICAL_DELETION");
-        }
+            authorizable = lookup.getConfigurableComponent(controllerService.getType(), controllerService.getBundle());
 
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.PUT, requestOperationEntity);
-        } else if (isDisconnectedFromCluster()) {
-            verifyDisconnectedNodeModification(requestOperationEntity.isDisconnectedNodeAcknowledged());
-        }
-
-        ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation operation = controllerServiceBatchOperation;
-        return withWriteLock(//
-                serviceFacade, //
-                requestOperationEntity, //
-                lookup -> {
-                    final NiFiUser user = NiFiUserUtils.getNiFiUser();
-
-                    // ensure write on the group
-                    final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
-                    processGroup.authorize(authorizer, RequestAction.WRITE, user);
-                }, //
-                null, //
-                operationEntity -> {
-                    ControllerServicesEntity responseEntity = new ControllerServicesEntity();
-                    responseEntity.setCurrentTime(new Date());
-
-                    final boolean includeDescendantGroups = operationEntity.isIncludeDescendantGroups();
-                    final boolean skipInvalid = operationEntity.isSkipInvalid();
-                    // get the controller services
-                    final Set<ControllerServiceEntity> controllerServiceEntities = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups).stream()
-                            .filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
-
-                    JSONArray result = new JSONArray();
-                    switch (operation) {
-                    case ENABLE:
-                        result = enableControllerServices(controllerServiceEntities, skipInvalid);
-                        break;
-                    case DISABLE:
-                        result = disableControllerServices(controllerServiceEntities, skipInvalid);
-                        break;
-                    case LOGICAL_DELETION:
-                        disableControllerServices(controllerServiceEntities, skipInvalid);
-                        final Set<ControllerServiceEntity> disabledControllerServiceEntities1 = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
-                        result = deleteControllerServicesLogically(disabledControllerServiceEntities1, skipInvalid);
-                        break;
-                    case RECOVERY:
-                        // Bypass logical deletion filter
-                        final Set<ControllerServiceEntity> controllerServiceEntitiesToRecover = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
-                        result = recoverControllerServices(controllerServiceEntitiesToRecover, skipInvalid);
-                        break;
-                    case PHYSICAL_DELETION:
-                        disableControllerServices(controllerServiceEntities, skipInvalid);
-                        final Set<ControllerServiceEntity> disabledControllerServiceEntities2 = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
-                        result = deleteControllerServicesPhysically(disabledControllerServiceEntities2, skipInvalid);
-                        break;
-                    default:
-                        break;
-                    }
-
-                    return generateOkResponse(result.toJSONString()).build();
-                });
-    }
-
-    private JSONObject collectOperateServices(ControllerServiceEntity serviceEntity, Exception error) {
-        final ControllerServiceDTO component = serviceEntity.getComponent();
-        // 清除数据
-        JSONObject result = new JSONObject();
-        result.put("id", component.getId());
-        result.put("parentGroupId", component.getParentGroupId());
-        result.put("name", component.getName());
-        result.put("service", component.getType());
-        result.put("state", component.getState());
-        result.put("status", "success");
-        if (null != error) {
-            result.put("status", "error");
-            result.put("message", error.getMessage());
-
-            StringWriter sw = new StringWriter();
-            try (PrintWriter pw = new PrintWriter(sw)) {
-                error.printStackTrace(pw);
-                result.put("stackTrace", sw.toString());
+            if (authorizable.isRestricted()) {
+                authorizeRestrictions(authorizer, authorizable);
             }
-            logger.error(error.getMessage(), error);
-        }
-        return result;
-    }
 
-    // Try to enable a bulk of controller services.
-    private JSONArray enableControllerServices(Set<ControllerServiceEntity> servicesToEnable, boolean skipInvalid) {
-        JSONArray result = new JSONArray();
-        for (ControllerServiceEntity serviceEntity : servicesToEnable) {
-            try {
-                result.add(collectOperateServices(enableControllerService(serviceEntity.getId()), null));
-            } catch (Exception e) {
-                result.add(collectOperateServices(serviceEntity, e));
-                if (!skipInvalid) {
-                    throw e;
-                }
+            if (controllerService.getProperties() != null) {
+                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService.getProperties(), authorizable, authorizer, lookup);
+            }
+        } finally {
+            if (authorizable != null) {
+                authorizable.cleanUpResources();
             }
         }
-        return result;
-    }
-
-    /**
-     * Try to enable a Controller Service
-     */
-    private ControllerServiceEntity enableControllerService(final String controllerServiceId) {
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
-        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
-
-        if (!requestControllerServiceEntity.getComponent().getState().equalsIgnoreCase(ControllerServiceState.DISABLED.name())) {
-            throw new IllegalStateException("Cannot enable " + requestControllerServiceEntity.getId() + " because it is not disabled");
-        }
-
-        withWriteLock(
-                serviceFacade,
-                requestControllerServiceEntity,
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                },
-                null,
-                controllerServiceEntity -> {
-                    final ControllerServiceEntity controllerServiceToEnable = serviceFacade.getControllerService(controllerServiceId);
-                    final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
-                    serviceDTO.setId(controllerServiceId);
-                    serviceDTO.setState(ControllerServiceState.ENABLED.name());
-                    final Revision revision = getRevision(controllerServiceToEnable.getRevision(), controllerServiceId);
-                    serviceFacade.updateControllerService(revision, serviceDTO);
-
-                    return generateOkResponse("success").build();
-                });
-
-        return serviceFacade.getControllerService(controllerServiceId);
-    }
-
-    /**
-     * Try to disable a bulk of controller services.
-     */
-    private JSONArray disableControllerServices(Set<ControllerServiceEntity> servicesToDisable, boolean skipInvalid) {
-        JSONArray result = new JSONArray();
-        for (ControllerServiceEntity serviceEntity : servicesToDisable) {
-            try {
-                final ControllerServiceEntity controllerServiceEntity = disableControllerService(serviceEntity.getId());
-                result.add(collectOperateServices(controllerServiceEntity, null));
-            } catch (Exception e) {
-                result.add(collectOperateServices(serviceEntity, e));
-                if (!skipInvalid) {
-                    throw e;
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Try to disable a Controller Service
-     */
-    private ControllerServiceEntity disableControllerService(final String controllerServiceId) {
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
-        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
-
-        if (!requestControllerServiceEntity.getComponent().getState().equalsIgnoreCase(ControllerServiceState.ENABLED.name())) {
-            throw new IllegalStateException("Cannot disable " + requestControllerServiceEntity.getId() + " because it is not enabled");
-        }
-
-        withWriteLock(
-                serviceFacade,
-                requestControllerServiceEntity,
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                },
-                null,
-                controllerServiceEntity -> {
-                    final ControllerServiceEntity controllerServiceToDisable = serviceFacade.getControllerService(controllerServiceId);
-                    // stop the controller service references
-                    final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(controllerServiceId)
-                            .getControllerServiceReferencingComponents();
-                    final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream().collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
-                        final RevisionDTO rev = entity.getRevision();
-                        return new Revision(rev.getVersion(), rev.getClientId(), entity.getId());
-                    }));
-                    serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, controllerServiceId, ScheduledState.STOPPED, null);
-                    // disable the controller service references
-                    serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), controllerServiceId, ScheduledState.DISABLED, ControllerServiceState.DISABLED);
-                    // disable the controller service
-
-                    final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
-                    serviceDTO.setId(controllerServiceId);
-                    serviceDTO.setState(ControllerServiceState.DISABLED.name());
-
-                    final Revision revision = getRevision(controllerServiceToDisable.getRevision(), serviceDTO.getId());
-                    serviceFacade.updateControllerService(revision, serviceDTO);
-
-                    return generateOkResponse("success").build();
-                });
-
-
-        return serviceFacade.getControllerService(controllerServiceId);
-    }
-
-    /**
-     * Try to delete a bulk of Controller Service logically
-     *
-     * @apiNote This function won't check whether the Controller Service(s) has already been deleted logically,
-     *          you may need to perform the check when you get the ControllerServiceEntities.
-     */
-    private JSONArray deleteControllerServicesLogically(Set<ControllerServiceEntity> servicesToDelete, boolean skipInvalid) {
-        JSONArray result = new JSONArray();
-        for (ControllerServiceEntity serviceEntity : servicesToDelete) {
-            try {
-                final ControllerServiceEntity controllerServiceEntity = deleteControllerServiceLogically(serviceEntity.getId());
-                result.add(collectOperateServices(controllerServiceEntity, null));
-            } catch (Exception e) {
-                result.add(collectOperateServices(serviceEntity, e));
-                if (!skipInvalid) {
-                    throw e;
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Try to delete a Controller Service logically
-     *
-     * @apiNote This function won't check whether the Controller Service(s) has already been deleted logically,
-     *          you may need to perform the check when you get the ControllerServiceEntities.
-     */
-    private ControllerServiceEntity deleteControllerServiceLogically(final String controllerServiceId) {
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
-        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
-        withWriteLock(
-                serviceFacade,
-                requestControllerServiceEntity,
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
-
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // ensure write permission to the parent process group
-                    controllerService.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // verify any referenced services
-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService, authorizer, lookup, false);
-                },
-                () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceEntity.getComponent()),
-                controllerServiceEntity -> {
-                    flowController.getControllerServiceNode(controllerServiceId).getAdditions().setValue(AdditionConstants.KEY_IS_DELETED, Boolean.TRUE);
-                    flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
-
-                    return generateOkResponse("success").build();
-                });
-
-        return serviceFacade.getControllerService(controllerServiceId);
-    }
-
-    /**
-     * Try to recover a bulk of Controller Services after logical deletion
-     *
-     * @apiNote This function won't check whether the Controller Service(s) has already been deleted logically,
-     *          you may need to perform the check when you get the ControllerServiceEntities.
-     */
-    private JSONArray recoverControllerServices(Set<ControllerServiceEntity> servicesToRecover, boolean skipInvalid) {
-        JSONArray result = new JSONArray();
-        for (ControllerServiceEntity serviceEntity : servicesToRecover) {
-            try {
-                final ControllerServiceEntity controllerServiceEntity = recoverControllerService(serviceEntity.getId());
-                result.add(collectOperateServices(controllerServiceEntity, null));
-            } catch (Exception e) {
-                result.add(collectOperateServices(serviceEntity, e));
-                if (!skipInvalid) {
-                    throw e;
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Try to recover a Controller Service after logical deletion
-     *
-     * @apiNote This function won't check whether the Controller Service(s) has already been deleted logically,
-     *          you may need to perform the check when you get the ControllerServiceEntities.
-     */
-    private ControllerServiceEntity recoverControllerService(final String controllerServiceId) {
-        final ControllerServiceNode controllerServiceNode = flowController.getControllerServiceNode(controllerServiceId);
-        if (controllerServiceNode == null) {
-            throw new ResourceNotFoundException(String.format("Unable to locate controller service with id '%s'.", controllerServiceId));
-        }
-
-        if (!ProcessUtil.getAdditionBooleanValue(controllerServiceNode.getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT)) {
-            throw new IllegalArgumentException(String.format("Unable to recover controller service with id '%s' because it is not in the Recycle Bin.", controllerServiceId));
-        }
-
-        final ControllerServiceEntity requestControllerServiceEntity = new ControllerServiceEntity();
-        withWriteLock(
-                serviceFacade,
-                requestControllerServiceEntity,
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-                },
-                null,
-                controllerServiceEntity -> {
-                    flowController.getControllerServiceNode(controllerServiceId).getAdditions().setValue(AdditionConstants.KEY_IS_DELETED, Boolean.FALSE);
-                    flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
-
-                    return generateOkResponse("success").build();
-                });
-
-
-        return serviceFacade.getControllerService(controllerServiceId);
-    }
-
-    /**
-     * try to delete a bulk of controller services permanently
-     */
-    private JSONArray deleteControllerServicesPhysically(Set<ControllerServiceEntity> servicesToDelete, boolean skipInvalid) {
-        JSONArray result = new JSONArray();
-        for (ControllerServiceEntity serviceEntity : servicesToDelete) {
-            try {
-                result.add(collectOperateServices(deleteControllerServicePhysically(serviceEntity.getId()), null));
-            } catch (Exception e) {
-                result.add(collectOperateServices(serviceEntity, e));
-                if (!skipInvalid) {
-                    throw e;
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Try to delete a Controller Service permanently
-     */
-    private ControllerServiceEntity deleteControllerServicePhysically(final String controllerServiceId) {
-        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
-
-         withWriteLock(
-                serviceFacade,
-                requestControllerServiceEntity,
-                lookup -> {
-                    final ComponentAuthorizable controllerService = lookup.getControllerService(controllerServiceId);
-
-                    // ensure write permission to the controller service
-                    controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // ensure write permission to the parent process group
-                    controllerService.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // verify any referenced services
-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService, authorizer, lookup, false);
-                },
-                () -> serviceFacade.verifyDeleteControllerService(controllerServiceId),
-                controllerServiceEntity -> {
-                    final Revision revision = getRevision(controllerServiceEntity.getRevision(), controllerServiceId);
-                    serviceFacade.deleteControllerService(revision, controllerServiceId);
-
-                    return generateOkResponse("success").build();
-                });
-
-         return requestControllerServiceEntity;
     }
 
     /**
@@ -868,6 +634,157 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     }
 
     /**
+     * Try to enable/disable/delete all the controller services in the specified process group.
+     *
+     * @param httpServletRequest
+     *            request
+     * @param groupId
+     *            The process group id.
+     * @param requestOperationEntity
+     *            A controllerServicesBatchOperationEntity
+     * @return A controllerServicesEntity.
+     */
+    @PUT
+    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path("/{groupId}/operation")
+    public Response operateGroupControllerServices(//
+            @Context HttpServletRequest httpServletRequest, //
+            @ApiParam(value = "The process group id.", required = true) @PathParam("groupId") final String groupId, //
+            @ApiParam(value = "The controller service configuration details.", required = true) final ControllerServicesBatchOperationEntity requestOperationEntity//
+    ) {
+
+        if (requestOperationEntity == null) {
+            throw new IllegalArgumentException("Controller service details must be specified.");
+        }
+
+        ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation controllerServiceBatchOperation = null;
+        try {
+            if (Objects.nonNull(requestOperationEntity.getOperation())) {
+                controllerServiceBatchOperation = ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation.valueOf(requestOperationEntity.getOperation().toUpperCase());
+            }
+        } catch (final IllegalArgumentException iae) {
+            // ignore
+        }
+        if (controllerServiceBatchOperation == null) {
+            throw new IllegalArgumentException("Must specify the operation. Allowable values are: ENABLE, DISABLE, LOGIC_DELETE, RECOVER, FORCE_DELETE");
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, requestOperationEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestOperationEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        ControllerServicesBatchOperationEntity.ControllerServiceBatchOperation operation = controllerServiceBatchOperation;
+        return withWriteLock(//
+                serviceFacade, //
+                requestOperationEntity, //
+                lookup -> {
+                    // ensure write on the group
+                    final Authorizable processGroup = lookup.getProcessGroup(groupId).getAuthorizable();
+                    processGroup.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                }, //
+                null, //
+                operationEntity -> {
+                    ControllerServicesEntity responseEntity = new ControllerServicesEntity();
+                    responseEntity.setCurrentTime(new Date());
+
+                    final boolean includeDescendantGroups = operationEntity.isIncludeDescendantGroups();
+                    final boolean skipInvalid = operationEntity.isSkipInvalid();
+                    // get the controller services
+                    Set<ControllerServiceEntity> controllerServiceEntities = serviceFacade.getControllerServices(groupId, false, includeDescendantGroups);
+
+                    JSONArray result = new JSONArray();
+                    for (ControllerServiceEntity serviceEntity : controllerServiceEntities) {
+                        final String serviceId = serviceEntity.getId();
+                        try {
+                            // authorize modify the service
+                            serviceFacade.authorizeAccess(lookup -> {
+                                checkOperateAuth(lookup, serviceId);
+                            });
+
+                            ControllerServiceEntity processedControllerService = null;
+                            switch (operation) {
+                            case ENABLE:
+                            case DISABLE:
+                                final ControllerServiceState changedState = ControllerServiceBatchOperation.ENABLE == operation ? ControllerServiceState.ENABLED : ControllerServiceState.DISABLED;
+                                verifyControllerServiceState(serviceEntity, changedState);
+
+                                processedControllerService = updateControllerServiceState(serviceEntity, changedState);
+                                break;
+                            case RECOVER:
+                                serviceFacade.verifyUpdateControllerService(serviceEntity.getComponent());
+
+                                processedControllerService = deleteControllerServiceLogically(serviceEntity, false);
+                                break;
+                            case LOGIC_DELETE:
+                            case FORCE_DELETE:
+                                // authorize modify the service
+                                serviceFacade.authorizeAccess(lookup -> {
+                                    checkDeleteAuth(lookup, serviceId);
+                                });
+
+                                if (ControllerServiceBatchOperation.LOGIC_DELETE == operation) {
+                                    serviceFacade.verifyUpdateControllerService(serviceEntity.getComponent());
+                                } else if (ControllerServiceBatchOperation.FORCE_DELETE == operation) {
+                                    serviceFacade.verifyDeleteControllerService(serviceId);
+                                }
+
+                                updateControllerServiceState(serviceEntity, ControllerServiceState.DISABLED);
+
+                                if (ControllerServiceBatchOperation.LOGIC_DELETE == operation) {
+                                    processedControllerService = deleteControllerServiceLogically(serviceEntity, true);
+                                } else if (ControllerServiceBatchOperation.FORCE_DELETE == operation) {
+                                    processedControllerService = deleteControllerServicePhysically(serviceEntity);
+                                }
+
+                                break;
+                            default:
+                                //
+                            }
+
+                            if (Objects.nonNull(processedControllerService)) {
+                                result.add(collectOperateServices(processedControllerService, null));
+                            }
+                        } catch (Exception e) {
+                            result.add(collectOperateServices(serviceEntity, e));
+                            if (!skipInvalid) {
+                                throw e;
+                            }
+                        }
+                    }
+
+                    return generateOkResponse(result.toJSONString()).build();
+                });
+
+    }
+
+    private JSONObject collectOperateServices(ControllerServiceEntity serviceEntity, Exception error) {
+        final ControllerServiceDTO component = serviceEntity.getComponent();
+        // 清除数据
+        JSONObject result = new JSONObject();
+        result.put("id", component.getId());
+        result.put("parentGroupId", component.getParentGroupId());
+        result.put("name", component.getName());
+        result.put("service", component.getType());
+        result.put("state", component.getState());
+        result.put("status", "success");
+        if (null != error) {
+            result.put("status", "error");
+            result.put("message", error.getMessage());
+
+            StringWriter sw = new StringWriter();
+            try (PrintWriter pw = new PrintWriter(sw)) {
+                error.printStackTrace(pw);
+                result.put("stackTrace", sw.toString());
+            }
+            logger.error(error.getMessage(), error);
+        }
+        return result;
+    }
+
+    /**
      * move the specified Controller Service.
      *
      * @param httpServletRequest
@@ -882,8 +799,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Path("/{id}/move")
-    @ApiOperation(value = "Move a controller service", response = ControllerServiceEntity.class, authorizations = {
-            @Authorization(value = "Write - /controller-services/{uuid}"),
+    @ApiOperation(value = "Move a controller service", response = ControllerServiceEntity.class, authorizations = { @Authorization(value = "Write - /controller-services/{uuid}"),
             @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}") })
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
@@ -915,9 +831,9 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         // handle expects request (usually from the cluster manager)
         final Revision requestRevision = getRevision(controllerServiceEntity.getRevision(), id);
         final ControllerServiceDTO controllerServiceDTO = controllerServiceEntity.getComponent();
-        return withWriteLock(serviceFacade,
-                controllerServiceEntity,
-                requestRevision,
+        return withWriteLock(serviceFacade, //
+                controllerServiceEntity, //
+                requestRevision, //
                 lookup -> {
                     final NiFiUser user = NiFiUserUtils.getNiFiUser();
                     // authorize the service
@@ -932,23 +848,23 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
                     // authorize any referenced services
                     AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
-                    },
-                () -> serviceFacade.verifyMoveControllerService(controllerServiceDTO, requestControllerServiceMoveEntity.getGroupId()),
+                }, //
+                () -> serviceFacade.verifyMoveControllerService(controllerServiceDTO, requestControllerServiceMoveEntity.getGroupId()), //
                 (revision, csEntity) -> {
-                final ControllerServiceDTO controllerService = csEntity.getComponent();
-                if (requestControllerServiceMoveEntity.getName() != null) {
-                    controllerService.setName(requestControllerServiceMoveEntity.getName());
-                }
-                if (requestControllerServiceMoveEntity.getComments() != null) {
-                    controllerService.setComments(requestControllerServiceMoveEntity.getComments());
-                }
+                    final ControllerServiceDTO controllerService = csEntity.getComponent();
+                    if (requestControllerServiceMoveEntity.getName() != null) {
+                        controllerService.setName(requestControllerServiceMoveEntity.getName());
+                    }
+                    if (requestControllerServiceMoveEntity.getComments() != null) {
+                        controllerService.setComments(requestControllerServiceMoveEntity.getComments());
+                    }
 
-                // move the controller service
-                final ControllerServiceEntity entity = serviceFacade.moveControllerService(revision, controllerService, requestControllerServiceMoveEntity.getGroupId());
-                controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
+                    // move the controller service
+                    final ControllerServiceEntity entity = serviceFacade.moveControllerService(revision, controllerService, requestControllerServiceMoveEntity.getGroupId());
+                    controllerServiceResource.populateRemainingControllerServiceEntityContent(entity);
 
-                return generateOkResponse(entity).build();
-        });
+                    return generateOkResponse(entity).build();
+                });
     }
 
     /**
@@ -986,23 +902,25 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         }
 
         final ControllerServiceDTO controllerService = controllerServiceEntity.getComponent();
+
+        ControllerServiceAdditionUtils.onCreate(controllerService);
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestControllerServiceCopyEntity);
         } else if (isDisconnectedFromCluster()) {
             verifyDisconnectedNodeModification(requestControllerServiceCopyEntity.isDisconnectedNodeAcknowledged());
         }
 
-        return withWriteLock(
-                serviceFacade,
-                requestControllerServiceCopyEntity,
+        return withWriteLock(serviceFacade, //
+                requestControllerServiceCopyEntity, //
                 lookup -> {
                     final NiFiUser user = NiFiUserUtils.getNiFiUser();
 
                     // ensure write permission to the target process group
                     final Authorizable processGroup = lookup.getProcessGroup(requestControllerServiceCopyEntity.getGroupId()).getAuthorizable();
                     authorizeProcessGroup(controllerService, lookup, user, processGroup);
-                    },
-                null,
+                }, //
+                null, //
                 controllerServiceCopyEntity -> {
                     // handle sensitive properties
                     final Map<String, String> serviceProperties = controllerService.getProperties();
@@ -1041,158 +959,65 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
 
                     // build the response
                     return generateCreatedResponse(URI.create(entity.getUri()), entity).build();
-        });
-    }
-
-    @GET
-    @Consumes(MediaType.WILDCARD)
-    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Path("/search-results")
-    @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
-    @ApiResponses(value = { //
-            @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
-            @ApiResponse(code = 401, message = CODE_MESSAGE_401), //
-            @ApiResponse(code = 403, message = CODE_MESSAGE_403), //
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) }//
-    )
-    public Response searchControllerServices(//
-            @Context HttpServletRequest httpServletRequest, //
-            @QueryParam("text") String text, //
-
-            // page
-            @QueryParam("page") @DefaultValue("1") int currentPage, //
-            @QueryParam("pageSize") @DefaultValue("10") int pageSize, //
-
-            // sort
-            @QueryParam("sortedField") @DefaultValue("name") String sortedField, //
-            @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, //
-            @QueryParam("deleted") @DefaultValue("false") boolean deleted//
-    ) {
-        final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity = new OrchsymServiceSearchCriteriaEntity();
-        requestServiceSearchCriteriaEntity.setText(text);
-        requestServiceSearchCriteriaEntity.setPage(currentPage);
-        requestServiceSearchCriteriaEntity.setPageSize(pageSize);
-        requestServiceSearchCriteriaEntity.setSortedField(sortedField);
-        requestServiceSearchCriteriaEntity.setDesc(isDesc);
-        requestServiceSearchCriteriaEntity.setDeleted(deleted);
-
-        return queryControllerServices(httpServletRequest, requestServiceSearchCriteriaEntity);
+                });
     }
 
     /**
-     * Retrieve controller services.
-     * To make use of existing NiFi API, the Controller Services will be sorted in lexicographical order by controller-service-id first.
+     * Try to enable the specified Controller Service
+     * 
+     * @param serviceId
+     *            The Controller Service id
      */
-    @POST
-    @Consumes(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Path("/search")
-    @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
-    @ApiResponses(value = { @ApiResponse(code = 400, message = CODE_MESSAGE_400), @ApiResponse(code = 401, message = CODE_MESSAGE_401), @ApiResponse(code = 403, message = CODE_MESSAGE_403),
-            @ApiResponse(code = 409, message = CODE_MESSAGE_409) })
-    public Response queryControllerServices(//
+    @PUT
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{serviceId}/enable")
+    @ApiOperation(value = "try to enable the specified Controller Service", //
+            response = ControllerServiceEntity.class, //
+            authorizations = { @Authorization(value = "Write - /controller-services/{uuid}"), })
+    @ApiResponses(value = { @ApiResponse(code = 404, message = CODE_MESSAGE_404) })
+    public Response enableControllerService(//
             @Context HttpServletRequest httpServletRequest, //
-            @RequestBody final OrchsymServiceSearchCriteriaEntity requestServiceSearchCriteriaEntity//
+            @ApiParam(value = "The controller service id.", required = true) @PathParam("serviceId") final String serviceId //
     ) {
-        if (requestServiceSearchCriteriaEntity == null) {
-            throw new IllegalArgumentException("The Controller Service Search Criteria must be specified.");
-        }
-        final Set<String> scopes = requestServiceSearchCriteriaEntity.getScopes();
-        if (scopes == null) {
-            throw new IllegalArgumentException("The search scope can't be null");
-        }
-        List<ControllerServiceSearchDTO> services = new ArrayList<>();
-        // 1. get Controller Services by groupId (filter by scope)
-        final boolean deleted = requestServiceSearchCriteriaEntity.isDeleted();
-        if (scopes.isEmpty()) {
-            // controller scope Controller Services, ignore the controller scope
-            // services.addAll(serviceFacade.searchControllerServices(null, true, true, deleted));
-            // Controller Services in Process Groups
-            services.addAll(serviceFacade.searchControllerServices(ROOT_GROUP_ID_ALIAS, true, true, deleted));
-        } else {
-            for (String scope : scopes) {
-                services.addAll(serviceFacade.searchControllerServices(scope, false, true, deleted));
-            }
-        }
-        final Set<OrchsymServiceSearchCriteriaEntity.OrchsymServiceState> states = requestServiceSearchCriteriaEntity.getStates();
-        if (states == null) {
-            throw new IllegalArgumentException("The state can't be null. If you don't want filter by state, just ignore it.");
-        }
-        if (states.isEmpty()) {
-            states.addAll(Arrays.asList(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.values()));
-        }
-        final String searchStr = requestServiceSearchCriteriaEntity.getText();
-        final boolean desc = requestServiceSearchCriteriaEntity.isDesc();
-        services = services.stream()
-                // 2. filter by controller service state
-                .filter(controllerServiceDTO -> {
-                    final OrchsymServiceSearchCriteriaEntity.OrchsymServiceState serviceState = OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState());
-                    final OrchsymServiceSearchCriteriaEntity.OrchsymServiceState validateStatus = OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus());
-                    if (states.size() == 1 && states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.DISABLED)) {
-                        // If the filter condition is: DISABLED, the result shouldn't contains Controller Services which are in INVALID state
-                        return serviceState.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.DISABLED) && validateStatus.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.VALID);
-                    } else if (states.size() == 1 && states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.INVALID)) {
-                        // If the filter condition is: INVALID, the result shouldn't contains Controller Services which are in DISABLED state
-                        return validateStatus.equals(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.INVALID);
-                    } else {
-                        return states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getState()))
-                                || states.contains(OrchsymServiceSearchCriteriaEntity.OrchsymServiceState.valueOf(controllerServiceDTO.getValidationStatus()));
-                    }
-                })
-                // 3. filter by search string. Only try to match search string with controller service's name, type and comments
-                .filter(controllerServiceDTO -> OrchsymSearchEntity.contains(searchStr, //
-                        new String[] { controllerServiceDTO.getName(), controllerServiceDTO.getType(), controllerServiceDTO.getComments() }))
-                .collect(Collectors.toList());
-        // 4. sorting
-        final OrchsymServiceSortField sortField = Objects.isNull(requestServiceSearchCriteriaEntity.getSortedField()) ? OrchsymServiceSortField.NAME
-                : OrchsymServiceSortField.valueOf(requestServiceSearchCriteriaEntity.getSortedField().toUpperCase());
-        services.sort((o2, o1) -> {
-            switch (sortField) {
-            case NAME:
-                final int compare = ChinesePinyinUtil.zhComparator.compare(o2.getName(), o1.getName());
-                return desc ? -compare : compare;
-            case TYPE:
-                return desc ? o1.getType().compareTo(o2.getType()) : o2.getType().compareTo(o1.getType());
-            case REFERENCING_COMPONENTS:
-                int size1 = 0;
-                for (Map.Entry<String, Set<String>> entry : o1.getReferencingComponents().entrySet()) {
-                    size1 += entry.getValue().size();
-                }
-                int size2 = 0;
-                for (Map.Entry<String, Set<String>> entry : o2.getReferencingComponents().entrySet()) {
-                    size2 += entry.getValue().size();
-                }
-                final int diff = size1 - size2;
-                return desc ? -diff : diff;
-            default:
-                return 0;
-            }
-        });
-        // 5. page
-        final DataPage<ControllerServiceSearchDTO> dataPage = new DataPage<>(services, requestServiceSearchCriteriaEntity.getPageSize(), requestServiceSearchCriteriaEntity.getPage());
-        // 6. set uri, scope and info
-        dataPage.getResults().forEach(controllerServiceSearchDTO -> {
-            controllerServiceSearchDTO.setUri(generateResourceUri("controller-services", controllerServiceSearchDTO.getId()));
+        final ControllerServiceEntity requestControllerServiceEntity = getService(serviceId);
 
-            final String parentGroupId = controllerServiceSearchDTO.getParentGroupId();
-            String scope;
-            ApplicationInfoDTO appInfo = new ApplicationInfoDTO();
-            // We don't need return Controller Services on controller level anymore.
-            if (!Objects.isNull(parentGroupId)) {
-                ProcessGroup group = flowController.getGroup(parentGroupId);
-                if (!Objects.isNull(group) && group.getIdentifier().equals(flowController.getRootGroupId())) {
-                    scope = "ROOT";
-                } else {
-                    appInfo = ProcessUtil.calcApplicationInfo(group, flowController.getRootGroupId());
-                    scope = appInfo.getApplicationName();
-                }
-                controllerServiceSearchDTO.setScope(scope);
-                controllerServiceSearchDTO.setInfo(appInfo);
-            }
-        });
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(false);
+        }
 
+        return processControllerServiceState(requestControllerServiceEntity, ControllerServiceState.ENABLED);
+    }
 
-        return noCache(Response.ok(dataPage)).build();
+    /**
+     * Try to disable the specified Controller Service
+     * 
+     * @param serviceId
+     *            The Controller Service id
+     */
+    @PUT
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{serviceId}/disable")
+    @ApiOperation(value = "try to enable the specified Controller Service", //
+            response = ControllerServiceEntity.class, //
+            authorizations = { @Authorization(value = "Write - /controller-services/{uuid}"), })
+    @ApiResponses(value = { @ApiResponse(code = 404, message = CODE_MESSAGE_404) })
+    public Response disableControllerService(//
+            @Context HttpServletRequest httpServletRequest, //
+            @ApiParam(value = "The controller service id.", required = true) @PathParam("serviceId") final String serviceId //
+    ) {
+        final ControllerServiceEntity requestControllerServiceEntity = getService(serviceId);
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(false);
+        }
+
+        return processControllerServiceState(requestControllerServiceEntity, ControllerServiceState.DISABLED);
     }
 
     /**
@@ -1213,78 +1038,20 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @ApiResponses(value = { @ApiResponse(code = 404, message = CODE_MESSAGE_404) })
     public Response logicallyDeleteControllerService(//
             @Context HttpServletRequest httpServletRequest, //
-            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged, //
             @PathParam("serviceId") final String serviceId//
     ) {
+        final ControllerServiceEntity requestControllerServiceEntity = getService(serviceId);
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         } else if (isDisconnectedFromCluster()) {
-            verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
+            verifyDisconnectedNodeModification(false);
         }
-
-        deleteControllerServiceLogically(serviceId);
-
-        return generateStringOkResponse("success");
-    }
-
-    /**
-     * Try to enable the specified Controller Service
-     * 
-     * @param serviceId
-     *            The Controller Service id
-     */
-    @PUT
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("{serviceId}/enable")
-    @ApiOperation(value = "try to enable the specified Controller Service", response = String.class, authorizations = { @Authorization(value = "Write - /controller-services/{uuid}"), })
-    @ApiResponses(value = { @ApiResponse(code = 404, message = CODE_MESSAGE_404) })
-    public Response enableControllerService(//
-            @Context HttpServletRequest httpServletRequest, //
-            @ApiParam(value = "The controller service id.", required = true) @PathParam("serviceId") final String serviceId, //
-            @ApiParam(value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.") @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged//
-    ) {
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.PUT);
-        } else if (isDisconnectedFromCluster()) {
-            verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
-        }
-
-        enableControllerService(serviceId);
-
-        return generateStringOkResponse("success");
-    }
-
-    /**
-     * Try to disable the specified Controller Service
-     * 
-     * @param serviceId
-     *            The Controller Service id
-     */
-    @PUT
-    @Consumes(MediaType.WILDCARD)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("{serviceId}/disable")
-    @ApiOperation(value = "try to enable the specified Controller Service", response = String.class, authorizations = { @Authorization(value = "Write - /controller-services/{uuid}"), })
-    @ApiResponses(value = { @ApiResponse(code = 404, message = CODE_MESSAGE_404) })
-    public Response disableControllerService(//
-            @Context HttpServletRequest httpServletRequest, //
-            @ApiParam(value = "The controller service id.", required = true) @PathParam("serviceId") final String serviceId, //
-            @ApiParam(value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.") @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged//
-    ) {
-        if (isReplicateRequest()) {
-            return replicate(HttpMethod.PUT);
-        } else if (isDisconnectedFromCluster()) {
-            verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
-        }
-
-        try {
-            disableControllerService(serviceId);
-        } catch (IllegalStateException ise) {
-            return generateStringOkResponse(ise.getMessage());
-        }
-
-        return generateStringOkResponse("success");
+        return withWriteLock(serviceFacade, //
+                requestControllerServiceEntity, //
+                lookup -> checkDeleteAuth(lookup, serviceId), //
+                () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceEntity.getComponent()), //
+                controllerServiceEntity -> generateOkResponse(deleteControllerServiceLogically(controllerServiceEntity, true)).build());
     }
 
     /**
@@ -1302,18 +1069,27 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @ApiResponses(value = { @ApiResponse(code = 404, message = CODE_MESSAGE_404) })
     public Response recoverControllerService(//
             @Context HttpServletRequest httpServletRequest, //
-            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged, //
             @PathParam("serviceId") final String serviceId//
     ) {
+        final ControllerServiceEntity requestControllerServiceEntity = getService(serviceId);
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT);
         } else if (isDisconnectedFromCluster()) {
-            verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
+            verifyDisconnectedNodeModification(false);
+        }
+        try {
+            ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
+            throw new IllegalArgumentException(String.format("Unable to recover controller service with id '%s' because it is not in the Recycle Bin.", serviceId));
+        } catch (Exception e) {
+            // is deleted
         }
 
-        recoverControllerService(serviceId);
-
-        return generateStringOkResponse("success");
+        return withWriteLock(serviceFacade, //
+                requestControllerServiceEntity, //
+                lookup -> checkOperateAuth(lookup, serviceId), //
+                () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceEntity.getComponent()), //
+                controllerServiceEntity -> generateOkResponse(deleteControllerServiceLogically(controllerServiceEntity, false)).build());
     }
 
     /**
@@ -1331,37 +1107,125 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @ApiResponses(value = { @ApiResponse(code = 404, message = CODE_MESSAGE_404) })
     public Response physicallyDeleteControllerService(//
             @Context HttpServletRequest httpServletRequest, //
-            @QueryParam(DISCONNECTED_NODE_ACKNOWLEDGED) @DefaultValue("false") final Boolean disconnectedNodeAcknowledged, //
-            @PathParam("serviceId") final String serviceId) {
+            @PathParam("serviceId") final String serviceId//
+    ) {
+        final ControllerServiceEntity requestControllerServiceEntity = getService(serviceId);
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.DELETE);
         } else if (isDisconnectedFromCluster()) {
-            verifyDisconnectedNodeModification(disconnectedNodeAcknowledged);
+            verifyDisconnectedNodeModification(false);
         }
 
-        deleteControllerServicePhysically(serviceId);
-
-        return generateStringOkResponse("success");
+        return withWriteLock(serviceFacade, //
+                requestControllerServiceEntity, //
+                lookup -> checkDeleteAuth(lookup, serviceId), //
+                () -> serviceFacade.verifyDeleteControllerService(serviceId), //
+                controllerServiceEntity -> generateOkResponse(deleteControllerServicePhysically(controllerServiceEntity)).build());
     }
 
-    private void authorizeProcessGroup(ControllerServiceDTO controllerService, AuthorizableLookup lookup, NiFiUser user, Authorizable processGroup) {
-        processGroup.authorize(authorizer, RequestAction.WRITE, user);
-
-        ComponentAuthorizable authorizable = null;
-        try {
-            authorizable = lookup.getConfigurableComponent(controllerService.getType(), controllerService.getBundle());
-
-            if (authorizable.isRestricted()) {
-                authorizeRestrictions(authorizer, authorizable);
-            }
-
-            if (controllerService.getProperties() != null) {
-                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService.getProperties(), authorizable, authorizer, lookup);
-            }
-        } finally {
-            if (authorizable != null) {
-                authorizable.cleanUpResources();
-            }
+    /*
+     * ---------------------------------------private methods--------------------------------------------------
+     */
+    private ControllerServiceEntity getService(final String serviceId) {
+        final ControllerServiceEntity requestControllerServiceEntity = serviceFacade.getControllerService(serviceId);
+        if (requestControllerServiceEntity == null) {
+            throw new ResourceNotFoundException(String.format("Unable to locate controller service with id '%s'.", serviceId));
         }
+        return requestControllerServiceEntity;
     }
+
+    private void checkDeleteAuth(final AuthorizableLookup lookup, final String serviceId) {
+        final ComponentAuthorizable controllerService = lookup.getControllerService(serviceId);
+
+        // ensure write permission to the controller service
+        controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+        // ensure write permission to the parent process group
+        controllerService.getAuthorizable().getParentAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+        // verify any referenced services
+        AuthorizeControllerServiceReference.authorizeControllerServiceReferences(controllerService, authorizer, lookup, false);
+    }
+
+    private void checkOperateAuth(final AuthorizableLookup lookup, final String serviceId) {
+        final ComponentAuthorizable controllerService = lookup.getControllerService(serviceId);
+
+        // ensure write permission to the controller service
+        controllerService.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+    }
+
+    /**
+     * Try to disable/enable a Controller Service
+     */
+    private Response processControllerServiceState(final ControllerServiceEntity requestControllerServiceEntity, final ControllerServiceState state) {
+        final String serviceId = requestControllerServiceEntity.getId();
+
+        return withWriteLock(serviceFacade, //
+                requestControllerServiceEntity, //
+                lookup -> checkOperateAuth(lookup, serviceId), //
+                () -> verifyControllerServiceState(requestControllerServiceEntity, state), //
+                controllerServiceEntity -> generateOkResponse(updateControllerServiceState(controllerServiceEntity, state)).build());
+
+    }
+
+    private void verifyControllerServiceState(final ControllerServiceEntity requestControllerServiceEntity, final ControllerServiceState state) {
+        ControllerServiceAdditionUtils.logicalDeletionCheck(requestControllerServiceEntity);
+        //
+        ControllerServiceState testState = ControllerServiceState.DISABLED.equals(state) ? ControllerServiceState.ENABLED : ControllerServiceState.DISABLED;
+        if (!requestControllerServiceEntity.getComponent().getState().equalsIgnoreCase(testState.name())) {
+            throw new IllegalStateException("Cannot process the service " + requestControllerServiceEntity.getId() + " because it has been state " + state.name().toLowerCase());
+        }
+        serviceFacade.verifyUpdateControllerService(requestControllerServiceEntity.getComponent());
+    }
+
+    private ControllerServiceEntity updateControllerServiceState(final ControllerServiceEntity controllerServiceEntity, final ControllerServiceState state) {
+        final String controllerServiceId = controllerServiceEntity.getId();
+
+        if (ControllerServiceState.DISABLED.equals(state)) {
+            // stop the controller service references
+            final Set<ControllerServiceReferencingComponentEntity> referencingComponentEntities = serviceFacade.getControllerServiceReferencingComponents(controllerServiceId)
+                    .getControllerServiceReferencingComponents();
+            final Map<String, Revision> referencingRevisions = referencingComponentEntities.stream().collect(Collectors.toMap(ControllerServiceReferencingComponentEntity::getId, entity -> {
+                final RevisionDTO rev = entity.getRevision();
+                return new Revision(rev.getVersion(), rev.getClientId(), entity.getId());
+            }));
+            serviceFacade.updateControllerServiceReferencingComponents(referencingRevisions, controllerServiceId, ScheduledState.STOPPED, null);
+            // disable the controller service references
+            serviceFacade.updateControllerServiceReferencingComponents(new HashMap<>(), controllerServiceId, ScheduledState.DISABLED, ControllerServiceState.DISABLED);
+            // disable the controller service
+        }
+
+        final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+        serviceDTO.setId(controllerServiceId);
+        serviceDTO.setState(state.name());
+
+        final Revision revision = getRevision(controllerServiceEntity.getRevision(), serviceDTO.getId());
+        serviceFacade.updateControllerService(revision, serviceDTO);
+
+        // get new state
+        final ControllerServiceEntity updatedControllerServiceEntity = serviceFacade.getControllerService(controllerServiceId);
+
+        return updatedControllerServiceEntity;
+    }
+
+    private ControllerServiceEntity deleteControllerServiceLogically(final ControllerServiceEntity requestControllerServiceEntity, boolean deleted) {
+        final String controllerServiceId = requestControllerServiceEntity.getId();
+
+        flowController.getControllerServiceNode(controllerServiceId).getAdditions().setValue(AdditionConstants.KEY_IS_DELETED, deleted);
+        flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+
+        return serviceFacade.getControllerService(controllerServiceId);
+    }
+
+    /**
+     * Try to delete a Controller Service permanently
+     */
+    private ControllerServiceEntity deleteControllerServicePhysically(final ControllerServiceEntity requestControllerServiceEntity) {
+        final String controllerServiceId = requestControllerServiceEntity.getId();
+        final Revision revision = getRevision(requestControllerServiceEntity.getRevision(), controllerServiceId);
+
+        return serviceFacade.deleteControllerService(revision, controllerServiceId);
+    }
+
 }

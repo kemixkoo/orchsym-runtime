@@ -18,6 +18,14 @@ package org.apache.nifi.web.dao.impl;
 
 import static org.apache.nifi.controller.FlowController.ROOT_GROUP_ID_ALIAS;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.apache.nifi.bundle.BundleCoordinate;
 import org.apache.nifi.components.ConfigurableComponent;
 import org.apache.nifi.components.state.Scope;
@@ -39,13 +47,7 @@ import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.dao.ComponentStateDAO;
 import org.apache.nifi.web.dao.ControllerServiceDAO;
-
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 
 public class StandardControllerServiceDAO extends ComponentDAO implements ControllerServiceDAO {
 
@@ -375,6 +377,11 @@ public class StandardControllerServiceDAO extends ComponentDAO implements Contro
             }
             if (isNotNull(properties)) {
                 controllerService.setProperties(properties);
+            }
+            if (isNotNull(controllerServiceDTO.getAdditions())) {
+                for (Entry<String, String> entry : controllerServiceDTO.getAdditions().entrySet()) {
+                    controllerService.getAdditions().setValue(entry.getKey(), entry.getValue());
+                }
             }
         } finally {
             controllerService.resumeValidationTrigger();

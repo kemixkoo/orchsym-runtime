@@ -227,7 +227,7 @@ public class DataPageTest {
         assertEquals(50, page.getPageSize());
 
         assertEquals(1, page.getTotalPage());
-        assertEquals(0, page.getResults().size());
+        assertEquals(50, page.getResults().size());
     }
 
     @Test
@@ -255,7 +255,7 @@ public class DataPageTest {
         assertEquals(60, page.getPageSize());
 
         assertEquals(1, page.getTotalPage());
-        assertEquals(0, page.getResults().size());
+        assertEquals(50, page.getResults().size());
     }
 
     @Test
@@ -283,7 +283,7 @@ public class DataPageTest {
         assertEquals(50, page.getPageSize());
 
         assertEquals(1, page.getTotalPage());
-        assertEquals(0, page.getResults().size());
+        assertEquals(50, page.getResults().size());
 
     }
 }

@@ -428,7 +428,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             final Snippet snippet = (Snippet) component;
             currentGroup = flowController.getGroup(snippet.getParentGroupId());
         }
-        if (!Objects.isNull(currentGroup)) {
+        if (Objects.nonNull(currentGroup)) {
             compInfo.currentGroup = currentGroup;
 
             if (currentGroup.isRootGroup()) {
@@ -442,9 +442,9 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
 
     ProcessGroup getAppGroup(String anyId) {
         final Object component = getComponentById(anyId);
-        if (!Objects.isNull(component)) {
+        if (Objects.nonNull(component)) {
             ComponentInfo compInfo = getCurrentGroup(component);
-            if (!Objects.isNull(compInfo.currentGroup)) {
+            if (Objects.nonNull(compInfo.currentGroup)) {
                 return compInfo.currentGroup;
             }
         }

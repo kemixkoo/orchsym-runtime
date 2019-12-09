@@ -49,9 +49,11 @@ import org.apache.nifi.web.api.entity.NodeEntity;
 import org.apache.nifi.web.api.entity.RegistryClientEntity;
 import org.apache.nifi.web.api.entity.RegistryClientsEntity;
 import org.apache.nifi.web.api.entity.ReportingTaskEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.DateTimeParameter;
 import org.apache.nifi.web.api.request.LongParameter;
+import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -70,6 +72,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -774,6 +779,8 @@ public class ControllerResource extends ApplicationResource {
         if (StringUtils.isBlank(requestControllerService.getType())) {
             throw new IllegalArgumentException("The type of controller service to create must be specified.");
         }
+
+        ControllerServiceAdditionUtils.onCreate(requestControllerServiceEntity.getComponent());
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestControllerServiceEntity);

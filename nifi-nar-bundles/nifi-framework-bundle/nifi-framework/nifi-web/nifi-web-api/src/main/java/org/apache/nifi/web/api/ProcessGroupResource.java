@@ -3806,6 +3806,8 @@ public class ProcessGroupResource extends ApplicationResource {
         }
         requestControllerService.setParentGroupId(groupId);
 
+        ControllerServiceAdditionUtils.onCreate(requestControllerServiceEntity.getComponent());
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestControllerServiceEntity);
         } else if (isDisconnectedFromCluster()) {

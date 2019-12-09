@@ -17,13 +17,19 @@
  */
 package org.apache.nifi.web.util;
 
-import org.apache.nifi.util.ProcessUtil;
-import org.apache.nifi.web.ResourceNotFoundException;
-import org.apache.nifi.web.api.entity.ControllerServiceEntity;
-import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+
+import org.apache.nifi.additions.TypeAdditions;
+import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.apache.nifi.controller.service.ControllerServiceNode;
+import org.apache.nifi.util.ProcessUtil;
+import org.apache.nifi.web.ResourceNotFoundException;
+import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.entity.ControllerServiceEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 
 /**
  * @author weiwei.zhan
@@ -34,7 +40,7 @@ public class ControllerServiceAdditionUtils {
         Objects.requireNonNull(entity);
         boolean deleted = ProcessUtil.getAdditionBooleanValue(entity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
         if (deleted) {
-            throw new ResourceNotFoundException(String.format("Unable to find Controller Service '%s'", entity.getId()));
+            throw new ResourceNotFoundException(String.format("The service '%s' has been deleted", entity.getId()));
         }
     }
 
@@ -43,6 +49,35 @@ public class ControllerServiceAdditionUtils {
             .getAdditionBooleanValue(controllerServiceEntity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
 
     // Return true if the Controller Service has already been deleted logically
-    public static Predicate<ControllerServiceEntity> CONTROLLER_SERVICE_DELETED = controllerServiceEntity -> ProcessUtil
-            .getAdditionBooleanValue(controllerServiceEntity.getComponent().getAdditions(), AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+    public static Predicate<ControllerServiceEntity> CONTROLLER_SERVICE_DELETED = CONTROLLER_SERVICE_NOT_DELETED.negate();
+
+    public static void onCreate(final ControllerServiceDTO dto) {
+        Map<String, String> additions = dto.getAdditions();
+        if (Objects.isNull(additions)) {
+            additions = new HashMap<>();
+            dto.setAdditions(additions);
+        } else {
+            additions = new HashMap<>(additions);
+        }
+
+        additions.put(AdditionConstants.KEY_CREATED_USER, NiFiUserUtils.getNiFiUserIdentity());
+        if (!additions.containsKey(AdditionConstants.KEY_CREATED_TIMESTAMP)) {
+            additions.put(AdditionConstants.KEY_CREATED_TIMESTAMP, String.valueOf(System.currentTimeMillis()));
+        }
+    }
+
+    public static void onUpdate(final ControllerServiceDTO dto) {
+        Map<String, String> additions = dto.getAdditions();
+        if (Objects.isNull(additions)) {
+            additions = new HashMap<>();
+            dto.setAdditions(additions);
+        } else {
+            additions = new HashMap<>(additions);
+        }
+        additions.put(AdditionConstants.KEY_MODIFIED_USER, NiFiUserUtils.getNiFiUserIdentity());
+        if (!additions.containsKey(AdditionConstants.KEY_MODIFIED_TIMESTAMP)) {
+            additions.put(AdditionConstants.KEY_MODIFIED_TIMESTAMP, String.valueOf(System.currentTimeMillis()));
+        }
+    }
+
 }
