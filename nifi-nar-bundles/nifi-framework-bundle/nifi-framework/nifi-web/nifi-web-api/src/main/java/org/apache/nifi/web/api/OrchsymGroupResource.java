@@ -243,24 +243,27 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
                 Revision revision = revisionManager.getRevision(processorId);
                 serviceFacade.updateProcessor(revision, processorDTO);
             }
-        }
-        // 如果组件未终止 需要强制等待
-        int times = 30;
-        // 轮询间隔 0.1秒
-        long timeUnit = 100;
-        int count = 0;
-        while (!isAllProcessorStoppped(group) && count < times) {
-            try {
-                Thread.sleep(timeUnit);
-                count++;
-            } catch (InterruptedException e) {
-                //
+
+            // 如果组件未终止 需要强制等待
+            int times = 30;
+            // 轮询间隔 0.1秒
+            long timeUnit = 100;
+            int count = 0;
+            while (!isAllProcessorStopped(allIdsInGroup.getProcessorIds()) && count < times) {
+                try {
+                    Thread.sleep(timeUnit);
+                    count++;
+                } catch (InterruptedException e) {
+                    //
+                }
             }
+
+            if (count >= times) {
+                throw new IllegalStateException("the time of stopping processors too long, please retry");
+            }
+            
         }
 
-        if (count >= times) {
-            throw new IllegalStateException("the time of stopping processors too long, please retry");
-        }
 
         if (cleanQueue) { // 清空队列
             for (String connectionId : allIdsInGroup.getConnectionIds()) {
@@ -278,14 +281,41 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
             for (String serviceId : allIdsInGroup.getServiceIds()) {
                 disableServiceByIdentifier(serviceId);
             }
+
+            // 如果服务未禁用完毕， 需要强制等待
+            int times = 100;
+            // 轮询间隔 0.1秒
+            long timeUnit = 100;
+            int count = 0;
+            while (!isAllControllerServiceStopped(allIdsInGroup.getServiceIds()) && count < times) {
+                try {
+                    Thread.sleep(timeUnit);
+                    count++;
+                } catch (InterruptedException e) {
+                    //
+                }
+            }
+
+            if (count >= times) {
+                throw new IllegalStateException("the time of disabling service too long, please retry");
+            }
+
         }
+
     }
 
-    private boolean isAllProcessorStoppped(ProcessGroup group) {
-        return group.getProcessors().stream().noneMatch(p -> {
-            final ScheduledState state = p.getPhysicalScheduledState();
+    private boolean isAllProcessorStopped(Set<String> processorIds) {
+        return processorIds.stream().noneMatch(processorId -> {
+            final ScheduledState state = flowController.getProcessorNode(processorId).getPhysicalScheduledState();
             return !state.equals(ScheduledState.DISABLED) && !state.equals(ScheduledState.STOPPED);
         });
+    }
+
+    private boolean isAllControllerServiceStopped(Set<String> serviceIds) {
+      return serviceIds.stream().noneMatch(serviceId -> {
+          final ControllerServiceState state = flowController.getControllerServiceNode(serviceId).getState();
+          return !state.equals(ControllerServiceState.DISABLED);
+      });
     }
 
     /**
