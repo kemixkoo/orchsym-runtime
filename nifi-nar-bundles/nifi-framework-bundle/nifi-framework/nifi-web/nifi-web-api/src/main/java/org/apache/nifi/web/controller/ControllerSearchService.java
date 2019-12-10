@@ -388,15 +388,6 @@ public class ControllerSearchService {
             addIfAppropriate(searchStr, String.join(",", group.getTags()), "Tags", matches);
         }
 
-        final ComponentVariableRegistry varRegistry = group.getVariableRegistry();
-        if (varRegistry != null) {
-            final Map<VariableDescriptor, String> variableMap = varRegistry.getVariableMap();
-            for (final Map.Entry<VariableDescriptor, String> entry : variableMap.entrySet()) {
-                addIfAppropriate(searchStr, entry.getKey().getName(), "Variable Name", matches);
-                addIfAppropriate(searchStr, entry.getValue(), "Variable Value", matches);
-            }
-        }
-
         if (matches.isEmpty()) {
             return null;
         }
