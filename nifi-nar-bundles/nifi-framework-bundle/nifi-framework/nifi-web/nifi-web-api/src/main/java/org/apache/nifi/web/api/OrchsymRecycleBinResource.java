@@ -191,7 +191,7 @@ public class OrchsymRecycleBinResource extends AbsOrchsymResource {
                         parentAuthorizable.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
                     }
                 },
-                () -> serviceFacade.verifyDeleteProcessGroup(processGroupToDelete.getId()),
+                () -> serviceFacade.verifyDeleteProcessGroup(processGroupToDelete.getId(), true),
                 (rv, processGroupEntity) -> {
                     // delete the process group
                     final ProcessGroupEntity entity = serviceFacade.deleteProcessGroup(rv, processGroupEntity.getId());

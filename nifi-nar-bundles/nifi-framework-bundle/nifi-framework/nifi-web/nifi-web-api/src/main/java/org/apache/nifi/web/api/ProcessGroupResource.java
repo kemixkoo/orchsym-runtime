@@ -1606,7 +1606,7 @@ public class ProcessGroupResource extends ApplicationResource {
                         parentAuthorizable.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
                     }
                 },
-                () -> serviceFacade.verifyDeleteProcessGroup(id),
+                () -> serviceFacade.verifyDeleteProcessGroup(id, false),
                 (revision, processGroupEntity) -> {
                     // delete the process group
                     final ProcessGroupEntity entity = serviceFacade.deleteProcessGroup(revision, processGroupEntity.getId());

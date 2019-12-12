@@ -356,9 +356,9 @@ public class StandardProcessGroupDAO extends ComponentDAO implements ProcessGrou
     }
 
     @Override
-    public void verifyDelete(String groupId) {
+    public void verifyDelete(String groupId, boolean ignoreControllerService) {
         ProcessGroup group = locateProcessGroup(flowController, groupId);
-        group.verifyCanDelete();
+        group.verifyCanDelete(false, ignoreControllerService);
     }
 
     @Override

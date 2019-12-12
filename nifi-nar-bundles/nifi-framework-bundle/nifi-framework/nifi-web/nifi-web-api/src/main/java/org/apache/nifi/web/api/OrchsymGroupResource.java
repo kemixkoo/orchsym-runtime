@@ -226,7 +226,7 @@ public class OrchsymGroupResource extends AbsOrchsymResource {
                     // 为保证删除成功，清理数据
                     safeCleanGroup(group, true, true, true, true);
                     // 校验
-                    serviceFacade.verifyDeleteProcessGroup(entity.getId());
+                    serviceFacade.verifyDeleteProcessGroup(entity.getId(), true);
                     // 物理删除
                     serviceFacade.deleteProcessGroup(revisionManager.getRevision(entity.getId()), entity.getId());
                     return generateOkResponse("success").build();

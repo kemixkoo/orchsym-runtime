@@ -2768,7 +2768,12 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags {
     }
 
     @Override
-    public void verifyCanDelete(final boolean ignoreConnections) {
+    public void verifyCanDelete(final boolean ignorePortConnections) {
+        verifyCanDelete(ignorePortConnections, false);
+    }
+
+    @Override
+    public void verifyCanDelete(final boolean ignoreConnections, final boolean ignoreControllerServices) {
         readLock.lock();
         try {
             for (final Port port : inputPorts.values()) {
@@ -2787,8 +2792,10 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags {
                 connection.verifyCanDelete();
             }
 
-            for (final ControllerServiceNode cs : controllerServices.values()) {
-                cs.verifyCanDelete();
+            if (!ignoreControllerServices) {
+                for (final ControllerServiceNode cs : controllerServices.values()) {
+                    cs.verifyCanDelete();
+                }
             }
 
             for (final ProcessGroup childGroup : processGroups.values()) {

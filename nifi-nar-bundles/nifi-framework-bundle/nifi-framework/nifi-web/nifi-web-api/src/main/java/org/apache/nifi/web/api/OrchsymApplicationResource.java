@@ -946,7 +946,13 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 serviceFacade.verifyDeleteReportingTask(id);
             } else if (component instanceof ProcessGroup) {
                 try {
-                    serviceFacade.verifyDeleteProcessGroup(id);
+                    final ProcessGroupEntity processGroup = serviceFacade.getProcessGroup(id);
+                    if (processGroup.getComponent().getParentGroupId().equalsIgnoreCase(flowController.getRootGroupId())) {
+                        // It's an app, skip Controller Service state check
+                        serviceFacade.verifyDeleteProcessGroup(id, true);
+                    } else {
+                        serviceFacade.verifyDeleteProcessGroup(id, false);
+                    }
                 } catch (Exception e) {
                     Set<String> runningComponents = new HashSet<>();
                     Set<String> runningServices = new HashSet<>();
@@ -960,6 +966,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     throw e;
                 }
             } else if (component instanceof Snippet) {
+                // FIXME: whether ignore controller Service when delete a Snippet,
+                //  If not ignored, it's better to stop Controller Services in Process Groups before perform the verification.
+                //  Since current implementations only stop Controller Services when logically/physically delete a app, it does not support Snippets.Snippets are much more complex
                 serviceFacade.verifyDeleteSnippet(id, serviceFacade.getRevisionsFromSnippet(id).stream().map(revision -> revision.getComponentId()).collect(Collectors.toSet()));
             }
         } catch (Exception e) {

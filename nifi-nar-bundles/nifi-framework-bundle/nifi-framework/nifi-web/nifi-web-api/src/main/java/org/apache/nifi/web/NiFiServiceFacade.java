@@ -1117,8 +1117,9 @@ public interface NiFiServiceFacade {
      * Verifies the specified process group can be removed.
      *
      * @param groupId The id of the process group
+     * @param ignoreControllerService whether ignore Controller Service
      */
-    void verifyDeleteProcessGroup(String groupId);
+    void verifyDeleteProcessGroup(String groupId, boolean ignoreControllerService);
 
     /**
      * Deletes the specified process group.

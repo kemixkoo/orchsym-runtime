@@ -537,8 +537,8 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
     }
 
     @Override
-    public void verifyDeleteProcessGroup(final String groupId) {
-        processGroupDAO.verifyDelete(groupId);
+    public void verifyDeleteProcessGroup(final String groupId, final boolean ignoreControllerService) {
+        processGroupDAO.verifyDelete(groupId, ignoreControllerService);
     }
 
     @Override

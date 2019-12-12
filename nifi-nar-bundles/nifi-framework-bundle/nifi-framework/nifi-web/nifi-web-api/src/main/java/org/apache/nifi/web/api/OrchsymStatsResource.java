@@ -492,7 +492,7 @@ public class OrchsymStatsResource extends AbsOrchsymResource {
             return response;
 
         // group
-        response = findAndVerifyId(() -> serviceFacade.getProcessGroup(id), () -> serviceFacade.verifyDeleteProcessGroup(id));
+        response = findAndVerifyId(() -> serviceFacade.getProcessGroup(id), () -> serviceFacade.verifyDeleteProcessGroup(id, true));
         if (response != null)
             return response;
 
