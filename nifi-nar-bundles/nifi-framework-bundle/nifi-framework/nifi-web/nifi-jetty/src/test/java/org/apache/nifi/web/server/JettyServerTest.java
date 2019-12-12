@@ -37,7 +37,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.nifi.security.util.KeyStoreUtils.SUN_PROVIDED_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -108,7 +107,7 @@ public class JettyServerTest {
         JettyServer.configureSslContextFactory(contextFactory, nifiProperties);
 
         verify(contextFactory).setKeyStoreType(keyStoreType);
-        verify(contextFactory).setKeyStoreProvider(SUN_PROVIDED_NAME);
+        verify(contextFactory, never()).setKeyStoreProvider(anyString());
     }
 
     @Test
@@ -138,7 +137,7 @@ public class JettyServerTest {
         JettyServer.configureSslContextFactory(contextFactory, nifiProperties);
 
         verify(contextFactory).setTrustStoreType(trustStoreType);
-        verify(contextFactory).setTrustStoreProvider(SUN_PROVIDED_NAME);
+        verify(contextFactory, never()).setTrustStoreProvider(anyString());
     }
 
     @Test

@@ -103,7 +103,7 @@
         <ranger.version>0.7.1</ranger.version>
         <!-- FIXME, when upgrade to 9.4.19.v20190610 or 9.4.15.v20190215
              have boot error: Caused by: java.io.FileNotFoundException: JAR entry META-INF/bundled-dependencies/taglibs-standard-impl-1.2.5.jar!/META-INF/scriptfree.tld not found -->
-        <jetty.version>9.4.11.v20180605</jetty.version>
+        <jetty.version>9.4.3.v20170317</jetty.version>
 
         <junit.version>4.12</junit.version>
         <junit5.version>5.2.0</junit5.version>

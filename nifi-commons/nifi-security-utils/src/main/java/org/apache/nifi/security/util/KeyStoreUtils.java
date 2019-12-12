@@ -29,8 +29,6 @@ import java.security.Security;
 public class KeyStoreUtils {
     private static final Logger logger = LoggerFactory.getLogger(KeyStoreUtils.class);
 
-    public static final String SUN_PROVIDED_NAME = "SUN";
-
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
@@ -44,8 +42,6 @@ public class KeyStoreUtils {
     public static String getKeyStoreProvider(String keyStoreType) {
         if (KeystoreType.PKCS12.toString().equalsIgnoreCase(keyStoreType)) {
             return BouncyCastleProvider.PROVIDER_NAME;
-        } else if (KeystoreType.JKS.toString().equalsIgnoreCase(keyStoreType)) {
-            return SUN_PROVIDED_NAME;
         }
         return null;
     }
