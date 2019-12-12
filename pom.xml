@@ -1,21 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
-    license agreements. See the NOTICE file distributed with this work for additional 
-    information regarding copyright ownership. The ASF licenses this file to 
-    You under the Apache License, Version 2.0 (the "License"); you may not use 
-    this file except in compliance with the License. You may obtain a copy of 
-    the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
-    by applicable law or agreed to in writing, software distributed under the 
-    License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
-    OF ANY KIND, either express or implied. See the License for the specific 
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor
+    license agreements. See the NOTICE file distributed with this work for 
+    additional
+    information regarding copyright ownership. The ASF licenses this file 
+    to
+    You under the Apache License, Version 2.0 (the "License"); you may not 
+    use
+    this file except in compliance with the License. You may obtain a copy 
+    of
+    the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required
+    by applicable law or agreed to in writing, software distributed under 
+    the
+    License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+    OF ANY KIND, either express or implied. See the License for the specific
     language governing permissions and limitations under the License. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache</groupId>
         <artifactId>apache</artifactId>
         <version>19</version>
-        <relativePath />
+        <relativePath/>
     </parent>
     <groupId>org.apache.nifi</groupId>
     <artifactId>nifi</artifactId>
@@ -88,32 +95,35 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.min-version>3.1.0</maven.min-version>
-        <maven.surefire.arguments />
+        <maven.surefire.arguments/>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <inceptionYear>2014</inceptionYear>
         <org.slf4j.version>1.7.25</org.slf4j.version>
         <ranger.version>0.7.1</ranger.version>
-        <jetty.version>9.4.19.v20190610</jetty.version>
-        
-        <junit.version>4.12</junit.version>
-		<junit5.version>5.2.0</junit5.version>
-		<junit5.platform.version>1.2.0</junit5.platform.version>
-		<mockito.version>1.10.19</mockito.version>
-		<hamcrest.version>1.3</hamcrest.version>
-		<surefire.version>2.20.1</surefire.version>
+        <!-- FIXME, when upgrade to 9.4.19.v20190610 or 9.4.15.v20190215
+             have boot error: Caused by: java.io.FileNotFoundException: JAR entry META-INF/bundled-dependencies/taglibs-standard-impl-1.2.5.jar!/META-INF/scriptfree.tld not found -->
+        <jetty.version>9.4.3.v20170317</jetty.version>
 
-		<avro.version>1.8.1</avro.version>
-        <!-- FIXME, seems can't upgrade to 2.10.0, will get the error to load processor ui  -->
-		<jackson.version>2.9.10</jackson.version>
+        <junit.version>4.12</junit.version>
+        <junit5.version>5.2.0</junit5.version>
+        <junit5.platform.version>1.2.0</junit5.platform.version>
+        <mockito.version>1.10.19</mockito.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <surefire.version>2.20.1</surefire.version>
+
+        <avro.version>1.8.1</avro.version>
+        <!-- FIXME, seems can't upgrade to 2.10.0, will get the error to 
+            load processor ui -->
+        <jackson.version>2.9.10</jackson.version>
         <jersey.version>2.26</jersey.version>
-		<nifi.groovy.version>2.5.4</nifi.groovy.version>
+        <nifi.groovy.version>2.5.4</nifi.groovy.version>
     </properties>
 
     <repositories>
         <repository>
             <id>central</id>
-            <!-- This should be at top, it makes maven try the central repo 
+            <!-- This should be at top, it makes maven try the central repo
                 first and then others and hence faster dep resolution -->
             <name>Maven Repository</name>
             <url>https://repo1.maven.org/maven2</url>
@@ -163,26 +173,32 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- The following dependency management entries exist because these are jars 
-            that live in the top-level lib directory and will be present in the parent-first
-            classloading of all child nars.  Therefore we dont want child nars using different
-            versions anyway.-->
+            <!-- The following dependency management entries exist because 
+                these are jars
+                that live in the top-level lib directory and will be present 
+                in the parent-first
+                classloading of all child nars. Therefore we dont want child 
+                nars using different
+                versions anyway. -->
 
-            <!-- javax.servlet-api handling this explicitly  Must be in root lib -->
+            <!-- javax.servlet-api handling this explicitly Must be in root 
+                lib -->
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>3.1.0</version>
                 <scope>provided</scope>
             </dependency>
-            <!-- jetty-schemas-3.1.jar handling this explicitly  Must be in root lib -->
+            <!-- jetty-schemas-3.1.jar handling this explicitly Must be in 
+                root lib -->
             <dependency>
                 <groupId>org.eclipse.jetty.toolchain</groupId>
                 <artifactId>jetty-schemas</artifactId>
                 <version>3.1</version>
                 <scope>provided</scope>
             </dependency>
-            <!-- logback-classic, logback-core, log4j-over-slf4j, jul-to-slf4j,jcl-over-slf4j,slf4j-api handling this explicitly  Must be in root lib -->
+            <!-- logback-classic, logback-core, log4j-over-slf4j, jul-to-slf4j,jcl-over-slf4j,slf4j-api 
+                handling this explicitly Must be in root lib -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
@@ -235,7 +251,8 @@
                 <version>${org.slf4j.version}</version>
             </dependency>
 
-            <!-- These junit/mockito/groovy/spock/hamcrest dependencies are here to encourage consistent unit test library usage -->
+            <!-- These junit/mockito/groovy/spock/hamcrest dependencies are 
+                here to encourage consistent unit test library usage -->
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -257,7 +274,7 @@
                 <artifactId>groovy-test</artifactId>
                 <version>${nifi.groovy.version}</version>
                 <scope>test</scope>
-			</dependency>
+            </dependency>
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy-all</artifactId>
@@ -271,8 +288,9 @@
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
-                        <!-- exclude transitive groovy dependencies to force spock to use the the managed groovy dependencies
-                        inherited from the parent pom -->
+                        <!-- exclude transitive groovy dependencies to force 
+                            spock to use the the managed groovy dependencies
+                            inherited from the parent pom -->
                         <groupId>org.codehaus.groovy</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -284,64 +302,65 @@
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
             </dependency>
-			<dependency>
-				<groupId>org.hamcrest</groupId>
-				<artifactId>hamcrest-library</artifactId>
-				<version>${hamcrest.version}</version>
-				<scope>test</scope>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
             </dependency>
 
-			<!-- JUnit 5 -->
-			<dependency>
-				<groupId>org.junit.jupiter</groupId>
-				<artifactId>junit-jupiter-api</artifactId>
-				<version>${junit5.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.jupiter</groupId>
-				<artifactId>junit-jupiter-engine</artifactId>
-				<version>${junit5.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.jupiter</groupId>
-				<artifactId>junit-jupiter-params</artifactId>
-				<version>${junit5.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.vintage</groupId>
-				<artifactId>junit-vintage-engine</artifactId>
-				<version>${junit5.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.platform</groupId>
-				<artifactId>junit-platform-commons</artifactId>
-				<version>${junit5.platform.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.platform</groupId>
-				<artifactId>junit-platform-engine</artifactId>
-				<version>${junit5.platform.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.platform</groupId>
-				<artifactId>junit-platform-launcher</artifactId>
-				<version>${junit5.platform.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.platform</groupId>
-				<artifactId>junit-platform-runner</artifactId>
-				<version>${junit5.platform.version}</version>
-				<scope>test</scope>
-			</dependency>
-		
-            <!-- These Jetty dependencies are required for the Jetty Web Server all nars extend from it so we dont want this getting overriden -->
+            <!-- JUnit 5 -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit5.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit5.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit5.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+                <version>${junit5.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-commons</artifactId>
+                <version>${junit5.platform.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-engine</artifactId>
+                <version>${junit5.platform.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>${junit5.platform.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-runner</artifactId>
+                <version>${junit5.platform.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- These Jetty dependencies are required for the Jetty Web 
+                Server all nars extend from it so we dont want this getting overriden -->
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
@@ -392,21 +411,21 @@
             </dependency>
 
             <!-- Jackson -->
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-core</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
                 <artifactId>jackson-module-jaxb-annotations</artifactId>
@@ -469,10 +488,10 @@
                 <artifactId>jersey-spring4</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
-			<dependency>
+            <dependency>
                 <groupId>org.glassfish.jersey.test-framework.providers</groupId>
                 <artifactId>jersey-test-framework-provider-inmemory</artifactId>
-				<version>${jersey.version}</version>
+                <version>${jersey.version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -652,30 +671,30 @@
             </plugins>
         </pluginManagement>
         <plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-i18n-properties-resources</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.build.sourceDirectory}</directory>
-									<includes> <!-- add the i18n properties -->
-										<include>**/messages*.properties</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-i18n-properties-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.sourceDirectory}</directory>
+                                    <includes> <!-- add the i18n properties -->
+                                        <include>**/messages*.properties</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -758,76 +777,118 @@
                 <configuration>
                     <checkstyleRules>
                         <module name="Checker">
-                            <property name="charset" value="UTF-8" />
-                            <property name="severity" value="warning" />
+                            <property name="charset"
+                                value="UTF-8"/>
+                            <property name="severity"
+                                value="warning"/>
                             <!-- Checks for whitespace -->
                             <!-- See http://checkstyle.sf.net/config_whitespace.html -->
                             <module name="FileTabCharacter">
-                                <property name="eachLine" value="true" />
+                                <property name="eachLine"
+                                    value="true"/>
                             </module>
                             <module name="TreeWalker">
-                                <module name="RegexpSinglelineJava">
-                                    <property name="format" value="\s+$" />
-                                    <property name="message" value="Line has trailing whitespace." />
+                                <module
+                                    name="RegexpSinglelineJava">
+                                    <property name="format"
+                                        value="\s+$"/>
+                                    <property name="message"
+                                        value="Line has trailing whitespace."/>
                                 </module>
-                                <module name="RegexpSinglelineJava">
-                                    <property name="format" value="[@]see\s+[{][@]link" />
-                                    <property name="message" value="Javadoc @see does not need @link: pick one or the other." />
+                                <module
+                                    name="RegexpSinglelineJava">
+                                    <property name="format"
+                                        value="[@]see\s+[{][@]link"/>
+                                    <property name="message"
+                                        value="Javadoc @see does not need @link: pick one or the other."/>
                                 </module>
-                                <module name="OuterTypeFilename" />
+                                <module name="OuterTypeFilename"/>
                                 <module name="LineLength">
-                                    <!-- needs extra, because Eclipse formatter 
+                                    <!-- needs extra, because Eclipse formatter
                                         ignores the ending left brace -->
-                                    <property name="max" value="200" />
-                                    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://" />
+                                    <property name="max"
+                                        value="200"/>
+                                    <property
+                                        name="ignorePattern"
+                                        value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
                                 </module>
-                                <module name="AvoidStarImport" />
+                                <module name="AvoidStarImport"/>
                                 <module name="UnusedImports">
-                                    <property name="processJavadoc" value="true" />
+                                    <property
+                                        name="processJavadoc"
+                                        value="true"/>
                                 </module>
-                                <module name="NoLineWrap" />
-                                <module name="LeftCurly" />
-                                <module name="RightCurly" />
+                                <module name="NoLineWrap"/>
+                                <module name="LeftCurly"/>
+                                <module name="RightCurly"/>
                                 <module name="RightCurly">
-                                    <property name="option" value="alone" />
-                                    <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT" />
+                                    <property name="option"
+                                        value="alone"/>
+                                    <property name="tokens"
+                                        value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT"/>
                                 </module>
                                 <module name="SeparatorWrap">
-                                    <property name="tokens" value="DOT" />
-                                    <property name="option" value="nl" />
+                                    <property name="tokens"
+                                        value="DOT"/>
+                                    <property name="option"
+                                        value="nl"/>
                                 </module>
                                 <module name="SeparatorWrap">
-                                    <property name="tokens" value="COMMA" />
-                                    <property name="option" value="EOL" />
+                                    <property name="tokens"
+                                        value="COMMA"/>
+                                    <property name="option"
+                                        value="EOL"/>
                                 </module>
                                 <module name="PackageName">
-                                    <property name="format" value="^[a-z]+(\.[a-z][a-zA-Z0-9]*)*$" />
+                                    <property name="format"
+                                        value="^[a-z]+(\.[a-z][a-zA-Z0-9]*)*$"/>
                                 </module>
-                                <module name="MethodTypeParameterName">
-                                    <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)" />
+                                <module
+                                    name="MethodTypeParameterName">
+                                    <property name="format"
+                                        value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
                                 </module>
-                                <module name="MethodParamPad" />
+                                <module name="MethodParamPad"/>
                                 <module name="OperatorWrap">
-                                    <property name="option" value="NL" />
-                                    <property name="tokens" value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE, LITERAL_INSTANCEOF, LOR, LT, MINUS, MOD, NOT_EQUAL, QUESTION, SL, SR, STAR " />
+                                    <property name="option"
+                                        value="NL"/>
+                                    <property name="tokens"
+                                        value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE, LITERAL_INSTANCEOF, LOR, LT, MINUS, MOD, NOT_EQUAL, QUESTION, SL, SR, STAR "/>
                                 </module>
                                 <module name="AnnotationLocation">
-                                    <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF" />
+                                    <property name="tokens"
+                                        value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF"/>
                                 </module>
                                 <module name="AnnotationLocation">
-                                    <property name="tokens" value="VARIABLE_DEF" />
-                                    <property name="allowSamelineMultipleAnnotations" value="true" />
+                                    <property name="tokens"
+                                        value="VARIABLE_DEF"/>
+                                    <property
+                                        name="allowSamelineMultipleAnnotations"
+                                        value="true"/>
                                 </module>
-                                <module name="NonEmptyAtclauseDescription" />
+                                <module
+                                    name="NonEmptyAtclauseDescription"/>
                                 <module name="JavadocMethod">
-                                    <property name="allowMissingJavadoc" value="true" />
-                                    <property name="allowMissingParamTags" value="true" />
-                                    <property name="allowMissingThrowsTags" value="true" />
-                                    <property name="allowMissingReturnTag" value="true" />
-                                    <property name="allowedAnnotations" value="Override,Test,BeforeClass,AfterClass,Before,After" />
-                                    <property name="allowThrowsTagsForSubclasses" value="true" />
+                                    <property
+                                        name="allowMissingJavadoc"
+                                        value="true"/>
+                                    <property
+                                        name="allowMissingParamTags"
+                                        value="true"/>
+                                    <property
+                                        name="allowMissingThrowsTags"
+                                        value="true"/>
+                                    <property
+                                        name="allowMissingReturnTag"
+                                        value="true"/>
+                                    <property
+                                        name="allowedAnnotations"
+                                        value="Override,Test,BeforeClass,AfterClass,Before,After"/>
+                                    <property
+                                        name="allowThrowsTagsForSubclasses"
+                                        value="true"/>
                                 </module>
-                                <module name="SingleLineJavadoc" />
+                                <module name="SingleLineJavadoc"/>
                             </module>
                         </module>
                     </checkstyleRules>
@@ -853,12 +914,17 @@
     </build>
     <profiles>
         <profile>
-            <!-- Performs execution of Integration Tests using the Maven 
-                FailSafe Plugin. The view of integration tests in this context are those 
-                tests interfacing with external sources and services requiring additional 
-                resources or credentials that cannot be explicitly provided. Also appropriate
-                for tests which depend on inter-thread and/or network or having timing
-                considerations which could make the tests brittle on various environments.-->
+            <!-- Performs execution of Integration Tests using the Maven
+                FailSafe Plugin. The view of integration tests in this context 
+                are those
+                tests interfacing with external sources and services requiring 
+                additional
+                resources or credentials that cannot be explicitly provided. 
+                Also appropriate
+                for tests which depend on inter-thread and/or network or 
+                having timing
+                considerations which could make the tests brittle on various 
+                environments. -->
             <id>integration-tests</id>
             <build>
                 <plugins>
@@ -878,11 +944,15 @@
             </build>
         </profile>
         <profile>
-            <!-- Checks style and licensing requirements. This is a good 
-                idea to run for contributions and for the release process. While it would 
-                be nice to run always these plugins can considerably slow the build and have 
-                proven to create unstable builds in our multi-module project and when building 
-                using multiple threads. The stability issues seen with Checkstyle in multi-module 
+            <!-- Checks style and licensing requirements. This is a good
+                idea to run for contributions and for the release process. 
+                While it would
+                be nice to run always these plugins can considerably slow 
+                the build and have
+                proven to create unstable builds in our multi-module project 
+                and when building
+                using multiple threads. The stability issues seen with Checkstyle 
+                in multi-module
                 builds include false-positives and false negatives. -->
             <id>contrib-check</id>
             <build>
@@ -919,11 +989,15 @@
             </build>
         </profile>
         <profile>
-            <!-- This profile will disable DocLint which performs strict 
-                JavaDoc processing which was introduced in JDK 8. These are technically errors 
-                in the JavaDoc which we need to eventually address. However, if a release 
-                is performed using JDK 8, the JavaDoc generation would fail. By activating 
-                this profile when running on JDK 8 we can ensure the JavaDocs continue to 
+            <!-- This profile will disable DocLint which performs strict
+                JavaDoc processing which was introduced in JDK 8. These are 
+                technically errors
+                in the JavaDoc which we need to eventually address. However, 
+                if a release
+                is performed using JDK 8, the JavaDoc generation would fail. 
+                By activating
+                this profile when running on JDK 8 we can ensure the JavaDocs 
+                continue to
                 generate successfully -->
             <id>disable-doclint</id>
             <activation>
@@ -943,16 +1017,22 @@
                 </pluginManagement>
             </build>
         </profile>
-        <!-- The following profiles are here as a convenience for folks that 
-            want to build against vendor-specific distributions of the various Hadoop 
-            ecosystem libraries. These will alter which dependencies are sourced in a 
-            manner that can adjust the correct LICENSE and NOTICE requirements for any 
-            affected jar and the resulting assembly overall. These L&N impacts are not 
-            automatically handled by the build process and are the responsibility of 
+        <!-- The following profiles are here as a convenience for folks that
+            want to build against vendor-specific distributions of the various 
+            Hadoop
+            ecosystem libraries. These will alter which dependencies are 
+            sourced in a
+            manner that can adjust the correct LICENSE and NOTICE requirements 
+            for any
+            affected jar and the resulting assembly overall. These L&N impacts 
+            are not
+            automatically handled by the build process and are the responsibility 
+            of
             those creating and using the resulting binary artifacts. -->
         <profile>
-            <!-- This profile adds the Hortonworks repository for resolving 
-                Hortonworks Data Platform (HDP) artifacts for the Hadoop bundles -->
+            <!-- This profile adds the Hortonworks repository for resolving
+                Hortonworks Data Platform (HDP) artifacts for the Hadoop 
+                bundles -->
             <id>hortonworks</id>
             <repositories>
                 <repository>
@@ -987,12 +1067,12 @@
                 </repository>
             </repositories>
             <properties>
-                <!-- Vendor-specific version number included here as default, 
+                <!-- Vendor-specific version number included here as default,
                     should be overridden on the command-line <hadoop.version>2.7.1.2.4.0.0-169</hadoop.version> -->
             </properties>
         </profile>
         <profile>
-            <!-- This profile will add the MapR repository for resolving 
+            <!-- This profile will add the MapR repository for resolving
                 MapR Hadoop artifacts for the Hadoop bundles -->
             <id>mapr</id>
             <repositories>
@@ -1009,13 +1089,14 @@
                 </repository>
             </repositories>
             <properties>
-                <!-- Vendor-specific version number included here as default, 
+                <!-- Vendor-specific version number included here as default,
                     should be overridden on the command-line <hadoop.version>2.7.0-mapr-1602</hadoop.version> -->
             </properties>
         </profile>
         <profile>
-            <!-- This profile will add the Cloudera repository for resolving 
-                Cloudera Distribution of Hadoop (CDH) artifacts for the Hadoop bundles -->
+            <!-- This profile will add the Cloudera repository for resolving
+                Cloudera Distribution of Hadoop (CDH) artifacts for the Hadoop 
+                bundles -->
             <id>cloudera</id>
             <repositories>
                 <repository>
@@ -1031,7 +1112,7 @@
                 </repository>
             </repositories>
             <properties>
-                <!-- Vendor-specific version number included here as default, 
+                <!-- Vendor-specific version number included here as default,
                     should be overridden on the command-line <hadoop.version>2.6.0-cdh5.8.1</hadoop.version> -->
             </properties>
         </profile>
