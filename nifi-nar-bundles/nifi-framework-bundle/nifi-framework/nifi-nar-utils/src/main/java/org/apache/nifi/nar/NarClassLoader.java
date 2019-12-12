@@ -120,7 +120,7 @@ public class NarClassLoader extends URLClassLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NarClassLoader.class);
 
-    public static final String DEPENDENCIES_PATH = "META-INF/bundled-dependencies";
+    public static final String DEPENDENCIES_PATH = "NAR-INF/bundled-dependencies";
     
     private static final FileFilter JAR_FILTER = new FileFilter() {
         @Override
@@ -178,22 +178,22 @@ public class NarClassLoader extends URLClassLoader {
 
     /**
      * Adds URLs for the resources unpacked from this NAR:
-     * <ul><li>the root: for classes, <tt>META-INF</tt>, etc.</li>
-     * <li><tt>META-INF/dependencies</tt>: for config files, <tt>.so</tt>s,
+     * <ul><li>the root: for classes, <tt>NAR-INF</tt>, etc.</li>
+     * <li><tt>NAR-INF/dependencies</tt>: for config files, <tt>.so</tt>s,
      * etc.</li>
-     * <li><tt>META-INF/dependencies/*.jar</tt>: for dependent
+     * <li><tt>NAR-INF/dependencies/*.jar</tt>: for dependent
      * libraries</li></ul>
      *
      * @param root the root directory of the unpacked NAR.
      * @throws IOException if the URL list could not be updated.
      */
     private void updateClasspath(File root) throws IOException {
-        addURL(root.toURI().toURL()); // for compiled classes, META-INF/, etc.
+        addURL(root.toURI().toURL()); // for compiled classes, WEB-INF, NAR-INF/, etc.
 
        
         File dependencies = new File(root, DEPENDENCIES_PATH);
         if (!dependencies.isDirectory()) {
-            LOGGER.warn(narWorkingDirectory + " does not contain "+DEPENDENCIES_PATH);
+            LOGGER.warn(narWorkingDirectory + " does not contain " + DEPENDENCIES_PATH);
         }
         addURL(dependencies.toURI().toURL());
         if (dependencies.isDirectory()) {
@@ -211,7 +211,7 @@ public class NarClassLoader extends URLClassLoader {
     protected String findLibrary(final String libname) {
         File dependencies = new File(narWorkingDirectory, DEPENDENCIES_PATH);
         if (!dependencies.isDirectory()) {
-            LOGGER.warn(narWorkingDirectory + " does not contain "+DEPENDENCIES_PATH);
+            LOGGER.warn(narWorkingDirectory + " does not contain " + DEPENDENCIES_PATH + "!");
         }
 
         final File nativeDir = new File(dependencies, "native");
