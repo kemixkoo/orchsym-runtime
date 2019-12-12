@@ -139,6 +139,16 @@
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
 
+    <!-- servlet to login page -->
+    <servlet>
+        <servlet-name>JWT</servlet-name>
+        <jsp-file>/WEB-INF/pages/jwt.html</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JWT</servlet-name>
+        <url-pattern>/jwt</url-pattern>
+    </servlet-mapping>
+
     <!-- login filter -->
     <filter>
         <filter-name>LoginFilter</filter-name>
