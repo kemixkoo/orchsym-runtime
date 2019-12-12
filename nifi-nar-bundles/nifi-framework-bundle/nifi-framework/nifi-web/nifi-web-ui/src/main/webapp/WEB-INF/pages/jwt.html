@@ -17,7 +17,7 @@
     }
     var expires = getQueryVariable('expires');
     var token = getQueryVariable('token');
-    var jwt = '{"":' + expires + ',item:"' + token + '"}';
+    var jwt = '{"expires":' + expires + ',"item":"' + token + '"}';
     var locale = getQueryVariable('locale');
     localStorage.setItem('jwt', jwt);
     localStorage.setItem('locale', locale);
