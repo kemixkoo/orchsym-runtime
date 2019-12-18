@@ -250,7 +250,7 @@ public final class ProcessUtil {
         final String curGroupId = group.getIdentifier();
         final String curGroupName = group.getName();
         appInfoDto.setParentId(curGroupId);
-        appInfoDto.setParentName(curGroupId);
+        appInfoDto.setParentName(curGroupName);
 
         // init appId
         appInfoDto.setApplicationId(curGroupId);
@@ -258,9 +258,10 @@ public final class ProcessUtil {
         appInfoDto.setPath(curGroupName);
 
         ProcessGroup parentGroup = group.getParent();
+        StringBuffer route = new StringBuffer();
+        route.append(curGroupName);
         if (!(isRootGroup(parentGroup, rootId))) { // 不是应用级别，group还是多级子模块
-            StringBuffer route = new StringBuffer();
-            route.append(parentGroup.getName());
+            route.insert(0, parentGroup.getName() + '/');
 
             ProcessGroup applicationGroup = parentGroup;
 
@@ -272,9 +273,9 @@ public final class ProcessUtil {
             }
             appInfoDto.setApplicationId(applicationGroup.getIdentifier());
             appInfoDto.setApplicationName(applicationGroup.getName());
-            appInfoDto.setPath(route.toString());
-
         }
+        appInfoDto.setPath(route.toString());
+
         return appInfoDto;
     }
 
