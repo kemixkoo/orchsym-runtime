@@ -31,6 +31,7 @@ import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.groups.ProcessTags;
 import org.apache.nifi.web.api.dto.ApplicationInfoDTO;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -93,6 +94,15 @@ public final class ProcessUtil {
                 tagElement.setTextContent(tag);
             }
         }
+    }
+
+    public static Map<String, String> getFingerpringAdditions(final Element parentElement) {
+        final Map<String, String> additions = getAdditions(parentElement);
+        // ignore the timestamp
+        additions.remove(AdditionConstants.KEY_MODIFIED_TIMESTAMP); // main for modified timestamp for cluster with diff value
+        additions.remove(AdditionConstants.KEY_CREATED_TIMESTAMP);
+        additions.remove(AdditionConstants.KEY_ORIGINAL_CREATED_TIMESTAMP);
+        return additions;
     }
 
     /**
