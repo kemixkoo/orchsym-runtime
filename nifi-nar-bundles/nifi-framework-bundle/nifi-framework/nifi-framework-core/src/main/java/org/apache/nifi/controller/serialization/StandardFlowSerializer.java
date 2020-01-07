@@ -20,8 +20,8 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +90,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
     }
 
 
+    @SuppressWarnings("unchecked")
     @Override
     public Document transform(final FlowController controller, final ScheduledStateLookup scheduledStateLookup) throws FlowSerializationException {
         try {
@@ -116,13 +117,13 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
             // Add root-level controller services
             final Element controllerServicesNode = doc.createElement("controllerServices");
             rootNode.appendChild(controllerServicesNode);
-            for (final ControllerServiceNode serviceNode : controller.getRootControllerServices()) {
+            for (final ControllerServiceNode serviceNode : (List<ControllerServiceNode>)ElementsSorter.COMP_SORTER.sort(controller.getRootControllerServices())) {
                 addControllerService(controllerServicesNode, serviceNode);
             }
 
             final Element reportingTasksNode = doc.createElement("reportingTasks");
             rootNode.appendChild(reportingTasksNode);
-            for (final ReportingTaskNode taskNode : controller.getAllReportingTasks()) {
+            for (final ReportingTaskNode taskNode : ElementsSorter.sortTaskNode(controller.getAllReportingTasks())) {
                 addReportingTask(reportingTasksNode, taskNode, encryptor);
             }
 
@@ -190,6 +191,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         parentElement.appendChild(element);
     }
 
+    @SuppressWarnings("unchecked")
     private void addProcessGroup(final Element parentElement, final ProcessGroup group, final String elementName, final ScheduledStateLookup scheduledStateLookup) {
         final Document doc = parentElement.getOwnerDocument();
         final Element element = doc.createElement(elementName);
@@ -213,58 +215,58 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
             element.appendChild(versionControlInfoElement);
         }
 
-        for (final ProcessorNode processor : group.getProcessors()) {
+        for (final ProcessorNode processor : ElementsSorter.sortNode(group.getProcessors())) {
             addProcessor(element, processor, scheduledStateLookup);
         }
 
         if (group.isRootGroup()) {
-            for (final Port port : group.getInputPorts()) {
+            for (final Port port : (List<Port>)ElementsSorter.COMP_SORTER.sort(group.getInputPorts())) {
                 addRootGroupPort(element, (RootGroupPort) port, "inputPort", scheduledStateLookup);
             }
 
-            for (final Port port : group.getOutputPorts()) {
+            for (final Port port : (List<Port>)ElementsSorter.COMP_SORTER.sort(group.getOutputPorts())) {
                 addRootGroupPort(element, (RootGroupPort) port, "outputPort", scheduledStateLookup);
             }
         } else {
-            for (final Port port : group.getInputPorts()) {
+            for (final Port port : (List<Port>)ElementsSorter.COMP_SORTER.sort(group.getInputPorts())) {
                 addPort(element, port, "inputPort", scheduledStateLookup);
             }
 
-            for (final Port port : group.getOutputPorts()) {
+            for (final Port port : (List<Port>)ElementsSorter.COMP_SORTER.sort(group.getOutputPorts())) {
                 addPort(element, port, "outputPort", scheduledStateLookup);
             }
         }
 
-        for (final Label label : group.getLabels()) {
+        for (final Label label : (List<Label>)ElementsSorter.COMP_SORTER.sort(group.getLabels())) {
             addLabel(element, label);
         }
 
-        for (final Funnel funnel : group.getFunnels()) {
+        for (final Funnel funnel : (List<Funnel>)ElementsSorter.COMP_SORTER.sort(group.getFunnels())) {
             addFunnel(element, funnel);
         }
 
-        for (final ProcessGroup childGroup : group.getProcessGroups()) {
+        for (final ProcessGroup childGroup : (List<ProcessGroup>)ElementsSorter.COMP_SORTER.sort(group.getProcessGroups())) {
             addProcessGroup(element, childGroup, "processGroup", scheduledStateLookup);
         }
 
-        for (final RemoteProcessGroup remoteRef : group.getRemoteProcessGroups()) {
+        for (final RemoteProcessGroup remoteRef : (List<RemoteProcessGroup>)ElementsSorter.COMP_SORTER.sort(group.getRemoteProcessGroups())) {
             addRemoteProcessGroup(element, remoteRef, scheduledStateLookup);
         }
 
-        for (final Connection connection : group.getConnections()) {
+        for (final Connection connection : ElementsSorter.sortConnection(group.getConnections())) {
             addConnection(element, connection);
         }
 
-        for (final ControllerServiceNode service : group.getControllerServices(false)) {
+        for (final ControllerServiceNode service : (List<ControllerServiceNode>)ElementsSorter.COMP_SORTER.sort(group.getControllerServices(false))) {
             addControllerService(element, service);
         }
 
-        for (final Template template : group.getTemplates()) {
+        for (final Template template : (List<Template>)ElementsSorter.COMP_SORTER.sort(group.getTemplates())) {
             addTemplate(element, template);
         }
 
         final VariableRegistry variableRegistry = group.getVariableRegistry();
-        for (final Map.Entry<VariableDescriptor, String> entry : variableRegistry.getVariableMap().entrySet()) {
+        for (final Map.Entry<VariableDescriptor, String> entry : ElementsSorter.VAR_SORTER.sort(variableRegistry.getVariableMap().entrySet())) {
             addVariable(element, entry.getKey().getName(), entry.getValue());
         }
 
@@ -305,7 +307,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
     private void addStyle(final Element parentElement, final Map<String, String> style) {
         final Element element = parentElement.getOwnerDocument().createElement("styles");
 
-        for (final Map.Entry<String, String> entry : style.entrySet()) {
+        for (final Map.Entry<String, String> entry : ElementsSorter.STR_SORTER.sort(style.entrySet())) {
             final Element styleElement = parentElement.getOwnerDocument().createElement("style");
             styleElement.setAttribute("name", entry.getKey());
             styleElement.setTextContent(entry.getValue());
@@ -339,6 +341,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         addPosition(element, funnel.getPosition());
     }
 
+    @SuppressWarnings("unchecked")
     private void addRemoteProcessGroup(final Element parentElement, final RemoteProcessGroup remoteRef, final ScheduledStateLookup scheduledStateLookup) {
         final Document doc = parentElement.getOwnerDocument();
         final Element element = doc.createElement("remoteProcessGroup");
@@ -367,13 +370,13 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
             addTextElement(element, "networkInterface", remoteRef.getNetworkInterface());
         }
 
-        for (final RemoteGroupPort port : remoteRef.getInputPorts()) {
+        for (final RemoteGroupPort port : (List<RemoteGroupPort>)ElementsSorter.COMP_SORTER.sort(remoteRef.getInputPorts())) {
             if (port.hasIncomingConnection()) {
                 addRemoteGroupPort(element, port, "inputPort", scheduledStateLookup);
             }
         }
 
-        for (final RemoteGroupPort port : remoteRef.getOutputPorts()) {
+        for (final RemoteGroupPort port : (List<RemoteGroupPort>)ElementsSorter.COMP_SORTER.sort(remoteRef.getOutputPorts())) {
             if (!port.getConnections().isEmpty()) {
                 addRemoteGroupPort(element, port, "outputPort", scheduledStateLookup);
             }
@@ -475,14 +478,14 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
 
         addConfiguration(element, processor.getProperties(), processor.getAnnotationData(), encryptor);
 
-        for (final Relationship rel : processor.getAutoTerminatedRelationships()) {
+        for (final Relationship rel : ElementsSorter.sortRelationship(processor.getAutoTerminatedRelationships())) {
             addTextElement(element, "autoTerminatedRelationship", rel.getName());
         }
     }
 
     private static void addConfiguration(final Element element, final Map<PropertyDescriptor, String> properties, final String annotationData, final StringEncryptor encryptor) {
         final Document doc = element.getOwnerDocument();
-        for (final Map.Entry<PropertyDescriptor, String> entry : properties.entrySet()) {
+        for (final Map.Entry<PropertyDescriptor, String> entry : ElementsSorter.PROP_SORTER.sort(properties.entrySet())) {
             final PropertyDescriptor descriptor = entry.getKey();
             String value = entry.getValue();
 
@@ -518,7 +521,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
 
         final Element bendPointsElement = doc.createElement("bendPoints");
         element.appendChild(bendPointsElement);
-        for (final Position bendPoint : connection.getBendPoints()) {
+        for (final Position bendPoint : ElementsSorter.sortPositions(connection.getBendPoints())) {
             addPosition(bendPointsElement, bendPoint, "bendPoint");
         }
 
@@ -551,7 +554,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         addTextElement(element, "destinationGroupId", destinationGroupId);
         addTextElement(element, "destinationType", destinationType.toString());
 
-        for (final Relationship relationship : connection.getRelationships()) {
+        for (final Relationship relationship : ElementsSorter.sortRelationship(connection.getRelationships())) {
             addTextElement(element, "relationship", relationship.getName());
         }
 
@@ -559,7 +562,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         addTextElement(element, "maxWorkQueueDataSize", connection.getFlowFileQueue().getBackPressureDataSizeThreshold());
 
         addTextElement(element, "flowFileExpiration", connection.getFlowFileQueue().getFlowFileExpiration());
-        for (final FlowFilePrioritizer comparator : connection.getFlowFileQueue().getPriorities()) {
+        for (final FlowFilePrioritizer comparator : ElementsSorter.sortPriorities(connection.getFlowFileQueue().getPriorities())) {
             final String className = comparator.getClass().getCanonicalName();
             addTextElement(element, "queuePrioritizerClass", className);
         }

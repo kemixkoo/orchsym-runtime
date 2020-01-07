@@ -28,6 +28,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.additions.StandardTypeAdditions;
 import org.apache.nifi.additions.TypeAdditions;
+import org.apache.nifi.controller.serialization.ElementsSorter;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.groups.ProcessTags;
 import org.apache.nifi.web.api.dto.ApplicationInfoDTO;
@@ -91,7 +92,7 @@ public final class ProcessUtil {
                 final Element tagElement = ownerDocument.createElement(ProcessTags.TAG_NAME);
                 tagsElement.appendChild(tagElement);
 
-                tagElement.setTextContent(tag);
+                tagElement.setTextContent(CharacterFilterUtils.filterInvalidXmlCharacters(tag));
             }
         }
     }
@@ -161,12 +162,12 @@ public final class ProcessUtil {
             final Element additionsElement = ownerDocument.createElement(TypeAdditions.ADDITIONS_NAME);
             parentElement.appendChild(additionsElement);
 
-            for (Entry<String, String> entry : additions.entrySet()) {
+            for (Entry<String, String> entry : ElementsSorter.STR_SORTER.sort(additions.entrySet())) {
                 final Element additionElement = ownerDocument.createElement(TypeAdditions.ADDITION_NAME);
                 additionsElement.appendChild(additionElement);
 
                 additionElement.setAttribute(TypeAdditions.ADDITION_KEY_NAME, entry.getKey());
-                additionElement.setTextContent(entry.getValue());
+                additionElement.setTextContent(CharacterFilterUtils.filterInvalidXmlCharacters(entry.getValue()));
             }
         }
     }
