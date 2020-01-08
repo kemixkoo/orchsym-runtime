@@ -625,6 +625,8 @@ public class StatusMerger {
             systemLoad = toMergeSystemLoad;
         }
         target.setProcessorLoadAverage(systemLoad);
+        target.setSystemCpuLoad(target.getSystemCpuLoad() + toMerge.getSystemCpuLoad());
+        target.setJvmProcessCpuLoad(target.getJvmProcessCpuLoad() + toMerge.getJvmProcessCpuLoad());
         target.setTotalHeapBytes(target.getTotalHeapBytes() + toMerge.getTotalHeapBytes());
         target.setTotalNonHeapBytes(target.getTotalNonHeapBytes() + toMerge.getTotalNonHeapBytes());
         target.setTotalThreads(target.getTotalThreads() + toMerge.getTotalThreads());
@@ -696,6 +698,8 @@ public class StatusMerger {
 
         target.setCpuCores(add(target.getCpuCores(), toMerge.getCpuCores()));
         target.setCpuLoadAverage(add(target.getCpuLoadAverage(), toMerge.getCpuLoadAverage()));
+        target.setSystemCpuLoad(add(target.getSystemCpuLoad(), toMerge.getSystemCpuLoad()));
+        target.setJvmProcessCpuLoad(add(target.getJvmProcessCpuLoad(), toMerge.getJvmProcessCpuLoad()));
         target.setOpenFileDescriptors(add(target.getOpenFileDescriptors(), toMerge.getOpenFileDescriptors()));
         target.setMaxOpenFileDescriptors(add(target.getMaxOpenFileDescriptors(), toMerge.getMaxOpenFileDescriptors()));
         target.setPhysicalMemoryBytes(add(target.getPhysicalMemoryBytes(), toMerge.getPhysicalMemoryBytes()));

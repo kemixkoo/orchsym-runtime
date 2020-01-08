@@ -3164,6 +3164,8 @@ public final class DtoFactory {
         // processors
         snapshot.setAvailableProcessors(sysDiagnostics.getAvailableProcessors());
         snapshot.setProcessorLoadAverage(sysDiagnostics.getProcessorLoadAverage());
+        snapshot.setSystemCpuLoad(sysDiagnostics.getSystemCpuLoad());
+        snapshot.setJvmProcessCpuLoad(sysDiagnostics.getJvmProcessCpuLoad());
 
         // threads
         snapshot.setDaemonThreads(sysDiagnostics.getDaemonThreads());
@@ -3550,6 +3552,8 @@ public final class DtoFactory {
         systemDiagnosticsDto.setContentRepositoryStorageUsage(contentRepoUsage);
         systemDiagnosticsDto.setCpuCores(systemDiagnostics.getAvailableProcessors());
         systemDiagnosticsDto.setCpuLoadAverage(systemDiagnostics.getProcessorLoadAverage());
+        systemDiagnosticsDto.setSystemCpuLoad(systemDiagnostics.getSystemCpuLoad());
+        systemDiagnosticsDto.setJvmProcessCpuLoad(systemDiagnostics.getJvmProcessCpuLoad());
         systemDiagnosticsDto.setFlowFileRepositoryStorageUsage(flowFileRepoUsage);
         systemDiagnosticsDto.setMaxHeapBytes(systemDiagnostics.getMaxHeap());
         systemDiagnosticsDto.setMaxHeap(FormatUtils.formatDataSize(systemDiagnostics.getMaxHeap()));

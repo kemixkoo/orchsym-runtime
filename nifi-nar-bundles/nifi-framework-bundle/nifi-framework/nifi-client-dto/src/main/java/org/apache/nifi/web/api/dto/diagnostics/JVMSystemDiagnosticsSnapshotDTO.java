@@ -36,6 +36,8 @@ public class JVMSystemDiagnosticsSnapshotDTO implements Cloneable {
 
     private Integer cpuCores;
     private Double cpuLoadAverage;
+    private Double systemCpuLoad;
+    private Double jvmProcessCpuLoad;
     private Long physicalMemoryBytes;
     private String physicalMemory;
 
@@ -106,6 +108,24 @@ public class JVMSystemDiagnosticsSnapshotDTO implements Cloneable {
 
     public void setCpuLoadAverage(Double cpuLoadAverage) {
         this.cpuLoadAverage = cpuLoadAverage;
+    }
+
+    @ApiModelProperty("The 'recent cpu usage' for the whole system. If it's not avaliable, a negative value will be returned.")
+    public Double getSystemCpuLoad() {
+        return systemCpuLoad;
+    }
+
+    public void setSystemCpuLoad(Double systemCpuLoad) {
+        this.systemCpuLoad = systemCpuLoad;
+    }
+
+    @ApiModelProperty("The 'recent cpu usage' for the JVM process. If it's not avaliable, a negative value will be returned.")
+    public Double getJvmProcessCpuLoad() {
+        return jvmProcessCpuLoad;
+    }
+
+    public void setJvmProcessCpuLoad(Double jvmProcessCpuLoad) {
+        this.jvmProcessCpuLoad = jvmProcessCpuLoad;
     }
 
     @ApiModelProperty("The number of bytes of RAM available on the system")
