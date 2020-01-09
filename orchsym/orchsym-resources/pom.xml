@@ -34,7 +34,7 @@
 
 		<!--settings for bootstrap.conf -->
 		<orchsym.jvm.heap.init>768m</orchsym.jvm.heap.init>
-		<orchsym.jvm.heap.max>2048m</orchsym.jvm.heap.max>
+		<orchsym.jvm.heap.max>8192m</orchsym.jvm.heap.max>
 		<orchsym.run.as />
 
 		<!-- settings for orchsym.properties -->
