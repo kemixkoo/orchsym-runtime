@@ -224,6 +224,7 @@ import org.apache.nifi.web.util.AppTypeAssessor.AppType;
 import org.apache.nifi.util.VersionHelper;
 
 import javax.ws.rs.WebApplicationException;
+import java.math.BigDecimal;
 import java.text.Collator;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -3164,8 +3165,8 @@ public final class DtoFactory {
         // processors
         snapshot.setAvailableProcessors(sysDiagnostics.getAvailableProcessors());
         snapshot.setProcessorLoadAverage(sysDiagnostics.getProcessorLoadAverage());
-        snapshot.setSystemCpuLoad(sysDiagnostics.getSystemCpuLoad());
-        snapshot.setJvmProcessCpuLoad(sysDiagnostics.getJvmProcessCpuLoad());
+        snapshot.setSystemCpuLoad(BigDecimal.valueOf(sysDiagnostics.getSystemCpuLoad()));
+        snapshot.setJvmProcessCpuLoad(BigDecimal.valueOf(sysDiagnostics.getJvmProcessCpuLoad()));
 
         // threads
         snapshot.setDaemonThreads(sysDiagnostics.getDaemonThreads());

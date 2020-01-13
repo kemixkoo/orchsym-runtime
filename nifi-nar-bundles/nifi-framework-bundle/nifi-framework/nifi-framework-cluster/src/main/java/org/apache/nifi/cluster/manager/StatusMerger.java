@@ -625,8 +625,8 @@ public class StatusMerger {
             systemLoad = toMergeSystemLoad;
         }
         target.setProcessorLoadAverage(systemLoad);
-        target.setSystemCpuLoad(target.getSystemCpuLoad() + toMerge.getSystemCpuLoad());
-        target.setJvmProcessCpuLoad(target.getJvmProcessCpuLoad() + toMerge.getJvmProcessCpuLoad());
+        target.setSystemCpuLoad(target.getSystemCpuLoad().add(toMerge.getSystemCpuLoad()));
+        target.setJvmProcessCpuLoad(target.getJvmProcessCpuLoad().add(toMerge.getJvmProcessCpuLoad()));
         target.setTotalHeapBytes(target.getTotalHeapBytes() + toMerge.getTotalHeapBytes());
         target.setTotalNonHeapBytes(target.getTotalNonHeapBytes() + toMerge.getTotalNonHeapBytes());
         target.setTotalThreads(target.getTotalThreads() + toMerge.getTotalThreads());
