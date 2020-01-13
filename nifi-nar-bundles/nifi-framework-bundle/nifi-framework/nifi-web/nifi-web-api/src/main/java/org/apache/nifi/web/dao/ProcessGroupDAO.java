@@ -182,6 +182,15 @@ public interface ProcessGroupDAO {
     void verifyDelete(String groupId, boolean ignoreControllerService);
 
     /**
+     *
+     * @param groupId
+     * @param ignorePortConnections
+     * @param ignoreControllerServices
+     * @param ignoreTemplates
+     */
+    void verifyDelete(String groupId, boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates);
+
+    /**
      * Verifies the specified registry can be removed.
      *
      * @param registryId registry id
@@ -194,4 +203,5 @@ public interface ProcessGroupDAO {
      * @param groupId The process group id
      */
     void deleteProcessGroup(String groupId);
-}
+
+  }

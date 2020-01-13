@@ -2774,6 +2774,11 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags {
 
     @Override
     public void verifyCanDelete(final boolean ignoreConnections, final boolean ignoreControllerServices) {
+        verifyCanDelete(ignoreConnections, ignoreControllerServices, false);
+    }
+
+    @Override
+    public void verifyCanDelete(final boolean ignoreConnections, final boolean ignoreControllerServices,final boolean ignoreTemplates) {
         readLock.lock();
         try {
             for (final Port port : inputPorts.values()) {
@@ -2804,7 +2809,7 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags {
                 childGroup.verifyCanDelete(true);
             }
 
-            if (!templates.isEmpty()) {
+            if (!ignoreTemplates && !templates.isEmpty()) {
                 throw new IllegalStateException(String.format("Cannot delete Process Group because it contains %s Templates. The Templates must be deleted first.", templates.size()));
             }
 

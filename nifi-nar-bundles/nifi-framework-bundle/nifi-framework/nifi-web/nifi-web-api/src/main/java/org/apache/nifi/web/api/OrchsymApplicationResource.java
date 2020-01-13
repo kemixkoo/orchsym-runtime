@@ -949,9 +949,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     final ProcessGroupEntity processGroup = serviceFacade.getProcessGroup(id);
                     if (processGroup.getComponent().getParentGroupId().equalsIgnoreCase(flowController.getRootGroupId())) {
                         // It's an app, skip Controller Service state check
-                        serviceFacade.verifyDeleteProcessGroup(id, true);
+                        serviceFacade.verifyDeleteProcessGroup(id,false,true,true);
                     } else {
-                        serviceFacade.verifyDeleteProcessGroup(id, false);
+                        serviceFacade.verifyDeleteProcessGroup(id, false,false,true);
                     }
                 } catch (Exception e) {
                     Set<String> runningComponents = new HashSet<>();

@@ -892,6 +892,14 @@ public interface ProcessGroup extends ComponentAuthorizable, Positionable, Versi
      */
     void verifyCanDelete(boolean ignorePortConnections, boolean ignoreControllerServices);
 
+    /**
+     *
+     * @param ignorePortConnections
+     * @param ignoreControllerServices
+     * @param ignoreTemplates 是否忽略模板
+     */
+    void verifyCanDelete(boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates);
+
     void verifyCanStart(Connectable connectable);
 
     void verifyCanStart();

@@ -559,6 +559,11 @@ public class MockProcessGroup implements ProcessGroup {
     }
 
     @Override
+    public void verifyCanDelete(boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates) {
+
+    }
+
+    @Override
     public void verifyCanStart() {
 
     }

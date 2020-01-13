@@ -1122,6 +1122,15 @@ public interface NiFiServiceFacade {
     void verifyDeleteProcessGroup(String groupId, boolean ignoreControllerService);
 
     /**
+     *
+     * @param groupId
+     * @param ignorePortConnections
+     * @param ignoreControllerServices
+     * @param ignoreTemplates
+     */
+    void verifyDeleteProcessGroup(String groupId, boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates);
+
+    /**
      * Deletes the specified process group.
      *
      * @param revision Revision to compare with current base revision
