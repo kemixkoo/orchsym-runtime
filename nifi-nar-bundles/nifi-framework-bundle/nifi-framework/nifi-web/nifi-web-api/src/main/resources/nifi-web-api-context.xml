@@ -550,6 +550,7 @@
     <bean id="serviceFacadeLock" class="org.apache.nifi.web.NiFiServiceFacadeLock"/>
 
     <!-- init admin policy -->
+   <!--  ORCHSYM-7956
     <bean id="orchsymInitAdminPolicy" class="org.apache.nifi.web.init.OrchsymInitAdminPolicy" init-method="initAdminPolicy" destroy-method="destroy" lazy-init="false">
         <property name="accessPolicyDAO" ref="policyBasedAuthorizerDAO" />
         <property name="authorizer" ref="authorizer" />
@@ -563,6 +564,7 @@
         <property name="entityFactory" ref="entityFactory" />
         <property name="revisionManager" ref="revisionManager" />
     </bean>
+    -->
 
     <bean id="orchsymCommon" class="org.apache.nifi.web.api.common.OrchsymCommon">
         <property name="flowController" ref="flowController" />
