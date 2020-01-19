@@ -196,7 +196,7 @@ public abstract class ApplicationResource {
         return uri;
     }
 
-    private URI buildResourceUri(final String... path) {
+    protected URI buildResourceUri(final String... path) {
         final UriBuilder uriBuilder = uriInfo.getBaseUriBuilder();
         return buildResourceUri(uriBuilder, path);
     }
