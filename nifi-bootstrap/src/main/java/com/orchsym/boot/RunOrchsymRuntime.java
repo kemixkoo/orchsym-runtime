@@ -18,7 +18,6 @@
 package com.orchsym.boot;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -31,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +58,7 @@ import com.orchsym.util.OrchsymProperties;
 public class RunOrchsymRuntime extends RunNiFi {
     public static String RUNTIME_NAME = BrandingExtension.get().getProductName();
 
-    private final FilenameFilter jarFilter = new FilenameFilter() {
+    protected final FilenameFilter jarFilter = new FilenameFilter() {
         @Override
         public boolean accept(final File dir, final String filename) {
             return filename.toLowerCase().endsWith(".jar");
@@ -383,23 +381,11 @@ public class RunOrchsymRuntime extends RunNiFi {
             }
         }
 
-        File[] libFiles = libDir.listFiles(jarFilter);
-
-        final File extLibDir = new File(libDir, "ext"); // ext lib
-        if (extLibDir.exists()) {
-            final List<File> extLibFiles = retrieveExtLibs(extLibDir);
-            if (extLibFiles.size() > 0) { // exist
-                List<File> allLibFiles = new ArrayList<>(Arrays.asList(libFiles));
-                allLibFiles.addAll(extLibFiles);
-                libFiles = allLibFiles.toArray(new File[allLibFiles.size()]);
-            }
-        }
+        File[] libFiles = retrieveLibs(libDir);
 
         if (libFiles == null || libFiles.length == 0) {
             throw new RuntimeException("Could not find lib directory at " + libDir.getAbsolutePath());
         }
-        // native libs
-        final String libraryPaths = NativeLibrariesLoader.getLibraryPaths(extLibDir);
 
         final File[] confFiles = confDir.listFiles();
         if (confFiles == null || confFiles.length == 0) {
@@ -450,7 +436,6 @@ public class RunOrchsymRuntime extends RunNiFi {
         addProperty(cmd, OrchsymProperties.APP, BrandingService.DEFAULT_SHORT_RUNTIME_NAME);
         addProperty(cmd, OrchsymProperties.NIFI_BOOTSTRAP_LOG_DIR, nifiLogDir); // because logback still use it
         addProperty(cmd, OrchsymProperties.BOOTSTRAP_LOG_DIR, nifiLogDir);
-        addProperty(cmd, NativeLibrariesLoader.KEY_LIB_PATH, libraryPaths);
         addAddtionsCmds(cmd);
         if (!System.getProperty("java.version").startsWith("1.")) {
             // running on Java 9+, java.xml.bind module must be made available
@@ -600,28 +585,13 @@ public class RunOrchsymRuntime extends RunNiFi {
             }
         }
     }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private List<File> retrieveExtLibs(File parentFile) {
-        List<File> jarFiles = new ArrayList<>();
-        final File[] listFiles = parentFile.listFiles(jarFilter);
-        if (listFiles != null && listFiles.length > 0) {
-            jarFiles.addAll(Arrays.asList(listFiles));
-        }
-        //
-        final File[] subFolders = parentFile.listFiles(new FileFilter() {
+    protected File[] retrieveLibs(File libDir) {
+        File[] libFiles = libDir.listFiles(jarFilter);
 
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory();
-            }
-        });
-        if (subFolders != null && subFolders.length > 0) {
-            for (File folder : subFolders) {
-                jarFiles.addAll(retrieveExtLibs(folder));
-            }
-        }
-        return jarFiles;
+        return libFiles;
     }
 
     protected static void printErr(String message) {
