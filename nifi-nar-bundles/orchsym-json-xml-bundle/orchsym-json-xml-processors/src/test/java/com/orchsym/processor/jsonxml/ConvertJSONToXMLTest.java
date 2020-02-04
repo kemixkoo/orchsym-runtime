@@ -202,7 +202,7 @@ public class ConvertJSONToXMLTest {
     @Test
     public void testJson_To_XML_Byte_Array_Simple_Array() throws IOException {
         try(FileInputStream fis = new FileInputStream("src/test/resources/simple-array.json")){
-            byte[] result = processor.convertJsonToXMLBytes(fis, null, null, "NS", null, "UTF-8", "TEST");
+            byte[] result = processor.convertJsonToXMLBytes(fis, null, null, "NS", null, "UTF-8", "TEST",true);
             assertThat(new String(result, StandardCharsets.UTF_8), equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><array><list>a</list><list>b</list><list>c</list></array>"));
         }
     }
@@ -210,7 +210,7 @@ public class ConvertJSONToXMLTest {
     @Test
     public void testJson_To_XML_Byte_Array_Simple_Object() throws IOException {
         try(FileInputStream fis = new FileInputStream("src/test/resources/simple-object.json")){
-            byte[] result = processor.convertJsonToXMLBytes(fis, null, null, "NS", null, "UTF-8", "TEST");
+            byte[] result = processor.convertJsonToXMLBytes(fis, null, null, "NS", null, "UTF-8", "TEST", true);
             assertThat(new String(result, StandardCharsets.UTF_8), equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><TEST xmlns=\"NS\"><education>HU</education><education>MTU</education><name><last_name>Zhan</last_name><first_name>Nicholas</first_name></name><tel>12345678901</tel><position>Developer</position><age>22</age></TEST>"));
         }
     }

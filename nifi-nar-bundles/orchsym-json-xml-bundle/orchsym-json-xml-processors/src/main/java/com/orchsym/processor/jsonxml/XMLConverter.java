@@ -21,9 +21,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -381,9 +380,11 @@ public class XMLConverter extends XML{
 
     }
 
-    public byte[] toBytes_p(final Object object, final String tagName, final String encoding) throws IOException {
+    public byte[] toBytes_p(final Object object, final String tagName, final String encoding, boolean includeXmlHeader) throws IOException {
         try(ByteArrayOutputStream baos = new ByteArrayOutputStream()){
-            baos.write(("<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>").getBytes(StandardCharsets.UTF_8));
+            if (includeXmlHeader){
+                baos.write(("<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>").getBytes(StandardCharsets.UTF_8));
+            }
             baos.write(toBytes(object, tagName, false));
             return baos.toByteArray();
         }
@@ -427,6 +428,7 @@ public class XMLConverter extends XML{
                                 //single item, get the content
                                 objMap = new HashMap<String, Object>();
                                 objMap.put(tagName, map.get(DATATAGNAME));
+                                convertNullForMap(objMap);
                                 object = new JSONObject(objMap);
                             }
                         }
@@ -438,6 +440,7 @@ public class XMLConverter extends XML{
                             objMap = map;
                             containAttr = false;
                         }
+                        convertNullForMap(objMap);
                         object = new JSONObject(objMap);
                     }
                     baos.write('>');
@@ -448,7 +451,7 @@ public class XMLConverter extends XML{
                 jo = (JSONObject) object;
                 for (final String key : jo.keySet()) {
                     Object value = jo.opt(key);
-                    if (value == null) {
+                    if (jo.isNull(key)) {
                         value = "";
                     } else if (value.getClass().isArray()) {
                         value = new JSONArray(value);
@@ -535,5 +538,14 @@ public class XMLConverter extends XML{
             e.printStackTrace();
         }
         return "".getBytes(StandardCharsets.UTF_8);
+    }
+
+    private void convertNullForMap(Map<String, Object> map){
+        List<String> copyKeyList = new ArrayList<>(map.keySet());
+        copyKeyList.stream().forEach(k -> {
+            if (map.get(k) == null){
+                map.put(k, JSONObject.NULL);
+            }
+        });
     }
 }

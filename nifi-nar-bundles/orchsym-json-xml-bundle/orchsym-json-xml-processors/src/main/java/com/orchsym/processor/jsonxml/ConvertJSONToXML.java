@@ -26,7 +26,9 @@ import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.Validator;
+import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
+import org.apache.nifi.flowfile.attributes.BooleanAllowableValues;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.processor.*;
 import org.apache.nifi.processor.exception.ProcessException;
@@ -57,6 +59,15 @@ public class ConvertJSONToXML extends AbstractProcessor {
     public static final String DESTINATION_ATTRIBUTE = "flowfile-attribute";
     public static final String DESTINATION_CONTENT = "flowfile-content";
     public static final String APPLICATION_XML = "application/xml";
+
+    protected static final PropertyDescriptor IS_INCLUDE_XML_HEADER = new PropertyDescriptor.Builder()//
+            .name("is-include-xml-header")//
+            .displayName("is include xml header")// @
+            .description("Whether to include the header of the xml message")//
+            .required(true)//
+            .allowableValues(Boolean.toString(true),Boolean.toString(false))
+            .addValidator(BooleanAllowableValues.validator()).defaultValue("true")//
+            .build();
 
     protected static final PropertyDescriptor JSON_ATTRIBUTE_MARK = new PropertyDescriptor.Builder()//
             .name("json-attribute-mark")//
@@ -121,10 +132,12 @@ public class ConvertJSONToXML extends AbstractProcessor {
     private String encoding;
     private String elementName;
     private String nameSpace;
+    private boolean includeXmlHeader;
 
     @Override
     protected void init(final ProcessorInitializationContext context) {
         final List<PropertyDescriptor> properties = new ArrayList<>();
+        properties.add(IS_INCLUDE_XML_HEADER);
         properties.add(ENCODING);
         properties.add(NAMESPACE);
         properties.add(JSON_ATTRIBUTE_MARK);
@@ -163,6 +176,7 @@ public class ConvertJSONToXML extends AbstractProcessor {
         contentKeyName = StringUtils.isEmpty(contentKeyName) ? null : contentKeyName;
         nameSpace = StringUtils.isEmpty(nameSpace) ? null : nameSpace;
         elementName = StringUtils.isEmpty(elementName) ? null : elementName;
+        includeXmlHeader = context.getProperty(IS_INCLUDE_XML_HEADER).asBoolean().booleanValue();
     }
 
     @Override
@@ -174,7 +188,7 @@ public class ConvertJSONToXML extends AbstractProcessor {
         }
 
         try (final InputStream inputStream = session.read(flowFile)) {
-            final byte[] xmlBytes = convertJsonToXMLBytes(inputStream, jsonPathExpression, attributeMark, nameSpace, contentKeyName, encoding, elementName);
+            final byte[] xmlBytes = convertJsonToXMLBytes(inputStream, jsonPathExpression, attributeMark, nameSpace, contentKeyName, encoding, elementName, includeXmlHeader);
             final StopWatch stopWatch = new StopWatch(true);
             FlowFile successFlow;
             if (destinationContent) {
@@ -199,7 +213,7 @@ public class ConvertJSONToXML extends AbstractProcessor {
         }
     }
 
-    protected byte[] convertJsonToXMLBytes(InputStream jsonInputStream, String jsonPathExpression, String attributeMark, String nameSpace, String contentKeyName, String encoding, String elementName) throws IOException {
+    protected byte[] convertJsonToXMLBytes(InputStream jsonInputStream, String jsonPathExpression, String attributeMark, String nameSpace, String contentKeyName, String encoding, String elementName, boolean includeXmlHeader) throws IOException {
 
         try(InputStreamReader isr = new InputStreamReader(jsonInputStream, StandardCharsets.UTF_8);
             BufferedReader br = new BufferedReader(isr)){
@@ -216,12 +230,12 @@ public class ConvertJSONToXML extends AbstractProcessor {
             if (jsonPathExpression == null) {
                 Object json =new JSONTokener(br).nextValue();
                 if(json instanceof JSONObject){
-                    return xmlInstance.toBytes_p(json, elementName, encoding);
+                    return xmlInstance.toBytes_p(json, elementName, encoding,includeXmlHeader);
                 } else if(json instanceof JSONArray){
-                    return xmlInstance.toBytes_p(json, "list", encoding);
+                    return xmlInstance.toBytes_p(json, "list", encoding, includeXmlHeader);
                 }
                 JSONObject jsonObject = new JSONObject(jsonInputStream);
-                return xmlInstance.toBytes_p(jsonObject, elementName, encoding);
+                return xmlInstance.toBytes_p(jsonObject, elementName, encoding, includeXmlHeader);
             } else {
                 Object items = JsonPath.read(jsonInputStream, jsonPathExpression);
                 Map<String, Object> map = new HashMap<>();
@@ -232,9 +246,9 @@ public class ConvertJSONToXML extends AbstractProcessor {
                         map.put(elementName, "");
                         jsonObject = new JSONObject(map);
                     }
-                    return xmlInstance.toBytes_p(jsonObject, "list", encoding);
+                    return xmlInstance.toBytes_p(jsonObject, "list", encoding, includeXmlHeader);
                 } else {
-                    return xmlInstance.toBytes_p(jsonObject, null, encoding);
+                    return xmlInstance.toBytes_p(jsonObject, null, encoding, includeXmlHeader);
                 }
             }
         }
