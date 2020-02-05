@@ -63,11 +63,11 @@ class MoveOrCope extends React.Component {
 
   handleCancel = () => {
     const {
-      handleCopeCancel,
+      handleCancel,
       form: { resetFields },
     } = this.props;
     resetFields();
-    handleCopeCancel();
+    handleCancel();
   };
 
   render() {

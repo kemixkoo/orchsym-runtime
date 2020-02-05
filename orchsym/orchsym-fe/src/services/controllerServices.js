@@ -97,3 +97,25 @@ export async function queryMMoveeServices(body) {
     data: body,
   })
 }
+
+// 新建
+export async function queryServiceTypes() {
+  return request('/studio/nifi-api/flow/controller-service-types')
+}
+export async function queryAddServices(obj) {
+  return request(`/studio/nifi-api/process-groups/${obj.groupId}/controller-services`, {
+    method: 'POST',
+    data: obj.body,
+  })
+}
+
+// 配置
+export async function querySingleService(serviceId) {
+  return request(`/studio/nifi-api/controller-services/${serviceId}`)
+}
+export async function queryUpdateServiceConfig(obj) {
+  return request(`/studio/nifi-api/controller-services/${obj.serviceId}`, {
+    method: 'PUT',
+    data: obj.body,
+  })
+}

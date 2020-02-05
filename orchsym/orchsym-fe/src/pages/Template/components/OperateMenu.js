@@ -29,9 +29,9 @@ class operateMenu extends React.Component {
     confirm({
       title: formatMessage({ id: 'template.delete.title' }),
       content: formatMessage({ id: 'template.delete.description' }),
-      okText: 'Yes',
+      okText: formatMessage({ id: 'button.yes' }),
       okType: 'warning',
-      cancelText: 'No',
+      cancelText: formatMessage({ id: 'button.no' }),
       onOk() {
         dispatch({
           type: 'template/fetchDeleteTemplates',

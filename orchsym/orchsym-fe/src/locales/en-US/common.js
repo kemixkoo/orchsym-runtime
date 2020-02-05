@@ -1,6 +1,8 @@
 export default {
   'button.cancel': 'Cancel',
   'button.submit': 'Ok',
+  'button.no': 'No',
+  'button.yes': 'Yes',
   'button.reset': 'Reset',
   'button.upload': 'Upload',
   'button.download': 'Download',

@@ -8,4 +8,5 @@ export default {
   'validation.file.required': '请上传文件!',
   'validation.file.format': '目前仅支持.xml格式文件!',
   'validation.groupId.required': '请选择作用域!',
+  'validation.propertyName.required': '必须指定参数名.',
 };

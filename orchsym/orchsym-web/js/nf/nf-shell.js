@@ -142,10 +142,11 @@
                 }
 
                 // create an iframe to hold the custom ui
+                // wanzhen 2019 12 30
                 var shellIframe = $('<iframe/>', {
                     id: 'shell-iframe',
                     frameBorder: '0',
-                    src: uri
+                    src: 'https://172.18.28.230:8443/runtime/' + uri
                 }).css({
                     width: shell.width(),
                     height: shell.height() - 28 //subtract shell-close-container

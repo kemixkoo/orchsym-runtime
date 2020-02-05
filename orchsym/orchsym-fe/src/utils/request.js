@@ -76,7 +76,12 @@ request.interceptors.request.use((url, options) => {
   if (getToken()) {
     options.headers.Authorization = `Bearer ${getToken()}`;
   }
-  options.headers.Locale = localStorage.getItem('umi_locale') || 'zh-CN';
+  let locale = 'zh'
+  if (localStorage.getItem('umi_locale')) {
+    const str = localStorage.getItem('umi_locale')
+    locale = str.substring(0, str.indexOf('-'))
+  }
+  options.headers.Locale = locale;
   return (
     {
       url,
@@ -93,7 +98,7 @@ request.interceptors.response.use((response, options) => {
       // });
       logout();
     } else if (response.status === 403 || response.url.indexOf('/studio/nifi-api/access/oidc/exchange') > 0
-    || response.url.indexOf('/orchsym-api/helper/state') > 0) { // 判断删除
+      || response.url.indexOf('/orchsym-api/helper/state') > 0) { // 判断删除
       return response
     } else {
       response.text().then(data => {

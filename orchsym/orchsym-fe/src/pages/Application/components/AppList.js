@@ -135,9 +135,9 @@ class AppList extends PureComponent {
             confirm({
               title: formatMessage({ id: 'application.disable.title' }),
               content: formatMessage({ id: 'application.disable.description' }),
-              okText: 'Yes',
+              okText: formatMessage({ id: 'button.yes' }),
               okType: 'warning',
-              cancelText: 'No',
+              cancelText: formatMessage({ id: 'button.no' }),
               onOk() {
                 that.disableFetch(item.id)
               },
@@ -149,9 +149,9 @@ class AppList extends PureComponent {
             confirm({
               title: formatMessage({ id: 'application.disable.title' }),
               content: formatMessage({ id: 'application.disable.description2' }),
-              okText: 'Yes',
+              okText: formatMessage({ id: 'button.yes' }),
               okType: 'warning',
-              cancelText: 'No',
+              cancelText: formatMessage({ id: 'button.no' }),
               onOk() {
                 that.disableFetch(item.id)
               },
@@ -222,9 +222,9 @@ class AppList extends PureComponent {
           confirm({
             title: formatMessage({ id: 'application.delete.title' }),
             content: formatMessage({ id: 'application.delete.description' }),
-            okText: 'Yes',
+            okText: formatMessage({ id: 'button.yes' }),
             okType: 'warning',
-            cancelText: 'No',
+            cancelText: formatMessage({ id: 'button.no' }),
             onOk() {
               that.deleteFetch(id)
             },
@@ -236,9 +236,9 @@ class AppList extends PureComponent {
           confirm({
             title: formatMessage({ id: 'application.delete.title' }),
             content: formatMessage({ id: 'application.delete.description2' }),
-            okText: 'Yes',
+            okText: formatMessage({ id: 'button.yes' }),
             okType: 'warning',
-            cancelText: 'No',
+            cancelText: formatMessage({ id: 'button.no' }),
             onOk() {
               that.deleteFetch(id)
             },
@@ -429,36 +429,6 @@ class AppList extends PureComponent {
       if (timeSpan) {
         timeSpanStr = moment(Number(timeSpan)).fromNow();
       }
-      // time = time.replace(/-/g, ':').replace(' ', ':');
-      // time = time.split(':');
-      // const dateTime = new Date(2019, 7, 12, time[0], time[1], time[2]);
-      // const year = dateTime.getFullYear();
-      // const month = dateTime.getMonth() + 1;
-      // const day = dateTime.getDate();
-      // const hour = dateTime.getHours();
-      // const minute = dateTime.getMinutes();
-      // // const second = dateTime.getSeconds();
-      // const now = new Date().getTime();
-      // const timeOld = new Date(2019, 7, 12, time[0], time[1], time[2]).getTime();
-      // let milliseconds = 0;
-      // moment("20120620", "YYYYMMDD").fromNow(); // 7 年前
-      // moment().startOf('day').fromNow();        // 15 小时前
-      // moment().endOf('day').fromNow();          // 9 小时内
-      // moment(Number(timeSpan)).startOf('hour').fromNow();       // 33 分钟前
-      // milliseconds = now - timeOld;
-      // if (milliseconds <= 1000 * 60 * 1) {
-      //   timeSpanStr = '刚刚';
-      // } else if (1000 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60) {
-      //   timeSpanStr = `${Math.round((milliseconds / (1000 * 60)))}分钟前`;
-      // } else if (1000 * 60 * 60 * 1 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24) {
-      //   timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60))}小时前`;
-      // } else if (1000 * 60 * 60 * 24 < milliseconds && milliseconds <= 1000 * 60 * 60 * 24 * 15) {
-      //   timeSpanStr = `${Math.round(milliseconds / (1000 * 60 * 60 * 24))}天前`;
-      // } else if (milliseconds > 1000 * 60 * 60 * 24 * 15 && year === (new Date()).getFullYear()) {
-      //   timeSpanStr = `${month}-${day} ${hour}:${minute}`;
-      // } else {
-      //   timeSpanStr = `${year}-${month}-${day} ${hour}:${minute}`;
-      // }
       return timeSpanStr;
     };
     const tagContent = <div className={styles.tagContent}>{item.component.tags.map((i) => (<Tag color="blue" key={i}>{i}</Tag>))}</div>

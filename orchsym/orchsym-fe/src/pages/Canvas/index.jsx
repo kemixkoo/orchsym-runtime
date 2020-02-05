@@ -43,6 +43,10 @@ export default class Index extends Component {
     this.setState(obj)
   }
 
+  iframeGlobalMenuCtrl = () => {
+    return this.canvasIframe.contentWindow.iframeGlobalMenuCtrl
+  }
+
   componentIdChange = (id) => {
     this.canvasIframe.contentWindow.iframeEnterGroup(id)
     this.setState(
@@ -70,6 +74,7 @@ export default class Index extends Component {
           componentId={componentId}
           menuData={menuData}
           handleMenuCollapse={this.handleMenuCollapse}
+          iframeGlobalMenuCtrl={this.iframeGlobalMenuCtrl}
           logo={logo}
           {...this.props}
         />

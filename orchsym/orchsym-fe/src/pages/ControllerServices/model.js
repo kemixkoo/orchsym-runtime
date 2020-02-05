@@ -5,6 +5,7 @@ import {
   queryMEnableServices, queryMDisableServices, queryStateServices,
   queryDeleteServices, queryMDeleteServices,
   queryCopeServices, queryMoveServices, queryMCopeServices, queryMMoveeServices,
+  queryServiceTypes, queryAddServices, querySingleService, queryUpdateServiceConfig,
 } from '@/services/controllerServices';
 
 export default {
@@ -13,6 +14,8 @@ export default {
   state: {
     controllerServicesList: [],
     detailServices: {},
+    serviceTypes: [],
+    configService: {},
   },
 
   effects: {
@@ -81,6 +84,37 @@ export default {
         yield call(queryMMoveeServices, payload.values);
       }
       yield cb && cb();
+    },
+    // 新建
+    *fetchAddServices({ payload, cb }, { call, put }) {
+      yield call(queryAddServices, payload);
+      yield cb && cb()
+    },
+    *fetchServiceTypes({ payload, cb }, { call, put }) {
+      const response = yield call(queryServiceTypes);
+      yield put({
+        type: 'appendValue',
+        payload: {
+          serviceTypes: response.controllerServiceTypes,
+        },
+      });
+    },
+    // 配置
+    *fetchUpdateServiceConfig({ payload, cb }, { call, put }) {
+      yield call(queryUpdateServiceConfig, payload);
+      yield cb && cb()
+    },
+    *fetchSingleService({ payload, cb }, { call, put }) {
+      const response = yield call(querySingleService, payload);
+      if (response) {
+        yield put({
+          type: 'appendValue',
+          payload: {
+            configService: response.component,
+          },
+        });
+        yield cb && cb(response.component)
+      }
     },
   },
 

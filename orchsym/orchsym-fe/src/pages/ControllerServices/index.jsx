@@ -7,7 +7,9 @@ import { FormattedMessage, formatMessage, getLocale } from 'umi-plugin-react/loc
 import EditableCell from '@/components/EditableCell';
 import FilterDropdown from '@/components/FilterDropdown';
 import moment from 'moment';
+import AddServices from './components/AddServices';
 import MoveOrCope from './components/MoveOrCope';
+import ConfigServices from './components/ConfigServices';
 import { EditableContext } from '@/utils/utils'
 import IconFont from '@/components/IconFont';
 import styles from './index.less';
@@ -41,6 +43,10 @@ class ControllerServices extends React.Component {
       copeVisible: false,
       modelState: '',
       nowService: '',
+      // 新建
+      addVisible: false,
+      // 配置
+      configVisible: false,
     };
     this.columns = [
       {
@@ -166,9 +172,9 @@ class ControllerServices extends React.Component {
           ) :
             (
               <span className={styles.operateMenu}>
-                {record.state === 'DISABLED' && (<Icon type="lock" onClick={() => { this.stateHandel('ENABLED', record.id) }} />)}
-                {record.state === 'ENABLED' && (<Icon type="unlock" onClick={() => { this.stateHandel('DISABLED', record.id) }} />)}
-                <Icon type="setting" style={{ marginLeft: '10px' }} />
+                {record.state === 'DISABLED' && (<Icon type="unlock" onClick={() => { this.stateHandel('ENABLED', record.id) }} />)}
+                {record.state === 'ENABLED' && (<Icon type="lock" onClick={() => { this.stateHandel('DISABLED', record.id) }} />)}
+                <Icon type="setting" style={{ marginLeft: '10px' }} onClick={() => { this.showModal('CONFIG', record) }} />
                 <Dropdown overlay={this.menu(record)} trigger={['click']}>
                   <Icon type="ellipsis" key="ellipsis" style={{ marginLeft: '10px' }} />
                 </Dropdown>
@@ -182,6 +188,14 @@ class ControllerServices extends React.Component {
 
   componentDidMount() {
     this.getList()
+    this.getServiceTypes()
+  }
+
+  getServiceTypes = () => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'controllerServices/fetchServiceTypes',
+    });
   }
 
   getList = (params = {}) => {
@@ -242,10 +256,10 @@ class ControllerServices extends React.Component {
           {`${formatMessage({ id: 'service.button.rename' })}`}
         </Menu.Item>
       )}
-      <Menu.Item key="copeTo" onClick={() => { this.showCopeModal('COPE', item) }}>
+      <Menu.Item key="copeTo" onClick={() => { this.showModal('COPE', item) }}>
         {`${formatMessage({ id: 'service.button.copeTo' })}`}
       </Menu.Item>
-      <Menu.Item key="moveTo" disabled={item.state !== 'DISABLED'} onClick={() => { this.showCopeModal('MOVE', item) }}>
+      <Menu.Item key="moveTo" disabled={item && item.state !== 'DISABLED'} onClick={() => { this.showModal('MOVE', item) }}>
         {`${formatMessage({ id: 'service.button.moveTo' })}`}
       </Menu.Item>
       <Menu.Item key="delete" disabled={item && item.state !== 'DISABLED'} onClick={() => { this.deleteHandel(item) }}>
@@ -416,9 +430,9 @@ class ControllerServices extends React.Component {
     confirm({
       title: formatMessage({ id: 'service.delete.title' }),
       content: formatMessage({ id: 'service.delete.description' }),
-      okText: 'Yes',
+      okText: formatMessage({ id: 'button.yes' }),
       okType: 'warning',
-      cancelText: 'No',
+      cancelText: formatMessage({ id: 'button.no' }),
       onOk() {
         let body = {}
         if (item) {
@@ -444,19 +458,40 @@ class ControllerServices extends React.Component {
     });
   }
 
-  // 复制 移动
-  showCopeModal = (state, item) => {
-    this.setState({
-      copeVisible: true,
-      modelState: state,
-      nowService: item,
-    });
+  // 复制 移动  新建
+  showModal = (state, item) => {
+    if (state === 'ADD') {
+      this.setState({
+        addVisible: true,
+      });
+    } else if (state === 'CONFIG') {
+      this.setState({
+        configVisible: true,
+        nowService: item,
+      });
+    } else {
+      this.setState({
+        copeVisible: true,
+        modelState: state,
+        nowService: item,
+      });
+    }
   }
 
-  handleCopeCancel = () => {
-    this.setState({
-      copeVisible: false,
-    })
+  handleCancel = val => {
+    if (val === 'ADD') {
+      this.setState({
+        addVisible: false,
+      });
+    } else if (val === 'CONFIG') {
+      this.setState({
+        configVisible: false,
+      });
+    } else {
+      this.setState({
+        copeVisible: false,
+      })
+    }
   }
 
   refreshList = () => {
@@ -467,7 +502,8 @@ class ControllerServices extends React.Component {
   }
 
   render() {
-    const { selectedRowKeys, pageNum, pageSizeNum, refreshTime, copeVisible, modelState, nowService } = this.state;
+    const { selectedRowKeys, pageNum, pageSizeNum, refreshTime, copeVisible,
+      modelState, nowService, addVisible, configVisible } = this.state;
     const { form, controllerServicesList: { results, totalSize }, loading } = this.props;
     const rowSelection = {
       selectedRowKeys,
@@ -508,9 +544,9 @@ class ControllerServices extends React.Component {
       <PageHeaderWrapper>
         <div className={styles.contentWrapper}>
           <div className={styles.tableTopHeader}>
-            <Row gutter={16} className={styles.bottomSpace}>
+            <Row gutter={16}>
               <Col span={12}>
-                <Button type="primary" style={{ marginRight: '10px' }}>
+                <Button type="primary" style={{ marginRight: '10px' }} onClick={() => { this.showModal('ADD') }}>
                   <FormattedMessage id="button.create" />
                 </Button>
                 <ButtonGroup>
@@ -541,7 +577,7 @@ class ControllerServices extends React.Component {
           </div>
           <EditableContext.Provider value={form}>
             <Table
-              scroll={{ y: 400 }}
+              scroll={{ y: 600 }}
               loading={loading}
               rowSelection={rowSelection}
               components={components}
@@ -567,11 +603,30 @@ class ControllerServices extends React.Component {
           copeVisible && (
             <MoveOrCope
               refreshList={this.refreshList}
-              handleCopeCancel={this.handleCopeCancel}
+              handleCancel={this.handleCancel}
               visible={copeVisible}
               modelState={modelState}
               selectedRowKeys={selectedRowKeys}
               nowService={nowService}
+            />
+          )
+        }
+        {
+          addVisible && (
+            <AddServices
+              refreshList={this.refreshList}
+              visible={addVisible}
+              handleCancel={this.handleCancel}
+            />
+          )
+        }
+        {
+          configVisible && (
+            <ConfigServices
+              refreshList={this.refreshList}
+              nowService={nowService}
+              visible={configVisible}
+              handleCancel={this.handleCancel}
             />
           )
         }

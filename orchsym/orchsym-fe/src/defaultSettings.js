@@ -11,6 +11,6 @@ module.exports = {
   },
   title: 'Orchsym Studio',
   // 注意：如果需要图标多色，Iconfont 图标项目里要进行批量去色处理
-  // Usage: https://github.com/ant-design/ant-design-pro/pull/3517
+  // Usage: https://github.com/ant-design/ant-design-pro/pull/3517 //at.alicdn.com/t/font_1148837_vj9atcf8qq.js at.alicdn.com/t/font_8d5l8fzk5b87iudi.js
   iconfontUrl: '//at.alicdn.com/t/font_1148837_vj9atcf8qq.js',
 };

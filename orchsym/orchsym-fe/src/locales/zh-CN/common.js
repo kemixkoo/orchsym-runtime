@@ -1,6 +1,8 @@
 export default {
   'button.cancel': '取消',
   'button.submit': '确定',
+  'button.no': '取消',
+  'button.yes': '确定',
   'button.reset': '重置',
   'button.upload': '上传',
   'button.download': '下载',

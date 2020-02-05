@@ -8,4 +8,5 @@ export default {
   'validation.file.required': 'Please upload file!',
   'validation.file.format': 'Currently only. XML format files are supported!',
   'validation.groupId.required': 'Please select scope!',
+  'validation.propertyName.required': 'Property name must be specified.',
 };

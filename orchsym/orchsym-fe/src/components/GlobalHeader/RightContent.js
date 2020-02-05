@@ -87,13 +87,18 @@ export default class GlobalHeaderRight extends PureComponent {
           <IconFont type="OS-iconjisuanqi" />
           <FormattedMessage id="menu.setting.counter" defaultMessage="Counter" />
         </Menu.Item>
+        <Menu.Divider />
         <Menu.Item key="sysConfig">
           <IconFont type="OS-iconziyuan" />
           <FormattedMessage id="menu.setting.sysConfig" defaultMessage="System Configuration" />
         </Menu.Item>
-        <Menu.Item key="userManage">
-          <IconFont type="OS-iconyonghuguanli" />
-          <FormattedMessage id="menu.setting.userManage" defaultMessage="User Management" />
+        <Menu.Item key="colony">
+          <Icon type="apartment" />
+          <FormattedMessage id="menu.setting.colony" defaultMessage="colony" />
+        </Menu.Item>
+        <Menu.Item key="history">
+          <Icon type="clock-circle" />
+          <FormattedMessage id="menu.setting.history" defaultMessage="Operation History" />
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="about">
@@ -217,7 +222,7 @@ export default class GlobalHeaderRight extends PureComponent {
         <HeaderDropdown overlay={settingMenu}>
           <span className={`${styles.action} ${styles.account}`}>
             <Icon type="setting" key="Icon" className={styles.setting} />
-            <FormattedMessage id="menu.account.settings" defaultMessage="Account Settings" />
+            <FormattedMessage id="menu.account.system" defaultMessage="System" />
           </span>
         </HeaderDropdown>
         <Divider type="vertical" />

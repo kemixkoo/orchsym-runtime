@@ -19,4 +19,12 @@ export default {
   'service.title.moveTo': 'Move service',
   'service.form.name': 'Service name',
   'service.form.scope': 'Select scope',
+  'service.title.addService': 'Add service',
+  'service.title.configService': 'Configure Controller Service',
+  'service.config.property': 'PROPERTIES',
+  'service.config.about': 'COMMENTS',
+  'service.table.property': 'Property',
+  'service.table.value': 'Value',
+  'service.config.addProperty': 'Add Property',
+  'service.config.propertyName': 'Property Name',
 }

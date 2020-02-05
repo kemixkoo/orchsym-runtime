@@ -273,7 +273,6 @@
 
             //Define Angular App Controllers
             app.controller('ngCanvasAppCtrl', appCtrl);
-
             //Define Angular App Services
             app.service('serviceProvider', serviceProvider);
             app.service('breadcrumbsCtrl', breadcrumbsCtrl);
@@ -320,25 +319,13 @@
             };
             // // initialize the NiFi
             // var token = getQueryVariable("token");
-            // try{
-            //     var jwt = JSON.parse(localStorage.getItem('jwt'));
-            //     if(!jwt.item) {
-            //         var jwt = {};
-            //         jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
-            //         jwt.item = token;
-            //         localStorage.setItem('jwt', JSON.stringify(jwt));
-            //     } else if(jwt.item!==token){
-            //         jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
-            //         jwt.item = token;
-            //         localStorage.setItem('jwt', JSON.stringify(jwt));
-            //     }
-            //     // console.log("jwt", jwt.item, token);
-            // } catch (e) {
-            //     var jwt = {};
-            //     jwt.expires = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000);
-            //     jwt.item = token;
-            //     localStorage.setItem('jwt', JSON.stringify(jwt));
-            // }
+            try{
+                var jwt = JSON.parse(localStorage.getItem('jwt'));
+                var locale = localStorage.getItem('locale');
+                $("#writejwt")[0].src = 'https://172.18.28.230:8443/runtime/jwt?expires=' + jwt.expires + '&token=' + jwt.item + '&locale=' + locale;
+                // console.log("jwt", jwt.item, token);
+            } catch (e) {
+            }
 
             var userXhr = nfCanvas.init();
 

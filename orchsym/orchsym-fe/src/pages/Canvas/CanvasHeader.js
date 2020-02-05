@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { formatMessage } from 'umi-plugin-react/locale';
 import { Layout, message } from 'antd';
 import { connect } from 'dva';
-import router from 'umi/router';
+// import router from 'umi/router';
 import GlobalHeader from '@/components/GlobalHeader';
 import TopNavHeader from '@/components/TopNavHeader';
 
@@ -54,24 +54,37 @@ class HeaderView extends Component {
   };
 
   handleMenuClick = ({ key }) => {
-    const { dispatch } = this.props;
-    if (key === 'userCenter') {
-      router.push('/account/center');
+    const { iframeGlobalMenuCtrl } = this.props;
+    const globalMenuCtrl = iframeGlobalMenuCtrl()
+    if (key === 'overview') {
+      globalMenuCtrl.summary.shell.launch();
       return;
     }
-    if (key === 'triggerError') {
-      router.push('/exception/trigger');
+    if (key === 'counter') {
+      globalMenuCtrl.counters.shell.launch();
       return;
     }
-    if (key === 'userinfo') {
-      router.push('/account/settings/base');
+    if (key === 'sysConfig') {
+      globalMenuCtrl.controllerSettings.shell.launch();
       return;
     }
-    if (key === 'logout') {
-      dispatch({
-        type: 'login/logout',
-      });
+    if (key === 'colony') {
+      globalMenuCtrl.cluster.shell.launch();
+      return;
     }
+    if (key === 'history') {
+      globalMenuCtrl.flowConfigHistory.shell.launch();
+      return;
+    }
+    if (key === 'about') {
+      globalMenuCtrl.about.modal.show();
+      // return;
+    }
+    // if (key === 'logout') {
+    //   dispatch({
+    //     type: 'login/logout',
+    //   });
+    // }
   };
 
   handleNoticeVisibleChange = visible => {

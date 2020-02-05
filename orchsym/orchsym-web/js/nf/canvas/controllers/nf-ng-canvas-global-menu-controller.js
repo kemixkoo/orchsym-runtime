@@ -467,6 +467,7 @@
         var locale = locale || localStorage.getItem('locale')
         globalMenuCtrl.constant = window[locale];
         globalMenuCtrl.register();
+        window.iframeGlobalMenuCtrl = globalMenuCtrl;
         return globalMenuCtrl;
     };
 }));

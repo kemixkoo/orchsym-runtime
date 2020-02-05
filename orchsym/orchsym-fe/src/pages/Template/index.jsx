@@ -91,9 +91,9 @@ class Template extends React.Component {
     confirm({
       title: formatMessage({ id: 'template.delete.title' }),
       content: formatMessage({ id: 'template.delete.description' }),
-      okText: 'Yes',
+      okText: formatMessage({ id: 'button.yes' }),
       okType: 'warning',
-      cancelText: 'No',
+      cancelText: formatMessage({ id: 'button.no' }),
       onOk() {
         dispatch({
           type: 'template/fetchDeleteTemplates',
@@ -190,7 +190,7 @@ class Template extends React.Component {
       <PageHeaderWrapper tabActiveKey={tabActiveKey} tabList={tabList} onTabChange={this.onTabChange}>
         <div className={styles.templateWrapper}>
           <div className={styles.tableTopHeader}>
-            <Row gutter={16} className={styles.bottomSpace}>
+            <Row gutter={16}>
               {tabActiveKey === 'custom' &&
                 (
                   <Col span={12}>

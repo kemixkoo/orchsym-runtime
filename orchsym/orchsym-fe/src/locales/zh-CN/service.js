@@ -19,4 +19,12 @@ export default {
   'service.title.moveTo': '移动服务',
   'service.form.name': '服务名称',
   'service.form.scope': '选择作用域',
+  'service.title.addService': '新建控制器服务',
+  'service.title.configService': '控制器服务配置',
+  'service.config.property': '属性',
+  'service.table.property': '参数',
+  'service.config.about': '关于',
+  'service.table.value': '值',
+  'service.config.addProperty': '新增动态参数',
+  'service.config.propertyName': '指定动态参数名称',
 }
