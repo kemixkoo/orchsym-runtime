@@ -1639,7 +1639,13 @@
                     return d.value;
                 })
                 .map(policyTypeListing, d3.map);
-            return nest.get(value)[0];
+            //wanzhen 2020-03-03
+            if(nest.get(value)) {
+                return nest.get(value)[0];
+            } else {
+                return {};
+            }
+            // return nest.get(value)[0];
         }
     };
 
