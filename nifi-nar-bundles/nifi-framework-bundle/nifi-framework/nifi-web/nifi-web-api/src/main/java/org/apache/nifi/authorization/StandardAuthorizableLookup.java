@@ -66,6 +66,7 @@ import org.apache.nifi.web.dao.TemplateDAO;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -570,16 +571,22 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
                 authorizable = getOutputPort(componentId);
                 break;
             case Processor:
-                authorizable = getProcessor(componentId).getAuthorizable();
+                final ComponentAuthorizable processor = getProcessor(componentId);
+                if (Objects.nonNull(processor))
+                    authorizable = processor.getAuthorizable();
                 break;
             case ProcessGroup:
-                authorizable = getProcessGroup(componentId).getAuthorizable();
+                final ProcessGroupAuthorizable processGroup = getProcessGroup(componentId);
+                if (Objects.nonNull(processGroup))
+                    authorizable = processGroup.getAuthorizable();
                 break;
             case RemoteProcessGroup:
                 authorizable = getRemoteProcessGroup(componentId);
                 break;
             case ReportingTask:
-                authorizable = getReportingTask(componentId).getAuthorizable();
+                final ComponentAuthorizable reportingTask = getReportingTask(componentId);
+                if (Objects.nonNull(reportingTask))
+                    authorizable = reportingTask.getAuthorizable();
                 break;
             case Template:
                 authorizable = getTemplate(componentId);
@@ -587,7 +594,7 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
         }
 
         if (authorizable == null) {
-            throw new IllegalArgumentException("An unexpected type of resource in this policy " + resourceType.getValue());
+            throw new ResourceNotFoundException("An unexpected type of resource in this policy " + resourceType.getValue());
         }
 
         return authorizable;
