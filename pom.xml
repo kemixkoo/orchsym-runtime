@@ -146,7 +146,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-       <!--  
         <repository>
             <id>jcenter</id>
             <url>https://jcenter.bintray.com</url>
@@ -157,7 +156,6 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
-         -->
     </repositories>
 
     <pluginRepositories>
