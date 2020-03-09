@@ -152,7 +152,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
     @GET
     @Consumes(MediaType.WILDCARD)
     @Produces(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @Path("/search-results")
+    @Path("/search")
     @ApiOperation(value = "Gets a list of Controller Services", notes = "Only search results from authorized components will be returned", authorizations = { @Authorization(value = "Read - /flow") })
     @ApiResponses(value = { //
             @ApiResponse(code = 400, message = CODE_MESSAGE_400), //
@@ -1120,7 +1120,7 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
         return withWriteLock(serviceFacade, //
                 requestControllerServiceEntity, //
                 lookup -> checkDeleteAuth(lookup, serviceId), //
-                () -> serviceFacade.verifyDeleteControllerService(serviceId), //
+                null, //
                 controllerServiceEntity -> generateOkResponse(deleteControllerServicePhysically(controllerServiceEntity)).build());
     }
 
@@ -1222,9 +1222,11 @@ public class OrchsymServiceResource extends AbsOrchsymResource {
      * Try to delete a Controller Service permanently
      */
     private ControllerServiceEntity deleteControllerServicePhysically(final ControllerServiceEntity requestControllerServiceEntity) {
+        // stop first
+        updateControllerServiceState(requestControllerServiceEntity, ControllerServiceState.DISABLED);
+
         final String controllerServiceId = requestControllerServiceEntity.getId();
         final Revision revision = getRevision(requestControllerServiceEntity.getRevision(), controllerServiceId);
-
         return serviceFacade.deleteControllerService(revision, controllerServiceId);
     }
 

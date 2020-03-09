@@ -279,7 +279,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
             @QueryParam("isDesc") @DefaultValue("true") boolean isDesc, // 默认降序
 
             // filter
-            @QueryParam("isDeleted") @DefaultValue("false") boolean isDeleted, // 默认为非删除
+            @Deprecated @QueryParam("isDeleted") @DefaultValue("false") boolean isDeleted, //为保持兼容老版本
+            @QueryParam("deleted") @DefaultValue("false") boolean deleted, // 默认为非删除
             @QueryParam("isEnabled") Boolean isEnabled, // 默认忽略该标记，所以允许null
             @QueryParam("isRunning") Boolean isRunning, // 默认忽略该标记，所以允许null
             @QueryParam("hasDataQueue") Boolean hasDataQueue, // 默认忽略该标记，所以允许null
@@ -298,7 +299,7 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
         searchEnity.setPageSize(pageSize);
         searchEnity.setSortedField(sortedField);
         searchEnity.setDesc(isDesc);
-        searchEnity.setDeleted(isDeleted);
+        searchEnity.setDeleted(isDeleted | deleted);
         searchEnity.setEnabled(isEnabled);
         searchEnity.setIsRunning(isRunning);
         searchEnity.setHasDataQueue(hasDataQueue);
@@ -949,9 +950,9 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                     final ProcessGroupEntity processGroup = serviceFacade.getProcessGroup(id);
                     if (processGroup.getComponent().getParentGroupId().equalsIgnoreCase(flowController.getRootGroupId())) {
                         // It's an app, skip Controller Service state check
-                        serviceFacade.verifyDeleteProcessGroup(id,false,true,true);
+                        serviceFacade.verifyDeleteProcessGroup(id, false, true, true);
                     } else {
-                        serviceFacade.verifyDeleteProcessGroup(id, false,false,true);
+                        serviceFacade.verifyDeleteProcessGroup(id, false, false, true);
                     }
                 } catch (Exception e) {
                     Set<String> runningComponents = new HashSet<>();
@@ -967,8 +968,8 @@ public class OrchsymApplicationResource extends AbsOrchsymResource {
                 }
             } else if (component instanceof Snippet) {
                 // FIXME: whether ignore controller Service when delete a Snippet,
-                //  If not ignored, it's better to stop Controller Services in Process Groups before perform the verification.
-                //  Since current implementations only stop Controller Services when logically/physically delete a app, it does not support Snippets.Snippets are much more complex
+                // If not ignored, it's better to stop Controller Services in Process Groups before perform the verification.
+                // Since current implementations only stop Controller Services when logically/physically delete a app, it does not support Snippets.Snippets are much more complex
                 serviceFacade.verifyDeleteSnippet(id, serviceFacade.getRevisionsFromSnippet(id).stream().map(revision -> revision.getComponentId()).collect(Collectors.toSet()));
             }
         } catch (Exception e) {
