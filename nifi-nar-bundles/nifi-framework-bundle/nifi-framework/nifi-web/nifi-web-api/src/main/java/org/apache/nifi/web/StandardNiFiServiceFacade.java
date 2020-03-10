@@ -1889,9 +1889,6 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         try {
             // get the component authorizable
             Authorizable componentAuthorizable = authorizableLookup.getAuthorizableFromResource(resource);
-            if (Objects.isNull(componentAuthorizable)) {
-                return null;
-            }
 
             // if this represents an authorizable whose policy permissions are enforced through the base resource,
             // get the underlying base authorizable for the component reference
@@ -1905,7 +1902,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 final RevisionDTO componentReferenceRevision = dtoFactory.createRevisionDTO(revisionManager.getRevision(componentReference.getId()));
                 componentReferenceEntity = entityFactory.createComponentReferenceEntity(componentReference, componentReferenceRevision, componentReferencePermissions);
             }
-        } catch (final Exception e) {
+        } catch (final ResourceNotFoundException e) {
             // component not found for the specified resource
             logger.warn(resource, e);
         }
