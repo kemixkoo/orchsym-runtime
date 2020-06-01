@@ -74,6 +74,15 @@ public interface ControllerServiceDAO {
     ControllerServiceNode updateControllerService(ControllerServiceDTO controllerServiceDTO);
 
     /**
+     * Moves the specified controller service.
+     *
+     * @param controllerServiceDTO The controller service DTO
+     * @param targetGroupId The target Process Group id
+     * @return The controller service
+     */
+    ControllerServiceNode moveControllerService(ControllerServiceDTO controllerServiceDTO, String targetGroupId);
+
+    /**
      * Updates the referencing components for the specified controller service.
      *
      * @param controllerServiceId service id
@@ -89,6 +98,13 @@ public interface ControllerServiceDAO {
      * @param controllerServiceDTO service
      */
     void verifyUpdate(ControllerServiceDTO controllerServiceDTO);
+
+    /**
+     * Determines whether this controller service can be moved.
+     *
+     * @param controllerServiceDTO service
+     */
+    void verifyMove(ControllerServiceDTO controllerServiceDTO);
 
     /**
      * Determines whether the referencing component of the specified controller service can be updated.

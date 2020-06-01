@@ -18,3 +18,47 @@ nb-configuration.xml
 *~
 
 .vscode/
+
+
+
+# add by Front End
+# dependencies
+**/node_modules
+# roadhog-api-doc ignore
+/orchsym/orchsym-fe/src/utils/request-temp.js
+/orchsym/orchsym-fe/_roadhog-api-doc
+
+# production
+/orchsym/orchsym-fe/dist
+/orchsym/orchsym-fe/.vscode
+
+# misc
+/orchsym/orchsym-fe/.DS_Store
+/orchsym/orchsym-fe/npm-debug.log*
+/orchsym/orchsym-fe/yarn-error.log
+
+/orchsym/orchsym-fe/coverage
+/orchsym/orchsym-fe/.idea
+/orchsym/orchsym-fe/yarn.lock
+/orchsym/orchsym-fe/package-lock.json
+/orchsym/orchsym-fe/*bak
+.vscode
+
+# visual studio code
+/orchsym/orchsym-fe/.history
+/orchsym/orchsym-fe/*.log
+/orchsym/orchsym-fe/functions/*
+/orchsym/orchsym-fe/lambda/mock/index.js
+/orchsym/orchsym-fe/.temp/**
+
+# umi
+/orchsym/orchsym-fe/.umi
+/orchsym/orchsym-fe/.umi-production
+
+# screenshot
+/orchsym/orchsym-fe/screenshot
+/orchsym/orchsym-fe/.firebase
+
+/orchsym/orchsym-fe/src/pages/.umi
+/orchsym/orchsym-fe/src/pages/$Template
+/orchsym/orchsym-fe/src/pages/.umi

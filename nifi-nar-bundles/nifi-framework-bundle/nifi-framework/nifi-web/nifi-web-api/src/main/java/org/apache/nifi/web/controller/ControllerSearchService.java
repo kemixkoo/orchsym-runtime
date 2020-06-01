@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -160,6 +161,32 @@ public class ControllerSearchService {
 
         for (final ProcessGroup processGroup : group.getProcessGroups()) {
             search(results, search, processGroup);
+        }
+    }
+
+
+    /**
+     * @apiNote 仅检索一级Group 即APP类型
+     */
+    public void searchApp(final SearchResultsDTO results, final String search, final ProcessGroup group) {
+        final NiFiUser user = NiFiUserUtils.getNiFiUser();
+        for (final ProcessGroup processGroup : group.getProcessGroups()) {
+            if (group.isAuthorized(authorizer, RequestAction.READ, user)) {
+                if (search == null || search.isEmpty()){
+                    ComponentSearchResultDTO groupMatch = new ComponentSearchResultDTO();
+                    groupMatch.setGroupId(processGroup.getParent().getIdentifier());
+                    groupMatch.setId(processGroup.getIdentifier());
+                    results.getProcessGroupResults().add(groupMatch);
+                }else {
+                    final ComponentSearchResultDTO groupMatch = searchAppByName(search, processGroup);
+                    if (groupMatch != null) {
+                        // get the parent group, not the current one
+                        groupMatch.setParentGroup(buildResultGroup(group.getParent(), user));
+                        groupMatch.setVersionedGroup(buildVersionedGroup(group.getParent(), user));
+                        results.getProcessGroupResults().add(groupMatch);
+                    }
+                }
+            }
         }
     }
 
@@ -334,6 +361,31 @@ public class ControllerSearchService {
                 addIfAppropriate(searchStr, entry.getKey().getName(), "Variable Name", matches);
                 addIfAppropriate(searchStr, entry.getValue(), "Variable Value", matches);
             }
+        }
+
+        if (matches.isEmpty()) {
+            return null;
+        }
+
+        final ComponentSearchResultDTO result = new ComponentSearchResultDTO();
+        result.setId(group.getIdentifier());
+        result.setName(group.getName());
+        result.setGroupId(parent.getIdentifier());
+        result.setMatches(matches);
+        return result;
+    }
+    // only search app by name
+    private ComponentSearchResultDTO searchAppByName(final String searchStr, final ProcessGroup group) {
+        final List<String> matches = new ArrayList<>();
+        final ProcessGroup parent = group.getParent();
+        if (parent == null) {
+            return null;
+        }
+
+        addIfAppropriate(searchStr, group.getName(), "Name", matches);
+        addIfAppropriate(searchStr, group.getComments(), "Comments", matches);
+        if (!Objects.isNull(group.getTags())) {
+            addIfAppropriate(searchStr, String.join(",", group.getTags()), "Tags", matches);
         }
 
         if (matches.isEmpty()) {

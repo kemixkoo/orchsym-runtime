@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <title>数聚蜂巢集成编排平台</title>
+    <script>
+      document.write('<scr'+'ipt src="/conf.js?' + new Date().getTime() + '"></scr'+'ipt>')
+      window.onload = function(){
+        document.querySelector('link[rel="icon"]').href = window.logoHref.companyIco
+        document.querySelector('head > title').innerHTML = window.departmentNameEn
+      }
+    </script>
+      <script>
+        // 动态注入客户配置script脚本
+        const scriptBody = document.createElement('script')
+        // scriptBody.innerHTML = window.injectionScriptContent.join(';')
+        document.querySelector('head').appendChild(scriptBody)
+        let script = null
+        // for (let i = 0; i < window.injectionScriptSrc.length; i ++) {
+        //   script = document.createElement('script')
+        //   script.src = window.injectionScriptSrc[i]
+        //   document.querySelector('head').appendChild(script)
+        // }
+      </script>
+    <link rel="icon" href="/favicon.png" type="image/x-icon" />
+  </head>
+  <body>
+    <noscript>Sorry, we need js to run correctly!</noscript>
+    <div id="root"></div>
+  </body>
+</html>

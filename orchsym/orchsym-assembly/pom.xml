@@ -134,7 +134,7 @@
 							<formats>
 								<format>dir</format>
 								<format>zip</format>
-								<format>tar.gz</format>
+                                <format>tar.gz</format>
 							</formats>
 						</configuration>
 					</execution>
@@ -144,11 +144,6 @@
 	</build>
 
 	<profiles>
-		<!-- <profile> <id>non-headless-runtime</id> <activation> <property> <name>!headless</name>
-			</property> </activation> <properties> <orchsym.build.product.name>runtime</orchsym.build.product.name>
-			</properties> <dependencies> <dependency> <groupId>org.apache.nifi</groupId>
-			<artifactId>nifi-docs</artifactId> <classifier>resources</classifier> <version>1.7.0-SNAPSHOT</version>
-			<scope>runtime</scope> <type>zip</type> </dependency> </dependencies> </profile> -->
 		<profile>
 			<id>headless-runtime-engine</id>
 			<activation>

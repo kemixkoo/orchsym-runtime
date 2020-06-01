@@ -21,7 +21,6 @@
     <artifactId>nifi-confluent-schema-registry-service</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <jersey.version>2.26</jersey.version>
     </properties>
     <dependencies>
         <dependency>

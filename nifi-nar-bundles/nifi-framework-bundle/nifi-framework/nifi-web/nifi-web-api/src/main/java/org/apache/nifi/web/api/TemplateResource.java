@@ -237,6 +237,54 @@ public class TemplateResource extends ApplicationResource {
         );
     }
 
+    /**
+     * Retrieves the specified template.
+     *
+     * @param id The id of the template to retrieve
+     * @return A templateEntity.
+     */
+    @GET
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    @ApiOperation(
+            value = "Get a template",
+            response = String.class,
+            authorizations = {
+                    @Authorization(value = "Read - /templates/{uuid}")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response getTemplate(
+            @ApiParam(
+                    value = "The template id.",
+                    required = true
+            )
+            @PathParam("id") final String id) {
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.GET);
+        }
+
+        // authorize access
+        serviceFacade.authorizeAccess(lookup -> {
+            final Authorizable template = lookup.getTemplate(id);
+            template.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+        });
+
+        // get the template
+        final TemplateDTO template = serviceFacade.getTemplate(id);
+        return generateOkResponse(template).build();
+    }
+
     // setters
 
     public void setServiceFacade(NiFiServiceFacade serviceFacade) {

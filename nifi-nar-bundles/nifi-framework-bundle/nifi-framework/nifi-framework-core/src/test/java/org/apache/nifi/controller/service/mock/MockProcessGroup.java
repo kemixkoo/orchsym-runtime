@@ -17,6 +17,7 @@
 
 package org.apache.nifi.controller.service.mock;
 
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.authorization.Resource;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.connectable.Connectable;
@@ -548,7 +549,17 @@ public class MockProcessGroup implements ProcessGroup {
     }
 
     @Override
-    public void verifyCanDelete(final boolean ignorePortConnections) {
+    public void verifyCanDelete(boolean ignorePortConnections) {
+
+    }
+
+    @Override
+    public void verifyCanDelete(final boolean ignorePortConnections, boolean ignoreControllerServices) {
+
+    }
+
+    @Override
+    public void verifyCanDelete(boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates) {
 
     }
 
@@ -688,13 +699,8 @@ public class MockProcessGroup implements ProcessGroup {
     }
 
     @Override
-    public Map<String, String> getAdditions() {
+    public TypeAdditions getAdditions() {
         return null;
-    }
-
-    @Override
-    public void setAdditions(Map<String, String> additions) {
-        
     }
 
     @Override

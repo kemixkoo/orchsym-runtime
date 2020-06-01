@@ -17,7 +17,10 @@
 package org.apache.nifi.web.dao;
 
 import org.apache.nifi.controller.Snippet;
+import org.apache.nifi.controller.StandardSnippet;
 import org.apache.nifi.web.api.dto.FlowSnippetDTO;
+import org.apache.nifi.web.api.dto.PositionDTO;
+import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.apache.nifi.web.api.dto.SnippetDTO;
 
 public interface SnippetDAO {
@@ -33,6 +36,30 @@ public interface SnippetDAO {
      * @return snippet
      */
     FlowSnippetDTO copySnippet(String groupId, String snippetId, Double originX, Double originY, String idGenerationSeed);
+
+    /**
+     * Copies the specified snippet and added the copy to the flow in the specified group.
+     *
+     * @param groupId group id
+     * @param existingSnippet existing snippet
+     * @param originX x
+     * @param originY y
+     * @param idGenerationSeed the seed to use for generating UUID's. May be null.
+     * @return snippet
+     */
+    FlowSnippetDTO copySnippet(String groupId, Snippet existingSnippet, Double originX, Double originY, String idGenerationSeed);
+
+
+    /**
+     * Copies the specified snippet and added the copy to the flow in the specified group.
+     *
+     * @param targetGroupId group id
+     * @param snippetDTO snippetDTO
+     * @param processGroupDTO processGroupDTO
+     * @param idGenerationSeed the seed to use for generating UUID's. May be null.
+     * @return snippet
+     */
+    FlowSnippetDTO copyProcessGroup(String targetGroupId, SnippetDTO snippetDTO, ProcessGroupDTO processGroupDTO, String idGenerationSeed);
 
     /**
      * Creates a snippet.
@@ -58,6 +85,13 @@ public interface SnippetDAO {
     void dropSnippet(String snippetId);
 
     /**
+     * Drops the specified snippet.
+     *
+     * @param snippet snippet
+     */
+    void dropSnippet(StandardSnippet snippet);
+
+    /**
      * Gets the specified snippet.
      *
      * @param snippetId The snippet id
@@ -81,6 +115,22 @@ public interface SnippetDAO {
     Snippet updateSnippetComponents(SnippetDTO snippetDTO);
 
     /**
+     * Updates the components in the specified snippet.
+     *
+     * @param snippetDTO snippet
+     * @param positionOffset position offset
+     * @return The snippet
+     */
+    Snippet updateSnippetComponents(SnippetDTO snippetDTO, PositionDTO positionOffset);
+
+    /**
+     * Updates the components in the specified snippet.
+     *
+     * @param snippetDTO snippet
+     */
+    void moveControllerServiceIfNecessary(SnippetDTO snippetDTO);
+
+    /**
      * Verifies the components of the specified snippet can be removed.
      *
      * @param snippetId snippet id
@@ -88,9 +138,23 @@ public interface SnippetDAO {
     void verifyDeleteSnippetComponents(String snippetId);
 
     /**
+     * Verifies the components of the specified snippet can be removed.
+     *
+     * @param snippet snippet
+     */
+    void verifyDeleteSnippetComponents(Snippet snippet);
+
+    /**
      * Deletes the components in the specified snippet.
      *
      * @param snippetId The snippet id
      */
     void deleteSnippetComponents(String snippetId);
+
+    /**
+     * Deletes the components in the specified snippet.
+     *
+     * @param snippet The snippet
+     */
+    void deleteSnippetComponents(Snippet snippet);
 }

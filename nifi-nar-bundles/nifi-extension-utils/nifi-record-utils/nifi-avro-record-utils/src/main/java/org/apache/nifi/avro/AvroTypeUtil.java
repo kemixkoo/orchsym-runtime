@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -482,6 +483,10 @@ public class AvroTypeUtil {
             }
 
             final Object converted = convertToAvroObject(rawValue, field.schema(), fieldName, charset);
+            // if null, only keep for string
+            if (Objects.isNull(converted) && recordField.getDataType().getFieldType() != RecordFieldType.STRING) {
+                continue; // tmp fix for ORCHSYM-7813/AVRO-2176
+            }
             rec.put(fieldName, converted);
         }
 

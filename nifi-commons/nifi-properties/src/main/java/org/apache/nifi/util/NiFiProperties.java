@@ -89,6 +89,16 @@ public abstract class NiFiProperties {
     public static final String MAX_TIMER_DRIVEN_THREADS = "orchsym.timer.driven.max.threads";
     public static final String MAX_EVENT_DRIVEN_THREADS = "orchsym.event.driven.max.threads";
 
+    /**
+     * 上传文件
+     */
+    public static final String UPLOAD_REPO_PATH = "orchsym.upload.repository.directory";
+    public static final String UPLOAD_REPO_PATH_VAR = "upload.repository.dir";
+    public static final String UPLOAD_MAX_FILE_SIZE = "orchsym.upload.max.file.size";
+    public static final String DEFAULT_UPLOAD_REPO_PATH = "./upload_repository";
+    public static final String DEFAULT_UPLOAD_MAX_FILE_SIZE = "30 MB";
+    
+
     // content repository properties
     public static final String REPOSITORY_CONTENT_PREFIX = "nifi.content.repository.directory.";
     public static final String CONTENT_REPOSITORY_IMPLEMENTATION = "nifi.content.repository.implementation";
@@ -1420,6 +1430,10 @@ public abstract class NiFiProperties {
 
     public boolean isHeadlessMode() {
         return Boolean.parseBoolean(getProperty(HEADLESS));
+    }
+
+    public String getUploadRepoisotryPath() {
+        return getProperty(UPLOAD_REPO_PATH, DEFAULT_UPLOAD_REPO_PATH);
     }
 
     public int getExceptionToleranceCount() {

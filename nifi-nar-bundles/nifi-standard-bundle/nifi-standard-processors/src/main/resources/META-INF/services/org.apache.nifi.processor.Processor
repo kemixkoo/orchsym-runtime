@@ -35,6 +35,7 @@ org.apache.nifi.processors.standard.EvaluateJsonPath
 org.apache.nifi.processors.standard.EvaluateXPath
 org.apache.nifi.processors.standard.EvaluateXQuery
 org.apache.nifi.processors.standard.ExecuteStreamCommand
+org.apache.nifi.processors.standard.ExecuteFlowProcess
 org.apache.nifi.processors.standard.ExecuteProcess
 org.apache.nifi.processors.standard.ExtractText
 org.apache.nifi.processors.standard.FetchSFTP

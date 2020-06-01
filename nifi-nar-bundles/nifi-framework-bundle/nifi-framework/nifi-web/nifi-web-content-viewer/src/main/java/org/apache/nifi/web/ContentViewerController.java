@@ -16,18 +16,19 @@
  */
 package org.apache.nifi.web;
 
-import com.ibm.icu.text.CharsetDetector;
-import com.ibm.icu.text.CharsetMatch;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.nifi.authorization.AccessDeniedException;
 import org.apache.nifi.stream.io.StreamUtils;
 import org.apache.nifi.web.ViewableContent.DisplayMode;
 import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.EncodingDetector;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
+import org.apache.tika.parser.txt.UniversalEncodingDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +38,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriBuilder;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Controller servlet for viewing content. This is responsible for generating
@@ -155,7 +159,7 @@ public class ContentViewerController extends HttpServlet {
         try (final BufferedInputStream bis = new BufferedInputStream(downloadableContent.getContent());) {
             final String mimeType;
             final String normalizedMimeType;
-
+            final Charset charset;
             // when standalone and we don't know the type is null as we were able to directly access the content bypassing the rest endpoint,
             // when clustered and we don't know the type set to octet stream since the content was retrieved from the node's rest endpoint
             if (downloadableContent.getType() == null || StringUtils.startsWithIgnoreCase(downloadableContent.getType(), MediaType.OCTET_STREAM.toString())) {
@@ -164,16 +168,24 @@ public class ContentViewerController extends HttpServlet {
 
                 // create the stream for tika to process, buffered to support reseting
                 final TikaInputStream tikaStream = TikaInputStream.get(bis);
-
                 // provide a hint based on the filename
                 final Metadata metadata = new Metadata();
                 metadata.set(Metadata.RESOURCE_NAME_KEY, downloadableContent.getFilename());
 
                 // Get mime type
                 final MediaType mediatype = detector.detect(tikaStream, metadata);
-                mimeType = mediatype.toString();
+                EncodingDetector encodeDetector=new UniversalEncodingDetector();
+                Charset detectorCharset = encodeDetector.detect(tikaStream, new Metadata());
+                if(detectorCharset != null && detectorCharset.isRegistered()){
+                    charset = detectorCharset;
+                }else{
+                    charset = StandardCharsets.UTF_8;
+                }
+                mimeType = mediatype.toString() + ";charset=" + charset;
             } else {
-                mimeType = downloadableContent.getType();
+                ContentType contentType = createContentType(downloadableContent.getType(), StandardCharsets.UTF_8);
+                charset = contentType.getCharset();
+                mimeType = contentType.toString();
             }
 
             // Extract only mime type and subtype from content type (anything after the first ; are parameters)
@@ -189,7 +201,6 @@ public class ContentViewerController extends HttpServlet {
 
             // remove the attributes needed for the header
             request.removeAttribute("filename");
-            request.removeAttribute("contentType");
 
             // generate the markup for the content based on the display mode
             if (DisplayMode.Hex.equals(displayMode)) {
@@ -226,19 +237,8 @@ public class ContentViewerController extends HttpServlet {
 
                         @Override
                         public String getContent() throws IOException {
-                            // detect the charset
-                            final CharsetDetector detector = new CharsetDetector();
-                            detector.setText(bis);
-                            detector.enableInputFilter(true);
-                            final CharsetMatch match = detector.detect();
-
-                            // ensure we were able to detect the charset
-                            if (match == null) {
-                                throw new IOException("Unable to detect character encoding.");
-                            }
-
                             // convert the stream using the detected charset
-                            return IOUtils.toString(bis, match.getName());
+                            return IOUtils.toString(bis, charset.name());
                         }
 
                         @Override
@@ -295,7 +295,26 @@ public class ContentViewerController extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/jsp/footer.jsp").include(request, response);
         }
     }
-
+    /**
+     * @param rawContentType mimeType
+     * @param defaultCharset default charset
+     * @return Create content type with rawContentType and default charset when no charset in rawContentType
+     * */
+    private ContentType createContentType(String rawContentType, Charset defaultCharset) {
+        try {
+            ContentType contentType = ContentType.parse(rawContentType);
+            Charset charset = contentType.getCharset();
+            if(charset != null && charset.isRegistered()){
+                return contentType;
+            }
+            if(contentType.getMimeType() != null){
+                return ContentType.parse(contentType.getMimeType() + ";charset=" + defaultCharset);
+            }
+        } catch (Exception e) {
+            logger.warn("Warning when create Content-type!");
+        }
+        return ContentType.parse(ContentType.TEXT_PLAIN + ";charset=" + defaultCharset);
+    }
     /**
      * @param request request
      * @return Get the content request context based on the specified request

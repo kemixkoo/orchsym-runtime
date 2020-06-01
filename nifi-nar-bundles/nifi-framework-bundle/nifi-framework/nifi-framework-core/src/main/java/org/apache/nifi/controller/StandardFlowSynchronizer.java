@@ -79,9 +79,7 @@ import org.apache.nifi.events.BulletinFactory;
 import org.apache.nifi.fingerprint.FingerprintException;
 import org.apache.nifi.fingerprint.FingerprintFactory;
 import org.apache.nifi.flowfile.FlowFilePrioritizer;
-import org.apache.nifi.groups.ProcessAdditions;
 import org.apache.nifi.groups.ProcessGroup;
-import org.apache.nifi.groups.ProcessTags;
 import org.apache.nifi.groups.RemoteProcessGroup;
 import org.apache.nifi.groups.RemoteProcessGroupPortDescriptor;
 import org.apache.nifi.logging.ComponentLog;
@@ -1179,7 +1177,7 @@ public class StandardFlowSynchronizer implements FlowSynchronizer {
         processGroup.setTags(ProcessUtil.getTags(processGroupElement));
 
         // Set Additions
-        processGroup.setAdditions(ProcessUtil.getAdditions(processGroupElement));
+        processGroup.getAdditions().set(ProcessUtil.getAdditions(processGroupElement));
 
         final VersionControlInformationDTO versionControlInfoDto = processGroupDTO.getVersionControlInformation();
         if (versionControlInfoDto != null) {

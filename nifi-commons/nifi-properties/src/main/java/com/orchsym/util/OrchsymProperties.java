@@ -26,6 +26,7 @@ public class OrchsymProperties {
     public static final String FILE_NAME = "orchsym.properties";
 
     public static final String CONF_DIR = "./conf";
+    public static final String EXT_DIR = "ext";
 
     /**
      * keys

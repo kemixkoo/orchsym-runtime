@@ -113,7 +113,7 @@ public abstract class ApplicationResource {
     public static final String FORWARDED_PORT_HTTP_HEADER = "X-Forwarded-Port";
     public static final String FORWARDED_CONTEXT_HTTP_HEADER = "X-Forwarded-Context";
 
-    protected static final String NON_GUARANTEED_ENDPOINT = "Note: This endpoint is subject to change as NiFi and it's REST API evolve.";
+    protected static final String NON_GUARANTEED_ENDPOINT = "Note: This endpoint is subject to change as Runtime and it's REST API evolve.";
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationResource.class);
 
@@ -124,13 +124,17 @@ public abstract class ApplicationResource {
 
     @Context
     protected UriInfo uriInfo;
-    @Autowired(required=false)
+
+    @Autowired(required = false)
     protected NiFiProperties properties;
-    @Autowired(required=false)
+
+    @Autowired(required = false)
     protected RequestReplicator requestReplicator;
-    @Autowired(required=false)
+
+    @Autowired(required = false)
     protected ClusterCoordinator clusterCoordinator;
-    @Autowired(required=false)
+
+    @Autowired(required = false)
     protected FlowController flowController;
 
     private static final int MAX_CACHE_SOFT_LIMIT = 500;
@@ -192,7 +196,7 @@ public abstract class ApplicationResource {
         return uri;
     }
 
-    private URI buildResourceUri(final String... path) {
+    protected URI buildResourceUri(final String... path) {
         final UriBuilder uriBuilder = uriInfo.getBaseUriBuilder();
         return buildResourceUri(uriBuilder, path);
     }
@@ -281,9 +285,9 @@ public abstract class ApplicationResource {
     }
 
     /**
-     * Generates a 150 Node Continue response to be used within the cluster request handshake.
+     * Generates a 202 Accepted (Node Continue) response to be used within the cluster request handshake.
      *
-     * @return a 150 Node Continue response to be used within the cluster request handshake
+     * @return a 202 Accepted (Node Continue) response to be used within the cluster request handshake
      */
     protected ResponseBuilder generateContinueResponse() {
         return Response.status(RequestReplicator.NODE_CONTINUE_STATUS_CODE);

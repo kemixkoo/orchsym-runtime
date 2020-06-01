@@ -28,6 +28,7 @@ import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
+import org.apache.nifi.annotation.documentation.Marks;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.exception.ProcessException;
@@ -52,6 +53,7 @@ import java.util.*;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_ALLOWED)
 @Tags({"config", "ini", "property"})
+@Marks(categories = { "Data Process/Fetch" }, createdDate = "2019-08-26", since = "2.0_09000", iconName = "01.svg")
 @CapabilityDescription("Extract text or flowfiles or attributes in the format " +
         "of ini, properties, yml to the global configuration")
 public class LoadConfig extends AbstractProcessor {
@@ -221,6 +223,7 @@ public class LoadConfig extends AbstractProcessor {
         final ComponentLog logger = getLogger();
 
         FlowFile flowFile = session.get();
+        flowFile = flowFile == null ? session.create() : flowFile;
 
         final String sourceValue = context.getProperty(SOURCE_PROPERTY).getValue();
         final String dataTypeValue = context.getProperty(TYPE_PROPERTY).getValue();
@@ -247,16 +250,11 @@ public class LoadConfig extends AbstractProcessor {
                 destinationMap = getMapByStream(session.read(flowFile), dataTypeValue);
                 getDestinationMap(isSupportRegex, includeProps, excludeProps, destinationMap);
             } else if (sourceValue.equals(ATTR_VALUE)) {
-                if (flowFile == null) {
-                    logger.error("when choose ATTR, the flowFile cant be null");
-                    return;
-                }
                 getDestinationMap(isSupportRegex, includeProps, excludeProps, flowFile.getAttributes());
             }
 
             logger.debug("+++++resultMap=" + destinationMap);
 
-            flowFile = flowFile == null ? session.create() : flowFile;
 
             // write map to distribute
             for (String key : destinationMap.keySet()) {

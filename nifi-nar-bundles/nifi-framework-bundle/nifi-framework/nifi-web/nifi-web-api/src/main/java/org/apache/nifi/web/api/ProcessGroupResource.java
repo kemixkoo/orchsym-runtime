@@ -24,7 +24,9 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.authorization.AuthorizableLookup;
 import org.apache.nifi.authorization.AuthorizeAccess;
 import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
@@ -46,6 +48,7 @@ import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.serialization.FlowEncodingVersion;
 import org.apache.nifi.controller.service.ControllerServiceState;
+import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.registry.bucket.Bucket;
 import org.apache.nifi.registry.client.NiFiRegistryException;
 import org.apache.nifi.registry.flow.FlowRegistryUtils;
@@ -56,6 +59,7 @@ import org.apache.nifi.registry.variable.VariableRegistryUpdateRequest;
 import org.apache.nifi.registry.variable.VariableRegistryUpdateStep;
 import org.apache.nifi.remote.util.SiteToSiteRestApiClient;
 import org.apache.nifi.security.xml.XmlUtils;
+import org.apache.nifi.services.FlowService;
 import org.apache.nifi.util.BundleUtils;
 import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.ResourceNotFoundException;
@@ -72,6 +76,7 @@ import org.apache.nifi.web.api.dto.ProcessorConfigDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.RemoteProcessGroupDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
+import org.apache.nifi.web.api.dto.SnippetDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.apache.nifi.web.api.dto.VariableRegistryDTO;
 import org.apache.nifi.web.api.dto.VersionControlInformationDTO;
@@ -84,7 +89,7 @@ import org.apache.nifi.web.api.entity.ConnectionsEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceEntity;
 import org.apache.nifi.web.api.entity.ControllerServicesEntity;
 import org.apache.nifi.web.api.entity.CopySnippetRequestEntity;
-import org.apache.nifi.web.api.entity.CreateTemplateRequestEntity;
+import org.apache.nifi.web.api.entity.OrchsymCreateTemplateReqEntity;
 import org.apache.nifi.web.api.entity.Entity;
 import org.apache.nifi.web.api.entity.FlowComparisonEntity;
 import org.apache.nifi.web.api.entity.FlowEntity;
@@ -103,19 +108,31 @@ import org.apache.nifi.web.api.entity.ProcessorsEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupsEntity;
 import org.apache.nifi.web.api.entity.ScheduleComponentsEntity;
+import org.apache.nifi.web.api.entity.SnippetCutEntity;
+import org.apache.nifi.web.api.entity.SnippetEntity;
+import org.apache.nifi.web.api.entity.TemplateApplicationEntity;
+import org.apache.nifi.web.api.entity.TemplateConfigEntity;
+import org.apache.nifi.web.api.entity.TemplateConfigComponentEntity;
+import org.apache.nifi.web.api.entity.TemplateConfigSettingsEntity;
 import org.apache.nifi.web.api.entity.TemplateEntity;
+import org.apache.nifi.web.api.entity.VariableEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryEntity;
 import org.apache.nifi.web.api.entity.VariableRegistryUpdateRequestEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
+import org.apache.nifi.web.api.orchsym.template.OrchsymTemplateEntity;
+import org.apache.nifi.web.api.orchsym.template.TemplateFieldName;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
 import org.apache.nifi.web.security.token.NiFiAuthenticationToken;
+import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 import org.apache.nifi.web.util.Pause;
-import org.apache.nifi.web.util.PositionCalcUtil;
+import org.apache.nifi.util.PositionCalcUtil;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import utils.ThreadLocalUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -146,14 +163,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -180,6 +190,7 @@ public class ProcessGroupResource extends ApplicationResource {
 
     private NiFiServiceFacade serviceFacade;
     private Authorizer authorizer;
+    private FlowService flowService;
 
     private ProcessorResource processorResource;
     private InputPortResource inputPortResource;
@@ -1595,7 +1606,7 @@ public class ProcessGroupResource extends ApplicationResource {
                         parentAuthorizable.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
                     }
                 },
-                () -> serviceFacade.verifyDeleteProcessGroup(id),
+                () -> serviceFacade.verifyDeleteProcessGroup(id, false),
                 (revision, processGroupEntity) -> {
                     // delete the process group
                     final ProcessGroupEntity entity = serviceFacade.deleteProcessGroup(revision, processGroupEntity.getId());
@@ -1610,7 +1621,7 @@ public class ProcessGroupResource extends ApplicationResource {
      * Adds the specified process group.
      *
      * @param httpServletRequest request
-     * @param groupId The group id
+     * @param parentGroupId The group id
      * @param requestProcessGroupEntity A processGroupEntity
      * @return A processGroupEntity
      * @throws IOException if the request indicates that the Process Group should be imported from a Flow Registry and NiFi is unable to communicate with the Flow Registry
@@ -1647,8 +1658,13 @@ public class ProcessGroupResource extends ApplicationResource {
                     required = true
         ) final ProcessGroupEntity requestProcessGroupEntity) throws IOException {
 
+
         if (requestProcessGroupEntity == null || requestProcessGroupEntity.getComponent() == null) {
             throw new IllegalArgumentException("Process group details must be specified.");
+        }
+
+        if (requestProcessGroupEntity.getCreateTimestamp() == null){
+            requestProcessGroupEntity.setCreateTimestamp(System.currentTimeMillis());
         }
 
         if (requestProcessGroupEntity.getRevision() == null || (requestProcessGroupEntity.getRevision().getVersion() == null || requestProcessGroupEntity.getRevision().getVersion() != 0)) {
@@ -1665,7 +1681,7 @@ public class ProcessGroupResource extends ApplicationResource {
                 throw new IllegalArgumentException("The x and y coordinate of the proposed position must be specified.");
             }
         } else { // if not set the position, find new one
-            final PositionDTO availablePosition = PositionCalcUtil.newAvailablePosition(serviceFacade);
+            final PositionDTO availablePosition = PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
             requestProcessGroupEntity.getComponent().setPosition(availablePosition);
         }
 
@@ -1756,6 +1772,9 @@ public class ProcessGroupResource extends ApplicationResource {
                 },
                 processGroupEntity -> {
                     final ProcessGroupDTO processGroup = processGroupEntity.getComponent();
+
+                    // 设置创建时间戳
+                    ThreadLocalUtil.getInstance().set(processGroupEntity.getCreateTimestamp());
 
                     // set the processor id as appropriate
                     processGroup.setId(generateUuid());
@@ -3142,6 +3161,109 @@ public class ProcessGroupResource extends ApplicationResource {
         );
     }
 
+
+    /**
+     * Cuts the specified snippet to this ProcessGroup.
+     *
+     * @param httpServletRequest request
+     * @param targetGroupId            The group id
+     * @param requestCutSnippetEntity  The copy snippet request
+     * @return A flowSnippetEntity.
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}/snippet-cutting")
+    @ApiOperation(
+            value = "Cuts a snippet.",
+            response = SnippetEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /process-groups/{uuid}"),
+                    @Authorization(value = "Read - /{component-type}/{uuid} - For each component in the snippet and their descendant components"),
+                    @Authorization(value = "Write - if the snippet contains any restricted Processors - /restricted-components")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response cutSnippet(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The target process group id.",
+                    required = true
+            )
+            @PathParam("id") String targetGroupId,
+            @ApiParam(
+                    value = "The cut snippet request.",
+                    required = true
+            ) SnippetCutEntity requestCutSnippetEntity) {
+        if (requestCutSnippetEntity == null || requestCutSnippetEntity.getSnippet() == null) {
+            throw new IllegalArgumentException("Snippet details must be specified.");
+        }
+
+        final SnippetDTO requestSnippetDTO = requestCutSnippetEntity.getSnippet();
+
+        if (requestSnippetDTO.getId() != null) {
+            throw new IllegalArgumentException("Snippet ID cannot be specified.");
+        }
+        // For convenience, we'll create a Snippet first.
+        requestSnippetDTO.setId(generateUuid());
+
+        // We need the parent Process Group id to locate the Snippet.
+        // After the Snippet is created, we'll changed the parentGroupId of the snippetDTO to the target process group's id.
+        // In this way, we can't reuse existing validation logic
+        if (requestSnippetDTO.getParentGroupId() == null) {
+            throw new IllegalArgumentException("The parent Process Group of the snippet must be specified.");
+        }
+
+        // ensure the position has been specified
+        if (requestCutSnippetEntity.getPositionOffset() == null ||
+                requestCutSnippetEntity.getPositionOffset().getX() == null || requestCutSnippetEntity.getPositionOffset().getY() == null) {
+            throw new IllegalArgumentException("The position offset (x, y) must be specified");
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, requestCutSnippetEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestCutSnippetEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        // get the revision from this snippet
+        final Set<Revision> requestRevisions = serviceFacade.getRevisionsFromSnippet(requestSnippetDTO);
+        return withWriteLock(
+                serviceFacade,
+                requestCutSnippetEntity,
+                requestRevisions,
+                lookup -> {
+                    // ensure write access to the target process group
+                    lookup.getProcessGroup(targetGroupId).getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // ensure write permission to every component in the snippet including referenced services
+                    final SnippetAuthorizable snippet = lookup.getSnippet(requestSnippetDTO);
+                    authorizeSnippet(snippet, authorizer, lookup, RequestAction.WRITE, true, false);
+                },
+                null,
+                (revisions, copySnippetRequestEntity) -> {
+                    // change the parent Process Group id to target Process Group
+                    requestSnippetDTO.setParentGroupId(targetGroupId);
+
+                    // moves the specified snippet to the specified group.
+                    SnippetEntity snippetEntity = serviceFacade.cutSnippet(revisions, requestSnippetDTO,
+                            copySnippetRequestEntity.getPositionOffset(), getIdGenerationSeed().orElse(null));
+
+                    // generate the response
+                    return generateCreatedResponse(getAbsolutePath(), snippetEntity).build();
+                }
+        );
+    }
+
+
     // -----------------
     // template instance
     // -----------------
@@ -3367,12 +3489,15 @@ public class ProcessGroupResource extends ApplicationResource {
             @ApiParam(
                     value = "The create template request.",
                     required = true
-            ) final CreateTemplateRequestEntity requestCreateTemplateRequestEntity) {
+            ) final OrchsymCreateTemplateReqEntity requestCreateTemplateRequestEntity) {
 
         if (requestCreateTemplateRequestEntity.getSnippetId() == null) {
             throw new IllegalArgumentException("The snippet identifier must be specified.");
         }
-
+        // Avoid the timestamp is different for cluster
+        if (requestCreateTemplateRequestEntity.getCreatedTime() == null) {
+            requestCreateTemplateRequestEntity.setCreatedTime(System.currentTimeMillis());
+        }
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestCreateTemplateRequestEntity);
         } else if (isDisconnectedFromCluster()) {
@@ -3388,7 +3513,10 @@ public class ProcessGroupResource extends ApplicationResource {
                 () -> serviceFacade.verifyCanAddTemplate(groupId, requestCreateTemplateRequestEntity.getName()),
                 createTemplateRequestEntity -> {
                     // create the template and generate the json
-                    final TemplateDTO template = serviceFacade.createTemplate(createTemplateRequestEntity.getName(), createTemplateRequestEntity.getDescription(),
+                    final Map<String, String> additions = TemplateFieldName.getCreatedAdditions(requestCreateTemplateRequestEntity, false, NiFiUserUtils.getNiFiUserIdentity());
+
+                    final Set<String> tags = createTemplateRequestEntity.getTags();
+                    final TemplateDTO template = serviceFacade.createTemplate(additions, tags, createTemplateRequestEntity.getName(), createTemplateRequestEntity.getDescription(),
                             createTemplateRequestEntity.getSnippetId(), groupId, getIdGenerationSeed());
                     templateResource.populateRemainingTemplateContent(template);
 
@@ -3416,7 +3544,7 @@ public class ProcessGroupResource extends ApplicationResource {
     @Path("{id}/templates/upload")
     @ApiOperation(
             value = "Uploads a template",
-            response = TemplateEntity.class,
+            response = OrchsymTemplateEntity.class,
             authorizations = {
                     @Authorization(value = "Write - /process-groups/{uuid}")
             }
@@ -3446,7 +3574,7 @@ public class ProcessGroupResource extends ApplicationResource {
                     value = "The process group id.",
                     required = true
             )
-            @PathParam("id") final String groupId,
+            @PathParam("id") String groupId,
             @ApiParam(
                     value = "Acknowledges that this node is disconnected to allow for mutable requests to proceed.",
                     required = false
@@ -3482,13 +3610,20 @@ public class ProcessGroupResource extends ApplicationResource {
         }
 
         // build the response entity
-        TemplateEntity entity = new TemplateEntity();
+        OrchsymTemplateEntity entity = new OrchsymTemplateEntity();
+        if (Objects.isNull(entity.getUploadedTime())) {
+           entity.setUploadedTime(System.currentTimeMillis());
+        }
+
         entity.setTemplate(template);
         entity.setDisconnectedNodeAcknowledged(disconnectedNodeAcknowledged);
 
         if (isReplicateRequest()) {
             // convert request accordingly
             final UriBuilder uriBuilder = uriInfo.getBaseUriBuilder();
+
+            groupId = "root".equals(groupId)? flowController.getRootGroupId() : groupId;
+
             uriBuilder.segment("process-groups", groupId, "templates", "import");
             final URI importUri = uriBuilder.build();
 
@@ -3522,7 +3657,7 @@ public class ProcessGroupResource extends ApplicationResource {
     @Path("{id}/templates/import")
     @ApiOperation(
             value = "Imports a template",
-            response = TemplateEntity.class,
+            response = OrchsymTemplateEntity.class,
             authorizations = {
                     @Authorization(value = "Write - /process-groups/{uuid}")
             }
@@ -3542,11 +3677,15 @@ public class ProcessGroupResource extends ApplicationResource {
                     required = true
             )
             @PathParam("id") final String groupId,
-            final TemplateEntity requestTemplateEntity) {
+            final OrchsymTemplateEntity requestTemplateEntity) {
 
         // verify the template was specified
         if (requestTemplateEntity == null || requestTemplateEntity.getTemplate() == null || requestTemplateEntity.getTemplate().getSnippet() == null) {
             throw new IllegalArgumentException("Template details must be specified.");
+        }
+
+        if (Objects.isNull(requestTemplateEntity.getUploadedTime())) {
+           requestTemplateEntity.setUploadedTime(System.currentTimeMillis());
         }
 
         if (isReplicateRequest()) {
@@ -3565,6 +3704,16 @@ public class ProcessGroupResource extends ApplicationResource {
                 () -> serviceFacade.verifyCanAddTemplate(groupId, requestTemplateEntity.getTemplate().getName()),
                 templateEntity -> {
                     try {
+                        Map<String, String> additions = templateEntity.getTemplate().getAdditions();
+                        if (Objects.isNull(additions)) {
+                            additions = new HashMap<>();
+                        } else {
+                            additions = new HashMap<>(additions);
+                        }
+                        final Map<String, String> uploadedAdditions = TemplateFieldName.getUploadedAdditions(requestTemplateEntity, NiFiUserUtils.getNiFiUserIdentity());
+                        additions.putAll(uploadedAdditions);
+                        templateEntity.getTemplate().setAdditions(additions);
+
                         // import the template
                         final TemplateDTO template = serviceFacade.importTemplate(templateEntity.getTemplate(), groupId, getIdGenerationSeed());
                         templateResource.populateRemainingTemplateContent(template);
@@ -3657,6 +3806,8 @@ public class ProcessGroupResource extends ApplicationResource {
         }
         requestControllerService.setParentGroupId(groupId);
 
+        ControllerServiceAdditionUtils.onCreate(requestControllerServiceEntity.getComponent());
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.POST, requestControllerServiceEntity);
         } else if (isDisconnectedFromCluster()) {
@@ -3705,6 +3856,332 @@ public class ProcessGroupResource extends ApplicationResource {
                     return generateCreatedResponse(URI.create(entity.getUri()), entity).build();
                 }
         );
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/templates/application")
+    @ApiOperation(
+            value = "Instantiates a template and update related configurations on root process group",
+            response = ControllerServiceEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /process-groups/{uuid}"),
+                    @Authorization(value = "Read - /templates/{uuid}"),
+                    @Authorization(value = "Write - if the template contains any restricted components - /restricted-components")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response createApplicationByTemplate(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The instantiate template request.",
+                    required = true
+            ) TemplateConfigEntity requestTemplateConfigurationEntity) {
+
+        // ensure the application name was provided
+        if (StringUtils.isBlank(requestTemplateConfigurationEntity.getApplicationName())) {
+            throw new IllegalArgumentException("The process group name must be specified.");
+        }
+
+        // ensure the template id was provided
+        if (requestTemplateConfigurationEntity.getTemplateName() == null && requestTemplateConfigurationEntity.getTemplateId() == null) {
+            throw new IllegalArgumentException("The template name or id must be specified.");
+        }
+
+        final Set<TemplateEntity> templates = serviceFacade.getTemplates();
+        if (templates == null || templates.size() == 0) {
+            throw new RuntimeException("There is no template in Studio.");
+        }
+
+        String realTemplateId = null;
+        if (requestTemplateConfigurationEntity.getTemplateId() != null){
+            try {
+                final TemplateDTO templateById = serviceFacade.getTemplate(requestTemplateConfigurationEntity.getTemplateId());
+                if (templateById != null){
+                    realTemplateId = requestTemplateConfigurationEntity.getTemplateId();
+                }
+            }catch (ResourceNotFoundException e){
+                //
+            }
+        }
+
+        if (realTemplateId == null){
+            final Optional<TemplateEntity> templateEntityOptional = templates.stream()
+                    .filter(templateEntity -> templateEntity.getTemplate().getName().equals(requestTemplateConfigurationEntity.getTemplateName())).findFirst();
+            if (!templateEntityOptional.isPresent()) {
+                throw new IllegalArgumentException("The template [" + requestTemplateConfigurationEntity.getTemplateName() + "] doesn't exist in Studio.");
+            }
+            final TemplateDTO template = templateEntityOptional.get().getTemplate();
+            realTemplateId = template.getId();
+        }
+
+        final String templateId = realTemplateId;
+        final TemplateDTO template = serviceFacade.getTemplate(realTemplateId);
+
+        // ensure the template encoding version is valid
+        if (requestTemplateConfigurationEntity.getEncodingVersion() != null) {
+            try {
+                FlowEncodingVersion.parse(requestTemplateConfigurationEntity.getEncodingVersion());
+            } catch (final IllegalArgumentException e) {
+                throw new IllegalArgumentException("The template encoding version is not valid. The expected format is <number>.<number>");
+            }
+        }
+
+        // populate the encoding version if necessary
+        if (requestTemplateConfigurationEntity.getEncodingVersion() == null) {
+            // if the encoding version is not specified, use the latest encoding version as these options were
+            // not available pre 1.x, will be overridden if populating from the underlying template below
+            requestTemplateConfigurationEntity.setEncodingVersion(TemplateDTO.MAX_ENCODING_VERSION);
+        }
+
+        // populate the component bundles if necessary
+        if (requestTemplateConfigurationEntity.getSnippet() == null) {
+            // get the desired template in order to determine the supported bundles
+            final TemplateDTO requestedTemplate = serviceFacade.exportTemplate(templateId);
+            final FlowSnippetDTO requestTemplateContents = requestedTemplate.getSnippet();
+
+            // determine the compatible bundles to use for each component in this template, this ensures the nodes in the cluster
+            // instantiate the components from the same bundles
+            discoverCompatibleBundles(requestTemplateContents);
+
+            // update the requested template as necessary - use the encoding version from the underlying template
+            requestTemplateConfigurationEntity.setEncodingVersion(requestedTemplate.getEncodingVersion());
+            requestTemplateConfigurationEntity.setSnippet(requestTemplateContents);
+        }
+
+        final FlowSnippetDTO snippet = requestTemplateConfigurationEntity.getSnippet();
+        if (snippet.getConnections().size() > 0 || snippet.getFunnels().size() > 0 || snippet.getInputPorts().size() > 0 || snippet.getOutputPorts().size() > 0 || snippet.getProcessors().size() > 0
+                || snippet.getRemoteProcessGroups().size() > 0) {
+            throw new IllegalArgumentException("Don't allow other components in application except group, label and service");
+        } // else {// only allow the group, label and service
+        if (snippet.getProcessGroups().size() != 1) {
+            throw new IllegalArgumentException("Just allow only one process group for application");
+        }
+
+        // set additions info to entity
+        if (requestTemplateConfigurationEntity.getCreatedUser() == null){
+            requestTemplateConfigurationEntity.setCreatedUser(NiFiUserUtils.getNiFiUserIdentity());
+        }
+
+        if (requestTemplateConfigurationEntity.getCreatedTime() == null){
+            requestTemplateConfigurationEntity.setCreatedTime(System.currentTimeMillis());
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, requestTemplateConfigurationEntity);
+        } else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestTemplateConfigurationEntity.isDisconnectedNodeAcknowledged());
+        }
+
+        final String rootGroupId = serviceFacade.getProcessGroup(FlowController.ROOT_GROUP_ID_ALIAS).getId();
+
+        return withWriteLock(serviceFacade, requestTemplateConfigurationEntity, lookup -> {
+            final NiFiUser user = NiFiUserUtils.getNiFiUser();
+
+            // ensure write on the group
+            final Authorizable processGroup = lookup.getProcessGroup(rootGroupId).getAuthorizable();
+            processGroup.authorize(authorizer, RequestAction.WRITE, user);
+
+            final Authorizable templateAuth = lookup.getTemplate(templateId);
+            templateAuth.authorize(authorizer, RequestAction.READ, user);
+
+            // ensure read on the template
+            final TemplateContentsAuthorizable templateContents = lookup.getTemplateContents(requestTemplateConfigurationEntity.getSnippet());
+
+            final Consumer<ComponentAuthorizable> authorizeRestricted = authorizable -> {
+                if (authorizable.isRestricted()) {
+                    authorizeRestrictions(authorizer, authorizable);
+                }
+            };
+
+            // ensure restricted access if necessary
+            templateContents.getEncapsulatedProcessors().forEach(authorizeRestricted);
+            templateContents.getEncapsulatedControllerServices().forEach(authorizeRestricted);
+        }, () -> serviceFacade.verifyComponentTypes(requestTemplateConfigurationEntity.getSnippet()), templateConfigurationEntity -> {
+            // get available position
+            final PositionDTO positionDTO =PositionCalcUtil.convert(PositionCalcUtil.newAvailablePosition(flowController));
+
+            // create the template and generate the json
+            final FlowEntity entity = serviceFacade.createTemplateInstance(rootGroupId, positionDTO.getX(), positionDTO.getY(), templateConfigurationEntity.getEncodingVersion(),
+                    templateConfigurationEntity.getSnippet(), getIdGenerationSeed().orElse(null));
+
+            final FlowDTO flowSnippet = entity.getFlow();
+
+            // because must be one group
+            final ProcessGroupEntity processGroup = flowSnippet.getProcessGroups().iterator().next();
+            final String applicationId = processGroup.getId();
+
+            // update name and desc
+            ProcessGroupDTO applicationDto = new ProcessGroupDTO();
+            applicationDto.setId(applicationId);
+            applicationDto.setName(templateConfigurationEntity.getApplicationName());
+            applicationDto.setComments(templateConfigurationEntity.getApplicationDesc());
+
+            RevisionDTO revDto = new RevisionDTO();
+            revDto.setClientId(generateUuid());
+            revDto.setVersion(0L);
+            final Revision requestRevision = getRevision(revDto, applicationId);
+            final ProcessGroupEntity applicationEntity = serviceFacade.updateProcessGroup(requestRevision, applicationDto);
+            populateRemainingProcessGroupEntityContent(applicationEntity);
+
+            // set
+            final TemplateConfigSettingsEntity settings = requestTemplateConfigurationEntity.getSettings();
+            if (settings != null) {
+                // update process group variables
+                final Set<VariableEntity> variableEntitySet = settings.variablesToVariableEntities();
+                if (variableEntitySet != null) {
+                    VariableRegistryDTO variableRegistryDTO = new VariableRegistryDTO();
+                    variableRegistryDTO.setProcessGroupId(applicationId);
+                    variableRegistryDTO.setVariables(variableEntitySet);
+                    serviceFacade.updateVariableRegistry(requestRevision, variableRegistryDTO);
+                }
+
+                // update processors' properties (only for first level)
+                final Set<TemplateConfigComponentEntity> templateConfigurationComponentEntitySet = settings.getComponents();
+                if (templateConfigurationComponentEntitySet != null && applicationEntity.getComponent() != null && applicationEntity.getComponent().getContents() != null) {
+                    Set<String> componentIdSet = templateConfigurationComponentEntitySet.stream().filter(e -> StringUtils.isNoneBlank(e.getId())).map(TemplateConfigComponentEntity::getId)
+                            .collect(Collectors.toSet());
+                    Set<String> componentNameSet = templateConfigurationComponentEntitySet.stream().filter(e -> StringUtils.isNoneBlank(e.getName())).map(TemplateConfigComponentEntity::getName)
+                            .collect(Collectors.toSet());
+
+                    final Set<ProcessorDTO> processors = applicationEntity.getComponent().getContents().getProcessors();
+                    for (ProcessorDTO processor : processors) {
+                        final String processorId = processor.getId();
+                        final String processorName = processor.getName();
+
+                        Optional<TemplateConfigComponentEntity> configSettingOptional = Optional.empty();
+                        if (componentIdSet.contains(processorId)) { // if existed id ,use it first
+                            configSettingOptional = templateConfigurationComponentEntitySet.stream().filter(pe -> StringUtils.isNoneBlank(pe.getId()) && pe.getId().equals(processorId)).findFirst();
+
+                        } else if (componentNameSet.contains(processorName)) { // try name again
+                            configSettingOptional = templateConfigurationComponentEntitySet.stream().filter(pe -> StringUtils.isNoneBlank(pe.getName()) && pe.getName().equals(processorName))
+                                    .findFirst();
+                        }
+                        final ProcessorConfigDTO config = processor.getConfig();
+                        if (configSettingOptional.isPresent() && null != config) {
+                            final TemplateConfigComponentEntity templateConfigComponentEntity = configSettingOptional.get();
+                            ProcessorDTO processorDTO = new ProcessorDTO();
+                            if (null != templateConfigComponentEntity.getConfig()) {
+                                processorDTO.setConfig(templateConfigComponentEntity.getConfig());
+                            }
+                            processorDTO.setId(processorId);
+                            if (StringUtils.isNoneBlank(templateConfigComponentEntity.getName())) {
+                                processorDTO.setName(templateConfigComponentEntity.getName());
+                            }
+                            final ProcessorEntity updatedProcessorEntity = serviceFacade.updateProcessor(requestRevision, processorDTO);
+                            processorResource.populateRemainingProcessorEntityContent(updatedProcessorEntity);
+                        }
+                    }
+                }
+
+                // update controller services.
+                // The controller service to be updated must be a private controller service. In other words, the controller service can only locate in the application itself,
+                // any controller servece in ancestor groups won't be updated.
+                final Set<ControllerServiceEntity> controllerServiceEntitySet = serviceFacade.getControllerServices(applicationId, false, true)
+                        .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
+                final Set<TemplateConfigComponentEntity> serviceSettings = settings.getServices();
+                if (serviceSettings != null) {
+                    for (TemplateConfigComponentEntity service : serviceSettings) {
+                        for (ControllerServiceEntity controllerServiceEntity : controllerServiceEntitySet) {
+                            final ControllerServiceDTO controllerServiceDTO = controllerServiceEntity.getComponent();
+                            if (StringUtils.isNoneBlank(service.getId())) { // have set id
+                                if (!controllerServiceDTO.getId().equals(service.getId())) {
+                                    continue;
+                                } // else // update
+                            } else if (StringUtils.isNoneBlank(service.getName())) { // only name to set
+                                if (!controllerServiceDTO.getName().equals(service.getName())) {
+                                    continue;
+                                } // else // update
+                            } else { // id and name both don't set
+                                continue;
+                            }
+
+                            if (null != service.getConfig() && null != service.getConfig().getProperties() && service.getConfig().getProperties().size() > 0) {
+                                final String serviceId = controllerServiceDTO.getId();
+                                ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                                serviceDTO.setProperties(service.getConfig().getProperties());
+                                serviceDTO.setId(serviceId);
+                                final ControllerServiceEntity updatedServiceEntity = serviceFacade.updateControllerService(requestRevision, serviceDTO);
+                                controllerServiceResource.populateRemainingControllerServiceEntityContent(updatedServiceEntity);
+                            }
+                        }
+                    }
+                }
+            }
+
+             // enable the controller services in the application
+             if (requestTemplateConfigurationEntity.isEnableServices()) {
+                final Set<ControllerServiceEntity> servicesToEnable = serviceFacade.getControllerServices(applicationId, false, true)
+                        .stream().filter(ControllerServiceAdditionUtils.CONTROLLER_SERVICE_NOT_DELETED).collect(Collectors.toSet());
+                 for (ControllerServiceEntity serviceEntity : servicesToEnable) {
+                     final ControllerServiceDTO serviceDTO = new ControllerServiceDTO();
+                     serviceDTO.setId(serviceEntity.getId());
+                     serviceDTO.setState(ControllerServiceState.ENABLED.name());
+                     final Revision revision = getRevision(serviceEntity.getRevision(), serviceDTO.getId());
+                     final ControllerServiceEntity controllerServiceEntity = serviceFacade.updateControllerService(revision, serviceDTO);
+                     controllerServiceResource.populateRemainingControllerServiceEntityContent(controllerServiceEntity);
+                }
+             }
+
+            final ProcessGroup appGroup = flowController.getGroup(applicationDto.getId());
+            final TypeAdditions typeAdditions = appGroup.getAdditions();
+            typeAdditions.setValue(AdditionConstants.KEY_CREATED_USER, requestTemplateConfigurationEntity.getCreatedUser());
+            typeAdditions.setValue(AdditionConstants.KEY_CREATED_TIMESTAMP, Long.toString(requestTemplateConfigurationEntity.getCreatedTime()));
+
+            if (requestTemplateConfigurationEntity.getTags() != null && !requestTemplateConfigurationEntity.getTags().isEmpty()){
+                appGroup.setTags(requestTemplateConfigurationEntity.getTags());
+            }else if (template.getTags() != null && template.getTags().isEmpty()){
+                appGroup.setTags(template.getTags());
+            }
+
+            flowService.saveFlowChanges(TimeUnit.SECONDS, 0L, true);
+
+            TemplateApplicationEntity responseEntity = new TemplateApplicationEntity();
+            responseEntity.setId(applicationDto.getId());
+            responseEntity.setName(applicationDto.getName());
+            responseEntity.setDescription(applicationDto.getComments());
+
+            responseEntity.setTemplate(template);
+            template.setSnippet(null);
+
+            // generate the response
+            return generateCreatedResponse(getAbsolutePath(), responseEntity).build();
+        });
+    }
+
+    /**
+     * Authorizes the specified snippet request with the specified request action. This method is used when creating a snippet. Because we do not know what
+     * the snippet will be used for, we just ensure the user has permissions to each selected component. Some actions may require additional permissions
+     * (including referenced services) but those will be enforced when the snippet is used.
+     *
+     * @param authorizer authorizer
+     * @param lookup     lookup
+     * @param action     action
+     */
+    private void authorizeSnippetRequest(final SnippetDTO snippetRequest, final Authorizer authorizer, final AuthorizableLookup lookup, final RequestAction action) {
+        final Consumer<Authorizable> authorize = authorizable -> authorizable.authorize(authorizer, action, NiFiUserUtils.getNiFiUser());
+
+        // note - we are not authorizing templates or controller services as they are not considered when using this snippet
+        snippetRequest.getProcessGroups().keySet().stream().map(id -> lookup.getProcessGroup(id)).forEach(processGroupAuthorizable -> {
+            // we are not checking referenced services since we do not know how this snippet will be used. these checks should be performed
+            // in a subsequent action with this snippet
+            authorizeProcessGroup(processGroupAuthorizable, authorizer, lookup, action, false, false, false, false);
+        });
+        snippetRequest.getRemoteProcessGroups().keySet().stream().map(id -> lookup.getRemoteProcessGroup(id)).forEach(authorize);
+        snippetRequest.getProcessors().keySet().stream().map(id -> lookup.getProcessor(id).getAuthorizable()).forEach(authorize);
+        snippetRequest.getInputPorts().keySet().stream().map(id -> lookup.getInputPort(id)).forEach(authorize);
+        snippetRequest.getOutputPorts().keySet().stream().map(id -> lookup.getOutputPort(id)).forEach(authorize);
+        snippetRequest.getConnections().keySet().stream().map(id -> lookup.getConnection(id).getAuthorizable()).forEach(authorize);
+        snippetRequest.getFunnels().keySet().stream().map(id -> lookup.getFunnel(id)).forEach(authorize);
+        snippetRequest.getLabels().keySet().stream().map(id -> lookup.getLabel(id)).forEach(authorize);
     }
 
     private static class UpdateVariableRegistryRequestWrapper extends Entity {
@@ -3787,5 +4264,13 @@ public class ProcessGroupResource extends ApplicationResource {
 
     public void setDtoFactory(DtoFactory dtoFactory) {
         this.dtoFactory = dtoFactory;
+    }
+
+    public FlowService getFlowService() {
+        return flowService;
+    }
+
+    public void setFlowService(FlowService flowService) {
+        this.flowService = flowService;
     }
 }

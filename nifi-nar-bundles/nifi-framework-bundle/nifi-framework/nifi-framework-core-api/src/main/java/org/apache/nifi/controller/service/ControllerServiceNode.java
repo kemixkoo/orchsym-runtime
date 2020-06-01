@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.components.VersionedComponent;
 import org.apache.nifi.controller.ComponentNode;
 import org.apache.nifi.controller.ControllerService;
@@ -191,4 +192,9 @@ public interface ControllerServiceNode extends ComponentNode, VersionedComponent
                                       final LoggableComponent<ControllerService> proxiedControllerService,
                                       final ControllerServiceInvocationHandler invocationHandler);
 
+    /**
+     * Returns the TypeAdditions that is associated with this Controller Service
+     * @return  the TypeAdditions that is associated with this Controller Service, or <code>null</code> if no ControllerServiceAdditions has been set
+     */
+    TypeAdditions getAdditions();
 }

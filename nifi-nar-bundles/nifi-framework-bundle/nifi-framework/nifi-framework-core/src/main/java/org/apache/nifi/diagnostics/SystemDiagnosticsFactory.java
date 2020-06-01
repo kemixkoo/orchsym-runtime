@@ -78,6 +78,11 @@ public class SystemDiagnosticsFactory {
             systemDiagnostics.setProcessorLoadAverage(-1.0);
         }
 
+        if (os instanceof com.sun.management.OperatingSystemMXBean) {
+            systemDiagnostics.setSystemCpuLoad(((com.sun.management.OperatingSystemMXBean) os).getSystemCpuLoad());
+            systemDiagnostics.setJvmProcessCpuLoad(((com.sun.management.OperatingSystemMXBean) os).getProcessCpuLoad());
+        }
+
         // get the database disk usage
         final StorageUsage flowFileRepoStorageUsage = new StorageUsage();
         flowFileRepoStorageUsage.setIdentifier("FlowFile Repository");

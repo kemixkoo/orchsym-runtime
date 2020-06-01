@@ -25,7 +25,6 @@
     <artifactId>nifi-yandex-processors</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <jersey.version>2.26</jersey.version>        
     </properties>
     <dependencies>
         <dependency>

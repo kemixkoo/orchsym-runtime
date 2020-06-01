@@ -8,17 +8,19 @@ This runtime is the server part of **Orchsym Studio**.
 
 ## Topic
 
+- [Requirements](#requirements)
 - [Getting Started](#getting-started)
 - [Getting Help](#getting-help)
-- [Requirements](#requirements)
 - [License](#license)
+
+## Requirements
+* JDK 1.8 or higher
 
 ## Getting Started
 
 ### Start
-Before start *runtime*, need put the license file **lic** (without extension) in **conf** folder first.
 
-Then, to start *runtime*, locate to **bin** folder, and run:
+to start *runtime*, locate to **bin** folder, and run:
 - [linux/osx] execute `./orchsym.sh start`
 - [windows] execute `run-orchsym.bat start`
 
@@ -35,8 +37,6 @@ The commands of *runtime*:
 If you have questions, you can reach out to our mailing list: orchsym-support@baishancloud.com
 
 
-## Requirements
-* JDK 1.8 or higher
 
 ## License
 

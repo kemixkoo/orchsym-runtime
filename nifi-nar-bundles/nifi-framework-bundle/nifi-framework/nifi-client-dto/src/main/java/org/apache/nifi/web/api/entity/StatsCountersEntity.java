@@ -2,6 +2,8 @@ package org.apache.nifi.web.api.entity;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.nifi.web.api.dto.ClusterSummaryDTO;
+import org.apache.nifi.web.api.dto.SystemDiagnosticsDTO;
 import org.apache.nifi.web.api.dto.stats.StatsCounterDTO;
 
 /**
@@ -11,6 +13,8 @@ import org.apache.nifi.web.api.dto.stats.StatsCounterDTO;
 public class StatsCountersEntity extends StatsTimeEntity {
 
     private StatsCounterDTO counters;
+    private SystemDiagnosticsDTO system;
+    private ClusterSummaryDTO cluster;
 
     public StatsCounterDTO getCounters() {
         return counters;
@@ -18,6 +22,22 @@ public class StatsCountersEntity extends StatsTimeEntity {
 
     public void setCounters(StatsCounterDTO counters) {
         this.counters = counters;
+    }
+
+    public SystemDiagnosticsDTO getSystem() {
+        return system;
+    }
+
+    public void setSystem(SystemDiagnosticsDTO system) {
+        this.system = system;
+    }
+
+    public ClusterSummaryDTO getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(ClusterSummaryDTO cluster) {
+        this.cluster = cluster;
     }
 
 }

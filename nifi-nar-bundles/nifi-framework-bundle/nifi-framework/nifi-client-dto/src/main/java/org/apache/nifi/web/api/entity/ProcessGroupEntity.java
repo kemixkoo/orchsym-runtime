@@ -51,6 +51,8 @@ public class ProcessGroupEntity extends ComponentEntity implements Permissible<P
     private Integer inputPortCount;
     private Integer outputPortCount;
 
+    private Long createTimestamp;
+
     /**
      * The ProcessGroupDTO that is being serialized.
      *
@@ -255,5 +257,13 @@ public class ProcessGroupEntity extends ComponentEntity implements Permissible<P
 
     public void setSyncFailureCount(Integer syncFailureCount) {
         this.syncFailureCount = syncFailureCount;
+    }
+
+    public Long getCreateTimestamp() {
+        return createTimestamp;
+    }
+
+    public void setCreateTimestamp(Long createTimestamp) {
+        this.createTimestamp = createTimestamp;
     }
 }

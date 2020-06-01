@@ -153,6 +153,7 @@ import org.apache.nifi.reporting.ReportingTask;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.util.FlowDifferenceFilters;
 import org.apache.nifi.util.FormatUtils;
+import org.apache.nifi.util.ProcessUtil;
 import org.apache.nifi.web.FlowModification;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.action.ActionDTO;
@@ -215,11 +216,15 @@ import org.apache.nifi.web.api.entity.RemoteProcessGroupEntity;
 import org.apache.nifi.web.api.entity.RemoteProcessGroupStatusSnapshotEntity;
 import org.apache.nifi.web.api.entity.TenantEntity;
 import org.apache.nifi.web.api.entity.VariableEntity;
+import org.apache.nifi.web.api.orchsym.addition.AdditionConstants;
 import org.apache.nifi.web.controller.ControllerFacade;
 import org.apache.nifi.web.revision.RevisionManager;
+import org.apache.nifi.web.util.AppTypeAssessor;
+import org.apache.nifi.web.util.AppTypeAssessor.AppType;
 import org.apache.nifi.util.VersionHelper;
 
 import javax.ws.rs.WebApplicationException;
+import java.math.BigDecimal;
 import java.text.Collator;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -237,6 +242,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
@@ -945,6 +951,14 @@ public final class DtoFactory {
         copy.setUri(original.getUri());
         copy.setEncodingVersion(original.getEncodingVersion());
 
+        if (original.getTags() != null) {
+            copy.setTags(new HashSet<>(original.getTags()));
+        }
+
+        if (original.getAdditions() != null) {
+            copy.setAdditions(new HashMap<>(original.getAdditions()));
+        }
+
         return copy;
     }
 
@@ -1478,6 +1492,57 @@ public final class DtoFactory {
 
             dto.setValidationErrors(errors);
         }
+
+        Map<String,String> additions=new HashMap<>(controllerServiceNode.getAdditions().values());
+        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+        dto.setAdditions(additions);
+
+        return dto;
+    }
+
+    public ControllerServiceSearchDTO createControllerServiceSearchDto(final ControllerServiceNode controllerServiceNode) {
+        final BundleCoordinate bundleCoordinate = controllerServiceNode.getBundleCoordinate();
+        final List<Bundle> compatibleBundles = ExtensionManager.getBundles(controllerServiceNode.getCanonicalClassName()).stream().filter(bundle -> {
+            final BundleCoordinate coordinate = bundle.getBundleDetails().getCoordinate();
+            return bundleCoordinate.getGroup().equals(coordinate.getGroup()) && bundleCoordinate.getId().equals(coordinate.getId());
+        }).collect(Collectors.toList());
+
+        final String className = controllerServiceNode.getCanonicalClassName();
+        final String simpleClassName = className.contains(".") ? StringUtils.substringAfterLast(className, ".") : className;
+        final String type = simpleClassName + " " + bundleCoordinate.getVersion();
+
+        final ControllerServiceSearchDTO dto = new ControllerServiceSearchDTO();
+        dto.setId(controllerServiceNode.getIdentifier());
+        dto.setParentGroupId(controllerServiceNode.getProcessGroup() == null ? null : controllerServiceNode.getProcessGroup().getIdentifier());
+        dto.setName(controllerServiceNode.getName());
+        dto.setType(type);
+        dto.setState(controllerServiceNode.getState().name());
+        dto.setAnnotationData(controllerServiceNode.getAnnotationData());
+        dto.setComments(controllerServiceNode.getComments());
+        dto.setPersistsState(controllerServiceNode.getControllerServiceImplementation().getClass().isAnnotationPresent(Stateful.class));
+        dto.setRestricted(controllerServiceNode.isRestricted());
+        dto.setDeprecated(controllerServiceNode.isDeprecated());
+        dto.setExtensionMissing(controllerServiceNode.isExtensionMissing());
+        dto.setMultipleVersionsAvailable(compatibleBundles.size() > 1);
+        dto.setVersionedComponentId(controllerServiceNode.getVersionedComponentId().orElse(null));
+
+
+        dto.setValidationStatus(controllerServiceNode.getValidationStatus(1, TimeUnit.MILLISECONDS).name());
+
+        // add the validation errors
+        final Collection<ValidationResult> validationErrors = controllerServiceNode.getValidationErrors();
+        if (validationErrors != null && !validationErrors.isEmpty()) {
+            final List<String> errors = new ArrayList<>();
+            for (final ValidationResult validationResult : validationErrors) {
+                errors.add(validationResult.toString());
+            }
+
+            dto.setValidationErrors(errors);
+        }
+
+        Map<String,String> additions=new HashMap<>(controllerServiceNode.getAdditions().values());
+        ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+        dto.setAdditions(additions);
 
         return dto;
     }
@@ -2240,7 +2305,15 @@ public final class DtoFactory {
         dto.setVariables(variables);
 
         dto.setTags(group.getTags());
-        dto.setAdditions(group.getAdditions());
+        
+        Map<String, String> additions = new HashMap<>(group.getAdditions().values());
+        if (ProcessUtil.isAppGroup(group)) {
+            ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_DELETED, AdditionConstants.KEY_IS_DELETED_DEFAULT);
+            ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_IS_ENABLED, AdditionConstants.KEY_IS_ENABLED_DEFAULT);
+            final AppType appType = AppTypeAssessor.judgeType(group);
+            ProcessUtil.fixDefaultValue(additions, AdditionConstants.KEY_APP_TYPE, appType.getName());
+        }
+        dto.setAdditions(additions);
 
         final ProcessGroup parentGroup = group.getParent();
         if (parentGroup != null) {
@@ -2264,7 +2337,6 @@ public final class DtoFactory {
 
         return dto;
     }
-
 
     public Set<ComponentDifferenceDTO> createComponentDifferenceDtos(final FlowComparison comparison) {
         final Map<ComponentDifferenceDTO, List<DifferenceDTO>> differencesByComponent = new HashMap<>();
@@ -2666,17 +2738,15 @@ public final class DtoFactory {
     */
     @SuppressWarnings("unchecked")
     private void setMarks(Class cls, DocumentedTypeDTO dto) {
-        final Set<String> categories = new HashSet<>();
         Annotation annotation = cls.getAnnotation(Marks.class);
         Marks marks = (Marks)annotation;
         if (marks != null) {
-            for (final String category : marks.categories()) {
-                categories.add(category);
-            }
+            final Set<String> categories = new HashSet<>(Arrays.asList(marks.categories()));
             dto.setVendor(marks.vendor());
             dto.setCategories(categories);
             dto.setCreatedDate(marks.createdDate());
             dto.setNote(marks.note());
+            dto.setIconName(marks.iconName());
         }
     }
 
@@ -3095,6 +3165,8 @@ public final class DtoFactory {
         // processors
         snapshot.setAvailableProcessors(sysDiagnostics.getAvailableProcessors());
         snapshot.setProcessorLoadAverage(sysDiagnostics.getProcessorLoadAverage());
+        snapshot.setSystemCpuLoad(BigDecimal.valueOf(sysDiagnostics.getSystemCpuLoad()));
+        snapshot.setJvmProcessCpuLoad(BigDecimal.valueOf(sysDiagnostics.getJvmProcessCpuLoad()));
 
         // threads
         snapshot.setDaemonThreads(sysDiagnostics.getDaemonThreads());
@@ -3481,6 +3553,8 @@ public final class DtoFactory {
         systemDiagnosticsDto.setContentRepositoryStorageUsage(contentRepoUsage);
         systemDiagnosticsDto.setCpuCores(systemDiagnostics.getAvailableProcessors());
         systemDiagnosticsDto.setCpuLoadAverage(systemDiagnostics.getProcessorLoadAverage());
+        systemDiagnosticsDto.setSystemCpuLoad(systemDiagnostics.getSystemCpuLoad());
+        systemDiagnosticsDto.setJvmProcessCpuLoad(systemDiagnostics.getJvmProcessCpuLoad());
         systemDiagnosticsDto.setFlowFileRepositoryStorageUsage(flowFileRepoUsage);
         systemDiagnosticsDto.setMaxHeapBytes(systemDiagnostics.getMaxHeap());
         systemDiagnosticsDto.setMaxHeap(FormatUtils.formatDataSize(systemDiagnostics.getMaxHeap()));

@@ -27,10 +27,12 @@ import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.components.AllowableValue;
 import org.apache.nifi.components.PropertyDescriptor;
+import org.apache.nifi.components.Validator;
 import org.apache.nifi.dbcp.DBCPService;
 import org.apache.nifi.expression.AttributeExpression;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
+import org.apache.nifi.flowfile.attributes.BooleanAllowableValues;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.lookup.KeyValueLookupService;
 import org.apache.nifi.processor.AbstractSessionFactoryProcessor;
@@ -109,6 +111,7 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
     static final String STATEMENT_TYPE_ATTRIBUTE = "statement.type";
 
     static final String PUT_DATABASE_RECORD_ERROR = "putdatabaserecord.error";
+    static final String DATABASE_CONNECTION_IDENTIFIER = "database.connection.identifier";
 
     static final AllowableValue IGNORE_UNMATCHED_FIELD = new AllowableValue("Ignore Unmatched Fields", "Ignore Unmatched Fields",
             "Any field in the document that cannot be mapped to a column in the database is ignored");
@@ -270,22 +273,33 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
             .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
             .build();
 
-    static final PropertyDescriptor CONN_PASS = new PropertyDescriptor.Builder()
+    static final PropertyDescriptor TRANSACATION_IN_FLOW = new PropertyDescriptor.Builder()
             .name("transaction-in-flow")
             .displayName("Transaction in Flow")
             .description("Transaction in Flow")
-            .allowableValues("true", "false")
-            .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
-            .defaultValue("false")
-            .required(true)
+            .allowableValues(BooleanAllowableValues.list())
+            .addValidator(BooleanAllowableValues.validator())
+            .defaultValue(BooleanAllowableValues.FALSE.value())
+            .required(false)
             .build();
 
-    static final PropertyDescriptor KV_SERVICE = new PropertyDescriptor.Builder()
+    static final PropertyDescriptor TRANSACTION_SESSION_SERVICE = new PropertyDescriptor.Builder()
             .name("database-transaction-session")
             .displayName("Database Transaction Session")
             .description("The Controller Service that is used to obtain a database connection for transaction store.")
-            .required(true)
+            .required(false)
             .identifiesControllerService(KeyValueLookupService.class)
+            .build();
+    
+    static final PropertyDescriptor TRANSACTION_SESSION_ATTR = new PropertyDescriptor.Builder()
+            .name("database-transaction-session-attr")
+            .displayName("Database Transaction Session Attribute")
+            .description("The name of flow attribute for database transaction session."
+                    + " if empty, will use 'database.connection.identifier' by default, also even eval value is empty ")
+            .required(false)
+            .defaultValue(DATABASE_CONNECTION_IDENTIFIER)
+            .addValidator(Validator.VALID)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .build();
 
     protected static List<PropertyDescriptor> propDescriptors;
@@ -322,8 +336,9 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
         pds.add(QUOTED_IDENTIFIERS);
         pds.add(QUOTED_TABLE_IDENTIFIER);
         pds.add(QUERY_TIMEOUT);
-        pds.add(CONN_PASS);
-        pds.add(KV_SERVICE);
+        pds.add(TRANSACATION_IN_FLOW);
+        pds.add(TRANSACTION_SESSION_SERVICE);
+        pds.add(TRANSACTION_SESSION_ATTR);
         pds.add(RollbackOnFailure.ROLLBACK_ON_FAILURE);
 
         propDescriptors = Collections.unmodifiableList(pds);
@@ -380,14 +395,19 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
     };
 
     private final Put.PutFlowFile<FunctionContext, Connection> putFlowFile = (context, session, functionContext, conn, flowFile, result) -> {
-
-        final KeyValueLookupService lookupService = context.getProperty(KV_SERVICE).asControllerService(KeyValueLookupService.class);
-        String databaseConnectionIdentifier = UUID.randomUUID().toString();
-        if (lookupService != null) {
-            lookupService.register(databaseConnectionIdentifier, conn);
+        
+        if (context.getProperty(TRANSACATION_IN_FLOW).asBoolean()) {// 仅当
+            final KeyValueLookupService lookupService = context.getProperty(TRANSACTION_SESSION_SERVICE).asControllerService(KeyValueLookupService.class);
+            String databaseConnectionIdentifier = UUID.randomUUID().toString();
+            if (lookupService != null) {
+                lookupService.register(databaseConnectionIdentifier, conn);
+                String transacationSessionAttr = context.getProperty(TRANSACTION_SESSION_ATTR).evaluateAttributeExpressions(flowFile).getValue();
+                if (StringUtils.isBlank(transacationSessionAttr)) {
+                    transacationSessionAttr = DATABASE_CONNECTION_IDENTIFIER;
+                }
+                session.putAttribute(flowFile, transacationSessionAttr, databaseConnectionIdentifier);
+            }
         }
-        session.putAttribute(flowFile, "database.connection.identifier", databaseConnectionIdentifier);
-
         exceptionHandler.execute(functionContext, flowFile, inputFlowFile -> {
 
             // Get the statement type from the attribute if necessary
@@ -444,6 +464,13 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
     public void onScheduled(final ProcessContext context) {
         synchronized (this) {
             schemaCache.clear();
+        }
+
+        if (context.getProperty(TRANSACATION_IN_FLOW).asBoolean()) {// 仅当
+            final KeyValueLookupService lookupService = context.getProperty(TRANSACTION_SESSION_SERVICE).asControllerService(KeyValueLookupService.class);
+            if (null == lookupService) {
+                throw new IllegalArgumentException("Must provide the Transaction Session Service");
+            }
         }
 
         process = new CustomPut();
@@ -1184,7 +1211,7 @@ public class PutDatabaseRecord extends AbstractSessionFactoryProcessor {
         public void onTrigger(ProcessContext context, ProcessSession session, FunctionContext functionContext) throws ProcessException {
             validateCompositePattern();
 
-            final Boolean connPass = context.getProperty(CONN_PASS).asBoolean();
+            final Boolean connPass = context.getProperty(TRANSACATION_IN_FLOW).asBoolean();
 
             final RoutingResult result = new RoutingResult();
             final List<FlowFile> flowFiles = fetchFlowFiles.apply(context, session, functionContext, result);

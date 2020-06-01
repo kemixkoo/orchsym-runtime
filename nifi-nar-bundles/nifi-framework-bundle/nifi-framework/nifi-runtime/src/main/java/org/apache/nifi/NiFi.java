@@ -125,9 +125,7 @@ public class NiFi {
         final Bundle systemBundle = SystemBundle.create(properties);
 
         // expand the nars
-        final ExtensionMapping extensionMapping = NarUnpacker.unpackNars(properties, systemBundle);
-
-        afterUnpackNars(properties);
+        final ExtensionMapping extensionMapping = unpackNars(properties, systemBundle);
 
         // load the extensions classloaders
         NarClassLoaders narClassLoaders = NarClassLoaders.getInstance();
@@ -168,8 +166,11 @@ public class NiFi {
         }
     }
 
-    protected void afterUnpackNars(final NiFiProperties properties) {
-        // nothing to do
+    protected ExtensionMapping unpackNars(final NiFiProperties properties, final Bundle systemBundle) {
+        // expand the nars
+        final ExtensionMapping extensionMapping = NarUnpacker.unpackNars(properties, systemBundle);
+
+        return extensionMapping;
     }
 
     protected String getJettyServer() {

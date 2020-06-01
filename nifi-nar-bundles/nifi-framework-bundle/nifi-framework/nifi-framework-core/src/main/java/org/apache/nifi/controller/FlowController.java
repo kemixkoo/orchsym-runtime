@@ -503,7 +503,8 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
         counterRepositoryRef = new AtomicReference<>(new StandardCounterRepository());
 
         bulletinRepository = bulletinRepo;
-        this.variableRegistry = variableRegistry == null ? VariableRegistry.EMPTY_REGISTRY : variableRegistry;
+        VariableRegistry originalVariableRegistry = variableRegistry == null ? VariableRegistry.EMPTY_REGISTRY : variableRegistry;
+        this.variableRegistry = new org.apache.nifi.registry.variable.PropertiesVariableRegistry(originalVariableRegistry, this.nifiProperties);
 
         try {
             this.provenanceRepository = createProvenanceRepository(nifiProperties);
@@ -1849,6 +1850,10 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
         if (comments != null) {
             group.setComments(comments);
         }
+
+        if (null != dto.getTags()) {
+            group.setTags(dto.getTags());
+        }
     }
 
     private Position toPosition(final PositionDTO dto) {
@@ -2124,9 +2129,7 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
                     childGroup.setTags(groupDTO.getTags());
                 }
 
-                if (groupDTO.getAdditions() != null) {
-                    childGroup.setAdditions(groupDTO.getAdditions());
-                }
+                childGroup.getAdditions().set(groupDTO.getAdditions());
 
                 // If this Process Group is 'top level' then we do not set versioned component ID's.
                 // We do this only if this component is the child of a Versioned Component.

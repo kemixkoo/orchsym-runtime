@@ -18,6 +18,7 @@ package org.apache.nifi.controller.reporting;
 
 import org.apache.nifi.attribute.expression.language.PreparedQuery;
 import org.apache.nifi.attribute.expression.language.Query;
+import org.apache.nifi.attribute.expression.language.SensitivePropertyValue;
 import org.apache.nifi.attribute.expression.language.StandardPropertyValue;
 import org.apache.nifi.cluster.protocol.NodeIdentifier;
 import org.apache.nifi.components.PropertyDescriptor;
@@ -124,8 +125,12 @@ public class StandardReportingContext implements ReportingContext, ControllerSer
             return null;
         }
 
-        final String configuredValue = properties.get(property);
-        return new StandardPropertyValue(configuredValue == null ? descriptor.getDefaultValue() : configuredValue, this, preparedQueries.get(property), variableRegistry);
+        String configuredValue = properties.get(property);
+        configuredValue = (configuredValue == null ? descriptor.getDefaultValue() : configuredValue);
+        if (descriptor.isSensitive()) {
+            return new SensitivePropertyValue(configuredValue, this, preparedQueries.get(property), variableRegistry);
+        }
+        return new StandardPropertyValue(configuredValue, this, preparedQueries.get(property), variableRegistry);
     }
 
     @Override

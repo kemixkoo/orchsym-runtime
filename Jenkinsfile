@@ -121,11 +121,21 @@ pipeline {
       }
     }
 
-    stage('Build/Push docker image') {
+    // Enable it later
+    // stage('Build/Push docker image') {
+    //   when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
+
+    //   steps {
+    //     buildAndPushDockerImage("--build-arg VERSION_NAME=${env.VERSION_NAME} --pull -f Dockerfile .")
+    //   }
+    // }
+
+	// upload S3 faster than Samba, so upload first
+    stage('Upload to s3') {
       when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
 
       steps {
-        buildAndPushDockerImage("--build-arg VERSION_NAME=${env.VERSION_NAME} --pull -f Dockerfile .")
+        uploadServiceFile("orchsym/orchsym-assembly/target/${env.PROJECT_NAME}-${env.VERSION_NAME}.tar.gz")
       }
     }
 
@@ -134,14 +144,6 @@ pipeline {
 
       steps {
         uploadServiceFileToSamba("orchsym/orchsym-assembly/target/${env.PROJECT_NAME}-${env.VERSION_NAME}.tar.gz")
-      }
-    }
-
-    stage('Upload to s3') {
-      when { not { expression { BRANCH_NAME ==~ '^PR.*' } } }
-
-      steps {
-        uploadServiceFile("orchsym/orchsym-assembly/target/${env.PROJECT_NAME}-${env.VERSION_NAME}.tar.gz")
       }
     }
 

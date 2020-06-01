@@ -57,6 +57,8 @@ public class ControllerServiceDTO extends ComponentDTO {
     private Collection<String> validationErrors;
     private String validationStatus;
 
+    private Map<String, String> additions;
+
     /**
      * @return controller service name
      */
@@ -338,5 +340,14 @@ public class ControllerServiceDTO extends ComponentDTO {
         }
 
         return getId().equals(other.getId());
+    }
+
+    @ApiModelProperty(value = "The additions settings of this Controller Service.")
+    public Map<String, String> getAdditions() {
+        return additions;
+    }
+
+    public void setAdditions(Map<String, String> additions) {
+        this.additions = additions;
     }
 }

@@ -22,11 +22,16 @@ public class ApiInfo implements Cloneable {
         init, running, stopped;
     }
 
+    public String id; // id of request component
     public String name;
 
-    public String id;
-
     public String groupID = "";
+    public String groupName = "";
+
+    public String applicationID = "";
+    public String applicationName = "";
+
+    public String route = "";
 
     public String path;
 

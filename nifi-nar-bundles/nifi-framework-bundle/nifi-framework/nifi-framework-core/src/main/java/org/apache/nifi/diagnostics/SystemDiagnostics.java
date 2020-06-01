@@ -35,6 +35,8 @@ public class SystemDiagnostics implements Cloneable {
 
     private int availableProcessors;
     private Double processorLoadAverage;
+    private Double systemCpuLoad;
+    private Double jvmProcessCpuLoad;
 
     private int totalThreads;
     private int daemonThreads;
@@ -82,6 +84,14 @@ public class SystemDiagnostics implements Cloneable {
 
     public void setProcessorLoadAverage(final Double processorLoadAverage) {
         this.processorLoadAverage = processorLoadAverage;
+    }
+
+    public void setSystemCpuLoad(Double systemCpuLoad) {
+        this.systemCpuLoad = systemCpuLoad;
+    }
+
+    public void setJvmProcessCpuLoad(Double jvmProcessCpuLoad) {
+        this.jvmProcessCpuLoad = jvmProcessCpuLoad;
     }
 
     public void setTotalThreads(final int totalThreads) {
@@ -134,6 +144,14 @@ public class SystemDiagnostics implements Cloneable {
 
     public Double getProcessorLoadAverage() {
         return processorLoadAverage;
+    }
+
+    public Double getSystemCpuLoad() {
+        return systemCpuLoad;
+    }
+
+    public Double getJvmProcessCpuLoad() {
+        return jvmProcessCpuLoad;
     }
 
     public int getTotalThreads() {
@@ -260,6 +278,8 @@ public class SystemDiagnostics implements Cloneable {
         clonedObj.maxHeap = maxHeap;
         clonedObj.maxNonHeap = maxNonHeap;
         clonedObj.processorLoadAverage = processorLoadAverage;
+        clonedObj.systemCpuLoad = systemCpuLoad;
+        clonedObj.jvmProcessCpuLoad = jvmProcessCpuLoad;
         clonedObj.totalHeap = totalHeap;
         clonedObj.totalNonHeap = totalNonHeap;
         clonedObj.totalThreads = totalThreads;

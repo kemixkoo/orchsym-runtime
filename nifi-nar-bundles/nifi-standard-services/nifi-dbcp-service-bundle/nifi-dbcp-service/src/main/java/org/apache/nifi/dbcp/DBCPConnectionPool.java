@@ -16,7 +16,7 @@
  */
 package org.apache.nifi.dbcp;
 
-import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.nifi.annotation.behavior.DynamicProperty;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
@@ -34,8 +34,6 @@ import org.apache.nifi.util.file.classloader.ClassLoaderUtils;
 
 import java.net.MalformedURLException;
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -199,9 +197,8 @@ public class DBCPConnectionPool extends AbstractControllerService implements DBC
         dataSource.setDriverClassLoader(getDriverClassLoader(urlString, drv));
 
         final String dburl = context.getProperty(DATABASE_URL).evaluateAttributeExpressions().getValue();
-
-        dataSource.setMaxWait(maxWaitMillis);
-        dataSource.setMaxActive(maxTotal);
+        dataSource.setMaxWaitMillis(maxWaitMillis);
+        dataSource.setMaxTotal(maxTotal);
 
         if (validationQuery!=null && !validationQuery.isEmpty()) {
             dataSource.setValidationQuery(validationQuery);
@@ -234,14 +231,7 @@ public class DBCPConnectionPool extends AbstractControllerService implements DBC
                         (dir, name) -> name != null && name.endsWith(".jar")
                 );
 
-                // Workaround which allows to use URLClassLoader for JDBC driver loading.
-                // (Because the DriverManager will refuse to use a driver not loaded by the system ClassLoader.)
-                final Class<?> clazz = Class.forName(drvName, true, classLoader);
-                if (clazz == null) {
-                    throw new InitializationException("Can't load Database Driver " + drvName);
-                }
-                final Driver driver = (Driver) clazz.newInstance();
-                DriverManager.registerDriver(new DriverShim(driver));
+                Class.forName(drvName, true, classLoader);
 
                 return classLoader;
             } catch (final MalformedURLException e) {

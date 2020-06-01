@@ -20,6 +20,7 @@ import org.apache.nifi.authorization.AuthorizeAccess;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.controller.ScheduledState;
+import org.apache.nifi.controller.Snippet;
 import org.apache.nifi.controller.repository.claim.ContentDirection;
 import org.apache.nifi.controller.service.ControllerServiceState;
 import org.apache.nifi.groups.ProcessGroup;
@@ -38,6 +39,7 @@ import org.apache.nifi.web.api.dto.ConnectionDTO;
 import org.apache.nifi.web.api.dto.ControllerConfigurationDTO;
 import org.apache.nifi.web.api.dto.ControllerDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.ControllerServiceSearchDTO;
 import org.apache.nifi.web.api.dto.CounterDTO;
 import org.apache.nifi.web.api.dto.CountersDTO;
 import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
@@ -49,6 +51,7 @@ import org.apache.nifi.web.api.dto.LabelDTO;
 import org.apache.nifi.web.api.dto.ListingRequestDTO;
 import org.apache.nifi.web.api.dto.NodeDTO;
 import org.apache.nifi.web.api.dto.PortDTO;
+import org.apache.nifi.web.api.dto.PositionDTO;
 import org.apache.nifi.web.api.dto.ProcessGroupDTO;
 import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.PropertyDescriptorDTO;
@@ -176,6 +179,22 @@ public interface NiFiServiceFacade {
      */
     Set<Revision> getRevisionsFromSnippet(String snippetId);
 
+    /**
+     * Gets the revisions from the specified snippet.
+     *
+     * @param snippet snippet
+     * @return component revisions from the snippet
+     */
+    Set<Revision> getRevisionsFromSnippet(Snippet snippet);
+
+    /**
+     * Gets the revisions from the specified snippet.
+     *
+     * @param snippetDTO snippetDTO
+     * @return component revisions from the snippet
+     */
+    Set<Revision> getRevisionsFromSnippet(SnippetDTO snippetDTO);
+
 
 
     // ----------------------------------------
@@ -190,6 +209,22 @@ public interface NiFiServiceFacade {
      * @return results
      */
     SearchResultsDTO searchController(String query);
+
+    /**
+     *
+     * @param query
+     * @param groupId
+     * @return
+     */
+    SearchResultsDTO searchController(String query, String groupId);
+
+    /**
+     * @apiNote 检索一级Group，即APP类型的group
+     * @param query
+     * @param groupId
+     * @return
+     */
+    SearchResultsDTO searchAppsOfController(String query, String groupId);
 
     /**
      * Submits a provenance request.
@@ -333,7 +368,7 @@ public interface NiFiServiceFacade {
      *
      * @return status
      */
-    ControllerStatusDTO getControllerStatus();
+    ControllerStatusDTO getControllerStatus(String groupId);
 
     /**
      * Updates the specified counter by setting its value to 0.
@@ -441,6 +476,18 @@ public interface NiFiServiceFacade {
      * @return template
      */
     TemplateDTO createTemplate(String name, String description, String snippetId, String groupId, Optional<String> idGenerationSeed);
+
+    /**
+     * Creates a new Template based off the specified snippet.
+     * @param contentsMap 增强模板的附加信息
+     * @param name
+     * @param description
+     * @param snippetId
+     * @param groupId
+     * @param idGenerationSeed
+     * @return
+     */
+    TemplateDTO createTemplate(Map<String, String> contentsMap,Set<String> tags, String name, String description, String snippetId, String groupId, Optional<String> idGenerationSeed);
 
     /**
      * Imports the specified Template.
@@ -1070,8 +1117,18 @@ public interface NiFiServiceFacade {
      * Verifies the specified process group can be removed.
      *
      * @param groupId The id of the process group
+     * @param ignoreControllerService whether ignore Controller Service
      */
-    void verifyDeleteProcessGroup(String groupId);
+    void verifyDeleteProcessGroup(String groupId, boolean ignoreControllerService);
+
+    /**
+     *
+     * @param groupId
+     * @param ignorePortConnections
+     * @param ignoreControllerServices
+     * @param ignoreTemplates
+     */
+    void verifyDeleteProcessGroup(String groupId, boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates);
 
     /**
      * Deletes the specified process group.
@@ -1718,6 +1775,17 @@ public interface NiFiServiceFacade {
     Set<ControllerServiceEntity> getControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups);
 
     /**
+     * Gets all controller services that belong to the given group and its parent/ancestor groups.
+     * The results will be sorted by controller service id.
+     *
+     * @param groupId the id of the process group of interest
+     * @param includeAncestorGroups if true, parent and ancestor groups' services will be returned as well
+     * @param includeDescendantGroups if true, child and descendant groups' services will be returned as well
+     * @param isDeleted if true, only Controller Services that are logically deleted will be returned
+     * @return services
+     */
+    List<ControllerServiceSearchDTO> searchControllerServices(String groupId, boolean includeAncestorGroups, boolean includeDescendantGroups, boolean isDeleted);
+    /**
      * Gets the specified controller service.
      *
      * @param controllerServiceId id
@@ -1764,6 +1832,16 @@ public interface NiFiServiceFacade {
     ControllerServiceEntity updateControllerService(Revision revision, ControllerServiceDTO controllerServiceDTO);
 
     /**
+     * Move the specified controller service.
+     *
+     * @param revision Revision to compare with current base revision
+     * @param controllerServiceDTO The controller service DTO
+     * @param targetGroupId Target Process Group id
+     * @return The controller service DTO
+     */
+    ControllerServiceEntity moveControllerService(Revision revision, ControllerServiceDTO controllerServiceDTO, String targetGroupId);
+
+    /**
      * Deletes the specified label.
      *
      * @param revision Revision to compare with current base revision
@@ -1778,6 +1856,14 @@ public interface NiFiServiceFacade {
      * @param controllerServiceDTO service
      */
     void verifyUpdateControllerService(ControllerServiceDTO controllerServiceDTO);
+
+    /**
+     * Verifies the specified controller service can be moved.
+     *
+     * @param controllerServiceDTO service
+     * @param targetGroupId target Process Group id
+     */
+    void verifyMoveControllerService(ControllerServiceDTO controllerServiceDTO, String targetGroupId);
 
     /**
      * Verifies the referencing components of the specified controller service can be updated.
@@ -2036,6 +2122,26 @@ public interface NiFiServiceFacade {
     SnippetEntity updateSnippet(Set<Revision> revisions, SnippetDTO snippetDto);
 
     /**
+     * If group id is specified, moves the specified snippet to the specified group.
+     *
+     * @param revisions revisions
+     * @param snippetDTO snippetDTO
+     * @param positionOffset position offset
+     * @param idGenerationSeed the seed to use for generating UUID's. May be null.
+     * @return snapshot
+     */
+    SnippetEntity cutSnippet(Set<Revision> revisions, SnippetDTO snippetDTO, PositionDTO positionOffset, String idGenerationSeed);
+
+    /**
+     * Copy an application to targetProcessGroup
+     * @param targetGroupId target Process Group id
+     * @param snippetDTO snippetDTO
+     * @param processGroupDTO    processGroupDTO
+     * @return  the application
+     */
+    ProcessGroupEntity copyProcessGroup(String targetGroupId, SnippetDTO snippetDTO, ProcessGroupDTO processGroupDTO, String idGenerationSeed);
+
+    /**
      * Determines if this snippet can be removed.
      *
      * @param id id
@@ -2051,6 +2157,15 @@ public interface NiFiServiceFacade {
      * @return snapshot
      */
     SnippetEntity deleteSnippet(Set<Revision> revisions, String snippetId);
+
+    /**
+     * Removes the specified snippet.
+     *
+     * @param revisions revisions
+     * @param snippet snippet
+     * @return snapshot
+     */
+    SnippetEntity deleteSnippet(Set<Revision> revisions, Snippet snippet);
 
     // ----------------------------------------
     // Cluster methods
@@ -2117,4 +2232,5 @@ public interface NiFiServiceFacade {
      * @return the resources
      */
     List<ResourceDTO> getResources();
+
 }

@@ -50,6 +50,7 @@ import org.apache.nifi.web.api.entity.PropertyDescriptorEntity;
 import org.apache.nifi.web.api.entity.UpdateControllerServiceReferenceRequestEntity;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
+import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -650,6 +651,8 @@ public class ControllerServiceResource extends ApplicationResource {
             throw new IllegalArgumentException(String.format("The controller service id (%s) in the request body does not equal the "
                     + "controller service id of the requested resource (%s).", requestControllerServiceDTO.getId(), id));
         }
+
+        ControllerServiceAdditionUtils.onUpdate(requestControllerServiceEntity.getComponent());
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestControllerServiceEntity);

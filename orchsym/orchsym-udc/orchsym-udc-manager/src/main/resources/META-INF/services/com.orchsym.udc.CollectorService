@@ -18,6 +18,4 @@
 
 com.orchsym.udc.data.AboutCollector
 com.orchsym.udc.data.APIsCollector
-com.orchsym.udc.data.ApplicationsCollector
 com.orchsym.udc.data.StatsCollector
-com.orchsym.udc.data.SystemDiagnosticsCollector

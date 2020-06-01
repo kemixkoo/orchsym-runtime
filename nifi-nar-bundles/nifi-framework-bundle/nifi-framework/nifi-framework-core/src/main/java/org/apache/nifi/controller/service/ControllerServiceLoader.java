@@ -208,6 +208,7 @@ public class ControllerServiceLoader {
         node.setName(dto.getName());
         node.setComments(dto.getComments());
         node.setVersionedComponentId(dto.getVersionedComponentId());
+        node.getAdditions().set(dto.getAdditions());
         return node;
     }
 
@@ -217,6 +218,7 @@ public class ControllerServiceLoader {
         try {
             node.setAnnotationData(dto.getAnnotationData());
             node.setProperties(dto.getProperties());
+            node.getAdditions().set(dto.getAdditions());
         } finally {
             node.resumeValidationTrigger();
         }

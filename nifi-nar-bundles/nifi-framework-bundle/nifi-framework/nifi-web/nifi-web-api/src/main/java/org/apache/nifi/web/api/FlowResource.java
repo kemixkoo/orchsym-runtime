@@ -116,6 +116,7 @@ import org.apache.nifi.util.VersionHelper;
 
 import com.orchsym.branding.BrandingExtension;
 import com.orchsym.branding.BrandingService;
+import org.apache.nifi.web.util.ControllerServiceAdditionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -783,7 +784,7 @@ public class FlowResource extends ApplicationResource {
             return replicate(HttpMethod.GET);
         }
 
-        final ControllerStatusDTO controllerStatus = serviceFacade.getControllerStatus();
+        final ControllerStatusDTO controllerStatus = serviceFacade.getControllerStatus(flowController.getRootGroupId());
 
         // create the response entity
         final ControllerStatusEntity entity = new ControllerStatusEntity();
@@ -812,6 +813,15 @@ public class FlowResource extends ApplicationResource {
 
         authorizeFlow();
 
+        // create the response entity
+        final ClusteSummaryEntity entity = new ClusteSummaryEntity();
+        entity.setClusterSummary(getClusters());
+
+        // generate the response
+        return generateOkResponse(entity).build();
+    }
+
+    public ClusterSummaryDTO getClusters() {
         final ClusterSummaryDTO clusterConfiguration = new ClusterSummaryDTO();
         final ClusterCoordinator clusterCoordinator = getClusterCoordinator();
 
@@ -831,13 +841,7 @@ public class FlowResource extends ApplicationResource {
 
         clusterConfiguration.setClustered(isClustered());
         clusterConfiguration.setConnectedToCluster(isConnectedToCluster());
-
-        // create the response entity
-        final ClusteSummaryEntity entity = new ClusteSummaryEntity();
-        entity.setClusterSummary(clusterConfiguration);
-
-        // generate the response
-        return generateOkResponse(entity).build();
+        return clusterConfiguration;
     }
 
     /**

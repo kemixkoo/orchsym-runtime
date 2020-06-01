@@ -23,6 +23,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Defines a template.
@@ -41,6 +43,9 @@ public class TemplateDTO {
     private String encodingVersion;
 
     private FlowSnippetDTO snippet;
+
+    private Set<String> tags;
+    private Map<String,String> additions;
 
     /**
      * @return id for this template
@@ -150,5 +155,21 @@ public class TemplateDTO {
 
     public void setSnippet(FlowSnippetDTO snippet) {
         this.snippet = snippet;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+    }
+
+    public Map<String, String> getAdditions() {
+        return additions;
+    }
+
+    public void setAdditions(Map<String, String> additions) {
+        this.additions = additions;
     }
 }

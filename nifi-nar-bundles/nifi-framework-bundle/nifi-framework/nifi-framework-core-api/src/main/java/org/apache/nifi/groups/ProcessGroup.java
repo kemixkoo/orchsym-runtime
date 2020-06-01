@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.authorization.resource.ComponentAuthorizable;
 import org.apache.nifi.components.VersionedComponent;
 import org.apache.nifi.components.validation.ValidationStatus;
@@ -45,6 +46,7 @@ import org.apache.nifi.registry.flow.FlowRegistryClient;
 import org.apache.nifi.registry.flow.VersionControlInformation;
 import org.apache.nifi.registry.flow.VersionedFlowSnapshot;
 import org.apache.nifi.remote.RemoteGroupPort;
+import org.apache.nifi.web.api.dto.PositionDTO;
 
 /**
  * <p>
@@ -55,7 +57,7 @@ import org.apache.nifi.remote.RemoteGroupPort;
  * <p>
  * MUST BE THREAD-SAFE</p>
  */
-public interface ProcessGroup extends ComponentAuthorizable, Positionable, VersionedComponent, ProcessAdditions, ProcessTags {
+public interface ProcessGroup extends ComponentAuthorizable, Positionable, VersionedComponent, ProcessTags {
 
     /**
      * Predicate for starting eligible Processors.
@@ -805,6 +807,45 @@ public interface ProcessGroup extends ComponentAuthorizable, Positionable, Versi
     void move(final Snippet snippet, final ProcessGroup destination);
 
     /**
+     * Moves all of the components whose ID's are specified within the given
+     * {@link Snippet} from this ProcessGroup into the given destination
+     * ProcessGroup
+     *
+     * @param snippet to move
+     * @param destination where to move
+     * @param positionOffset position offset
+     * @throws NullPointerException if either argument is null
+     * @throws IllegalStateException if any ID in the snippet refers to a
+     * component that is not within this ProcessGroup
+     */
+    default void move(final Snippet snippet, final ProcessGroup destination, final PositionDTO positionOffset){}
+
+    /**
+     * Moves all of the components whose ID's are specified within the given
+     * {@link Snippet} with the position offset
+     *
+     * @param snippet to move
+     * @param positionOffset position offset
+     * @throws NullPointerException if either argument is null
+     * @throws IllegalStateException if any ID in the snippet refers to a
+     * component that is not within this ProcessGroup
+     */
+    default void move(final Snippet snippet, final PositionDTO positionOffset){}
+
+    /**
+     * Moves all of Sontroller Services in the components whose ID's are specified within the given
+     * {@link Snippet} from this ProcessGroup into the given destination
+     * ProcessGroup
+     *
+     * @param snippet to move
+     * @param destination where to move
+     * @throws NullPointerException if either argument is null
+     * @throws IllegalStateException if any ID in the snippet refers to a
+     * component that is not within this ProcessGroup
+     */
+    default void moveControllerServices(final Snippet snippet, final ProcessGroup destination){}
+
+    /**
      * Updates the Process Group to match the proposed flow
      *
      * @param proposedSnapshot the proposed flow
@@ -833,10 +874,31 @@ public interface ProcessGroup extends ComponentAuthorizable, Positionable, Versi
      * @param ignorePortConnections if true, the Connections that are currently connected to Ports
      * will be ignored. Otherwise, the ProcessGroup is not eligible for deletion if its input ports
      * or output ports have any connections
-     *
      * @throws IllegalStateException if the ProcessGroup is not eligible for deletion
      */
     void verifyCanDelete(boolean ignorePortConnections);
+
+    /**
+     * Ensures that the ProcessGroup is eligible to be deleted.
+     *
+     * @param ignorePortConnections if true, the Connections that are currently connected to Ports
+     * will be ignored. Otherwise, the ProcessGroup is not eligible for deletion if its input ports
+     * or output ports have any connections
+     * @param ignoreControllerServices if true, the Controller Services in this group will be ignored.
+     *                                 Otherwise, the ProcessGroup is not eligible for deletion if it
+     *                                 contains any enabled Controller Service.
+     *
+     * @throws IllegalStateException if the ProcessGroup is not eligible for deletion
+     */
+    void verifyCanDelete(boolean ignorePortConnections, boolean ignoreControllerServices);
+
+    /**
+     *
+     * @param ignorePortConnections
+     * @param ignoreControllerServices
+     * @param ignoreTemplates 是否忽略模板
+     */
+    void verifyCanDelete(boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates);
 
     void verifyCanStart(Connectable connectable);
 
@@ -1010,4 +1072,10 @@ public interface ProcessGroup extends ComponentAuthorizable, Positionable, Versi
      * Called whenever a component within this group or the group itself is modified
      */
     void onComponentModified();
+
+    /**
+     * 
+     * Get the additions settings for group
+     */
+    TypeAdditions getAdditions();
 }

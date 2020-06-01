@@ -16,6 +16,7 @@
  */
 package org.apache.nifi.web;
 
+import org.apache.nifi.web.api.AbsOrchsymResource;
 import org.apache.nifi.web.api.config.AccessDeniedExceptionMapper;
 import org.apache.nifi.web.api.config.AdministrationExceptionMapper;
 import org.apache.nifi.web.api.config.AuthenticationCredentialsNotFoundExceptionMapper;
@@ -53,7 +54,11 @@ import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
@@ -95,15 +100,27 @@ public class NiFiWebApiResourceConfig extends ResourceConfig {
         register(ctx.getBean("provenanceEventResource"));
         register(ctx.getBean("countersResource"));
         register(ctx.getBean("systemDiagnosticsResource"));
-        register(ctx.getBean("componentMarksResource"));
         register(ctx.getBean("accessResource"));
         register(ctx.getBean("accessPolicyResource"));
         register(ctx.getBean("tenantsResource"));
         register(ctx.getBean("versionsResource"));
-        register(ctx.getBean("validationResource"));
-        register(ctx.getBean("statsResource"));
-        register(ctx.getBean("apiServiceResource"));
-        register(ctx.getBean("usageDataResource"));
+
+        // rest api
+        final Map<String, Object> beansMap = ctx.getBeansWithAnnotation(Component.class);
+        for (Entry<String, Object> entry : beansMap.entrySet()) {
+            final Object bean = entry.getValue();
+            if (AbsOrchsymResource.class.isInstance(bean)) { // make sure for resource
+                register(bean);
+            }
+        }
+        // register(ctx.getBean("apiServiceResource"));
+        // register(ctx.getBean("authorizationResource"));
+        // register(ctx.getBean("componentMarksResource"));
+        // register(ctx.getBean("queueResource"));
+        // register(ctx.getBean("serviceResource"));
+        // register(ctx.getBean("statsResource"));
+        // register(ctx.getBean("usageDataResource"));
+        // register(ctx.getBean("validationResource"));
 
         // exception mappers
         register(AccessDeniedExceptionMapper.class);

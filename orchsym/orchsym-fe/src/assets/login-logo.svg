@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="141px" height="51px" viewBox="0 0 141 51" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 55.2 (78181) - https://sketchapp.com -->
+    <title>未命名</title>
+    <desc>Created with Sketch.</desc>
+    <g id="页面1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="logo">
+            <g id="orchsym-logo-title-en" transform="translate(46.000000, 32.810416)" fill="#000000" fill-opacity="0.85" font-family="PingFangSC-Regular, PingFang SC" font-size="12.6" font-weight="normal">
+                <text id="Orchsym-Studio">
+                    <tspan x="0.533466" y="13.445">Orchsym Studio</tspan>
+                </text>
+            </g>
+            <g id="orchsym-logo-icon" transform="translate(0.093513, 1.012468)" fill="#1AD0A6" fill-rule="nonzero">
+                <path d="M20.575296,26.12736 L29.576988,21.350952 L29.576988,29.434104 L20.575296,34.210512 L20.575296,26.12736 Z M11.573604,29.1128517 L20.5629265,34.3028395 L20.5629265,38.7575217 L7.715736,31.3401929 L7.715736,16.5055351 L20.5629265,9.08820626 L20.5629265,13.5428885 L11.573604,18.7328763 L11.573604,29.1128517 Z M3.857868,33.567534 L20.5629265,43.212204 L20.5629265,47.6668863 L-4.26325641e-14,35.7948751 L-4.26325641e-14,12.0508529 L20.5629265,0.178841743 L20.5629265,4.633524 L3.857868,14.278194 L3.857868,33.567534 Z" id="Combined-Shape"></path>
+                <polygon id="Combined-Shape" points="33.434856 16.491252 20.5629265 9.05964003 20.5629265 4.60495778 37.292724 14.2639109 37.292724 33.5818171 20.5629265 43.2407702 20.5629265 38.786088 33.434856 31.354476"></polygon>
+            </g>
+            <g id="orchsym-logo-title-zh" transform="translate(46.000000, 0.810416)" fill="#000000" fill-opacity="0.85" font-family="PingFangSC-Semibold, PingFang SC" font-size="23.31" font-weight="500">
+                <text id="数聚蜂巢">
+                    <tspan x="0.706534" y="25.315">数聚蜂巢</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>

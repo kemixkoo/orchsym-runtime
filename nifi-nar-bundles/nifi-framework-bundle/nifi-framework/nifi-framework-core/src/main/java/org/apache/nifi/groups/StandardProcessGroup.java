@@ -45,6 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.nifi.additions.StandardTypeAdditions;
+import org.apache.nifi.additions.TypeAdditions;
 import org.apache.nifi.annotation.lifecycle.OnRemoved;
 import org.apache.nifi.annotation.lifecycle.OnShutdown;
 import org.apache.nifi.attribute.expression.language.Query;
@@ -142,11 +144,12 @@ import org.apache.nifi.util.NiFiProperties;
 import org.apache.nifi.util.ReflectionUtils;
 import org.apache.nifi.util.SnippetUtils;
 import org.apache.nifi.web.Revision;
+import org.apache.nifi.web.api.dto.PositionDTO;
 import org.apache.nifi.web.api.dto.TemplateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class StandardProcessGroup implements ProcessGroup, ProcessTags, ProcessAdditions {
+public final class StandardProcessGroup implements ProcessGroup, ProcessTags {
 
     private final String id;
     private final AtomicReference<ProcessGroup> parent;
@@ -155,6 +158,7 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
     private final AtomicReference<String> comments;
     private final AtomicReference<String> versionedComponentId = new AtomicReference<>();
     private final AtomicReference<StandardVersionControlInformation> versionControlInfo = new AtomicReference<>();
+    private final AtomicReference<TypeAdditions> additions=new AtomicReference<>(new StandardTypeAdditions());
     private static final SecureRandom randomGenerator = new SecureRandom();
 
     private final StandardProcessScheduler scheduler;
@@ -175,7 +179,6 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
     private final MutableVariableRegistry variableRegistry;
     private final VersionControlFields versionControlFields = new VersionControlFields();
     private final Set<String> tags=new HashSet<>();
-    private final Map<String,String> additions=new HashMap<>();
 
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock readLock = rwLock.readLock();
@@ -2389,6 +2392,11 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
 
     @Override
     public void move(final Snippet snippet, final ProcessGroup destination) {
+        move(snippet, destination, null);
+    }
+
+    @Override
+    public void move(Snippet snippet, ProcessGroup destination, PositionDTO positionOffset) {
         writeLock.lock();
         try {
             verifyContents(snippet);
@@ -2409,33 +2417,178 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
 
             onComponentModified();
 
+            boolean hasPosition = false;
+            if (positionOffset != null && positionOffset.getX() != null && positionOffset.getY() != null) {
+                hasPosition = true;
+            }
             for (final String id : getKeys(snippet.getInputPorts())) {
-                destination.addInputPort(inputPorts.remove(id));
+                final Port inputPort = inputPorts.remove(id);
+                if (hasPosition)
+                    inputPort.setPosition(getNewPosition(inputPort, positionOffset));
+                destination.addInputPort(inputPort);
             }
             for (final String id : getKeys(snippet.getOutputPorts())) {
-                destination.addOutputPort(outputPorts.remove(id));
+                final Port outputPort = outputPorts.remove(id);
+                if (hasPosition)
+                    outputPort.setPosition(getNewPosition(outputPort, positionOffset));
+                destination.addOutputPort(outputPort);
             }
             for (final String id : getKeys(snippet.getFunnels())) {
-                destination.addFunnel(funnels.remove(id));
+                final Funnel funnel = funnels.remove(id);
+                if (hasPosition)
+                    funnel.setPosition(getNewPosition(funnel, positionOffset));
+                destination.addFunnel(funnel);
             }
             for (final String id : getKeys(snippet.getLabels())) {
-                destination.addLabel(labels.remove(id));
+                final Label label = labels.remove(id);
+                if (hasPosition)
+                    label.setPosition(getNewPosition(label, positionOffset));
+                destination.addLabel(label);
             }
             for (final String id : getKeys(snippet.getProcessGroups())) {
-                destination.addProcessGroup(processGroups.remove(id));
+                final ProcessGroup processGroup = processGroups.remove(id);
+                if (hasPosition)
+                    processGroup.setPosition(getNewPosition(processGroup, positionOffset));
+                destination.addProcessGroup(processGroup);
             }
             for (final String id : getKeys(snippet.getProcessors())) {
-                destination.addProcessor(processors.remove(id));
+                final ProcessorNode processor = processors.remove(id);
+                if (hasPosition)
+                    processor.setPosition(getNewPosition(processor, positionOffset));
+                destination.addProcessor(processor);
             }
             for (final String id : getKeys(snippet.getRemoteProcessGroups())) {
-                destination.addRemoteProcessGroup(remoteGroups.remove(id));
+                final RemoteProcessGroup remoteProcessGroup = remoteGroups.remove(id);
+                if (hasPosition)
+                    remoteProcessGroup.setPosition(getNewPosition(remoteProcessGroup, positionOffset));
+                destination.addRemoteProcessGroup(remoteProcessGroup);
             }
             for (final String id : getKeys(snippet.getConnections())) {
-                destination.inheritConnection(connections.remove(id));
+                final Connection connection = connections.remove(id);
+                if (hasPosition) {
+                    final List<Position> bendsPositions = connection.getBendPoints();
+                    final List<Position> newBendsPositions = new ArrayList<>(bendsPositions.size());
+                    bendsPositions.forEach(pos -> newBendsPositions.add(new Position(pos.getX() + positionOffset.getX(), pos.getY() + positionOffset.getY())));
+                    connection.setBendPoints(newBendsPositions);
+                }
+                destination.inheritConnection(connection);
             }
+
         } finally {
             writeLock.unlock();
         }
+    }
+
+    @Override
+    public void move(Snippet snippet, PositionDTO positionOffset) {
+        writeLock.lock();
+        try {
+            verifyContents(snippet);
+
+            if (!isDisconnected(snippet)) {
+                throw new IllegalStateException("One or more components within the snippet is connected to a component outside of the snippet. Only a disconnected snippet may be moved.");
+            }
+
+            if (isRootGroup() && (!snippet.getInputPorts().isEmpty() || !snippet.getOutputPorts().isEmpty())) {
+                throw new IllegalStateException("Cannot move Ports out of the root group");
+            }
+
+            if (isRootGroup() && (!snippet.getInputPorts().isEmpty() || !snippet.getOutputPorts().isEmpty())) {
+                throw new IllegalStateException("Cannot move Ports into the root group");
+            }
+
+            onComponentModified();
+
+            if (positionOffset != null && positionOffset.getX() != null && positionOffset.getY() != null) {
+                for (final String id: getKeys(snippet.getInputPorts())) {
+                    final Port inputPort = inputPorts.remove(id);
+                    inputPort.setPosition(getNewPosition(inputPort, positionOffset));
+                    addInputPort(inputPort);
+                }
+                for (final String id : getKeys(snippet.getOutputPorts())) {
+                    final Port outputPort = outputPorts.remove(id);
+                    outputPort.setPosition(getNewPosition(outputPort, positionOffset));
+                    addOutputPort(outputPort);
+                }
+                for (final String id : getKeys(snippet.getFunnels())) {
+                    final Funnel funnel = funnels.remove(id);
+                    funnel.setPosition(getNewPosition(funnel, positionOffset));
+                    addFunnel(funnel);
+                }
+                for (final String id : getKeys(snippet.getLabels())) {
+                    final Label label = labels.remove(id);
+                    label.setPosition(getNewPosition(label, positionOffset));
+                    addLabel(label);
+                }
+                for (final String id : getKeys(snippet.getProcessGroups())) {
+                    final ProcessGroup processGroup = processGroups.remove(id);
+                    processGroup.setPosition(getNewPosition(processGroup, positionOffset));
+                    addProcessGroup(processGroup);
+                }
+                for (final String id : getKeys(snippet.getProcessors())) {
+                    final ProcessorNode processor = processors.remove(id);
+                    processor.setPosition(getNewPosition(processor, positionOffset));
+                    addProcessor(processor);
+                }
+                for (final String id : getKeys(snippet.getRemoteProcessGroups())) {
+                    final RemoteProcessGroup remoteProcessGroup = remoteGroups.remove(id);
+                    remoteProcessGroup.setPosition(getNewPosition(remoteProcessGroup, positionOffset));
+                    addRemoteProcessGroup(remoteProcessGroup);
+                }
+                for (final String id : getKeys(snippet.getConnections())) {
+                    final Connection connection = connections.remove(id);
+                    final List<Position> bendsPositions = connection.getBendPoints();
+                    final List<Position> newBendsPositions = new ArrayList<>(bendsPositions.size());
+                    bendsPositions.forEach(pos -> newBendsPositions.add(new Position(pos.getX() + positionOffset.getX(), pos.getY() + positionOffset.getY())));
+                    connection.setBendPoints(newBendsPositions);
+                    inheritConnection(connection);
+                }
+            }
+
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    private Position getNewPosition(Positionable positionable, PositionDTO positionOffset) {
+        return new Position(
+                positionable.getPosition().getX() + positionOffset.getX(),
+                positionable.getPosition().getY() + positionOffset.getY()
+        );
+    }
+
+    @Override
+    public void moveControllerServices(Snippet snippet, ProcessGroup destination) {
+        writeLock.lock();
+        final Set<ProcessorNode> processors = findAllProcessors(snippet);
+        for (final ProcessorNode processorNode : processors) {
+            for (final PropertyDescriptor descriptor : processorNode.getProperties().keySet()) {
+
+                final Class<? extends ControllerService> serviceDefinition = descriptor.getControllerServiceDefinition();
+
+                // if this descriptor identifies a controller service
+                if (serviceDefinition != null) {
+                    final String serviceId = processorNode.getProperty(descriptor);
+
+                    // if the processor is configured with a service
+                    if (serviceId != null) {
+                        // get all the available services in the destination Process group
+                        // todo: if recursive
+                        final Set<String> currentControllerServiceIds = destination.getControllerServices(true)
+                                .stream().map(ComponentNode::getIdentifier).collect(Collectors.toSet());
+                        if (!currentControllerServiceIds.contains(serviceId)) {
+                            final ControllerServiceNode controllerServiceNode = controllerServices.get(serviceId);
+                            // Change the Process Group of Controller Service
+                            if (controllerServiceNode != null) {
+                                destination.addControllerService(controllerServiceNode);
+                            }
+                            controllerServices.remove(serviceId);
+                        }
+                    }
+                }
+            }
+        }
+        writeLock.unlock();
     }
 
     private Set<Connectable> getAllConnectables(final Snippet snippet) {
@@ -2615,7 +2768,17 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
     }
 
     @Override
-    public void verifyCanDelete(final boolean ignoreConnections) {
+    public void verifyCanDelete(final boolean ignorePortConnections) {
+        verifyCanDelete(ignorePortConnections, false);
+    }
+
+    @Override
+    public void verifyCanDelete(final boolean ignoreConnections, final boolean ignoreControllerServices) {
+        verifyCanDelete(ignoreConnections, ignoreControllerServices, false);
+    }
+
+    @Override
+    public void verifyCanDelete(final boolean ignoreConnections, final boolean ignoreControllerServices,final boolean ignoreTemplates) {
         readLock.lock();
         try {
             for (final Port port : inputPorts.values()) {
@@ -2634,8 +2797,10 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
                 connection.verifyCanDelete();
             }
 
-            for (final ControllerServiceNode cs : controllerServices.values()) {
-                cs.verifyCanDelete();
+            if (!ignoreControllerServices) {
+                for (final ControllerServiceNode cs : controllerServices.values()) {
+                    cs.verifyCanDelete();
+                }
             }
 
             for (final ProcessGroup childGroup : processGroups.values()) {
@@ -2644,7 +2809,7 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
                 childGroup.verifyCanDelete(true);
             }
 
-            if (!templates.isEmpty()) {
+            if (!ignoreTemplates && !templates.isEmpty()) {
                 throw new IllegalStateException(String.format("Cannot delete Process Group because it contains %s Templates. The Templates must be deleted first.", templates.size()));
             }
 
@@ -4690,17 +4855,8 @@ public final class StandardProcessGroup implements ProcessGroup, ProcessTags, Pr
     }
 
     @Override
-    public Map<String, String> getAdditions() {
-        return this.additions;
+    public TypeAdditions getAdditions() {
+        return this.additions.get();
     }
 
-    @Override
-    public void setAdditions(Map<String, String> additions) {
-        this.additions.clear();
-        if (null == additions || additions.isEmpty()) {
-            return;
-        }
-        this.additions.putAll(additions);
-
-    }
 }

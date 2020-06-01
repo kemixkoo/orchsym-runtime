@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
-@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2019-08-08")
+@Marks(categories = { "Convert & Control/Convert" }, createdDate = "2019-08-08", iconName = "04.svg")
 @Tags({"JSON", "Avro", "CSV", "Filter"})
 @CapabilityDescription("Filter Avro RecordSet or JSON array or Text line by setting.")
 public class FilterRecord extends AbstractProcessor {

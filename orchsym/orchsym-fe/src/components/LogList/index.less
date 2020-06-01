@@ -1,0 +1,131 @@
+@import '~antd/lib/style/themes/default.less';
+
+.header {
+  width: 500px;
+  height: 40px;
+  background-color: #142934;
+  .headerIcon {
+    float: right;
+    padding: 13px;
+    color: #fff;
+    i {
+      margin: 0 10px;
+    }
+  }
+}
+
+.list {
+  // position: absolute;
+  // top: 0;
+  // left: 100%;
+  width: 500px;
+  max-height: 300px;
+  overflow: auto;
+  background-color: #142934;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .item {
+    padding-right: 24px;
+    padding-left: 24px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+    .meta {
+      width: 100%;
+    }
+    .avatar {
+      margin-top: 4px;
+      background: #fff;
+    }
+    .iconElement {
+      font-size: 32px;
+    }
+    &.read {
+      opacity: 0.4;
+    }
+    &:last-child {
+      border-bottom: 0;
+    }
+    &:hover {
+      background: #333;
+    }
+    .title {
+      margin-bottom: 8px;
+      color: #fff;
+      font-weight: normal;
+    }
+    .description {
+      color: #fff;
+      font-size: 12px;
+      line-height: @line-height-base;
+    }
+    .datetime {
+      margin-top: 4px;
+      color: #fff;
+      font-size: 12px;
+      line-height: @line-height-base;
+    }
+    .extra {
+      float: left;
+      margin-top: -1.5px;
+      margin-right: 0;
+      color: orange;
+      font-weight: normal;
+    }
+  }
+  .loadMore {
+    padding: 8px 0;
+    color: @primary-6;
+    text-align: center;
+    cursor: pointer;
+    &.loadedAll {
+      color: rgba(0, 0, 0, 0.25);
+      cursor: unset;
+    }
+  }
+}
+
+.notFound {
+  padding: 73px 0 88px 0;
+  color: @text-color-secondary;
+  text-align: center;
+  img {
+    display: inline-block;
+    height: 76px;
+    margin-bottom: 16px;
+  }
+}
+
+.bottomBar {
+  height: 46px;
+  color: @text-color;
+  line-height: 46px;
+  text-align: center;
+  border-top: 1px solid @border-color-split;
+  border-radius: 0 0 @border-radius-base @border-radius-base;
+  transition: all 0.3s;
+  div {
+    display: inline-block;
+    width: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+    &:hover {
+      color: @heading-color;
+    }
+    &:only-child {
+      width: 100%;
+    }
+    &:not(:only-child):last-child {
+      border-left: 1px solid @border-color-split;
+    }
+  }
+}
+:global {
+  .ant-list-split .ant-list-item,
+  .ant-list-split .ant-list-header {
+    border-bottom: none;
+  }
+}

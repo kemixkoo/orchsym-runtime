@@ -22,6 +22,8 @@ import org.apache.nifi.web.api.dto.util.TimeAdapter;
 
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -54,6 +56,8 @@ public class SystemDiagnosticsSnapshotDTO implements Cloneable {
 
     private Integer availableProcessors;
     private Double processorLoadAverage;
+    private BigDecimal systemCpuLoad;
+    private BigDecimal jvmProcessCpuLoad;
 
     private Integer totalThreads;
     private Integer daemonThreads;
@@ -131,6 +135,24 @@ public class SystemDiagnosticsSnapshotDTO implements Cloneable {
 
     public void setProcessorLoadAverage(Double processorLoadAverage) {
         this.processorLoadAverage = processorLoadAverage;
+    }
+
+    @ApiModelProperty("The 'recent cpu usage' for the whole system. If it's not available, a negative value will be returned.")
+    public BigDecimal getSystemCpuLoad() {
+        return systemCpuLoad.setScale(3, RoundingMode.HALF_UP);
+    }
+
+    public void setSystemCpuLoad(BigDecimal systemCpuLoad) {
+        this.systemCpuLoad = systemCpuLoad;
+    }
+
+    @ApiModelProperty("The 'recent cpu usage' for the JVM process. If it's not available, a negative value will be returned.")
+    public BigDecimal getJvmProcessCpuLoad() {
+        return jvmProcessCpuLoad.setScale(3, RoundingMode.HALF_UP);
+    }
+
+    public void setJvmProcessCpuLoad(BigDecimal jvmProcessCpuLoad) {
+        this.jvmProcessCpuLoad = jvmProcessCpuLoad;
     }
 
     @ApiModelProperty("Total size of heap.")
@@ -352,6 +374,8 @@ public class SystemDiagnosticsSnapshotDTO implements Cloneable {
         other.setMaxNonHeapBytes(getMaxNonHeapBytes());
         other.setNonHeapUtilization(getNonHeapUtilization());
         other.setProcessorLoadAverage(getProcessorLoadAverage());
+        other.setSystemCpuLoad(getSystemCpuLoad());
+        other.setJvmProcessCpuLoad(getJvmProcessCpuLoad());
         other.setStatsLastRefreshed(getStatsLastRefreshed());
         other.setTotalHeap(getTotalHeap());
         other.setTotalHeapBytes(getTotalHeapBytes());

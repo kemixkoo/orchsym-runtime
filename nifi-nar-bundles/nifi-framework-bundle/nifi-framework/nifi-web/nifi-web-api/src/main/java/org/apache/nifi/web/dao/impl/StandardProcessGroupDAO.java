@@ -69,10 +69,15 @@ public class StandardProcessGroupDAO extends ComponentDAO implements ProcessGrou
         if (processGroup.getName() != null) {
             group.setName(processGroup.getName());
         }
+        if (processGroup.getComments() != null) {
+            group.setComments(processGroup.getComments());
+        }
         if (processGroup.getPosition() != null) {
             group.setPosition(new Position(processGroup.getPosition().getX(), processGroup.getPosition().getY()));
         }
-
+        if (null != processGroup.getTags()) {
+            group.setTags(processGroup.getTags());
+        }
         // add the process group
         group.setParent(parentGroup);
         parentGroup.addProcessGroup(group);
@@ -276,6 +281,9 @@ public class StandardProcessGroupDAO extends ComponentDAO implements ProcessGrou
         if (isNotNull(comments)) {
             group.setComments(comments);
         }
+        if (isNotNull(processGroupDTO.getTags())) {
+            group.setTags(processGroupDTO.getTags());
+        }
 
         group.onComponentModified();
         return group;
@@ -348,9 +356,15 @@ public class StandardProcessGroupDAO extends ComponentDAO implements ProcessGrou
     }
 
     @Override
-    public void verifyDelete(String groupId) {
+    public void verifyDelete(String groupId, boolean ignoreControllerService) {
         ProcessGroup group = locateProcessGroup(flowController, groupId);
-        group.verifyCanDelete();
+        group.verifyCanDelete(false, ignoreControllerService);
+    }
+
+    @Override
+    public void verifyDelete(String groupId, boolean ignorePortConnections, boolean ignoreControllerServices, boolean ignoreTemplates) {
+        ProcessGroup group = locateProcessGroup(flowController, groupId);
+        group.verifyCanDelete(ignorePortConnections, ignoreControllerServices, ignoreTemplates);
     }
 
     @Override

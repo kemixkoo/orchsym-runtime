@@ -208,10 +208,8 @@ public class DBCPServiceTest {
         server.stop();
         server.shutdown();
         server.start();
-
-        // Note!! We should get something like:
-        // org.h2.jdbc.JdbcSQLException: Connection is broken: "session closed" [90067-192]
-        exception.expect(JdbcSQLException.class);
+        // In dbcp2, org.h2.jdbc.JdbcSQLException will not be thrown in this condition.
+//        exception.expect(JdbcSQLException.class);
         for (int i = 0; i < 10; i++) {
             final Connection connection = dbcpService.getConnection();
             System.out.println(connection);

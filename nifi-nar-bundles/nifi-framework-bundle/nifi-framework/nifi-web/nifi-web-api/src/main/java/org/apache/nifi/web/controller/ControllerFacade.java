@@ -569,9 +569,9 @@ public class ControllerFacade implements Authorizable {
      *
      * @return the status of this controller
      */
-    public ControllerStatusDTO getControllerStatus() {
-        final ProcessGroup rootGroup = flowController.getGroup(flowController.getRootGroupId());
-        final GroupStatusCounts groupStatusCounts = flowController.getGroupStatusCounts(rootGroup);
+    public ControllerStatusDTO getControllerStatus(final String groupId) {
+        final ProcessGroup group = flowController.getGroup(groupId);
+        final GroupStatusCounts groupStatusCounts = flowController.getGroupStatusCounts(group);
 
         final ControllerStatusDTO controllerStatus = new ControllerStatusDTO();
         controllerStatus.setActiveThreadCount(groupStatusCounts.getActiveThreadCount());
@@ -580,7 +580,7 @@ public class ControllerFacade implements Authorizable {
         controllerStatus.setBytesQueued(groupStatusCounts.getQueuedContentSize());
         controllerStatus.setFlowFilesQueued(groupStatusCounts.getQueuedCount());
 
-        final ProcessGroupCounts counts = rootGroup.getCounts();
+        final ProcessGroupCounts counts = group.getCounts();
         controllerStatus.setRunningCount(counts.getRunningCount());
         controllerStatus.setStoppedCount(counts.getStoppedCount());
         controllerStatus.setInvalidCount(counts.getInvalidCount());
@@ -1589,6 +1589,30 @@ public class ControllerFacade implements Authorizable {
 
         controllerSearchService.search(results, search, rootGroup);
 
+        return results;
+    }
+
+    /**
+     * @apiNote search results from group
+     */
+    public SearchResultsDTO search(final String search, final String groupId) {
+        final ProcessGroup group = flowController.getGroup(groupId);
+        final SearchResultsDTO results = new SearchResultsDTO();
+        if (group != null){
+            controllerSearchService.search(results, search, group);
+        }
+        return results;
+    }
+
+    /**
+     * @apiNote search results from group
+     */
+    public SearchResultsDTO searchApps(final String search, final String groupId) {
+        final ProcessGroup group = flowController.getGroup(groupId);
+        final SearchResultsDTO results = new SearchResultsDTO();
+        if (group != null){
+            controllerSearchService.searchApp(results, search, group);
+        }
         return results;
     }
 

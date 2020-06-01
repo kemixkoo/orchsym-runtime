@@ -20,7 +20,6 @@ import org.apache.nifi.bundle.Bundle;
 import org.apache.nifi.bundle.BundleCoordinate;
 import org.apache.nifi.util.FileUtils;
 import org.apache.nifi.util.NiFiProperties;
-import org.apache.nifi.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +57,7 @@ public final class NarUnpacker {
 
     private static final Logger logger = LoggerFactory.getLogger(NarUnpacker.class);
     private static String HASH_FILENAME = "nar-md5sum";
-    private static final FileFilter NAR_FILTER = new FileFilter() {
+    public static final FileFilter NAR_FILTER = new FileFilter() {
         @Override
         public boolean accept(File pathname) {
             final String nameToTest = pathname.getName().toLowerCase();
@@ -66,49 +65,8 @@ public final class NarUnpacker {
         }
     };
 
-    private static final FileFilter DIR_FILTER = new FileFilter() {
-
-        @Override
-        public boolean accept(File f) {
-            return f.isDirectory();
-        }
-    };
-
-    private static List<Path> getExtNarDirs(final NiFiProperties props) {
-        List<Path> narLibraryPaths = new ArrayList<>();
-
-        final String narDefaultDir = props.getProperty(NiFiProperties.NAR_LIBRARY_DIRECTORY);
-        if (narDefaultDir != null) {
-            File extNarDir = new File(narDefaultDir, "ext"); // ext nar
-            if (extNarDir.exists()) {
-                narLibraryPaths.addAll(retrieveExtNars(extNarDir));
-            }
-        }
-
-        return narLibraryPaths;
-    }
-
-    private static List<Path> retrieveExtNars(File curDir) {
-        if (!curDir.exists() || !curDir.isDirectory()) {
-            return Collections.emptyList();
-        }
-        List<Path> narDirs = new ArrayList<>();
-        final File[] narFiles = curDir.listFiles(NAR_FILTER);
-        if (narFiles != null && narFiles.length > 0) { // have nar
-            narDirs.add(curDir.toPath()); // add current folder
-        }
-        final File[] subFolders = curDir.listFiles(DIR_FILTER);
-        if (subFolders != null && subFolders.length > 0) {
-            for (File folder : subFolders) {
-                narDirs.addAll(retrieveExtNars(folder));
-            }
-        }
-        return narDirs;
-    }
-
     public static ExtensionMapping unpackNars(final NiFiProperties props, final Bundle systemBundle) {
         final List<Path> narLibraryDirs = props.getNarLibraryDirectories();
-        narLibraryDirs.addAll(getExtNarDirs(props)); // add ext nars
         final File frameworkWorkingDir = props.getFrameworkWorkingDirectory();
         final File extensionsWorkingDir = props.getExtensionsWorkingDirectory();
         final File docsWorkingDir = props.getComponentDocumentationWorkingDirectory();
@@ -249,7 +207,7 @@ public final class NarUnpacker {
             final File unpackedNar = entry.getKey();
             final BundleCoordinate bundleCoordinate = entry.getValue();
 
-            final File bundledDependencies = new File(unpackedNar, "META-INF/bundled-dependencies");
+            final File bundledDependencies = new File(unpackedNar, "NAR-INF/bundled-dependencies");
 
             unpackBundleDocs(docsDirectory, mapping, bundleCoordinate, bundledDependencies);
         }
@@ -315,6 +273,9 @@ public final class NarUnpacker {
             while (jarEntries.hasMoreElements()) {
                 JarEntry jarEntry = jarEntries.nextElement();
                 String name = jarEntry.getName();
+                if (name.contains("META-INF/bundled-dependencies")) {
+                    name = name.replace("META-INF/bundled-dependencies", "NAR-INF/bundled-dependencies");
+                }
                 File f = new File(workingDirectory, name);
                 if (jarEntry.isDirectory()) {
                     FileUtils.ensureDirectoryExistAndCanAccess(f);

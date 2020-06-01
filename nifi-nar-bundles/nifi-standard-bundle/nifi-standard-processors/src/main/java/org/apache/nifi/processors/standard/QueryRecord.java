@@ -45,8 +45,10 @@ import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.fun.SqlLibrary;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.parser.SqlParser.Config;
+import org.apache.calcite.util.ConversionUtil;
 import org.apache.nifi.annotation.behavior.DynamicProperty;
 import org.apache.nifi.annotation.behavior.DynamicRelationship;
 import org.apache.nifi.annotation.behavior.EventDriven;
@@ -114,6 +116,14 @@ import org.apache.nifi.util.StopWatch;
     @WritesAttribute(attribute = "record.count", description = "The number of records selected by the query")
 })
 public class QueryRecord extends AbstractProcessor {
+    static {
+        System.setProperty("saffron.default.charset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("saffron.default.nationalcharset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("saffron.default.collation.name", ConversionUtil.NATIVE_UTF16_CHARSET_NAME + "$en_US");
+        System.setProperty("calcite.default.charset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("calcite.default.nationalcharset", ConversionUtil.NATIVE_UTF16_CHARSET_NAME);
+        System.setProperty("calcite.default.collation.name", ConversionUtil.NATIVE_UTF16_CHARSET_NAME + "$en_US");
+    }
     static final PropertyDescriptor RECORD_READER_FACTORY = new PropertyDescriptor.Builder()
         .name("record-reader")
         .displayName("Record Reader")
@@ -452,6 +462,8 @@ public class QueryRecord extends AbstractProcessor {
         final Supplier<CalciteConnection> connectionSupplier = () -> {
             final Properties properties = new Properties();
             properties.put(CalciteConnectionProperty.LEX.camelName(), Lex.MYSQL_ANSI.name());
+            // in order to support the to_base64, from_base64, to_date, etc
+            properties.put(CalciteConnectionProperty.FUN.camelName(), SqlLibrary.MYSQL.fun);
 
             try {
                 final Connection connection = DriverManager.getConnection("jdbc:calcite:", properties);

@@ -98,7 +98,7 @@
                     </div>
                 </div>
                 <div id="splash-copyright" layout="row" layout-align="center end" style="height:40%">
-                    <p style="font-size:20px; color:white">&copy; 2018 Baishan Cloud Incorporated. All rights reserved.</p>
+                    <p style="font-size:20px; color:white">&copy; 2019 Baishan Cloud Incorporated. All rights reserved.</p>
                 </div>
         </div>
         <jsp:include page="/WEB-INF/partials/message-pane.jsp"/>

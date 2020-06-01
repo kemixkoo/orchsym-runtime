@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Orchsym Runtime under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ * 
+ * this file to You under the Orchsym License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * https://github.com/orchsym/runtime/blob/master/orchsym/LICENSE
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.nifi.web.api.dto.stats;
 
 import java.util.Map;
@@ -7,6 +24,21 @@ import java.util.Map;
  *
  */
 public class SummaryCounterDTO {
+    // 应用
+    private Integer appCount;
+    private Integer appRunningCount;
+    private Integer appStoppedCount;
+
+    private Long groupCount; // 所有模块总数
+    private Long groupLeavesCount;
+    private Long templateCount;
+    private Long labelCount;
+    private Long varCount;
+    private Long funnelCount;
+    private Integer inputPortCount;
+    private Integer outputPortCount;
+    private Long connectionCount;
+
     private Integer runningCount;
     private Integer stoppedCount;
     private Integer invalidCount;
@@ -21,30 +53,113 @@ public class SummaryCounterDTO {
     private Integer locallyModifiedAndStaleCount;
     private Integer syncFailureCount;
 
-    private Integer inputPortCount;
-    private Integer outputPortCount;
+    private Long components; // 平台提供组件数
+    private Long componentsOwned; // 平台自主研发组件数
+    private Long componentsUsed; // 使用组件数
+    private Long componentsUsedCount; // 使用组件频次总数
+    private Map<String, Long> componentsI18n;
 
-    private Long processorCount; // all processor for runtime to load
-    private Long processorOwnedCount; // provide by us
-    private Long processorUsedCount;
-    private Long processorUsedTotalCount;
-    private Long processorUsedPropertiesCount;
-    private Map<String, Long> processorI18nCount;
+    private Long services; // 平台提供的服务
+    private Long servicesOwned; // 自主研发服务
+    private Long servicesUsed; // 使用服务数
+    private Long servicesUsedCount; // 使用服务频次总数
+    private Map<String, Long> servicesI18n;
 
-    private Long controllerCount; // all controller services for runtime to load
-    private Long controllerOwnedCount; // provide by us
-    private Long controllerUsedCount;
-    private Long controllerUsedTotalCount;
-    private Long controllerUsedPropertiesCount;
-    private Map<String, Long> controllerI18nCount;
+    public Integer getAppCount() {
+        return appCount;
+    }
 
-    private Long connectionCount;
-    private Long funnelCount;
-    private Long groupCount;
-    private Long groupLeavesCount;
-    private Long labelCount;
-    private Long varCount;
-    private Long templateCount;
+    public void setAppCount(Integer appCount) {
+        this.appCount = appCount;
+    }
+
+    public Integer getAppRunningCount() {
+        return appRunningCount;
+    }
+
+    public void setAppRunningCount(Integer appRunningCount) {
+        this.appRunningCount = appRunningCount;
+    }
+
+    public Integer getAppStoppedCount() {
+        return appStoppedCount;
+    }
+
+    public void setAppStoppedCount(Integer appStoppedCount) {
+        this.appStoppedCount = appStoppedCount;
+    }
+
+    public Long getGroupCount() {
+        return groupCount;
+    }
+
+    public void setGroupCount(Long groupCount) {
+        this.groupCount = groupCount;
+    }
+
+    public Long getGroupLeavesCount() {
+        return groupLeavesCount;
+    }
+
+    public void setGroupLeavesCount(Long groupLeavesCount) {
+        this.groupLeavesCount = groupLeavesCount;
+    }
+
+    public Long getTemplateCount() {
+        return templateCount;
+    }
+
+    public void setTemplateCount(Long templateCount) {
+        this.templateCount = templateCount;
+    }
+
+    public Long getLabelCount() {
+        return labelCount;
+    }
+
+    public void setLabelCount(Long labelCount) {
+        this.labelCount = labelCount;
+    }
+
+    public Long getVarCount() {
+        return varCount;
+    }
+
+    public void setVarCount(Long varCount) {
+        this.varCount = varCount;
+    }
+
+    public Long getFunnelCount() {
+        return funnelCount;
+    }
+
+    public void setFunnelCount(Long funnelCount) {
+        this.funnelCount = funnelCount;
+    }
+
+    public Integer getInputPortCount() {
+        return inputPortCount;
+    }
+
+    public void setInputPortCount(Integer inputPortCount) {
+        this.inputPortCount = inputPortCount;
+    }
+
+    public Integer getOutputPortCount() {
+        return outputPortCount;
+    }
+
+    public void setOutputPortCount(Integer outputPortCount) {
+        this.outputPortCount = outputPortCount;
+    }
+
+    public Long getConnectionCount() {
+        return connectionCount;
+    }
+
+    public void setConnectionCount(Long connectionCount) {
+        this.connectionCount = connectionCount;
+    }
 
     public Integer getRunningCount() {
         return runningCount;
@@ -134,172 +249,84 @@ public class SummaryCounterDTO {
         this.syncFailureCount = syncFailureCount;
     }
 
-    public Integer getInputPortCount() {
-        return inputPortCount;
+    public Long getComponents() {
+        return components;
     }
 
-    public void setInputPortCount(Integer inputPortCount) {
-        this.inputPortCount = inputPortCount;
+    public void setComponents(Long components) {
+        this.components = components;
     }
 
-    public Integer getOutputPortCount() {
-        return outputPortCount;
+    public Long getComponentsOwned() {
+        return componentsOwned;
     }
 
-    public void setOutputPortCount(Integer outputPortCount) {
-        this.outputPortCount = outputPortCount;
+    public void setComponentsOwned(Long componentsOwned) {
+        this.componentsOwned = componentsOwned;
     }
 
-    public Long getConnectionCount() {
-        return connectionCount;
+    public Long getComponentsUsed() {
+        return componentsUsed;
     }
 
-    public void setConnectionCount(Long connectionCount) {
-        this.connectionCount = connectionCount;
+    public void setComponentsUsed(Long componentsUsed) {
+        this.componentsUsed = componentsUsed;
     }
 
-    public Long getFunnelCount() {
-        return funnelCount;
+    public Long getComponentsUsedCount() {
+        return componentsUsedCount;
     }
 
-    public void setFunnelCount(Long funnelCount) {
-        this.funnelCount = funnelCount;
+    public void setComponentsUsedCount(Long componentsUsedCount) {
+        this.componentsUsedCount = componentsUsedCount;
     }
 
-    public Long getProcessorCount() {
-        return processorCount;
+    public Map<String, Long> getComponentsI18n() {
+        return componentsI18n;
     }
 
-    public void setProcessorCount(Long processorCount) {
-        this.processorCount = processorCount;
+    public void setComponentsI18n(Map<String, Long> componentsI18n) {
+        this.componentsI18n = componentsI18n;
     }
 
-    public Long getProcessorOwnedCount() {
-        return processorOwnedCount;
+    public Long getServices() {
+        return services;
     }
 
-    public void setProcessorOwnedCount(Long processorOwnedCount) {
-        this.processorOwnedCount = processorOwnedCount;
+    public void setServices(Long services) {
+        this.services = services;
     }
 
-    public Long getProcessorUsedCount() {
-        return processorUsedCount;
+    public Long getServicesOwned() {
+        return servicesOwned;
     }
 
-    public void setProcessorUsedCount(Long processorUsedCount) {
-        this.processorUsedCount = processorUsedCount;
+    public void setServicesOwned(Long servicesOwned) {
+        this.servicesOwned = servicesOwned;
     }
 
-    public Long getProcessorUsedPropertiesCount() {
-        return processorUsedPropertiesCount;
+    public Long getServicesUsed() {
+        return servicesUsed;
     }
 
-    public void setProcessorUsedPropertiesCount(Long processorUsedPropertiesCount) {
-        this.processorUsedPropertiesCount = processorUsedPropertiesCount;
+    public void setServicesUsed(Long servicesUsed) {
+        this.servicesUsed = servicesUsed;
     }
 
-    public void setProcessorUsedTotalCount(Long processorUsedTotalCount) {
-        this.processorUsedTotalCount = processorUsedTotalCount;
+    public Long getServicesUsedCount() {
+        return servicesUsedCount;
     }
 
-    public Long getProcessorUsedTotalCount() {
-        return processorUsedTotalCount;
+    public void setServicesUsedCount(Long servicesUsedCount) {
+        this.servicesUsedCount = servicesUsedCount;
     }
 
-    public Long getControllerCount() {
-        return controllerCount;
+    public Map<String, Long> getServicesI18n() {
+        return servicesI18n;
     }
 
-    public void setControllerCount(Long controllerCount) {
-        this.controllerCount = controllerCount;
-    }
-
-    public Long getControllerOwnedCount() {
-        return controllerOwnedCount;
-    }
-
-    public void setControllerOwnedCount(Long controllerOwnedCount) {
-        this.controllerOwnedCount = controllerOwnedCount;
-    }
-
-    public Long getControllerUsedCount() {
-        return controllerUsedCount;
-    }
-
-    public void setControllerUsedCount(Long controllerUsedCount) {
-        this.controllerUsedCount = controllerUsedCount;
-    }
-
-    public Long getControllerUsedTotalCount() {
-        return controllerUsedTotalCount;
-    }
-
-    public void setControllerUsedTotalCount(Long controllerUsedTotalCount) {
-        this.controllerUsedTotalCount = controllerUsedTotalCount;
-    }
-
-    public Long getControllerUsedPropertiesCount() {
-        return controllerUsedPropertiesCount;
-    }
-
-    public void setControllerUsedPropertiesCount(Long controllerUsedPropertiesCount) {
-        this.controllerUsedPropertiesCount = controllerUsedPropertiesCount;
-    }
-
-    public Long getGroupCount() {
-        return groupCount;
-    }
-
-    public void setGroupCount(Long groupCount) {
-        this.groupCount = groupCount;
-    }
-
-    public Long getGroupLeavesCount() {
-        return groupLeavesCount;
-    }
-
-    public void setGroupLeavesCount(Long groupLeavesCount) {
-        this.groupLeavesCount = groupLeavesCount;
-    }
-
-    public Long getLabelCount() {
-        return labelCount;
-    }
-
-    public void setLabelCount(Long labelCount) {
-        this.labelCount = labelCount;
-    }
-
-    public Long getVarCount() {
-        return varCount;
-    }
-
-    public void setVarCount(Long varCount) {
-        this.varCount = varCount;
-    }
-
-    public Long getTemplateCount() {
-        return templateCount;
-    }
-
-    public void setTemplateCount(Long templateCount) {
-        this.templateCount = templateCount;
-    }
-
-    public Map<String, Long> getProcessorI18nCount() {
-        return processorI18nCount;
-    }
-
-    public void setProcessorI18nCount(Map<String, Long> processorI18nCount) {
-        this.processorI18nCount = processorI18nCount;
-    }
-
-    public Map<String, Long> getControllerI18nCount() {
-        return controllerI18nCount;
-    }
-
-    public void setControllerI18nCount(Map<String, Long> controllerI18nCount) {
-        this.controllerI18nCount = controllerI18nCount;
+    public void setServicesI18n(Map<String, Long> servicesI18n) {
+        this.servicesI18n = servicesI18n;
     }
 
 }
